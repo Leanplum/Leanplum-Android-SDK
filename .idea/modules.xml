@@ -3,9 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AndroidSDK/AndroidSDK.iml" filepath="$PROJECT_DIR$/AndroidSDK/AndroidSDK.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AndroidSDK/AndroidSDK.iml" filepath="$PROJECT_DIR$/AndroidSDK/AndroidSDK.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidSDKSample/AndroidSDKSample.iml" filepath="$PROJECT_DIR$/AndroidSDKSample/AndroidSDKSample.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidSDKTestApp/AndroidSDKTestApp.iml" filepath="$PROJECT_DIR$/AndroidSDKTestApp/AndroidSDKTestApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidSDKUIEditor/AndroidSDKUIEditor.iml" filepath="$PROJECT_DIR$/AndroidSDKUIEditor/AndroidSDKUIEditor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Leanplum-Android-SDK.iml" filepath="$PROJECT_DIR$/Leanplum-Android-SDK.iml" />
       <module fileurl="file://$PROJECT_DIR$/Leanplum-Android-SDK.iml" filepath="$PROJECT_DIR$/Leanplum-Android-SDK.iml" />
     </modules>
   </component>
