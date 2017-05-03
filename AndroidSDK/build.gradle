@@ -36,7 +36,7 @@ android {
     publishNonDefault true
 
     defaultConfig {
-        consumerProguardFiles 'proguard-rules.pro'
+        consumerProguardFiles 'consumer-proguard-rules.pro'
     }
 
     buildTypes {

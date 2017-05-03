@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import com.google.android.gms.location.LocationServices;
 import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
@@ -17,7 +18,6 @@ import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 
 import java.io.Serializable;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,13 +58,7 @@ public class ActionManager {
   public static LocationManager getLocationManager() {
     if (Util.hasPlayServices()) {
       try {
-        Class<?> googleApiClientClass =
-            Class.forName("com.google.android.gms.common.api.GoogleApiClient");
-        if (googleApiClientClass != null
-            && Modifier.isAbstract(googleApiClientClass.getModifiers())
-            && Modifier.isAbstract(
-            googleApiClientClass.getMethod("isConnected").getModifiers())
-            && Class.forName("com.google.android.gms.location.LocationServices") != null) {
+        if (LocationServices.API != null) {
           // Reflection here prevents linker errors
           // in Google Play Services is not used in the client app.
           return (LocationManager) Class
