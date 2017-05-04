@@ -323,6 +323,7 @@
 
 -keepattributes *Annotation*
 -keepattributes Signature
+-keepattributes Exceptions
 
 -keep class com.leanplum.Leanplum {
     static void reset();
