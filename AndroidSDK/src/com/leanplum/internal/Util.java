@@ -191,8 +191,8 @@ public class Util {
           return new DeviceIdInfo(deviceId, limitedTracking);
         }
       }
-    } catch (Throwable ignored) {
-      Log.e("Error getting advertising ID. Google Play Services are not available.");
+    } catch (Throwable t) {
+      Log.e("Error getting advertising ID. Google Play Services are not available: ", t);
     }
     return null;
   }

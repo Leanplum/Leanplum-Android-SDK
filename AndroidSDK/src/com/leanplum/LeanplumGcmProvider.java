@@ -93,6 +93,7 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
       Log.w("There was a problem setting up GCM, please make sure you follow instructions " +
           "on how to set it up. Please verify that you are using correct version of " +
           "Google Play Services and Android Support Library v4.");
+      Util.handleException(t);
     }
     return registrationId;
   }
