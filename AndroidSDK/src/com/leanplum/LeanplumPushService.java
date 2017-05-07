@@ -71,6 +71,23 @@ public class LeanplumPushService {
    * Leanplum's built-in Google Cloud Messaging sender ID.
    */
   public static final String LEANPLUM_SENDER_ID = "44059457771";
+
+  /**
+   * Action param key contained when Notification Bundle is parsed with {@link
+   * LeanplumPushService#parseNotificationBundle(Bundle)}.
+   */
+  public static final String LEANPLUM_ACTION_PARAM = "lp_action_param";
+  /**
+   * Message title param key contained when Notification Bundle is parsed with {@link
+   * LeanplumPushService#parseNotificationBundle(Bundle)}.
+   */
+  public static final String LEANPLUM_MESSAGE_PARAM = "lp_message_param";
+  /**
+   * Message id param key contained when Notification Bundle is parsed with {@link
+   * LeanplumPushService#parseNotificationBundle(Bundle)}.
+   */
+  public static final String LEANPLUM_MESSAGE_ID = "lp_message_id";
+
   private static final String LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS =
       "com.leanplum.LeanplumPushFcmListenerService";
   private static final String PUSH_FIREBASE_MESSAGING_SERVICE_CLASS =
@@ -349,10 +366,11 @@ public class LeanplumPushService {
     notificationManager.notify(notificationId, builder.build());
   }
 
-  static void openNotification(Context context, final Bundle notification) {
+  static void openNotification(Context context, Intent intent) {
     Log.d("Opening push notification action.");
+    // Pre handles push notification.
+    Bundle notification = preHandlePushNotification(context, intent);
     if (notification == null) {
-      Log.i("Received null Bundle.");
       return;
     }
 
@@ -364,11 +382,11 @@ public class LeanplumPushService {
     // Start activity.
     Class<? extends Activity> callbackClass = LeanplumPushService.getCallbackClass();
     boolean shouldStartActivity = true;
-    if (LeanplumActivityHelper.currentActivity != null &&
-        !LeanplumActivityHelper.isActivityPaused) {
+    Activity currentActivity= LeanplumActivityHelper.currentActivity;
+    if (currentActivity != null && !LeanplumActivityHelper.isActivityPaused) {
       if (callbackClass == null) {
         shouldStartActivity = false;
-      } else if (callbackClass.isInstance(LeanplumActivityHelper.currentActivity)) {
+      } else if (callbackClass.isInstance(currentActivity)) {
         shouldStartActivity = false;
       }
     }
@@ -376,12 +394,73 @@ public class LeanplumPushService {
     if (shouldStartActivity) {
       Intent actionIntent = getActionIntent(context);
       actionIntent.putExtras(notification);
-      actionIntent.addFlags(
-          Intent.FLAG_ACTIVITY_CLEAR_TOP |
-              Intent.FLAG_ACTIVITY_NEW_TASK);
+      actionIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
       context.startActivity(actionIntent);
     }
+    // Post handles push notification.
+    postHandlePushNotification(context, intent);
+  }
 
+  /**
+   * Parse notification bundle. Use this method to get parsed bundle to decide next step. Parsed
+   * data will contain {@link LeanplumPushService#LEANPLUM_ACTION_PARAM}, {@link
+   * LeanplumPushService#LEANPLUM_MESSAGE_PARAM} and {@link LeanplumPushService#LEANPLUM_MESSAGE_ID}
+   *
+   * @param notificationBundle Bundle to be parsed.
+   * @return Map containing Actions, Message title and Message Id.
+   */
+  public static Map<String, Object> parseNotificationBundle(Bundle notificationBundle) {
+    try {
+      String notificationActions = notificationBundle.getString(Keys.PUSH_MESSAGE_ACTION);
+      String notificationMessage = notificationBundle.getString(Keys.PUSH_MESSAGE_TEXT);
+      String notificationMessageId = LeanplumPushService.getMessageId(notificationBundle);
+
+      Map<String, Object> arguments = new HashMap<>();
+      arguments.put(LEANPLUM_ACTION_PARAM, JsonConverter.fromJson(notificationActions));
+      arguments.put(LEANPLUM_MESSAGE_PARAM, notificationMessage);
+      arguments.put(LEANPLUM_MESSAGE_ID, notificationMessageId);
+
+      return arguments;
+    } catch (Throwable ignored) {
+      Log.i("Failed to parse notification bundle.");
+    }
+    return null;
+  }
+
+  /**
+   * Must be called before deciding which activity will be opened, to allow Leanplum SDK to track
+   * stats, open events etc.
+   *
+   * @param context Surrounding context.
+   * @param intent Received Intent.
+   * @return Bundle containing push notification data.
+   */
+  public static Bundle preHandlePushNotification(Context context, Intent intent) {
+    if (intent == null) {
+      Log.i("Unable to pre handle push notification, Intent is null.");
+      return null;
+    }
+    Bundle notification = intent.getExtras();
+    if (notification == null) {
+      Log.i("Unable to pre handle push notification, extras are null.");
+      return null;
+    }
+    return notification;
+  }
+
+  /**
+   * Must be called after deciding which activity will be opened, to allow Leanplum SDK to track
+   * stats, open events etc.
+   *
+   * @param context Surrounding context.
+   * @param intent Received Intent.
+   */
+  public static void postHandlePushNotification(Context context, Intent intent) {
+    final Bundle notification = intent.getExtras();
+    if (notification == null) {
+      Log.i("Could not post handle push notification, extras are null.");
+      return;
+    }
     // Perform action.
     LeanplumActivityHelper.queueActionUponActive(new VariablesChangedCallback() {
       @Override
@@ -396,8 +475,8 @@ public class LeanplumPushService {
               Map<String, Object> args = new HashMap<>();
               args.put(actionName, JsonConverter.fromJson(
                   notification.getString(Keys.PUSH_MESSAGE_ACTION)));
-              ActionContext context = new ActionContext(
-                  ActionManager.PUSH_NOTIFICATION_ACTION_NAME, args, messageId);
+              ActionContext context = new ActionContext(ActionManager.PUSH_NOTIFICATION_ACTION_NAME,
+                  args, messageId);
               context.preventRealtimeUpdating();
               context.update();
               context.runTrackedActionNamed(actionName);

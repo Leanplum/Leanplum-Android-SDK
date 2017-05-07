@@ -22,7 +22,9 @@
 package com.leanplum.internal;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
@@ -516,6 +518,23 @@ public class LeanplumManifestHelper {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Parses and returns client broadcast receiver class name.
+   *
+   * @return Client broadcast receiver class name.
+   */
+  public static String parseNotificationMetadata() {
+    try {
+      Context context = Leanplum.getContext();
+      ApplicationInfo app = context.getPackageManager().getApplicationInfo(context.getPackageName(),
+          PackageManager.GET_META_DATA);
+      Bundle bundle = app.metaData;
+      return bundle.getString(Constants.ClassUtil.LEANPLUM_NOTIFICATION_RECEIVER);
+    } catch (Throwable ignored) {
+    }
+    return null;
   }
 
   /**
