@@ -259,6 +259,6 @@ public class Constants {
 
   public static class ClassUtil {
     public static final String UI_INTERFACE_EDITOR = "com.leanplum.uieditor.LeanplumUIEditor";
-    public static final String LEANPLUM_NOTIFICATION_RECEIVER = "LP_NOTIFICATION_RECEIVER";
+    public static final String LEANPLUM_NOTIFICATION = "LP_NOTIFICATION";
   }
 }

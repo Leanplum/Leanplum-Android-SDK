@@ -531,7 +531,7 @@ public class LeanplumManifestHelper {
       ApplicationInfo app = context.getPackageManager().getApplicationInfo(context.getPackageName(),
           PackageManager.GET_META_DATA);
       Bundle bundle = app.metaData;
-      return bundle.getString(Constants.ClassUtil.LEANPLUM_NOTIFICATION_RECEIVER);
+      return bundle.getString(Constants.ClassUtil.LEANPLUM_NOTIFICATION);
     } catch (Throwable ignored) {
     }
     return null;

@@ -969,4 +969,18 @@ public class Util {
     Log.w("Could not extract resource id from provided resource name: ", resourceName);
     return 0;
   }
+
+  /**
+   * Builds intent action in format PackageName + Action.
+   *
+   * @param context Surrounding context.
+   * @param action Intent action.
+   * @return Action in format com.example.Action.
+   */
+  public static String buildIntentAction(Context context, String action) {
+    if (context == null) {
+      return null;
+    }
+    return context.getPackageName() + "." + action;
+  }
 }

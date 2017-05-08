@@ -24,10 +24,8 @@ package com.leanplum;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
 
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
@@ -57,6 +55,10 @@ public class LeanplumPushReceiver extends BroadcastReceiver {
         Log.d("Custom broadcast receiver class found, using it to handle push notifications.");
         // Forward Intent to a client broadcast receiver.
         Intent forwardIntent = new Intent();
+        // Add action to be able to differentiate between multiple intents.
+        String action = Util.buildIntentAction(context,
+            Constants.ClassUtil.LEANPLUM_NOTIFICATION);
+        forwardIntent.setAction(action);
         forwardIntent.setClassName(context, receiver);
         forwardIntent.putExtras(intent.getExtras());
         context.sendBroadcast(forwardIntent);
