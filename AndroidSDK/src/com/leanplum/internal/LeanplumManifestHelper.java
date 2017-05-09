@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
+import com.leanplum.LeanplumPushService;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -531,7 +532,7 @@ public class LeanplumManifestHelper {
       ApplicationInfo app = context.getPackageManager().getApplicationInfo(context.getPackageName(),
           PackageManager.GET_META_DATA);
       Bundle bundle = app.metaData;
-      return bundle.getString(Constants.ClassUtil.LEANPLUM_NOTIFICATION);
+      return bundle.getString(LeanplumPushService.LEANPLUM_NOTIFICATION);
     } catch (Throwable ignored) {
     }
     return null;

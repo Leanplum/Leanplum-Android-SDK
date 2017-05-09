@@ -71,7 +71,10 @@ public class LeanplumPushService {
    * Leanplum's built-in Google Cloud Messaging sender ID.
    */
   public static final String LEANPLUM_SENDER_ID = "44059457771";
-
+  /**
+   * Intent action used when broadcast is received in custom BroadcastReceiver.
+   */
+  public static final String LEANPLUM_NOTIFICATION = "LP_NOTIFICATION";
   /**
    * Action param key contained when Notification Bundle is parsed with {@link
    * LeanplumPushService#parseNotificationBundle(Bundle)}.

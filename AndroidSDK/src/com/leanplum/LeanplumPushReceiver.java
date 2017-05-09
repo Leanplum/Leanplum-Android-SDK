@@ -56,9 +56,7 @@ public class LeanplumPushReceiver extends BroadcastReceiver {
         // Forward Intent to a client broadcast receiver.
         Intent forwardIntent = new Intent();
         // Add action to be able to differentiate between multiple intents.
-        String action = Util.buildIntentAction(context,
-            Constants.ClassUtil.LEANPLUM_NOTIFICATION);
-        forwardIntent.setAction(action);
+        forwardIntent.setAction(LeanplumPushService.LEANPLUM_NOTIFICATION);
         forwardIntent.setClassName(context, receiver);
         forwardIntent.putExtras(intent.getExtras());
         context.sendBroadcast(forwardIntent);
