@@ -37,7 +37,7 @@ public class Constants {
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
   static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
 
-  public static String LEANPLUM_VERSION = "2.2.2-SNAPSHOT";
+  public static String LEANPLUM_VERSION = "2.2.2";
   public static String CLIENT = "android";
 
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";
