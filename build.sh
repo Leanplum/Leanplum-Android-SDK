@@ -28,6 +28,7 @@ default="${android_dir}/AndroidSDK"
 sdk_dir=${sdk_dir:-$default}
 release_dir="${android_dir}/Release"
 
+rm -rf "$release_dir"
 mkdir -p "$release_dir"
 
 # Build the AndroidSDK using gradle.
