@@ -156,3 +156,7 @@ captures/
 # Keystore files
 *.jks
 
+
+## CUSTOM
+
+Release/
