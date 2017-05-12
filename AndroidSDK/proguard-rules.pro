@@ -1,6 +1,7 @@
 -dontwarn com.actionbarsherlock.**
 
 -dontnote
+-dontshrink
 -keepparameternames
 -keepattributes EnclosingMethod
 
