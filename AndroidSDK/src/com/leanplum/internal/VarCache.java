@@ -520,7 +520,7 @@ public class VarCache {
         String name = entry.getKey();
         Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(VarCache.messages.get
             (name));
-        if (messageConfig.get("action") != null) {
+        if (messageConfig != null && messageConfig.get("action") != null) {
           Map<String, Object> actionArgs =
               CollectionUtil.uncheckedCast(messageConfig.get(Constants.Keys.VARS));
           new ActionContext(
