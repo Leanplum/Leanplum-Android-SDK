@@ -465,14 +465,16 @@ public class VarCache {
   private static void fileVariableFinish() {
     for (String name : new HashMap<>(vars).keySet()) {
       Var<?> var = vars.get(name);
-      String overrideFile = var.stringValue;
-      if (var.isResource && (var.kind().equals(Constants.Kinds.FILE)) && overrideFile != null &&
-          !var.defaultValue().equals(overrideFile)) {
-        Map<String, Object> variationAttributes = CollectionUtil.uncheckedCast(fileAttributes.get
-            (overrideFile));
-        InputStream stream = fileStreams.get(overrideFile);
-        if (variationAttributes != null && stream != null) {
-          var.setOverrideResId(getResIdFromPath(var.stringValue()));
+      if (var != null) {
+        String overrideFile = var.stringValue;
+        if (var.isResource && Constants.Kinds.FILE.equals(var.kind()) && overrideFile != null &&
+                !overrideFile.equals(var.defaultValue())) {
+          Map<String, Object> variationAttributes = CollectionUtil.uncheckedCast(fileAttributes.get
+                  (overrideFile));
+          InputStream stream = fileStreams.get(overrideFile);
+          if (variationAttributes != null && stream != null) {
+            var.setOverrideResId(getResIdFromPath(var.stringValue()));
+          }
         }
       }
     }
