@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EntryPointsManager">
+    <entry_points version="2.0">
+      <entry_point TYPE="method" FQNAME="com.leanplum.__setup.LeanplumTestRunner java.lang.String getPackageName(org.robolectric.annotation.Config config)" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.__setup.AbstractTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.ActionContextTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.ActivityTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.utils.BitmapUtilTest" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testNullSafety()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testPreferenceDefault()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testDecodePreference()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testLegacyVariantsNotIgnored()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testIgnoreLegacyCorruptedValue()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testDecryptFailureReturnsNull()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testDecryptCompatibility()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testLegacyDecrypt()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void testEncryptDecrypt()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void tearDown()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest void setUp()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest java.lang.String legacyEncrypt(java.lang.String plaintext)" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.AESCryptTest java.lang.String legacyEncrypt(java.lang.String password, java.lang.String plaintext)" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest preferences" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest context" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest aesCrypt" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest V1_OATMEAL" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest V0_OATMEAL" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest TOKEN" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.AESCryptTest APP_ID" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.AESCryptTest" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.__setup.AbstractTest rule" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.utils.BitmapUtilTest rule" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.CollectionUtilTest void testConcatenateArray()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.CollectionUtilTest void testConcatenateList()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.CollectionUtilTest void testNewLinkedHashMap()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.CollectionUtilTest void testNewHashMap()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.CollectionUtilTest void testNewHashSet()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.CollectionUtilTest void testNewArrayList()" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.CollectionUtilTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.FileManagerTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.GridViewTestActivity" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.InterfaceTestActivity" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.JsonConverterTest void testFromJson()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.JsonConverterTest void testToJson()" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.JsonConverterTest json" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.JsonConverterTest map" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.JsonConverterTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.LeanplumActivityHelperTest.FakeActivity" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumActivityHelperTest void testQueueActionUponActive()" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.LeanplumActivityHelperTest" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.LeanplumCloudMessagingProviderTest rule" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.LeanplumCloudMessagingProviderTest" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.LeanplumInternalTest rule" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.LeanplumInternalTest" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.LeanplumPushServiceTest rule" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.LeanplumPushServiceTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.LeanplumSyncTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.LeanplumTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.LeanplumTestActivity" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.LeanplumTestFragmentActivity" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.__setup.LeanplumTestRunner LeanplumTestRunner(java.lang.Class&lt;?&gt; clazz)" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.__setup.LeanplumTestRunner" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.ListViewTestActivity" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.LocationManagerTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.MessagesTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.NewsfeedTest" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.activities.RecyclerViewTestActivity.ItemHolder ItemHolder(android.view.View itemView)" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.RecyclerViewTestActivity.ItemHolder" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.activities.RecyclerViewTestActivity" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.utilities.RequestHelper RequestHelper(java.lang.String httpMethod, java.lang.String apiMethod, java.util.Map&lt;java.lang.String,java.lang.Object&gt; params)" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.utilities.RequestHelper" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.RequestTest" />
+      <entry_point TYPE="field" FQNAME="com.leanplum.internal.SocketIOClientTest rule" />
+      <entry_point TYPE="class" FQNAME="com.leanplum.internal.SocketIOClientTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.utilities.SynchronousExecutor" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.UtilitiesTest" />
+      <entry_point TYPE="class" FQNAME="com.leanplum._whitebox.utilities.VariablesTestClass" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.MessagesTest void testDifferentPrioritiesWithMissingValues()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.MessagesTest void testTiedPriorities()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.MessagesTest void testDifferentPriorities()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.MessagesTest void testNoPriorities()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.MessagesTest void testSingleMessage()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.__setup.AbstractTest void after()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.__setup.AbstractTest void before()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.ActionContextTest void testUnknownBoolean()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.ActionContextTest void testBoolean()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumTabActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumPreferenceActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumListActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumLauncherActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumFragmentActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumExpandableListActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumActivityGroup()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.ActivityTest void testLeanplumAccountAuthenticatorActivity()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.utils.BitmapUtilTest void closeStreamTest()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.utils.BitmapUtilTest void calculateInSampleSizeTest()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.utils.BitmapUtilTest void getBitmapFromUrlTest()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.utils.BitmapUtilTest void getScaledBitmapTest()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.utils.BitmapUtilTest void setUp()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.FileManagerTest void testFileDownload()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.FileManagerTest void testFileExists()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.FileManagerTest void testFileRelativeToLPBundle()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.FileManagerTest void testFileRelativeToDocuments()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.FileManagerTest void testFileRelativeToAppBundle()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testRecyclerView()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testGridView()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testListView()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testSearchView()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testSwitch()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testWebView()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testSeekBar()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testProgressBar()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testEditText()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testImageView()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.uieditor.InterfaceTest void testButton()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumCloudMessagingProviderTest void testOnRegistrationIdReceived()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumCloudMessagingProviderTest void setUp()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.LeanplumInternalTest void testMoveToForeground()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.LeanplumInternalTest void setUp()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumPushServiceTest void testHasAppIDChanged()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumPushServiceTest void testInitPushService()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumPushServiceTest void setUp()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.LeanplumSyncTest void testResourceSyncing()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.LeanplumSyncTest void testFileVariables()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testLocationProvider()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testPushNotificationRegistration()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testVariablesCallbacksTimeout()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testVariablesCallbacks()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testActions()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStates()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testVariableParser()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testVariables()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testAdvance()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testTrack()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testMetadata()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStartWithUserIdAttributesAndCallback()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStartWithUserIdAndAttributes()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStartWithUserIdAndCallback()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStartWithUserId()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStartWithUserAttributes()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStartWithCallback()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LeanplumTest void testStart()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LocationManagerTest void requestLocation()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LocationManagerTest void setUserAttributesForLocationUpdate()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.LocationManagerTest void needToSendLocation()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.NewsfeedTest void testNewsfeed()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.RequestTest void testRemoveIrrelevantBackgroundStartRequests()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.SocketIOClientTest void testUserAgentString()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.internal.SocketIOClientTest void setUp()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testResourceIdGeneration()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testResourceNameGeneration()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testRegistration()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testScreenshot()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testUtilGetDeviceName()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void mockIsValidDeviceId()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void mockIsConnected()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void mockGetDeviceName()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testDeviceIdEncoding()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum._whitebox.UtilitiesTest void testUserIdEncoding()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.uieditor.LeanplumUIEditor com.leanplum.uieditor.LeanplumUIEditor getInstance()" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.uieditor.internal.util.Log void i(java.lang.Object... objects)" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.uieditor.internal.util.Log void v(java.lang.Object... objects)" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.__setup.TestClassUtil java.lang.Object getField(java.lang.Object object, java.lang.String fieldName)" />
+      <entry_point TYPE="method" FQNAME="com.leanplum.__setup.TestClassUtil void setField(java.lang.Object object, java.lang.String name, java.lang.Object value)" />
+    </entry_points>
+  </component>
+  <component name="NullableNotNullManager">
+    <option name="myDefaultNullable" value="android.support.annotation.Nullable" />
+    <option name="myDefaultNotNull" value="android.support.annotation.NonNull" />
+    <option name="myNullables">
+      <value>
+        <list size="4">
+          <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.Nullable" />
+          <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nullable" />
+          <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.Nullable" />
+          <item index="3" class="java.lang.String" itemvalue="android.support.annotation.Nullable" />
+        </list>
+      </value>
+    </option>
+    <option name="myNotNulls">
+      <value>
+        <list size="4">
+          <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
+          <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
+          <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
+          <item index="3" class="java.lang.String" itemvalue="android.support.annotation.NonNull" />
+        </list>
+      </value>
+    </option>
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" default="true" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
+</project>
