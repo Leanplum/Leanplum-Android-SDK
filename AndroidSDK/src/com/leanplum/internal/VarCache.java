@@ -466,7 +466,7 @@ public class VarCache {
     for (String name : new HashMap<>(vars).keySet()) {
       Var<?> var = vars.get(name);
       if (var == null) {
-        return;
+        continue;
       }
       String overrideFile = var.stringValue;
       if (var.isResource && Constants.Kinds.FILE.equals(var.kind()) && overrideFile != null &&
