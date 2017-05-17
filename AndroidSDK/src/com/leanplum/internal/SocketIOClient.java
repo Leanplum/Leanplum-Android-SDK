@@ -23,24 +23,24 @@
 
 package com.leanplum.internal;
 
-import android.net.http.AndroidHttpClient;
 import android.os.Looper;
 
 import com.leanplum.Leanplum;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -76,14 +76,30 @@ class SocketIOClient {
         + Constants.LEANPLUM_VERSION + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER + ")";
   }
 
-  private static String downloadUriAsString(final HttpUriRequest req)
-      throws IOException {
-    AndroidHttpClient client = AndroidHttpClient.newInstance(userAgentString());
+  private String downloadUriAsString()
+          throws IOException {
+    URL url = new URL(this.mURL);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
     try {
-      HttpResponse res = client.execute(req);
-      return readToEnd(res.getEntity().getContent());
+      InputStream inputStream = connection.getInputStream();
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+      String tempStr;
+      StringBuffer stringBuffer = new StringBuffer();
+
+      while ((tempStr = bufferedReader.readLine()) != null) {
+        stringBuffer.append(tempStr);
+      }
+
+      bufferedReader.close();
+      inputStream.close();
+      return stringBuffer.toString();
+
     } finally {
-      client.close();
+      if (connection != null) {
+        connection.disconnect();
+      }
     }
   }
 
@@ -234,9 +250,9 @@ class SocketIOClient {
       return;
     new Thread() {
       public void run() {
-        HttpPost post = new HttpPost(mURL);
+
         try {
-          String line = downloadUriAsString(post);
+          String line = downloadUriAsString();
           String[] parts = line.split(":");
           mSession = parts[0];
           String heartbeat = parts[1];

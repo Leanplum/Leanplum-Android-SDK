@@ -27,14 +27,6 @@ import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.message.BasicLineParser;
-import org.apache.http.message.BasicNameValuePair;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -52,6 +44,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+
+import ch.boye.httpclientandroidlib.Header;
+import ch.boye.httpclientandroidlib.HttpException;
+import ch.boye.httpclientandroidlib.HttpStatus;
+import ch.boye.httpclientandroidlib.NameValuePair;
+import ch.boye.httpclientandroidlib.StatusLine;
+import ch.boye.httpclientandroidlib.client.HttpResponseException;
+import ch.boye.httpclientandroidlib.message.BasicLineParser;
+import ch.boye.httpclientandroidlib.message.BasicNameValuePair;
 
 class WebSocketClient {
   private static final String TAG = "WebSocketClient";

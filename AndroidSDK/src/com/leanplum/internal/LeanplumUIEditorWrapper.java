@@ -44,7 +44,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
   }
 
   static {
-    Class clazz = null;
+    Class<?> clazz = null;
     try {
       clazz = Class.forName(UI_INTERFACE_EDITOR);
     } catch (ClassNotFoundException ignored) {
@@ -52,7 +52,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     if (clazz != null) {
       Method method = null;
       try {
-        method = clazz.getMethod("getInstance", null);
+        method = clazz.getMethod("getInstance");
       } catch (NoSuchMethodException e) {
         Util.handleException(e);
       }

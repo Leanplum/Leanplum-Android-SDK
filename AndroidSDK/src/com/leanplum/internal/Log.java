@@ -21,7 +21,7 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.BuildConfig;
+//import com.leanplum.BuildConfig;
 
 import java.util.HashMap;
 
@@ -133,10 +133,7 @@ public class Log {
       case PRIVATE:
         maybeSendLog(tag + prefix + message);
         return;
-      default: // DEBUG
-        if (BuildConfig.DEBUG) {
-          android.util.Log.d(tag, prefix + message);
-        }
+      default:
     }
   }
 
