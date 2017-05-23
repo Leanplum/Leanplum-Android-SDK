@@ -78,7 +78,10 @@ public class LeanplumManifestHelper {
   /**
    * Gets application components from AndroidManifest.xml file.
    */
-  private static void parseManifestNodeChildren() {
+  private static synchronized void parseManifestNodeChildren() {
+    if (manifestData != null) {
+      return;
+    }
     manifestData = new ManifestData();
     byte[] manifestXml = getByteArrayOfManifest();
     Document manifestDocument = getManifestDocument(manifestXml);
