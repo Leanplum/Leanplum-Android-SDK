@@ -488,7 +488,7 @@ public class BaseMessageDialog extends Dialog {
           if (!TextUtils.isEmpty(queryComponentsFromUrl)) {
             Leanplum.track(queryComponentsFromUrl);
           }
-          return false;
+          return true;
         }
 
         // Track URL event.
