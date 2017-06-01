@@ -395,7 +395,7 @@ public class Request {
         if (!Request.attachApiKeys(multiRequestArgs)) {
           return null;
         }
-        saveUnsentRequest(requestsToSend);
+        updateUnsentRequests(requestsToSend);
 
         JSONObject result = null;
         HttpURLConnection op = null;
@@ -484,27 +484,17 @@ public class Request {
     }
   }
 
-  private static void updateRequest(int requestNumber, Map<String, Object> args) {
-    synchronized (lock) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + requestNumber),
-          JsonConverter.toJson(args));
-      try {
-        editor.apply();
-      } catch (NoSuchMethodError e) {
-        editor.commit();
-      }
-    }
-  }
-
-  private static void saveUnsentRequest(List<Map<String, Object>> requestData) {
+  private static void updateUnsentRequests(List<Map<String, Object>> requestData) {
     if (requestData == null || requestData.isEmpty()) {
       return;
     }
+
+    Context context = Leanplum.getContext();
+    SharedPreferences preferences = context.getSharedPreferences(
+        LEANPLUM, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+
     for (int i = 0; i < requestData.size(); i++) {
       Map<String, Object> args = requestData.get(i);
       Object retryCountString = args.get("retryCount");
@@ -515,7 +505,14 @@ public class Request {
         retryCount = 1;
       }
       args.put("retryCount", Integer.toString(retryCount));
-      updateRequest(i, args);
+      editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + i),
+          JsonConverter.toJson(args));
+    }
+
+    try {
+      editor.apply();
+    } catch (NoSuchMethodError e) {
+      editor.commit();
     }
   }
 
