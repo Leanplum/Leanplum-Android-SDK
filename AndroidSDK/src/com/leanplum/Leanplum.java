@@ -573,7 +573,7 @@ public class Leanplum {
       });
 
       // Reduce latency by running the rest of the start call in a background thread.
-      Util.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
+      Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
         @Override
         protected Void doInBackground(Void... params) {
           try {
@@ -924,7 +924,7 @@ public class Leanplum {
     }
     LeanplumInternal.setIsPaused(true);
 
-    if (LeanplumInternal.isPaused()) {
+    if (LeanplumInternal.issuedStart()) {
       pauseInternal();
     } else {
       LeanplumInternal.addStartIssuedHandler(new Runnable() {

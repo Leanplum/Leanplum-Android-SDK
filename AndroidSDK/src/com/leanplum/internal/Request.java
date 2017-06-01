@@ -55,7 +55,9 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
+  private static final int MAX_ACTIONS_PER_API_CALL = 10000;
   private static final String LEANPLUM = "__leanplum__";
+  private static final String RETRY_COUNT = "retryCount";
 
   private static String appId;
   private static String accessKey;
@@ -286,7 +288,7 @@ public class Request {
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  private boolean attachApiKeys(Map<String, Object> dict) {
+  private static boolean attachApiKeys(Map<String, Object> dict) {
     if (appId == null || accessKey == null) {
       Log.e("API keys are not set. Please use Leanplum.setAppIdForDevelopmentMode or "
           + "Leanplum.setAppIdForProductionMode.");
@@ -378,23 +380,24 @@ public class Request {
 
     this.sendEventually();
 
-    final List<Map<String, Object>> requestsToSend = popUnsentRequests();
-    if (requestsToSend.isEmpty()) {
-      return;
-    }
-
-    final Map<String, Object> multiRequestArgs = new HashMap<>();
-    multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
-    multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
-    multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
-    multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-    if (!this.attachApiKeys(multiRequestArgs)) {
-      return;
-    }
-
-    Util.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
+    Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
+        final List<Map<String, Object>> requestsToSend = getUnsentRequests();
+        if (requestsToSend.isEmpty()) {
+          return null;
+        }
+
+        final Map<String, Object> multiRequestArgs = new HashMap<>();
+        multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
+        multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
+        multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
+        multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
+        if (!Request.attachApiKeys(multiRequestArgs)) {
+          return null;
+        }
+        updateUnsentRequests(requestsToSend);
+
         JSONObject result = null;
         HttpURLConnection op = null;
         try {
@@ -411,11 +414,10 @@ public class Request {
             int statusCode = op.getResponseCode();
 
             Exception errorException = null;
-            if (statusCode >= 400) {
+            if (statusCode == 200) {
+              deleteSentRequests(requestsToSend.size());
+            } else if (statusCode >= 400) {
               errorException = new Exception("HTTP error " + statusCode);
-              if (statusCode == 408 || (statusCode >= 500 && statusCode <= 599)) {
-                pushUnsentRequests(requestsToSend);
-              }
             } else {
               if (result != null) {
                 int numResponses = Request.numResponses(result);
@@ -433,7 +435,6 @@ public class Request {
                 Log.getStackTraceString(e));
             parseResponseJson(null, requestsToSend, e);
           } catch (Exception e) {
-            pushUnsentRequests(requestsToSend);
             Log.e("Unable to send request: " + e.toString() + "\n" +
                 Log.getStackTraceString(e));
             parseResponseJson(result, requestsToSend, e);
@@ -461,6 +462,57 @@ public class Request {
     }
   }
 
+  private static void deleteSentRequests(int requestSize) {
+    if (requestSize == 0) {
+      return;
+    }
+
+    synchronized (lock) {
+      Context context = Leanplum.getContext();
+      SharedPreferences preferences = context.getSharedPreferences(
+          LEANPLUM, Context.MODE_PRIVATE);
+      SharedPreferences.Editor editor = preferences.edit();
+      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+      for (int i = start; i < start + requestSize; i++) {
+        editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+      }
+      editor.putInt(Constants.Defaults.START_COUNT_KEY, start + requestSize);
+      try {
+        editor.apply();
+      } catch (NoSuchMethodError e) {
+        editor.commit();
+      }
+    }
+  }
+
+  private static void updateUnsentRequests(List<Map<String, Object>> requestData) {
+    if (requestData == null || requestData.isEmpty()) {
+      return;
+    }
+
+    Context context = Leanplum.getContext();
+    SharedPreferences preferences = context.getSharedPreferences(
+        LEANPLUM, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+
+    for (int i = 0; i < requestData.size(); i++) {
+      Map<String, Object> args = requestData.get(i);
+      Object retryCountString = args.get(RETRY_COUNT);
+      int retryCount = (retryCountString != null) ?
+          Integer.parseInt(retryCountString.toString()) + 1 : 1;
+      args.put(RETRY_COUNT, Integer.toString(retryCount));
+      editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + i),
+          JsonConverter.toJson(args));
+    }
+
+    try {
+      editor.apply();
+    } catch (NoSuchMethodError e) {
+      editor.commit();
+    }
+  }
+
   static List<Map<String, Object>> popUnsentRequests() {
     return getUnsentRequests(true);
   }
@@ -474,7 +526,6 @@ public class Request {
 
     synchronized (lock) {
       lastSendTimeMs = System.currentTimeMillis();
-
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
@@ -484,11 +535,13 @@ public class Request {
       if (count == 0) {
         return new ArrayList<>();
       }
-      if (remove) {
-        editor.remove(Constants.Defaults.COUNT_KEY);
+
+      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+      if (count - start > MAX_ACTIONS_PER_API_CALL) {
+        count = MAX_ACTIONS_PER_API_CALL;
       }
 
-      for (int i = 0; i < count; i++) {
+      for (int i = start; i < count; i++) {
         String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
         Map<String, Object> requestArgs;
         try {
@@ -502,12 +555,16 @@ public class Request {
           editor.remove(itemKey);
         }
       }
-      if (remove) {
-        try {
-          editor.apply();
-        } catch (NoSuchMethodError e) {
-          editor.commit();
-        }
+
+      if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
+        editor.remove(Constants.Defaults.COUNT_KEY);
+        editor.remove(Constants.Defaults.START_COUNT_KEY);
+      }
+
+      try {
+        editor.apply();
+      } catch (NoSuchMethodError e) {
+        editor.commit();
       }
     }
 
@@ -560,22 +617,6 @@ public class Request {
     return JsonConverter.toJson(data);
   }
 
-  private static void pushUnsentRequests(List<Map<String, Object>> requestData) {
-    if (requestData == null) {
-      return;
-    }
-    for (Map<String, Object> args : requestData) {
-      Object retryCountString = args.get("retryCount");
-      int retryCount;
-      if (retryCountString != null) {
-        retryCount = Integer.parseInt(retryCountString.toString()) + 1;
-      } else {
-        retryCount = 1;
-      }
-      args.put("retryCount", Integer.toString(retryCount));
-      saveRequestForLater(args);
-    }
-  }
 
   private static String getSizeAsString(int bytes) {
     if (bytes < (1 << 10)) {
@@ -650,7 +691,7 @@ public class Request {
     printUploadProgress();
 
     // Now upload the files
-    Util.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
+    Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
         synchronized (uploadFileLock) {  // Don't overload app and server with many upload tasks
@@ -734,7 +775,7 @@ public class Request {
       return;
     }
 
-    Util.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
+    Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
         try {
