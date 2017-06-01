@@ -91,6 +91,7 @@ import javax.net.ssl.SSLSocketFactory;
  */
 public class Util {
   private static final Executor asyncExecutor = Executors.newCachedThreadPool();
+  private static final Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
 
   private static final String ACCESS_WIFI_STATE_PERMISSION = "android.permission.ACCESS_WIFI_STATE";
 
@@ -723,9 +724,22 @@ public class Util {
     return CollectionUtil.uncheckedCast(current);
   }
 
-  public static <T> void executeAsyncTask(AsyncTask<T, ?, ?> task, T... params) {
+  /**
+   * Execute async task on single thread Executer or cached thread pool Executer.
+   *
+   * @param singleThread True if needs to be executed on single thread Executer, otherwise it will
+   * use cached thread pool Executer.
+   * @param task Async task to execute.
+   * @param params Params.
+   */
+  public static <T> void executeAsyncTask(boolean singleThread, AsyncTask<T, ?, ?> task,
+      T... params) {
     if (Build.VERSION.SDK_INT >= 11) {
-      task.executeOnExecutor(asyncExecutor, params);
+      if (singleThread) {
+        task.executeOnExecutor(singleThreadExecutor, params);
+      } else {
+        task.executeOnExecutor(asyncExecutor, params);
+      }
     } else {
       task.execute(params);
     }
