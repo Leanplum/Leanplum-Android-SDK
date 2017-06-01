@@ -57,6 +57,7 @@ public class Request {
   private static final long PRODUCTION_DELAY = 60000;
   private static final int MAX_ACTIONS_PER_API_CALL = 10000;
   private static final String LEANPLUM = "__leanplum__";
+  private static final String RETRY_COUNT = "retryCount";
 
   private static String appId;
   private static String accessKey;
@@ -497,14 +498,10 @@ public class Request {
 
     for (int i = 0; i < requestData.size(); i++) {
       Map<String, Object> args = requestData.get(i);
-      Object retryCountString = args.get("retryCount");
-      int retryCount;
-      if (retryCountString != null) {
-        retryCount = Integer.parseInt(retryCountString.toString()) + 1;
-      } else {
-        retryCount = 1;
-      }
-      args.put("retryCount", Integer.toString(retryCount));
+      Object retryCountString = args.get(RETRY_COUNT);
+      int retryCount = (retryCountString != null) ?
+          Integer.parseInt(retryCountString.toString()) + 1 : 1;
+      args.put(RETRY_COUNT, Integer.toString(retryCount));
       editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + i),
           JsonConverter.toJson(args));
     }
@@ -538,10 +535,12 @@ public class Request {
       if (count == 0) {
         return new ArrayList<>();
       }
+
       int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
       if (count - start > MAX_ACTIONS_PER_API_CALL) {
         count = MAX_ACTIONS_PER_API_CALL;
       }
+
       for (int i = start; i < count; i++) {
         String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
         Map<String, Object> requestArgs;
@@ -556,16 +555,19 @@ public class Request {
           editor.remove(itemKey);
         }
       }
-      if (remove || count == start) {
+
+      if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
         editor.remove(Constants.Defaults.COUNT_KEY);
         editor.remove(Constants.Defaults.START_COUNT_KEY);
-        try {
-          editor.apply();
-        } catch (NoSuchMethodError e) {
-          editor.commit();
-        }
+      }
+
+      try {
+        editor.apply();
+      } catch (NoSuchMethodError e) {
+        editor.commit();
       }
     }
+
     requestData = removeIrrelevantBackgroundStartRequests(requestData);
     return requestData;
   }
