@@ -734,14 +734,10 @@ public class Util {
    */
   public static <T> void executeAsyncTask(boolean singleThread, AsyncTask<T, ?, ?> task,
       T... params) {
-    if (Build.VERSION.SDK_INT >= 11) {
-      if (singleThread) {
-        task.executeOnExecutor(singleThreadExecutor, params);
-      } else {
-        task.executeOnExecutor(asyncExecutor, params);
-      }
+    if (singleThread) {
+      task.executeOnExecutor(singleThreadExecutor, params);
     } else {
-      task.execute(params);
+      task.executeOnExecutor(asyncExecutor, params);
     }
   }
 
