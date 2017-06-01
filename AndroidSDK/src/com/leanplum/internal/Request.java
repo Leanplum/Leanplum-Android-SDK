@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
+import java.util.UUID;
 
 /**
  * Leanplum request class.
@@ -57,7 +58,7 @@ public class Request {
   private static final long PRODUCTION_DELAY = 60000;
   private static final int MAX_ACTIONS_PER_API_CALL = 10000;
   private static final String LEANPLUM = "__leanplum__";
-  private static final String RETRY_COUNT = "retryCount";
+  private static final String UUID_KEY = "uuid";
 
   private static String appId;
   private static String accessKey;
@@ -383,10 +384,12 @@ public class Request {
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        final List<Map<String, Object>> requestsToSend = getUnsentRequests();
+        List<Map<String, Object>> requestsToSend = getUnsentRequests();
         if (requestsToSend.isEmpty()) {
           return null;
         }
+
+        requestsToSend = updateUnsentRequests(requestsToSend);
 
         final Map<String, Object> multiRequestArgs = new HashMap<>();
         multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
@@ -396,7 +399,6 @@ public class Request {
         if (!Request.attachApiKeys(multiRequestArgs)) {
           return null;
         }
-        updateUnsentRequests(requestsToSend);
 
         JSONObject result = null;
         HttpURLConnection op = null;
@@ -485,25 +487,28 @@ public class Request {
     }
   }
 
-  private static void updateUnsentRequests(List<Map<String, Object>> requestData) {
+  private List<Map<String, Object>> updateUnsentRequests(List<Map<String, Object>> requestData) {
     if (requestData == null || requestData.isEmpty()) {
-      return;
+      return requestData;
     }
-
+    List<Map<String, Object>> updatedRequestData = new ArrayList<>();
     Context context = Leanplum.getContext();
     SharedPreferences preferences = context.getSharedPreferences(
         LEANPLUM, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = preferences.edit();
     int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
 
+    String uuid = UUID.randomUUID().toString();
     for (int i = 0; i < requestData.size(); i++) {
       Map<String, Object> args = requestData.get(i);
-      Object retryCountString = args.get(RETRY_COUNT);
-      int retryCount = (retryCountString != null) ?
-          Integer.parseInt(retryCountString.toString()) + 1 : 1;
-      args.put(RETRY_COUNT, Integer.toString(retryCount));
-      editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + i),
-          JsonConverter.toJson(args));
+
+      Object uuidString = args.get(UUID_KEY);
+      if (uuidString == null) {
+        args.put(UUID_KEY, uuid);
+        editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + i),
+            JsonConverter.toJson(args));
+      }
+      updatedRequestData.add(args);
     }
 
     try {
@@ -511,6 +516,7 @@ public class Request {
     } catch (NoSuchMethodError e) {
       editor.commit();
     }
+    return updatedRequestData;
   }
 
   static List<Map<String, Object>> popUnsentRequests() {
