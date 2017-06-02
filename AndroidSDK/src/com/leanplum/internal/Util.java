@@ -48,6 +48,7 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumException;
 import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
+import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -804,11 +805,7 @@ public class Util {
 
     SharedPreferences.Editor editor = preferences.edit();
     editor.putBoolean(Constants.Keys.INSTALL_TIME_INITIALIZED, true);
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   /**
