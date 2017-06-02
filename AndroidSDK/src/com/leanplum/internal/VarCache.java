@@ -30,6 +30,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
 import com.leanplum.internal.FileManager.HashResults;
+import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -432,11 +433,7 @@ public class VarCache {
     editor.putString(Constants.Params.USER_ID, aesContext.encrypt(Request.userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
         aesContext.encrypt(String.valueOf(Constants.loggingEnabled)));
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   /**
@@ -867,11 +864,7 @@ public class VarCache {
     String plaintext = JsonConverter.toJson(userAttributes);
     AESCrypt aesContext = new AESCrypt(Request.appId(), Request.token());
     editor.putString(Constants.Defaults.ATTRIBUTES_KEY, aesContext.encrypt(plaintext));
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   /**

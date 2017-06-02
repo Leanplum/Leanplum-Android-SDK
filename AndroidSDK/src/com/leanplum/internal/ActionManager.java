@@ -35,6 +35,7 @@ import com.leanplum.LeanplumLocalPushListenerService;
 import com.leanplum.LeanplumPushService;
 import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -204,11 +205,7 @@ public class ActionManager {
           // Save notification so we can cancel it later.
           SharedPreferences.Editor editor = preferences.edit();
           editor.putLong(String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), eta);
-          try {
-            editor.apply();
-          } catch (NoSuchMethodError e) {
-            editor.commit();
-          }
+          SharedPreferencesUtil.commitChanges(editor);
 
           Log.i("Scheduled notification");
           return true;
@@ -233,11 +230,7 @@ public class ActionManager {
           long existingEta = preferences.getLong(preferencesKey, 0L);
           SharedPreferences.Editor editor = preferences.edit();
           editor.remove(preferencesKey);
-          try {
-            editor.apply();
-          } catch (NoSuchMethodError e) {
-            editor.commit();
-          }
+          SharedPreferencesUtil.commitChanges(editor);
 
           // Cancel notification.
           Intent intentAlarm = new Intent(context, LeanplumPushService.class);
@@ -284,11 +277,7 @@ public class ActionManager {
         String.format(Constants.Defaults.MESSAGE_IMPRESSION_OCCURRENCES_KEY, messageId),
         JsonConverter.toJson(occurrences));
     messageImpressionOccurrences.put(messageId, occurrences);
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+   SharedPreferencesUtil.commitChanges(editor);
   }
 
   public int getMessageTriggerOccurrences(String messageId) {
@@ -313,11 +302,7 @@ public class ActionManager {
     editor.putInt(
         String.format(Constants.Defaults.MESSAGE_TRIGGER_OCCURRENCES_KEY, messageId), occurrences);
     messageTriggerOccurrences.put(messageId, occurrences);
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   public MessageMatchResult shouldShowMessage(String messageId, Map<String, Object> messageConfig,
@@ -607,11 +592,7 @@ public class ActionManager {
       editor.putBoolean(
           String.format(Constants.Defaults.MESSAGE_MUTED_KEY, messageId),
           true);
-      try {
-        editor.apply();
-      } catch (NoSuchMethodError e) {
-        editor.commit();
-      }
+      SharedPreferencesUtil.commitChanges(editor);
     }
   }
 
