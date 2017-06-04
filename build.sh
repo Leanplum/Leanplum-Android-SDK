@@ -9,7 +9,7 @@ set -eo pipefail; [[ $DEBUG ]] && set -x
 if [[ -z "${BUILD_NUMBER+x}" ]]; then 
   BUILD_NUMBER=$(date "+%s")
 fi
-export ANDROID_VERSION_STRING="${ANDROID_VERSION}_${BUILD_NUMBER}"
+export ANDROID_VERSION_STRING=${ANDROID_VERSION_STRING:-${ANDROID_VERSION}.${BUILD_NUMBER}}
 
 for i in "$@"; do
   case $i in
