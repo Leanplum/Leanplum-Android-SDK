@@ -200,12 +200,20 @@ public class Request {
       SharedPreferences.Editor editor = preferences.edit();
       int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
       String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
-      editor.putString(itemKey, JsonConverter.toJson(args));
       if (count == MAX_KEY_COUNT - 1) {
         count = 0;
       } else {
         count++;
       }
+
+      String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+      if (uuid == null) {
+        uuid = UUID.randomUUID().toString();
+      }
+      args.put(UUID_KEY, uuid);
+
+      editor.putString(itemKey, JsonConverter.toJson(args));
+      editor.putString(Constants.Defaults.UUID_KEY, uuid);
       editor.putInt(Constants.Defaults.COUNT_KEY, count);
       SharedPreferencesUtil.commitChanges(editor);
     }
@@ -387,8 +395,6 @@ public class Request {
           return null;
         }
 
-        requestsToSend = updateUnsentRequests(requestsToSend);
-
         final Map<String, Object> multiRequestArgs = new HashMap<>();
         multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
         multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
@@ -494,39 +500,6 @@ public class Request {
     }
   }
 
-  private List<Map<String, Object>> updateUnsentRequests(List<Map<String, Object>> requestData) {
-    if (requestData == null || requestData.isEmpty()) {
-      return requestData;
-    }
-    List<Map<String, Object>> updatedRequestData = new ArrayList<>();
-    Context context = Leanplum.getContext();
-    SharedPreferences preferences = context.getSharedPreferences(
-        LEANPLUM, Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-
-    String uuid = UUID.randomUUID().toString();
-    for (int i = 0; i < requestData.size(); i++) {
-      Map<String, Object> args = requestData.get(i);
-
-      int key;
-      if (MAX_KEY_COUNT - start - i <= 0) {
-        key = start - MAX_KEY_COUNT + i;
-      } else {
-        key = start + i;
-      }
-      Object uuidString = args.get(UUID_KEY);
-      if (uuidString == null) {
-        args.put(UUID_KEY, uuid);
-        editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, key),
-            JsonConverter.toJson(args));
-      }
-      updatedRequestData.add(args);
-    }
-    SharedPreferencesUtil.commitChanges(editor);
-    return updatedRequestData;
-  }
-
   static List<Map<String, Object>> popUnsentRequests() {
     return getUnsentRequests(true);
   }
@@ -566,8 +539,9 @@ public class Request {
       if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
         editor.remove(Constants.Defaults.COUNT_KEY);
         editor.remove(Constants.Defaults.START_COUNT_KEY);
-        SharedPreferencesUtil.commitChanges(editor);
       }
+      editor.remove(Constants.Defaults.UUID_KEY);
+      SharedPreferencesUtil.commitChanges(editor);
     }
 
     requestData = removeIrrelevantBackgroundStartRequests(requestData);
