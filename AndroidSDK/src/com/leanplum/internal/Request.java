@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import com.leanplum.Leanplum;
+import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,6 +58,7 @@ public class Request {
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
   private static final int MAX_ACTIONS_PER_API_CALL = 10000;
+  private static final int MAX_KEY_COUNT = Integer.MAX_VALUE;
   private static final String LEANPLUM = "__leanplum__";
   private static final String UUID_KEY = "uuid";
 
@@ -125,11 +127,7 @@ public class Request {
         LEANPLUM, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = defaults.edit();
     editor.putString(Constants.Defaults.TOKEN_KEY, Request.token());
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   public static String appId() {
@@ -203,13 +201,13 @@ public class Request {
       int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
       String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
       editor.putString(itemKey, JsonConverter.toJson(args));
-      count++;
-      editor.putInt(Constants.Defaults.COUNT_KEY, count);
-      try {
-        editor.apply();
-      } catch (NoSuchMethodError e) {
-        editor.commit();
+      if (count == MAX_KEY_COUNT - 1) {
+        count = 0;
+      } else {
+        count++;
       }
+      editor.putInt(Constants.Defaults.COUNT_KEY, count);
+      SharedPreferencesUtil.commitChanges(editor);
     }
   }
 
@@ -464,8 +462,8 @@ public class Request {
     }
   }
 
-  private static void deleteSentRequests(int requestSize) {
-    if (requestSize == 0) {
+  private static void deleteSentRequests(int requestsCount) {
+    if (requestsCount == 0) {
       return;
     }
 
@@ -475,15 +473,24 @@ public class Request {
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      for (int i = start; i < start + requestSize; i++) {
-        editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+      int newStart;
+      if (MAX_KEY_COUNT - start - requestsCount >= 0) {
+        for (int i = start; i < start + requestsCount; i++) {
+          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+        }
+        newStart = start + requestsCount;
+      } else {
+        for (int i = start; i < MAX_KEY_COUNT; i++) {
+          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+        }
+        for (int i = 0; i < start - MAX_KEY_COUNT + requestsCount; i++) {
+          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+        }
+        newStart = start - MAX_KEY_COUNT + requestsCount;
       }
-      editor.putInt(Constants.Defaults.START_COUNT_KEY, start + requestSize);
-      try {
-        editor.apply();
-      } catch (NoSuchMethodError e) {
-        editor.commit();
-      }
+
+      editor.putInt(Constants.Defaults.START_COUNT_KEY, newStart);
+      SharedPreferencesUtil.commitChanges(editor);
     }
   }
 
@@ -502,20 +509,21 @@ public class Request {
     for (int i = 0; i < requestData.size(); i++) {
       Map<String, Object> args = requestData.get(i);
 
+      int key;
+      if (MAX_KEY_COUNT - start - i <= 0) {
+        key = start - MAX_KEY_COUNT + i;
+      } else {
+        key = start + i;
+      }
       Object uuidString = args.get(UUID_KEY);
       if (uuidString == null) {
         args.put(UUID_KEY, uuid);
-        editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, start + i),
+        editor.putString(String.format(Locale.US, Constants.Defaults.ITEM_KEY, key),
             JsonConverter.toJson(args));
       }
       updatedRequestData.add(args);
     }
-
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
     return updatedRequestData;
   }
 
@@ -538,44 +546,50 @@ public class Request {
       SharedPreferences.Editor editor = preferences.edit();
 
       int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-      if (count == 0) {
+      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+      if (count == 0 && start == 0) {
         return new ArrayList<>();
       }
 
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
       if (count - start > MAX_ACTIONS_PER_API_CALL) {
         count = MAX_ACTIONS_PER_API_CALL;
       }
 
-      for (int i = start; i < count; i++) {
-        String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
-        Map<String, Object> requestArgs;
-        try {
-          requestArgs = JsonConverter.mapFromJson(new JSONObject(
-              preferences.getString(itemKey, "{}")));
-          requestData.add(requestArgs);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        }
-        if (remove) {
-          editor.remove(itemKey);
-        }
+      if (count < start) {
+        getRequests(requestData, start, MAX_KEY_COUNT, preferences, editor, remove);
+        getRequests(requestData, 0, count, preferences, editor, remove);
+
+      } else {
+        getRequests(requestData, start, count, preferences, editor, remove);
       }
 
       if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
         editor.remove(Constants.Defaults.COUNT_KEY);
         editor.remove(Constants.Defaults.START_COUNT_KEY);
-      }
-
-      try {
-        editor.apply();
-      } catch (NoSuchMethodError e) {
-        editor.commit();
+        SharedPreferencesUtil.commitChanges(editor);
       }
     }
 
     requestData = removeIrrelevantBackgroundStartRequests(requestData);
     return requestData;
+  }
+
+  private static void getRequests(List<Map<String, Object>> requestData, int start, int end,
+      SharedPreferences preferences, SharedPreferences.Editor editor, boolean remove) {
+    for (int i = start; i < end; i++) {
+      String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
+      Map<String, Object> requestArgs;
+      try {
+        requestArgs = JsonConverter.mapFromJson(new JSONObject(
+            preferences.getString(itemKey, "{}")));
+        requestData.add(requestArgs);
+      } catch (JSONException e) {
+        e.printStackTrace();
+      }
+      if (remove) {
+        editor.remove(itemKey);
+      }
+    }
   }
 
   /**
