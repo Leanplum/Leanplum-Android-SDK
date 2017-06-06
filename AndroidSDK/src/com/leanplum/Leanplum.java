@@ -922,16 +922,17 @@ public class Leanplum {
       Log.e("You cannot call pause before calling start");
       return;
     }
-    LeanplumInternal.setIsPaused(true);
 
     if (LeanplumInternal.issuedStart()) {
       pauseInternal();
+      LeanplumInternal.setIsPaused(true);
     } else {
       LeanplumInternal.addStartIssuedHandler(new Runnable() {
         @Override
         public void run() {
           try {
             pauseInternal();
+            LeanplumInternal.setIsPaused(true);
           } catch (Throwable t) {
             Util.handleException(t);
           }
