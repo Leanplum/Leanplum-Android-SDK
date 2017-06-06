@@ -21,7 +21,6 @@
             android:enabled="true">
             <intent-filter>
                 <action android:name="com.leanplum.LeanplumPushListenerService" />
-                <action android:name="com.leanplum.LeanplumPushFirebaseMessagingService" />
             </intent-filter>
         </receiver>
         <receiver android:name="com.google.android.gms.gcm.GcmReceiver" android:exported="true"
@@ -55,29 +54,6 @@
         <!-- Leanplum GCM/FCM Registration Service -->
         <service android:name="com.leanplum.LeanplumPushRegistrationService" />
 
-        <!-- Leanplum FCM Message Handling Service -->
-        <service android:name="com.leanplum.LeanplumPushFirebaseMessagingService"
-            android:exported="false" android:enabled="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Leanplum FCM Instance ID Service -->
-        <service android:name="com.leanplum.LeanplumPushFcmListenerService" android:exported="false"
-            android:enabled="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Leanplum Helper for FCM Instance ID Service -->
-        <service android:name="com.leanplum.LeanplumFcmServiceHelper" android:exported="false"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
 
         <!-- Geofencing Service -->
         <service android:name="com.leanplum.ReceiveTransitionsIntentService" />

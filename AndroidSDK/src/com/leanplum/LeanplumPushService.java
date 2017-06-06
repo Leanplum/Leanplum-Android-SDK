@@ -560,17 +560,10 @@ public class LeanplumPushService {
   }
 
   private static void initPushService() {
-    if (isFirebaseEnabled()) {
-      if (!enableServices()) {
-        return;
-      }
-      provider = new LeanplumFcmProvider();
-    } else {
-      if (!enableServices()) {
-        return;
-      }
-      provider = new LeanplumGcmProvider();
+    if (!enableServices()) {
+      return;
     }
+    provider = new LeanplumGcmProvider();
     if (!provider.isInitialized() || !provider.isManifestSetUp()) {
       return;
     }
