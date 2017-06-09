@@ -42,6 +42,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
+import com.leanplum.internal.LeanplumSQLiteHelper;
 import com.leanplum.internal.LeanplumUIEditorWrapper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OsHandler;
@@ -591,6 +592,7 @@ public class Leanplum {
 
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
+    LeanplumSQLiteHelper.init(context);
     LeanplumPushService.onStart();
 
     Boolean limitAdTracking = null;
