@@ -69,6 +69,7 @@ public class Request {
   private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
   private static int pendingDownloads;
   private static NoPendingDownloadsCallback noPendingDownloadsBlock;
+  private static boolean moreThenOneRequestToServer = false;
 
   // The token is saved primarily for legacy SharedPreferences decryption. This could
   // likely be removed in the future.
@@ -198,7 +199,12 @@ public class Request {
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
-      int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
+      long count;
+      if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
+        count = LeanplumSQLiteHelper.getActionCount();
+      } else {
+        count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
+      }
       String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
       if (count == MAX_KEY_COUNT - 1) {
         count = 0;
@@ -207,15 +213,22 @@ public class Request {
       }
 
       String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-      if (uuid == null) {
+      if (uuid == null || count % MAX_ACTIONS_PER_API_CALL == 0) {
         uuid = UUID.randomUUID().toString();
+        editor.putString(Constants.Defaults.UUID_KEY, uuid);
       }
       args.put(UUID_KEY, uuid);
+      if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
+        LeanplumSQLiteHelper.insertAction(LeanplumSQLiteHelper.ACTIONS_TABLE_NAME,
+            JsonConverter.toJson(args));
+      } else {
+        editor.putString(itemKey, JsonConverter.toJson(args));
+        editor.putInt(Constants.Defaults.COUNT_KEY, (int) count);
+      }
 
-      editor.putString(itemKey, JsonConverter.toJson(args));
       editor.putString(Constants.Defaults.UUID_KEY, uuid);
-      editor.putInt(Constants.Defaults.COUNT_KEY, count);
       SharedPreferencesUtil.commitChanges(editor);
+
     }
   }
 
@@ -390,71 +403,84 @@ public class Request {
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        List<Map<String, Object>> requestsToSend = getUnsentRequests();
-        if (requestsToSend.isEmpty()) {
-          return null;
-        }
-
-        final Map<String, Object> multiRequestArgs = new HashMap<>();
-        multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
-        multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
-        multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
-        multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-        if (!Request.attachApiKeys(multiRequestArgs)) {
-          return null;
-        }
-
-        JSONObject result = null;
-        HttpURLConnection op = null;
-        try {
-          try {
-            op = Util.operation(
-                Constants.API_HOST_NAME,
-                Constants.API_SERVLET,
-                multiRequestArgs,
-                httpMethod,
-                Constants.API_SSL,
-                Constants.NETWORK_TIMEOUT_SECONDS);
-
-            result = Util.getJsonResponse(op);
-            int statusCode = op.getResponseCode();
-
-            Exception errorException = null;
-            if (statusCode == 200) {
-              deleteSentRequests(requestsToSend.size());
-            } else if (statusCode >= 400) {
-              errorException = new Exception("HTTP error " + statusCode);
-            } else {
-              if (result != null) {
-                int numResponses = Request.numResponses(result);
-                if (numResponses != requestsToSend.size()) {
-                  Log.w("Sent " + requestsToSend.size() +
-                      " requests but only" + " received " + numResponses);
-                }
-              } else {
-                errorException = new Exception("Response JSON is null.");
-              }
-            }
-            parseResponseJson(result, requestsToSend, errorException);
-          } catch (JSONException e) {
-            Log.e("Error parsing JSON response: " + e.toString() + "\n" +
-                Log.getStackTraceString(e));
-            parseResponseJson(null, requestsToSend, e);
-          } catch (Exception e) {
-            Log.e("Unable to send request: " + e.toString() + "\n" +
-                Log.getStackTraceString(e));
-            parseResponseJson(result, requestsToSend, e);
-          } finally {
-            if (op != null) {
-              op.disconnect();
-            }
-          }
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-        return null;
+        return sendRequests();
       }
     });
+  }
+
+  private Void sendRequests() {
+    List<Map<String, Object>> requestsToSend = getUnsentRequests();
+    if (requestsToSend.isEmpty()) {
+      return null;
+    }
+
+    final Map<String, Object> multiRequestArgs = new HashMap<>();
+    multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
+    multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
+    multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
+    multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
+    if (!Request.attachApiKeys(multiRequestArgs)) {
+      return null;
+    }
+
+    JSONObject result = null;
+    HttpURLConnection op = null;
+    try {
+      try {
+        op = Util.operation(
+            Constants.API_HOST_NAME,
+            Constants.API_SERVLET,
+            multiRequestArgs,
+            httpMethod,
+            Constants.API_SSL,
+            Constants.NETWORK_TIMEOUT_SECONDS);
+
+        result = Util.getJsonResponse(op);
+        int statusCode = op.getResponseCode();
+
+        Exception errorException = null;
+        if (statusCode >= 200 && statusCode <= 299) {
+          deleteSentRequests(requestsToSend.size());
+          if (moreThenOneRequestToServer) {
+            sendRequests();
+          }
+        } else if (statusCode >= 400) {
+          errorException = new Exception("HTTP error " + statusCode);
+          if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
+            deleteSentRequests(requestsToSend.size());
+          }
+        } else {
+          if (result != null) {
+            int numResponses = Request.numResponses(result);
+            if (numResponses != requestsToSend.size()) {
+              Log.w("Sent " + requestsToSend.size() +
+                  " requests but only" + " received " + numResponses);
+            } else {
+              deleteSentRequests(requestsToSend.size());
+            }
+          } else {
+            errorException = new Exception("Response JSON is null.");
+            deleteSentRequests(requestsToSend.size());
+          }
+        }
+        parseResponseJson(result, requestsToSend, errorException);
+      } catch (JSONException e) {
+        Log.e("Error parsing JSON response: " + e.toString() + "\n" +
+            Log.getStackTraceString(e));
+        parseResponseJson(null, requestsToSend, e);
+      } catch (Exception e) {
+        Log.e("Unable to send request: " + e.toString() + "\n" +
+            Log.getStackTraceString(e));
+        parseResponseJson(result, requestsToSend, e);
+      } finally {
+        if (op != null) {
+          op.disconnect();
+        }
+      }
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    return null;
   }
 
   public void sendEventually() {
@@ -474,29 +500,33 @@ public class Request {
     }
 
     synchronized (lock) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      int newStart;
-      if (MAX_KEY_COUNT - start - requestsCount >= 0) {
-        for (int i = start; i < start + requestsCount; i++) {
-          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
-        }
-        newStart = start + requestsCount;
+      if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
+        LeanplumSQLiteHelper.deleteActions(requestsCount);
       } else {
-        for (int i = start; i < MAX_KEY_COUNT; i++) {
-          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+        Context context = Leanplum.getContext();
+        SharedPreferences preferences = context.getSharedPreferences(
+            LEANPLUM, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+        int newStart;
+        if (MAX_KEY_COUNT - start - requestsCount >= 0) {
+          for (int i = start; i < start + requestsCount; i++) {
+            editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+          }
+          newStart = start + requestsCount;
+        } else {
+          for (int i = start; i < MAX_KEY_COUNT; i++) {
+            editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+          }
+          for (int i = 0; i < start - MAX_KEY_COUNT + requestsCount; i++) {
+            editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
+          }
+          newStart = start - MAX_KEY_COUNT + requestsCount;
         }
-        for (int i = 0; i < start - MAX_KEY_COUNT + requestsCount; i++) {
-          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
-        }
-        newStart = start - MAX_KEY_COUNT + requestsCount;
-      }
 
-      editor.putInt(Constants.Defaults.START_COUNT_KEY, newStart);
-      SharedPreferencesUtil.commitChanges(editor);
+        editor.putInt(Constants.Defaults.START_COUNT_KEY, newStart);
+        SharedPreferencesUtil.commitChanges(editor);
+      }
     }
   }
 
@@ -517,28 +547,34 @@ public class Request {
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
-
-      int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      if (count == 0 && start == 0) {
-        return new ArrayList<>();
-      }
-
-      if (count - start > MAX_ACTIONS_PER_API_CALL) {
-        count = MAX_ACTIONS_PER_API_CALL;
-      }
-
-      if (count < start) {
-        getRequests(requestData, start, MAX_KEY_COUNT, preferences, editor, remove);
-        getRequests(requestData, 0, count, preferences, editor, remove);
-
+      if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
+        requestData = LeanplumSQLiteHelper.getActions(MAX_ACTIONS_PER_API_CALL);
+        moreThenOneRequestToServer = requestData.size() == MAX_ACTIONS_PER_API_CALL &&
+            LeanplumSQLiteHelper.getActionCount() > MAX_ACTIONS_PER_API_CALL;
       } else {
-        getRequests(requestData, start, count, preferences, editor, remove);
-      }
+        int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
+        int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+        if (count == 0 && start == 0) {
+          return new ArrayList<>();
+        }
 
-      if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
-        editor.remove(Constants.Defaults.COUNT_KEY);
-        editor.remove(Constants.Defaults.START_COUNT_KEY);
+        if (count - start > MAX_ACTIONS_PER_API_CALL) {
+          count = MAX_ACTIONS_PER_API_CALL;
+          moreThenOneRequestToServer = true;
+        }
+
+        if (count < start) {
+          getRequests(requestData, start, MAX_KEY_COUNT, preferences, editor, remove);
+          getRequests(requestData, 0, count, preferences, editor, remove);
+
+        } else {
+          getRequests(requestData, start, count, preferences, editor, remove);
+        }
+
+        if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
+          editor.remove(Constants.Defaults.COUNT_KEY);
+          editor.remove(Constants.Defaults.START_COUNT_KEY);
+        }
       }
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
@@ -548,7 +584,7 @@ public class Request {
     return requestData;
   }
 
-  private static void getRequests(List<Map<String, Object>> requestData, int start, int end,
+  public static void getRequests(List<Map<String, Object>> requestData, int start, int end,
       SharedPreferences preferences, SharedPreferences.Editor editor, boolean remove) {
     for (int i = start; i < end; i++) {
       String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
@@ -916,6 +952,45 @@ public class Request {
     } catch (JSONException e) {
       Log.e("Could not parse JSON response.", e);
       return null;
+    }
+  }
+
+  static void moveOldDataFromSharedPreferences() {
+    synchronized (lock) {
+      Context context = Leanplum.getContext();
+      SharedPreferences preferences = context.getSharedPreferences(
+          LEANPLUM, Context.MODE_PRIVATE);
+      SharedPreferences.Editor editor = preferences.edit();
+      int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
+      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
+      if (count == 0 && start == 0) {
+        return;
+      }
+      List<Map<String, Object>> requestData = new ArrayList<>();
+      if (count < start) {
+        Request.getRequests(requestData, start, MAX_KEY_COUNT, preferences, editor, true);
+        Request.getRequests(requestData, 0, count, preferences, editor, true);
+
+      } else {
+        Request.getRequests(requestData, start, count, preferences, editor, true);
+      }
+      editor.remove(Constants.Defaults.COUNT_KEY);
+      editor.remove(Constants.Defaults.START_COUNT_KEY);
+
+      try {
+        String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+        if (uuid == null || count % MAX_ACTIONS_PER_API_CALL == 0) {
+          uuid = UUID.randomUUID().toString();
+          editor.putString(Constants.Defaults.UUID_KEY, uuid);
+        }
+        for (Map<String, Object> action : requestData) {
+          action.put(UUID_KEY, uuid);
+          LeanplumSQLiteHelper.insertAction(LeanplumSQLiteHelper.ACTIONS_TABLE_NAME,
+              JsonConverter.toJson(action));
+        }
+        SharedPreferencesUtil.commitChanges(editor);
+      } catch (Throwable ignored) {
+      }
     }
   }
 }
