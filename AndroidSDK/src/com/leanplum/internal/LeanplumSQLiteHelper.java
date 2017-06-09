@@ -91,18 +91,17 @@ public class LeanplumSQLiteHelper {
   }
 
   /**
-   * Inserts action to the table with name tableName.
+   * Inserts action to actions table.
    *
-   * @param tableName Table name.
    * @param action String with json of action.
    */
-  static void insertAction(String tableName, String action) {
+  static void insertAction(String action) {
     if (database == null) {
       return;
     }
     contentValues.put(COLUMN_ACTION, action);
     try {
-      database.insert(tableName, null, contentValues);
+      database.insert(ACTIONS_TABLE_NAME, null, contentValues);
     } catch (Throwable t) {
       Log.e("Unable to insert action to database.", t);
       Util.handleException(t);
@@ -110,28 +109,27 @@ public class LeanplumSQLiteHelper {
   }
 
   /**
-   * Gets first numbersOfActions actions from a table with name tableName.
+   * Gets first numbersOfActions actions from actions table.
    *
-   * @param numberOfActions Number of actions.
-   * @param tableName Table name.
+   * @param count Number of actions.
    * @return List of actions.
    */
-  static List<Map<String, Object>> getFirstNActions(int numberOfActions, String tableName) {
+  static List<Map<String, Object>> getActions(int count) {
     List<Map<String, Object>> actions = new ArrayList<>();
     if (database == null) {
       return actions;
     }
     Cursor cursor = null;
     try {
-      cursor = database.query(tableName, new String[] {COLUMN_ACTION}, null, null, null, null,
-          KEY_ROWID + " ASC", "" + numberOfActions);
-      cursor.moveToFirst();
-
-      while (!cursor.isAfterLast()) {
-        Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
-            cursor.getString(cursor.getColumnIndex(COLUMN_ACTION))));
-        actions.add(requestArgs);
-        cursor.moveToNext();
+      cursor = database.query(ACTIONS_TABLE_NAME, new String[] {COLUMN_ACTION}, null, null, null,
+          null, KEY_ROWID + " ASC", "" + count);
+      if (cursor.moveToFirst()) {
+        while (!cursor.isAfterLast()) {
+          Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
+              cursor.getString(cursor.getColumnIndex(COLUMN_ACTION))));
+          actions.add(requestArgs);
+          cursor.moveToNext();
+        }
       }
     } catch (Throwable t) {
       Log.e("Unable to get actions from the table.", t);
@@ -145,18 +143,17 @@ public class LeanplumSQLiteHelper {
   }
 
   /**
-   * Deletes first numbersOfActions elements from a table with name tableName.
+   * Deletes first numbersOfActions elements from actions table.
    *
-   * @param tableName Table name.
-   * @param numberOfActions Number of actions that need to be deleted.
+   * @param count Number of actions that need to be deleted.
    */
-  static void deleteFirstNActions(String tableName, int numberOfActions) {
+  static void deleteActions(int count) {
     if (database == null) {
       return;
     }
     try {
       database.delete(ACTIONS_TABLE_NAME, KEY_ROWID + " in (select " +
-          KEY_ROWID + " from " + tableName + " LIMIT " + numberOfActions + ")", null);
+          KEY_ROWID + " from " + ACTIONS_TABLE_NAME + " LIMIT " + count + ")", null);
     } catch (Throwable t) {
       Log.e("Unable to delete actions from the table.", t);
       Util.handleException(t);
@@ -164,18 +161,17 @@ public class LeanplumSQLiteHelper {
   }
 
   /**
-   * Gets number of rows in the table with name tableName.
+   * Gets number of rows in the actions table.
    *
-   * @param tableName Table name.
-   * @return Number of rows in the table with name tableName.
+   * @return Number of rows in the actions table.
    */
-  static long getCount(String tableName) {
+  static long getActionCount() {
     long count = 0;
     if (database == null) {
       return count;
     }
     try {
-      count = DatabaseUtils.queryNumEntries(database, tableName);
+      count = DatabaseUtils.queryNumEntries(database, ACTIONS_TABLE_NAME);
     } catch (Throwable t) {
       Log.e("Unable to get a number of rows in the table.", t);
       Util.handleException(t);

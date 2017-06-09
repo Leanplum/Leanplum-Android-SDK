@@ -201,7 +201,7 @@ public class Request {
       SharedPreferences.Editor editor = preferences.edit();
       long count;
       if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
-        count = LeanplumSQLiteHelper.getCount(LeanplumSQLiteHelper.ACTIONS_TABLE_NAME);
+        count = LeanplumSQLiteHelper.getActionCount();
       } else {
         count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
       }
@@ -501,7 +501,7 @@ public class Request {
 
     synchronized (lock) {
       if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
-        LeanplumSQLiteHelper.deleteFirstNActions(LeanplumSQLiteHelper.ACTIONS_TABLE_NAME, requestsCount);
+        LeanplumSQLiteHelper.deleteActions(requestsCount);
       } else {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
@@ -548,11 +548,9 @@ public class Request {
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       if (LeanplumSQLiteHelper.isDatabaseInitialized()) {
-        requestData = LeanplumSQLiteHelper.getFirstNActions(MAX_ACTIONS_PER_API_CALL,
-            LeanplumSQLiteHelper.ACTIONS_TABLE_NAME);
+        requestData = LeanplumSQLiteHelper.getActions(MAX_ACTIONS_PER_API_CALL);
         moreThenOneRequestToServer = requestData.size() == MAX_ACTIONS_PER_API_CALL &&
-            LeanplumSQLiteHelper.getCount(LeanplumSQLiteHelper.ACTIONS_TABLE_NAME)
-                > MAX_ACTIONS_PER_API_CALL;
+            LeanplumSQLiteHelper.getActionCount() > MAX_ACTIONS_PER_API_CALL;
       } else {
         int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
         int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
