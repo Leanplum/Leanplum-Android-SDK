@@ -38,6 +38,7 @@ import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
@@ -591,6 +592,7 @@ public class Leanplum {
 
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
+    LeanplumEventDataManager.init(context);
     LeanplumPushService.onStart();
 
     Boolean limitAdTracking = null;
