@@ -927,14 +927,12 @@ public class Leanplum {
 
     if (LeanplumInternal.issuedStart()) {
       pauseInternal();
-      LeanplumInternal.setIsPaused(true);
     } else {
       LeanplumInternal.addStartIssuedHandler(new Runnable() {
         @Override
         public void run() {
           try {
             pauseInternal();
-            LeanplumInternal.setIsPaused(true);
           } catch (Throwable t) {
             Util.handleException(t);
           }
@@ -946,6 +944,7 @@ public class Leanplum {
   private static void pauseInternal() {
     Request.post(Constants.Methods.PAUSE_SESSION, null).sendIfConnected();
     pauseHeartbeat();
+    LeanplumInternal.setIsPaused(true);
   }
 
   /**
@@ -962,14 +961,12 @@ public class Leanplum {
 
     if (LeanplumInternal.issuedStart()) {
       resumeInternal();
-      LeanplumInternal.setIsPaused(false);
     } else {
       LeanplumInternal.addStartIssuedHandler(new Runnable() {
         @Override
         public void run() {
           try {
             resumeInternal();
-            LeanplumInternal.setIsPaused(false);
           } catch (Throwable t) {
             Util.handleException(t);
           }
@@ -989,6 +986,7 @@ public class Leanplum {
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
     }
     resumeHeartbeat();
+    LeanplumInternal.setIsPaused(false);
   }
 
   /**

@@ -25,7 +25,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
-import android.database.DatabaseErrorHandler;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -34,7 +33,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +49,7 @@ public class LeanplumEventDataManager {
   private static final String KEY_ROWID = "rowid";
 
   private static SQLiteDatabase database;
-  private static LeanplumDataBaseHelper databaseHelper;
+  private static LeanplumDataBaseManager databaseManager;
   private static ContentValues contentValues = new ContentValues();
 
   public static void init(Context context) {
@@ -64,10 +62,10 @@ public class LeanplumEventDataManager {
 
     // Create database if needed.
     try {
-      if(databaseHelper==null) {
-        databaseHelper = new LeanplumDataBaseHelper(context, DATABASE_NAME);
+      if (databaseManager == null) {
+        databaseManager = new LeanplumDataBaseManager(context);
       }
-      database = databaseHelper.getWritableDatabase();
+      database = databaseManager.getWritableDatabase();
     } catch (Throwable t) {
       Log.e("Cannot create database.", t);
       Util.handleException(t);
@@ -76,7 +74,7 @@ public class LeanplumEventDataManager {
     // Migrate old data from shared preferences if needed.
     if (database != null && needMigration) {
       try {
-        Request.moveOldDataFromSharedPreferences();
+        Request.migrateFromSharedPreferences();
       } catch (Throwable t) {
         Log.e("Cannot move old data from shared preferences to SQLite table.", t);
         Util.handleException(t);
@@ -117,13 +115,10 @@ public class LeanplumEventDataManager {
     try {
       cursor = database.query(EVENT_TABLE_NAME, new String[] {COLUMN_DATA}, null, null, null,
           null, KEY_ROWID + " ASC", "" + count);
-      if (cursor.moveToFirst()) {
-        while (!cursor.isAfterLast()) {
-          Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
-              cursor.getString(cursor.getColumnIndex(COLUMN_DATA))));
-          events.add(requestArgs);
-          cursor.moveToNext();
-        }
+      while (cursor.moveToNext()) {
+        Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
+            cursor.getString(cursor.getColumnIndex(COLUMN_DATA))));
+        events.add(requestArgs);
       }
     } catch (Throwable t) {
       Log.e("Unable to get events from the table.", t);
@@ -146,13 +141,14 @@ public class LeanplumEventDataManager {
       return;
     }
     try {
-      database.delete(EVENT_TABLE_NAME, KEY_ROWID + " in (select " +
-          KEY_ROWID + " from " + EVENT_TABLE_NAME + " LIMIT " + count + ")", null);
+      database.delete(EVENT_TABLE_NAME, KEY_ROWID + " in (select " + KEY_ROWID + " from " +
+          EVENT_TABLE_NAME + " ORDER BY " + KEY_ROWID + " ASC LIMIT " + count + ")", null);
     } catch (Throwable t) {
       Log.e("Unable to delete events from the table.", t);
       Util.handleException(t);
     }
   }
+
 
   /**
    * Gets number of rows in the event table.
@@ -173,9 +169,9 @@ public class LeanplumEventDataManager {
     return count;
   }
 
-  private static class LeanplumDataBaseHelper extends SQLiteOpenHelper {
-    LeanplumDataBaseHelper(final Context context, final String name) {
-      super(context, name, null, DATABASE_VERSION);
+  public static class LeanplumDataBaseManager extends SQLiteOpenHelper {
+    LeanplumDataBaseManager(Context context) {
+      super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override

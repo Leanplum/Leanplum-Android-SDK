@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import com.leanplum.Leanplum;
+import com.leanplum.LeanplumException;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -68,7 +69,6 @@ public class Request {
   private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
   private static int pendingDownloads;
   private static NoPendingDownloadsCallback noPendingDownloadsBlock;
-  private static boolean moreThenOneRequestToServer = false;
 
 
   // The token is saved primarily for legacy SharedPreferences decryption. This could
@@ -394,13 +394,13 @@ public class Request {
     }
 
     final Map<String, Object> multiRequestArgs = new HashMap<>();
+    if (!Request.attachApiKeys(multiRequestArgs)) {
+      return null;
+    }
     multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-    if (!Request.attachApiKeys(multiRequestArgs)) {
-      return null;
-    }
 
     JSONObject result = null;
     HttpURLConnection op = null;
@@ -419,12 +419,14 @@ public class Request {
 
         Exception errorException = null;
         if (statusCode >= 200 && statusCode <= 299) {
+          boolean moreThenOneRequestToServer = requestsToSend.size() == MAX_ACTIONS_PER_API_CALL &&
+              LeanplumEventDataManager.getEventsCount() > MAX_ACTIONS_PER_API_CALL;
           deleteSentRequests(requestsToSend.size());
           if (moreThenOneRequestToServer) {
             sendRequests();
           }
         } else if (statusCode >= 400) {
-          errorException = new Exception("HTTP error " + statusCode);
+          errorException = new LeanplumException("HTTP error " + statusCode);
           if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
             deleteSentRequests(requestsToSend.size());
           }
@@ -438,7 +440,7 @@ public class Request {
               deleteSentRequests(requestsToSend.size());
             }
           } else {
-            errorException = new Exception("Response JSON is null.");
+            errorException = new LeanplumException("Response JSON is null.");
             deleteSentRequests(requestsToSend.size());
           }
         }
@@ -483,14 +485,10 @@ public class Request {
   }
 
   static List<Map<String, Object>> popUnsentRequests() {
-    return getUnsentRequests(true);
+    return getUnsentRequests();
   }
 
-  static List<Map<String, Object>> getUnsentRequests() {
-    return getUnsentRequests(false);
-  }
-
-  private static List<Map<String, Object>> getUnsentRequests(boolean remove) {
+  private static List<Map<String, Object>> getUnsentRequests() {
     List<Map<String, Object>> requestData;
 
     synchronized (lock) {
@@ -501,10 +499,6 @@ public class Request {
       SharedPreferences.Editor editor = preferences.edit();
 
       requestData = LeanplumEventDataManager.getEvents(MAX_ACTIONS_PER_API_CALL);
-
-      moreThenOneRequestToServer = requestData.size() == MAX_ACTIONS_PER_API_CALL &&
-          LeanplumEventDataManager.getEventsCount() > MAX_ACTIONS_PER_API_CALL;
-
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
@@ -884,7 +878,10 @@ public class Request {
     }
   }
 
-  static void moveOldDataFromSharedPreferences() {
+  /**
+   * Migrate data from shared preferences to SQLite.
+   */
+  static void migrateFromSharedPreferences() {
     synchronized (lock) {
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
@@ -913,7 +910,9 @@ public class Request {
           LeanplumEventDataManager.insertEvent(JsonConverter.toJson(event));
         }
         SharedPreferencesUtil.commitChanges(editor);
-      } catch (Throwable ignored) {
+      } catch (Throwable t) {
+        Log.e("Failed on migration data from shared preferences.", t);
+        Util.handleException(t);
       }
     }
   }
