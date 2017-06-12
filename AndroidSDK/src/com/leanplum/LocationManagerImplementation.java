@@ -241,7 +241,11 @@ class LocationManagerImplementation implements
 
   private boolean isPermissionGranted() {
     Context context = Leanplum.getContext();
-    return context.checkCallingOrSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED;
+    try {
+      return context.checkCallingOrSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED;
+    } catch (RuntimeException ignored) {
+      return false;
+    }
   }
 
   private boolean isMetaDataSet() {
