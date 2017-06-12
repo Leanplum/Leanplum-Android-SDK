@@ -25,14 +25,16 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
+import android.database.DatabaseErrorHandler;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDatabaseCorruptException;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -43,11 +45,13 @@ import java.util.Map;
  */
 public class LeanplumEventDataManager {
   private static final String DATABASE_NAME = "__leanplum.db";
+  private static final int DATABASE_VERSION = 1;
   private static final String EVENT_TABLE_NAME = "event";
   private static final String COLUMN_DATA = "data";
   private static final String KEY_ROWID = "rowid";
 
   private static SQLiteDatabase database;
+  private static LeanplumDataBaseHelper databaseHelper;
   private static ContentValues contentValues = new ContentValues();
 
   public static void init(Context context) {
@@ -55,40 +59,26 @@ public class LeanplumEventDataManager {
       Log.e("Database is already initialized.");
       return;
     }
-    File dbFile = new File(context.getFilesDir(), DATABASE_NAME);
-    boolean needMigration = false;
-    if (!dbFile.exists()) {
-      needMigration = true;
-    }
+    File dbFile = context.getDatabasePath(DATABASE_NAME);
+    boolean needMigration = !dbFile.exists();
+
     // Create database if needed.
     try {
-      database = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null,
-          SQLiteDatabase.CREATE_IF_NECESSARY);
-    } catch (SQLiteDatabaseCorruptException e) {
-      Log.e("Database is corrupted. Recreate.");
-      try {
-        if (!dbFile.exists() || dbFile.delete()) {
-          database = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null,
-              SQLiteDatabase.CREATE_IF_NECESSARY);
-        }
-      } catch (Throwable t) {
-        Log.e("Cannot create database. Retry failed.", t);
-        Util.handleException(t);
+      if(databaseHelper==null) {
+        databaseHelper = new LeanplumDataBaseHelper(context, DATABASE_NAME);
       }
+      database = databaseHelper.getWritableDatabase();
     } catch (Throwable t) {
       Log.e("Cannot create database.", t);
       Util.handleException(t);
     }
-    if (database != null) {
-      // Create table.
+
+    // Migrate old data from shared preferences if needed.
+    if (database != null && needMigration) {
       try {
-        database.execSQL("CREATE TABLE IF NOT EXISTS " + EVENT_TABLE_NAME + "(" + COLUMN_DATA +
-            " TEXT)");
-        if (needMigration) {
-          Request.moveOldDataFromSharedPreferences();
-        }
+        Request.moveOldDataFromSharedPreferences();
       } catch (Throwable t) {
-        Log.e("Cannot create table.", t);
+        Log.e("Cannot move old data from shared preferences to SQLite table.", t);
         Util.handleException(t);
       }
     }
@@ -181,5 +171,23 @@ public class LeanplumEventDataManager {
       Util.handleException(t);
     }
     return count;
+  }
+
+  private static class LeanplumDataBaseHelper extends SQLiteOpenHelper {
+    LeanplumDataBaseHelper(final Context context, final String name) {
+      super(context, name, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+      // Create event table.
+      db.execSQL("CREATE TABLE IF NOT EXISTS " + EVENT_TABLE_NAME + "(" + COLUMN_DATA +
+          " TEXT)");
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+      // No used for now.
+    }
   }
 }

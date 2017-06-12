@@ -959,16 +959,17 @@ public class Leanplum {
       Log.e("You cannot call resume before calling start");
       return;
     }
-    LeanplumInternal.setIsPaused(false);
 
     if (LeanplumInternal.issuedStart()) {
       resumeInternal();
+      LeanplumInternal.setIsPaused(false);
     } else {
       LeanplumInternal.addStartIssuedHandler(new Runnable() {
         @Override
         public void run() {
           try {
             resumeInternal();
+            LeanplumInternal.setIsPaused(false);
           } catch (Throwable t) {
             Util.handleException(t);
           }
