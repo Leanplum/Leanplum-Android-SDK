@@ -36,7 +36,6 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -166,12 +165,8 @@ public class LeanplumEventDataManager {
   }
 
   private static class LeanplumDataBaseManager extends SQLiteOpenHelper {
-    boolean needMigration;
-
     LeanplumDataBaseManager(Context context) {
       super(context, DATABASE_NAME, null, DATABASE_VERSION);
-      File dbFile = context.getDatabasePath(DATABASE_NAME);
-      needMigration = !dbFile.exists();
     }
 
     @Override
@@ -180,14 +175,12 @@ public class LeanplumEventDataManager {
       db.execSQL("CREATE TABLE IF NOT EXISTS " + EVENT_TABLE_NAME + "(" + COLUMN_DATA +
           " TEXT)");
 
-      // Migrate old data from shared preferences if needed.
-      if (needMigration) {
-        try {
-          migrateFromSharedPreferences(db);
-        } catch (Throwable t) {
-          Log.e("Cannot move old data from shared preferences to SQLite table.", t);
-          Util.handleException(t);
-        }
+      // Migrate old data from shared preferences.
+      try {
+        migrateFromSharedPreferences(db);
+      } catch (Throwable t) {
+        Log.e("Cannot move old data from shared preferences to SQLite table.", t);
+        Util.handleException(t);
       }
     }
 
@@ -199,7 +192,7 @@ public class LeanplumEventDataManager {
     /**
      * Migrate data from shared preferences to SQLite.
      */
-  private static void migrateFromSharedPreferences(SQLiteDatabase db) {
+    private static void migrateFromSharedPreferences(SQLiteDatabase db) {
       synchronized (Request.class) {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
@@ -236,8 +229,9 @@ public class LeanplumEventDataManager {
           }
           for (Map<String, Object> event : requestData) {
             event.put(Request.UUID_KEY, uuid);
-            contentValues.put(COLUMN_DATA,JsonConverter.toJson(event));
+            contentValues.put(COLUMN_DATA, JsonConverter.toJson(event));
             db.insert(EVENT_TABLE_NAME, null, contentValues);
+            contentValues.clear();
           }
           SharedPreferencesUtil.commitChanges(editor);
         } catch (Throwable t) {

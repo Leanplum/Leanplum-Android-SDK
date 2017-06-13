@@ -505,11 +505,6 @@ public class Request {
     return requestData;
   }
 
-  private static void getRequests(List<Map<String, Object>> requestData, int start, int end,
-      SharedPreferences preferences, SharedPreferences.Editor editor, boolean remove) {
-
-  }
-
   /**
    * In various scenarios we can end up batching a big number of requests (e.g. device is offline,
    * background sessions), which could make the stored API calls batch look something like:
