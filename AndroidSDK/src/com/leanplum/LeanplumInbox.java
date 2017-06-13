@@ -316,8 +316,16 @@ public class LeanplumInbox {
           if (secondMessage == null) {
             return 1;
           }
+
           Date firstDate = firstMessage.getDeliveryTimestamp();
           Date secondDate = secondMessage.getDeliveryTimestamp();
+          // Message with null date will be moved to the back of the list.
+          if (firstDate == null) {
+            return -1;
+          }
+          if (secondDate == null) {
+            return 1;
+          }
           return firstDate.compareTo(secondDate);
         }
       });
