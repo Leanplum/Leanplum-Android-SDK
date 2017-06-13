@@ -98,6 +98,7 @@ public class LeanplumEventDataManager {
       Log.e("Unable to insert event to database.", t);
       Util.handleException(t);
     }
+    contentValues.clear();
   }
 
   /**
