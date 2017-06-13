@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
 import java.util.UUID;
@@ -58,9 +57,9 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  private static final int MAX_ACTIONS_PER_API_CALL = 10000;
-  private static final String LEANPLUM = "__leanplum__";
-  private static final String UUID_KEY = "uuid";
+  static final int MAX_ACTIONS_PER_API_CALL = 10000;
+  static final String LEANPLUM = "__leanplum__";
+  static final String UUID_KEY = "uuid";
 
   private static String appId;
   private static String accessKey;
@@ -69,11 +68,10 @@ public class Request {
   private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
   private static int pendingDownloads;
   private static NoPendingDownloadsCallback noPendingDownloadsBlock;
-  
+
   // The token is saved primarily for legacy SharedPreferences decryption. This could
   // likely be removed in the future.
   private static String token = null;
-  private static final Object lock = Request.class;
   private static final Map<File, Long> fileUploadSize = new HashMap<>();
   private static final Map<File, Double> fileUploadProgress = new HashMap<>();
   private static String fileUploadProgressString = "";
@@ -193,7 +191,7 @@ public class Request {
   }
 
   private static void saveRequestForLater(Map<String, Object> args) {
-    synchronized (lock) {
+    synchronized (Request.class) {
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
@@ -381,20 +379,21 @@ public class Request {
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        return sendRequests();
+        sendRequests();
+        return null;
       }
     });
   }
 
-  private Void sendRequests() {
+  private void sendRequests() {
     List<Map<String, Object>> requestsToSend = getUnsentRequests();
     if (requestsToSend.isEmpty()) {
-      return null;
+      return;
     }
 
     final Map<String, Object> multiRequestArgs = new HashMap<>();
     if (!Request.attachApiKeys(multiRequestArgs)) {
-      return null;
+      return;
     }
     multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
@@ -460,7 +459,7 @@ public class Request {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    return null;
+    return;
   }
 
   public void sendEventually() {
@@ -478,7 +477,7 @@ public class Request {
     if (requestsCount == 0) {
       return;
     }
-    synchronized (lock) {
+    synchronized (Request.class) {
       LeanplumEventDataManager.deleteEvents(requestsCount);
     }
   }
@@ -490,7 +489,7 @@ public class Request {
   private static List<Map<String, Object>> getUnsentRequests() {
     List<Map<String, Object>> requestData;
 
-    synchronized (lock) {
+    synchronized (Request.class) {
       lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
@@ -508,20 +507,7 @@ public class Request {
 
   private static void getRequests(List<Map<String, Object>> requestData, int start, int end,
       SharedPreferences preferences, SharedPreferences.Editor editor, boolean remove) {
-    for (int i = start; i < end; i++) {
-      String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
-      Map<String, Object> requestArgs;
-      try {
-        requestArgs = JsonConverter.mapFromJson(new JSONObject(
-            preferences.getString(itemKey, "{}")));
-        requestData.add(requestArgs);
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
-      if (remove) {
-        editor.remove(itemKey);
-      }
-    }
+
   }
 
   /**
@@ -874,45 +860,6 @@ public class Request {
     } catch (JSONException e) {
       Log.e("Could not parse JSON response.", e);
       return null;
-    }
-  }
-
-  /**
-   * Migrate data from shared preferences to SQLite.
-   */
-  static void migrateFromSharedPreferences() {
-    synchronized (lock) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      if (count == 0 && start == 0) {
-        return;
-      }
-
-      List<Map<String, Object>> requestData = new ArrayList<>();
-      Request.getRequests(requestData, start, count, preferences, editor, true);
-
-      editor.remove(Constants.Defaults.COUNT_KEY);
-      editor.remove(Constants.Defaults.START_COUNT_KEY);
-
-      try {
-        String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-        if (uuid == null || count % MAX_ACTIONS_PER_API_CALL == 0) {
-          uuid = UUID.randomUUID().toString();
-          editor.putString(Constants.Defaults.UUID_KEY, uuid);
-        }
-        for (Map<String, Object> event : requestData) {
-          event.put(UUID_KEY, uuid);
-          LeanplumEventDataManager.insertEvent(JsonConverter.toJson(event));
-        }
-        SharedPreferencesUtil.commitChanges(editor);
-      } catch (Throwable t) {
-        Log.e("Failed on migration data from shared preferences.", t);
-        Util.handleException(t);
-      }
     }
   }
 }
