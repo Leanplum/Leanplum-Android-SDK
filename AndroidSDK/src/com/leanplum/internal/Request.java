@@ -69,8 +69,7 @@ public class Request {
   private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
   private static int pendingDownloads;
   private static NoPendingDownloadsCallback noPendingDownloadsBlock;
-
-
+  
   // The token is saved primarily for legacy SharedPreferences decryption. This could
   // likely be removed in the future.
   private static String token = null;
