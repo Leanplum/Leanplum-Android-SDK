@@ -413,6 +413,9 @@ public class LeanplumInternal {
                 }
               } catch (IOException e) {
                 Log.e("Failed to connect to Geocoder: " + e);
+              } catch (IllegalArgumentException e) {
+                Log.e("Invalid latitude or longitude values: " + e);
+              } catch (Throwable ignored) {
               }
             }
             Request req = Request.post(Constants.Methods.SET_USER_ATTRIBUTES, params);
