@@ -38,6 +38,7 @@ import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
@@ -591,6 +592,7 @@ public class Leanplum {
 
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
+    LeanplumEventDataManager.init(context);
     LeanplumPushService.onStart();
 
     Boolean limitAdTracking = null;
@@ -922,7 +924,6 @@ public class Leanplum {
       Log.e("You cannot call pause before calling start");
       return;
     }
-    LeanplumInternal.setIsPaused(true);
 
     if (LeanplumInternal.issuedStart()) {
       pauseInternal();
@@ -943,6 +944,7 @@ public class Leanplum {
   private static void pauseInternal() {
     Request.post(Constants.Methods.PAUSE_SESSION, null).sendIfConnected();
     pauseHeartbeat();
+    LeanplumInternal.setIsPaused(true);
   }
 
   /**
@@ -956,7 +958,6 @@ public class Leanplum {
       Log.e("You cannot call resume before calling start");
       return;
     }
-    LeanplumInternal.setIsPaused(false);
 
     if (LeanplumInternal.issuedStart()) {
       resumeInternal();
@@ -985,6 +986,7 @@ public class Leanplum {
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
     }
     resumeHeartbeat();
+    LeanplumInternal.setIsPaused(false);
   }
 
   /**

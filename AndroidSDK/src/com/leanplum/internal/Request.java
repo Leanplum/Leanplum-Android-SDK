@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import com.leanplum.Leanplum;
+import com.leanplum.LeanplumException;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -43,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
 import java.util.UUID;
@@ -57,10 +57,9 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  private static final int MAX_ACTIONS_PER_API_CALL = 10000;
-  private static final int MAX_KEY_COUNT = Integer.MAX_VALUE;
-  private static final String LEANPLUM = "__leanplum__";
-  private static final String UUID_KEY = "uuid";
+  static final int MAX_ACTIONS_PER_API_CALL = 10000;
+  static final String LEANPLUM = "__leanplum__";
+  static final String UUID_KEY = "uuid";
 
   private static String appId;
   private static String accessKey;
@@ -73,7 +72,6 @@ public class Request {
   // The token is saved primarily for legacy SharedPreferences decryption. This could
   // likely be removed in the future.
   private static String token = null;
-  private static final Object lock = Request.class;
   private static final Map<File, Long> fileUploadSize = new HashMap<>();
   private static final Map<File, Double> fileUploadProgress = new HashMap<>();
   private static String fileUploadProgressString = "";
@@ -193,29 +191,20 @@ public class Request {
   }
 
   private static void saveRequestForLater(Map<String, Object> args) {
-    synchronized (lock) {
+    synchronized (Request.class) {
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
-      int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-      String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
-      if (count == MAX_KEY_COUNT - 1) {
-        count = 0;
-      } else {
-        count++;
-      }
-
+      long count = LeanplumEventDataManager.getEventsCount();
       String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-      if (uuid == null) {
+      if (uuid == null || count % MAX_ACTIONS_PER_API_CALL == 0) {
         uuid = UUID.randomUUID().toString();
+        editor.putString(Constants.Defaults.UUID_KEY, uuid);
+        SharedPreferencesUtil.commitChanges(editor);
       }
       args.put(UUID_KEY, uuid);
-
-      editor.putString(itemKey, JsonConverter.toJson(args));
-      editor.putString(Constants.Defaults.UUID_KEY, uuid);
-      editor.putInt(Constants.Defaults.COUNT_KEY, count);
-      SharedPreferencesUtil.commitChanges(editor);
+      LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
     }
   }
 
@@ -390,71 +379,87 @@ public class Request {
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        List<Map<String, Object>> requestsToSend = getUnsentRequests();
-        if (requestsToSend.isEmpty()) {
-          return null;
-        }
-
-        final Map<String, Object> multiRequestArgs = new HashMap<>();
-        multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
-        multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
-        multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
-        multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-        if (!Request.attachApiKeys(multiRequestArgs)) {
-          return null;
-        }
-
-        JSONObject result = null;
-        HttpURLConnection op = null;
-        try {
-          try {
-            op = Util.operation(
-                Constants.API_HOST_NAME,
-                Constants.API_SERVLET,
-                multiRequestArgs,
-                httpMethod,
-                Constants.API_SSL,
-                Constants.NETWORK_TIMEOUT_SECONDS);
-
-            result = Util.getJsonResponse(op);
-            int statusCode = op.getResponseCode();
-
-            Exception errorException = null;
-            if (statusCode == 200) {
-              deleteSentRequests(requestsToSend.size());
-            } else if (statusCode >= 400) {
-              errorException = new Exception("HTTP error " + statusCode);
-            } else {
-              if (result != null) {
-                int numResponses = Request.numResponses(result);
-                if (numResponses != requestsToSend.size()) {
-                  Log.w("Sent " + requestsToSend.size() +
-                      " requests but only" + " received " + numResponses);
-                }
-              } else {
-                errorException = new Exception("Response JSON is null.");
-              }
-            }
-            parseResponseJson(result, requestsToSend, errorException);
-          } catch (JSONException e) {
-            Log.e("Error parsing JSON response: " + e.toString() + "\n" +
-                Log.getStackTraceString(e));
-            parseResponseJson(null, requestsToSend, e);
-          } catch (Exception e) {
-            Log.e("Unable to send request: " + e.toString() + "\n" +
-                Log.getStackTraceString(e));
-            parseResponseJson(result, requestsToSend, e);
-          } finally {
-            if (op != null) {
-              op.disconnect();
-            }
-          }
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
+        sendRequests();
         return null;
       }
     });
+  }
+
+  private void sendRequests() {
+    List<Map<String, Object>> requestsToSend = getUnsentRequests();
+    if (requestsToSend.isEmpty()) {
+      return;
+    }
+
+    final Map<String, Object> multiRequestArgs = new HashMap<>();
+    if (!Request.attachApiKeys(multiRequestArgs)) {
+      return;
+    }
+    multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
+    multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
+    multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
+    multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
+
+    JSONObject result = null;
+    HttpURLConnection op = null;
+    try {
+      try {
+        op = Util.operation(
+            Constants.API_HOST_NAME,
+            Constants.API_SERVLET,
+            multiRequestArgs,
+            httpMethod,
+            Constants.API_SSL,
+            Constants.NETWORK_TIMEOUT_SECONDS);
+
+        result = Util.getJsonResponse(op);
+        int statusCode = op.getResponseCode();
+
+        Exception errorException = null;
+        if (statusCode >= 200 && statusCode <= 299) {
+          boolean moreThenOneRequestToServer = requestsToSend.size() == MAX_ACTIONS_PER_API_CALL &&
+              LeanplumEventDataManager.getEventsCount() > MAX_ACTIONS_PER_API_CALL;
+          deleteSentRequests(requestsToSend.size());
+          if (moreThenOneRequestToServer) {
+            sendRequests();
+          }
+        } else if (statusCode >= 400) {
+          errorException = new LeanplumException("HTTP error " + statusCode);
+          if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
+            deleteSentRequests(requestsToSend.size());
+          }
+        } else {
+          if (result != null) {
+            int numResponses = Request.numResponses(result);
+            if (numResponses != requestsToSend.size()) {
+              Log.w("Sent " + requestsToSend.size() +
+                  " requests but only" + " received " + numResponses);
+            } else {
+              deleteSentRequests(requestsToSend.size());
+            }
+          } else {
+            errorException = new LeanplumException("Response JSON is null.");
+            deleteSentRequests(requestsToSend.size());
+          }
+        }
+        parseResponseJson(result, requestsToSend, errorException);
+      } catch (JSONException e) {
+        Log.e("Error parsing JSON response: " + e.toString() + "\n" +
+            Log.getStackTraceString(e));
+        parseResponseJson(null, requestsToSend, e);
+      } catch (Exception e) {
+        Log.e("Unable to send request: " + e.toString() + "\n" +
+            Log.getStackTraceString(e));
+        parseResponseJson(result, requestsToSend, e);
+      } finally {
+        if (op != null) {
+          op.disconnect();
+        }
+      }
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    return;
   }
 
   public void sendEventually() {
@@ -472,98 +477,32 @@ public class Request {
     if (requestsCount == 0) {
       return;
     }
-
-    synchronized (lock) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      int newStart;
-      if (MAX_KEY_COUNT - start - requestsCount >= 0) {
-        for (int i = start; i < start + requestsCount; i++) {
-          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
-        }
-        newStart = start + requestsCount;
-      } else {
-        for (int i = start; i < MAX_KEY_COUNT; i++) {
-          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
-        }
-        for (int i = 0; i < start - MAX_KEY_COUNT + requestsCount; i++) {
-          editor.remove(String.format(Locale.US, Constants.Defaults.ITEM_KEY, i));
-        }
-        newStart = start - MAX_KEY_COUNT + requestsCount;
-      }
-
-      editor.putInt(Constants.Defaults.START_COUNT_KEY, newStart);
-      SharedPreferencesUtil.commitChanges(editor);
+    synchronized (Request.class) {
+      LeanplumEventDataManager.deleteEvents(requestsCount);
     }
   }
 
   static List<Map<String, Object>> popUnsentRequests() {
-    return getUnsentRequests(true);
+    return getUnsentRequests();
   }
 
-  static List<Map<String, Object>> getUnsentRequests() {
-    return getUnsentRequests(false);
-  }
+  private static List<Map<String, Object>> getUnsentRequests() {
+    List<Map<String, Object>> requestData;
 
-  private static List<Map<String, Object>> getUnsentRequests(boolean remove) {
-    List<Map<String, Object>> requestData = new ArrayList<>();
-
-    synchronized (lock) {
+    synchronized (Request.class) {
       lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
 
-      int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-      int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-      if (count == 0 && start == 0) {
-        return new ArrayList<>();
-      }
-
-      if (count - start > MAX_ACTIONS_PER_API_CALL) {
-        count = MAX_ACTIONS_PER_API_CALL;
-      }
-
-      if (count < start) {
-        getRequests(requestData, start, MAX_KEY_COUNT, preferences, editor, remove);
-        getRequests(requestData, 0, count, preferences, editor, remove);
-
-      } else {
-        getRequests(requestData, start, count, preferences, editor, remove);
-      }
-
-      if (remove || (count == start && start != MAX_ACTIONS_PER_API_CALL)) {
-        editor.remove(Constants.Defaults.COUNT_KEY);
-        editor.remove(Constants.Defaults.START_COUNT_KEY);
-      }
+      requestData = LeanplumEventDataManager.getEvents(MAX_ACTIONS_PER_API_CALL);
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
 
     requestData = removeIrrelevantBackgroundStartRequests(requestData);
     return requestData;
-  }
-
-  private static void getRequests(List<Map<String, Object>> requestData, int start, int end,
-      SharedPreferences preferences, SharedPreferences.Editor editor, boolean remove) {
-    for (int i = start; i < end; i++) {
-      String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
-      Map<String, Object> requestArgs;
-      try {
-        requestArgs = JsonConverter.mapFromJson(new JSONObject(
-            preferences.getString(itemKey, "{}")));
-        requestData.add(requestArgs);
-      } catch (JSONException e) {
-        e.printStackTrace();
-      }
-      if (remove) {
-        editor.remove(itemKey);
-      }
-    }
   }
 
   /**
