@@ -346,7 +346,15 @@ public class LeanplumPushService {
         notificationId = value.hashCode();
       }
     }
-    notificationManager.notify(notificationId, builder.build());
+
+    try {
+      notificationManager.notify(notificationId, builder.build());
+    } catch (NullPointerException e) {
+      Log.e("Unable to show push notification.", e);
+    } catch (Throwable t) {
+      Log.e("Unable to show push notification.", t);
+      Util.handleException(t);
+    }
   }
 
   static void openNotification(Context context, final Bundle notification) {
