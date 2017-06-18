@@ -70,7 +70,6 @@ public class Constants {
 
   public static class Defaults {
     public static final String COUNT_KEY = "__leanplum_unsynced";
-    public static final String START_COUNT_KEY = "__leanplum_unsynced_start";
     public static final String ITEM_KEY = "__leanplum_unsynced_%d";
     public static final String UUID_KEY = "__leanplum_uuid";
     public static final String VARIABLES_KEY = "__leanplum_variables";

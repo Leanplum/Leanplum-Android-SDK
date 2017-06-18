@@ -57,7 +57,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  static final int MAX_ACTIONS_PER_API_CALL = 10000;
+  static final int MAX_EVENTS_PER_API_CALL = 10000;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
 
@@ -198,7 +198,7 @@ public class Request {
       SharedPreferences.Editor editor = preferences.edit();
       long count = LeanplumEventDataManager.getEventsCount();
       String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-      if (uuid == null || count % MAX_ACTIONS_PER_API_CALL == 0) {
+      if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
         uuid = UUID.randomUUID().toString();
         editor.putString(Constants.Defaults.UUID_KEY, uuid);
         SharedPreferencesUtil.commitChanges(editor);
@@ -279,7 +279,8 @@ public class Request {
     }
     if (apiResponse != null) {
       List<Map<String, Object>> requests = getUnsentRequests();
-      apiResponse.response(requests, null);
+      List<Map<String, Object>> requestsToSend = removeIrrelevantBackgroundStartRequests(requests);
+      apiResponse.response(requestsToSend, null);
     }
   }
 
@@ -386,7 +387,9 @@ public class Request {
   }
 
   private void sendRequests() {
-    List<Map<String, Object>> requestsToSend = getUnsentRequests();
+    List<Map<String, Object>> unsentRequests = getUnsentRequests();
+    List<Map<String, Object>> requestsToSend =
+        removeIrrelevantBackgroundStartRequests(unsentRequests);
     if (requestsToSend.isEmpty()) {
       return;
     }
@@ -417,16 +420,14 @@ public class Request {
 
         Exception errorException = null;
         if (statusCode >= 200 && statusCode <= 299) {
-          boolean moreThenOneRequestToServer = requestsToSend.size() == MAX_ACTIONS_PER_API_CALL &&
-              LeanplumEventDataManager.getEventsCount() > MAX_ACTIONS_PER_API_CALL;
-          deleteSentRequests(requestsToSend.size());
-          if (moreThenOneRequestToServer) {
+          deleteSentRequests(unsentRequests.size());
+          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
             sendRequests();
           }
         } else if (statusCode >= 400) {
           errorException = new LeanplumException("HTTP error " + statusCode);
           if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
-            deleteSentRequests(requestsToSend.size());
+            deleteSentRequests(unsentRequests.size());
           }
         } else {
           if (result != null) {
@@ -435,11 +436,11 @@ public class Request {
               Log.w("Sent " + requestsToSend.size() +
                   " requests but only" + " received " + numResponses);
             } else {
-              deleteSentRequests(requestsToSend.size());
+              deleteSentRequests(unsentRequests.size());
             }
           } else {
             errorException = new LeanplumException("Response JSON is null.");
-            deleteSentRequests(requestsToSend.size());
+            deleteSentRequests(unsentRequests.size());
           }
         }
         parseResponseJson(result, requestsToSend, errorException);
@@ -459,7 +460,6 @@ public class Request {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    return;
   }
 
   public void sendEventually() {
@@ -473,17 +473,13 @@ public class Request {
     }
   }
 
-  private static void deleteSentRequests(int requestsCount) {
+  static void deleteSentRequests(int requestsCount) {
     if (requestsCount == 0) {
       return;
     }
     synchronized (Request.class) {
       LeanplumEventDataManager.deleteEvents(requestsCount);
     }
-  }
-
-  static List<Map<String, Object>> popUnsentRequests() {
-    return getUnsentRequests();
   }
 
   private static List<Map<String, Object>> getUnsentRequests() {
@@ -496,12 +492,11 @@ public class Request {
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
 
-      requestData = LeanplumEventDataManager.getEvents(MAX_ACTIONS_PER_API_CALL);
+      requestData = LeanplumEventDataManager.getEvents(MAX_EVENTS_PER_API_CALL);
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
 
-    requestData = removeIrrelevantBackgroundStartRequests(requestData);
     return requestData;
   }
 

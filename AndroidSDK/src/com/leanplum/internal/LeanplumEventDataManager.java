@@ -199,13 +199,12 @@ public class LeanplumEventDataManager {
             Request.LEANPLUM, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-        int start = preferences.getInt(Constants.Defaults.START_COUNT_KEY, 0);
-        if (count == 0 && start == 0) {
+        if (count == 0) {
           return;
         }
 
         List<Map<String, Object>> requestData = new ArrayList<>();
-        for (int i = start; i < count; i++) {
+        for (int i = 0; i < count; i++) {
           String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
           Map<String, Object> requestArgs;
           try {
@@ -219,11 +218,10 @@ public class LeanplumEventDataManager {
         }
 
         editor.remove(Constants.Defaults.COUNT_KEY);
-        editor.remove(Constants.Defaults.START_COUNT_KEY);
 
         try {
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % Request.MAX_ACTIONS_PER_API_CALL == 0) {
+          if (uuid == null || count % Request.MAX_EVENTS_PER_API_CALL == 0) {
             uuid = UUID.randomUUID().toString();
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
           }
