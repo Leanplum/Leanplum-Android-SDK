@@ -34,6 +34,7 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.OsHandler;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
+import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONObject;
 
@@ -205,11 +206,7 @@ public class LeanplumInbox {
     String messagesJson = JsonConverter.toJson(messages);
     AESCrypt aesContext = new AESCrypt(Request.appId(), Request.token());
     editor.putString(Constants.Defaults.INBOX_KEY, aesContext.encrypt(messagesJson));
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   void downloadMessages() {

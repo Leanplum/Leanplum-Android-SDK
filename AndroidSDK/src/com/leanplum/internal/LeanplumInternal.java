@@ -384,7 +384,7 @@ public class LeanplumInternal {
       @Override
       public void onResponse(final boolean success) {
         // Geocoder query must be executed on background thread.
-        Util.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
+        Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
           @Override
           protected Void doInBackground(Void... voids) {
             if (!success) {

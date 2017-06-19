@@ -45,6 +45,7 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
+import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -192,11 +193,7 @@ class LocationManagerImplementation implements
         "__leanplum__location", Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = defaults.edit();
     editor.putString(Constants.Keys.REGION_STATE, JsonConverter.toJson(lastKnownState));
-    try {
-      editor.apply();
-    } catch (NoSuchMethodError e) {
-      editor.commit();
-    }
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   private Geofence geofenceFromMap(Map<String, Object> regionData, String regionName) {
