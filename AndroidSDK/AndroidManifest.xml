@@ -14,7 +14,7 @@
         android:protectionLevel="signature" />
     <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE" />
 
-    <application android:label="@string/app_name">
+    <application>
 
         <!-- Leanplum Push Notification Receiver for GCM and FCM -->
         <receiver android:name="com.leanplum.LeanplumPushReceiver" android:exported="false"
