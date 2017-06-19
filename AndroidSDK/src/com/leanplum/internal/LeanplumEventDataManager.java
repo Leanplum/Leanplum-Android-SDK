@@ -58,6 +58,11 @@ public class LeanplumEventDataManager {
   private static LeanplumDataBaseManager databaseManager;
   private static ContentValues contentValues = new ContentValues();
 
+  /**
+   * Creates connection to database, if database is not present, it will automatically create it.
+   *
+   * @param context Current context.
+   */
   public static void init(Context context) {
     if (database != null) {
       Log.e("Database is already initialized.");
@@ -143,7 +148,6 @@ public class LeanplumEventDataManager {
       Util.handleException(t);
     }
   }
-
 
   /**
    * Gets number of rows in the event table.
