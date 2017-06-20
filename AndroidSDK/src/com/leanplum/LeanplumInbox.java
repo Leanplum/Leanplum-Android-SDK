@@ -303,9 +303,25 @@ public class LeanplumInbox {
     try {
       Collections.sort(messageIds, new Comparator<String>() {
         @Override
-        public int compare(String firstMessage, String secondMessage) {
-          Date firstDate = messageForId(firstMessage).getDeliveryTimestamp();
-          Date secondDate = messageForId(secondMessage).getDeliveryTimestamp();
+        public int compare(String firstMessageId, String secondMessageId) {
+          // Message that is null will be moved to the back of the list.
+          LeanplumInboxMessage firstMessage = messageForId(firstMessageId);
+          if (firstMessage == null) {
+            return -1;
+          }
+          LeanplumInboxMessage secondMessage = messageForId(secondMessageId);
+          if (secondMessage == null) {
+            return 1;
+          }
+          // Message with null date will be moved to the back of the list.
+          Date firstDate = firstMessage.getDeliveryTimestamp();
+          if (firstDate == null) {
+            return -1;
+          }
+          Date secondDate = secondMessage.getDeliveryTimestamp();
+          if (secondDate == null) {
+            return 1;
+          }
           return firstDate.compareTo(secondDate);
         }
       });
