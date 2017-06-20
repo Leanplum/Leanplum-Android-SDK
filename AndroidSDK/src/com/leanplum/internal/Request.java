@@ -87,6 +87,8 @@ public class Request {
 
   private static ApiResponseCallback apiResponse;
 
+  private static List<Map<String, Object>> localErrors = new ArrayList<>();
+
   public static void setAppId(String appId, String accessKey) {
     Request.appId = appId;
     Request.accessKey = accessKey;
@@ -144,7 +146,10 @@ public class Request {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
-
+    // Check if it is error and here was SQLite exception.
+    if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.willSendErrorLog) {
+      localErrors.add(createArgsDictionary());
+    }
     // Make sure the Handler is initialized on the main thread.
     OsHandler.getInstance();
   }
@@ -387,9 +392,21 @@ public class Request {
   }
 
   private void sendRequests() {
-    List<Map<String, Object>> unsentRequests = getUnsentRequests();
-    List<Map<String, Object>> requestsToSend =
-        removeIrrelevantBackgroundStartRequests(unsentRequests);
+    List<Map<String, Object>> unsentRequests = new ArrayList<>();
+    List<Map<String, Object>> requestsToSend;
+    // Check if we have localErrors, if yes then we will send only errors to the server.
+    if (localErrors.size() != 0) {
+      String uuid = UUID.randomUUID().toString();
+      for (Map<String, Object> error : localErrors) {
+        error.put(UUID_KEY, uuid);
+        unsentRequests.add(error);
+      }
+      requestsToSend = unsentRequests;
+    } else {
+      unsentRequests = getUnsentRequests();
+      requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+    }
+
     if (requestsToSend.isEmpty()) {
       return;
     }
@@ -420,6 +437,8 @@ public class Request {
 
         Exception errorException = null;
         if (statusCode >= 200 && statusCode <= 299) {
+          // Clear localErrrors list.
+          localErrors.clear();
           deleteSentRequests(unsentRequests.size());
           if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
             sendRequests();
