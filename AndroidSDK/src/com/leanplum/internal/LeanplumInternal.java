@@ -105,7 +105,7 @@ public class LeanplumInternal {
     triggerAction(context, null);
   }
 
-  private static void triggerAction(final ActionContext context,
+  public static void triggerAction(final ActionContext context,
       final VariablesChangedCallback handledCallback) {
     List<ActionCallback> callbacks;
     synchronized (actionHandlers) {
