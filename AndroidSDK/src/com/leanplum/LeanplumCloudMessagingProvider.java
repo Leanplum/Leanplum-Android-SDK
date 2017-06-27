@@ -75,9 +75,8 @@ abstract class LeanplumCloudMessagingProvider {
         context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_REGISTRATION_ID))) {
       Log.i("Device registered for push notifications with registration token", registrationId);
       storePreferences(context.getApplicationContext());
+      sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
     }
-    // Send push token on every launch for not missed token when user force quit the app.
-    sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
   }
 
   /**

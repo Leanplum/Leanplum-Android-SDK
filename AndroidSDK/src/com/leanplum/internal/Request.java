@@ -437,7 +437,7 @@ public class Request {
 
         Exception errorException = null;
         if (statusCode >= 200 && statusCode <= 299) {
-          // Clear localErrrors list.
+          // Clear localErrors list.
           localErrors.clear();
           deleteSentRequests(unsentRequests.size());
           if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
