@@ -103,15 +103,31 @@ public class LeanplumManifestHelper {
       return null;
     }
     byte[] manifestXml = null;
+    JarFile jarFile = null;
+    DataInputStream dataInputStream = null;
     try {
-      JarFile jarFile = new JarFile(context.getPackageResourcePath());
+      jarFile = new JarFile(context.getPackageResourcePath());
       ZipEntry entry = jarFile.getEntry(ANDROID_MANIFEST);
       manifestXml = new byte[(int) entry.getSize()];
-      DataInputStream dataInputStream = new DataInputStream(jarFile.getInputStream(entry));
+      dataInputStream = new DataInputStream(jarFile.getInputStream(entry));
       dataInputStream.readFully(manifestXml);
-      dataInputStream.close();
     } catch (Exception e) {
       Log.e("Cannot parse " + ANDROID_MANIFEST + " file: " + e.getMessage());
+    } catch (Throwable t) {
+      Log.e("Cannot parse " + ANDROID_MANIFEST + " file: " + t.getMessage());
+      Util.handleException(t);
+    } finally {
+      try {
+        if (jarFile != null) {
+          jarFile.close();
+        }
+
+        if (dataInputStream != null) {
+          dataInputStream.close();
+        }
+      } catch (Throwable ignored) {
+
+      }
     }
     return manifestXml;
   }
