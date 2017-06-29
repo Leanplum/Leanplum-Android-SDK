@@ -29,17 +29,18 @@ import com.leanplum.BuildConfig;
  * @author Andrew First.
  */
 public class Constants {
-  public static String API_HOST_NAME = "www.leanplum.com";
+  public static String API_HOST_NAME = "api.leanplum.com";
+  public static String API_SERVLET = "api";
+  public static boolean API_SSL = true;
   public static String SOCKET_HOST = "dev.leanplum.com";
   public static int SOCKET_PORT = 80;
-  public static boolean API_SSL = true;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
-  static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
 
   public static String LEANPLUM_VERSION = "2.2.2";
   public static String CLIENT = "android";
 
+  static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";
   static final String INVALID_MAC_ADDRESS_HASH = "0f607264fc6318a92b9e13c65db7cd3c";
 
@@ -65,8 +66,6 @@ public class Constants {
   public static boolean isNoop() {
     return isTestMode || isInPermanentFailureState;
   }
-
-  public static String API_SERVLET = "api";
 
   public static class Defaults {
     public static final String COUNT_KEY = "__leanplum_unsynced";
