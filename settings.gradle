@@ -1,1 +1,1 @@
-include ':AndroidSDK'
+include ':AndroidSDK', ':AndroidSDKTests'

@@ -1,0 +1,265 @@
+/*
+ * Copyright 2016, Leanplum, Inc. All rights reserved.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package com.leanplum.__setup;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
+import android.os.Build;
+import android.view.View;
+import android.view.WindowManager;
+
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationServices;
+import com.leanplum.Leanplum;
+import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.LocationManager;
+import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum._whitebox.utilities.ResponseHelper;
+import com.leanplum._whitebox.utilities.SynchronousExecutor;
+import com.leanplum.internal.Constants;
+import com.leanplum.internal.LeanplumEventDataManager;
+import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.Util;
+import com.leanplum.internal.VarCache;
+import com.leanplum.tests.BuildConfig;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
+import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.util.ReflectionHelpers;
+
+import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.spy;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+@RunWith(LeanplumTestRunner.class)
+@Config(
+    constants = BuildConfig.class,
+    sdk = 16,
+    application = LeanplumTestApp.class,
+    packageName = "com.leanplum.tests",
+    shadows = {
+        ShadowLooper.class
+    }
+)
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "org.json.*",
+    "org.powermock.*",
+    "android.*",
+    "javax.net.ssl.*",
+    "javax.xml.*",
+    "org.xml.sax.*",
+    "org.w3c.dom.*"
+})
+@PrepareForTest(value = {
+    Leanplum.class,
+    LeanplumInternal.class,
+    Util.class,
+    LeanplumActivityHelper.class,
+    URL.class,
+    LocationManager.class,
+    Request.class,
+    LocationServices.class,
+    FusedLocationProviderApi.class,
+    VarCache.class
+}, fullyQualifiedNames = {"com.leanplum.internal.*"})
+/**
+ * AbstractTest class which holds methods to properly setup test environment.
+ * @author Milos Jakovljevic
+ */
+public abstract class AbstractTest {
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
+
+  // The target context of the instrumentation.
+  protected Application mContext;
+
+  @SuppressWarnings("WeakerAccess")
+  @Before
+  public void before() throws Exception {
+    spy(Util.class);
+    spy(LeanplumEventDataManager.class);
+    spy(Leanplum.class);
+    spy(LeanplumActivityHelper.class);
+
+    // Mock with our executor which will run on main thread.
+    ReflectionHelpers.setStaticField(Util.class, "asyncExecutor", new SynchronousExecutor());
+    ReflectionHelpers.setStaticField(Util.class, "singleThreadExecutor", new SynchronousExecutor());
+    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "databaseManager", null);
+    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "database", null);
+    // Get and set application context.
+    mContext = RuntimeEnvironment.application;
+    Leanplum.setApplicationContext(mContext);
+
+    // Display logs in console.
+    ShadowLog.stream = System.out;
+
+    // We are always connected.
+    doReturn(true).when(Util.class, "isConnected");
+    assertTrue(Util.isConnected());
+
+    doReturn(mContext).when(Leanplum.class, "getContext");
+    assertNotNull(Leanplum.getContext());
+
+    // Setup the sdk.
+    LeanplumTestHelper.setUp();
+
+    // Mock url connection to work offline.
+    URL mockedURL = mock(URL.class);
+    HttpsURLConnection httpsURLConnection = mock(HttpsURLConnection.class);
+
+    // To be able to run tests offline and not depend on a server we have to mock URLConnection to
+    // return proper status code.
+    whenNew(URL.class).withParameterTypes(String.class).withArguments(anyString())
+        .thenReturn(mockedURL);
+    when(mockedURL.openConnection()).thenReturn(httpsURLConnection);
+    when(httpsURLConnection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
+    when(httpsURLConnection.getResponseCode()).thenReturn(200);
+    // We are just seeding a random file as a InputStream of a mocked httpConnection which will be
+    // used in FileManager tests other tests depends on Util.getResponse() to mock response.
+    when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
+        .seedInputStream("/responses/simple_start_response.json"));
+  }
+
+  @After
+  public void after() {
+    LeanplumTestHelper.tearDown();
+  }
+
+  /**
+   * Utility method to quickly start the SDK.
+   *
+   * @param context Surrounding context.
+   * @param responseFile Response file to seed to httpConnection.
+   */
+  protected void setupSDK(Context context, String responseFile) {
+    ResponseHelper.seedResponse(responseFile);
+
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+      }
+    });
+
+    Leanplum.start(context, null, null, null);
+    assertTrue(Leanplum.hasStarted());
+  }
+
+  /**
+   * Due to nature of robolectric we have to manually set App visibility to be able to traverse view
+   * tree and find all the views.
+   *
+   * @param activity Activity to change.
+   * @throws Exception
+   */
+  protected void setActivityVisibility(Activity activity) throws Exception {
+
+    Object globalWindowManager;
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
+      globalWindowManager = TestClassUtil.getFieldValueRecursivily("mWindowManager", activity.getWindowManager());
+    } else {
+      globalWindowManager = TestClassUtil.getFieldValueRecursivily("mGlobal", activity.getWindowManager());
+    }
+
+    Object rootObjects = TestClassUtil.getField(globalWindowManager, "mRoots");
+    Object[] roots;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && rootObjects != null) {
+      roots = ((List) rootObjects).toArray();
+    } else {
+      roots = (Object[]) rootObjects;
+    }
+    if (roots == null) {
+      return;
+    }
+
+    for (Object view : roots) {
+      setField(view, "mAppVisible", true);
+    }
+  }
+
+  /**
+   * Resets GlobalWindowManager which removes all views, roots and params. This is needed because
+   * GlobalViewManager holds all activities created in tests, which causes our tests to fail.
+   *
+   * @param activity Activity needed to access windowManager.
+   * @throws Exception
+   */
+  protected void resetViews(Activity activity) throws Exception {
+    Object globalWindowManager;
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
+      globalWindowManager = TestClassUtil.getFieldValueRecursivily("mWindowManager", activity.getWindowManager());
+      setField(globalWindowManager, "mViews", null);
+      setField(globalWindowManager, "mRoots", null);
+      setField(globalWindowManager, "mParams", null);
+    } else {
+      globalWindowManager = TestClassUtil.getFieldValueRecursivily("mGlobal", activity.getWindowManager());
+      setField(globalWindowManager, "mViews", new ArrayList<View>());
+      setField(globalWindowManager, "mRoots", new ArrayList<View>());
+      setField(globalWindowManager, "mParams", new ArrayList<WindowManager.LayoutParams>());
+    }
+  }
+
+  /**
+   * Utility method to set a private field value using reflection.
+   *
+   * @param object Object on which we are setting the value.
+   * @param fieldName Name of the field we want to set.
+   * @param fieldValue Value we want to set.
+   * @throws Exception If field is not found.
+   */
+  private void setField(Object object, String fieldName, Object fieldValue) throws Exception {
+    Class<?> clazz = object.getClass();
+    if (clazz != null) {
+      Field field = clazz.getDeclaredField(fieldName);
+      field.setAccessible(true);
+      field.set(object, fieldValue);
+    }
+  }
+}

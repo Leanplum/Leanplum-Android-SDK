@@ -1,0 +1,451 @@
+{
+  "response": [
+    {
+      "actionDefinitions": {
+        "Alert": {
+          "kind": 3,
+          "options": {
+          },
+          "kinds": {
+            "Dismiss text": "STRING",
+            "Dismiss action": "ACTION",
+            "Message": "STRING",
+            "Title": "STRING"
+          },
+          "values": {
+            "Dismiss text": "OK",
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "Title": "Leanplum-SDK_Example"
+          }
+        },
+        "Confirm": {
+          "kind": 3,
+          "options": {
+          },
+          "kinds": {
+            "Cancel text": "STRING",
+            "Cancel action": "ACTION",
+            "Message": "STRING",
+            "Accept action": "ACTION",
+            "Title": "STRING",
+            "Accept text": "STRING"
+          },
+          "values": {
+            "Cancel text": "No",
+            "Cancel action": {
+              "__name__": ""
+            },
+            "Message": "Confirmation message goes here.",
+            "Accept action": {
+              "__name__": ""
+            },
+            "Title": "Leanplum-SDK_Example",
+            "Accept text": "Yes"
+          }
+        },
+        "Web Interstitial": {
+          "kind": 3,
+          "options": {
+          },
+          "kinds": {
+            "URL": "STRING",
+            "Has dismiss button": "BOOLEAN",
+            "Close URL": "STRING"
+          },
+          "values": {
+            "URL": "http:\/\/www.example.com",
+            "Has dismiss button": true,
+            "Close URL": "http:\/\/leanplum:close"
+          }
+        },
+        "Register For Push": {
+          "kind": 2,
+          "options": {
+          },
+          "kinds": {
+          },
+          "values": {
+          }
+        },
+        "test_action": {
+          "kind": 2,
+          "options": {
+          },
+          "kinds": {
+            "array_argument[1]": "INTEGER",
+            "dictionary_argument": "GROUP",
+            "array_argument": "LIST",
+            "number_argument": "FLOAT",
+            "array_argument[2]": "INTEGER",
+            "color_argument": "COLOR",
+            "bool_argument": "BOOLEAN",
+            "action_argument": "ACTION",
+            "string_argument": "STRING",
+            "array_argument[3]": "INTEGER",
+            "dictionary_argument.test_value": "STRING",
+            "array_argument[0]": "INTEGER",
+            "file_argument": "FILE"
+          },
+          "values": {
+            "bool_argument": true,
+            "string_argument": "test_string",
+            "color_argument": 4278190335,
+            "dictionary_argument": {
+              "test_value": "test"
+            },
+            "array_argument": {
+              "[2]": 3,
+              "[0]": 1,
+              "[3]": 4,
+              "[1]": 2
+            },
+            "file_argument": "Mario.png",
+            "action_argument": {
+              "__name__": "action_test"
+            },
+            "number_argument": 5
+          }
+        },
+        "Open URL": {
+          "kind": 2,
+          "options": {
+          },
+          "kinds": {
+            "URL": "STRING"
+          },
+          "values": {
+            "URL": "http:\/\/www.example.com"
+          }
+        },
+        "Push Ask to Ask": {
+          "kind": 3,
+          "options": {
+          },
+          "kinds": {
+            "Title.Text": "STRING",
+            "Background color": "COLOR",
+            "Title": "GROUP",
+            "Accept button": "GROUP",
+            "Background image": "FILE",
+            "Message": "GROUP",
+            "Accept button.Background color": "COLOR",
+            "Cancel action": "ACTION",
+            "Cancel button.Text color": "COLOR",
+            "Layout": "GROUP",
+            "Title.Color": "COLOR",
+            "Layout.Width": "FLOAT",
+            "Message.Text": "STRING",
+            "Accept button.Text color": "COLOR",
+            "Message.Color": "COLOR",
+            "Cancel button": "GROUP",
+            "Accept button.Text": "STRING",
+            "Cancel button.Background color": "COLOR",
+            "Cancel button.Text": "STRING",
+            "Layout.Height": "FLOAT"
+          },
+          "values": {
+            "Layout": {
+              "Height": 250,
+              "Width": 300
+            },
+            "Cancel action": {
+              "__name__": ""
+            },
+            "Accept button": {
+              "Text color": 4278221311,
+              "Background color": 4294375158,
+              "Text": "OK"
+            },
+            "Background image": "",
+            "Cancel button": {
+              "Text color": 4286545791,
+              "Background color": 4294375158,
+              "Text": "Maybe Later"
+            },
+            "Background color": 4294375158,
+            "Title": {
+              "Color": 4278190080,
+              "Text": "Leanplum-SDK_Example"
+            },
+            "Message": {
+              "Color": 4278190080,
+              "Text": "Tap OK to receive important notifications from our app."
+            }
+          }
+        },
+        "Interstitial": {
+          "kind": 3,
+          "options": {
+          },
+          "kinds": {
+            "Message": "GROUP",
+            "Background image": "FILE",
+            "Background color": "COLOR",
+            "Accept action": "ACTION",
+            "Message.Text": "STRING",
+            "Title.Text": "STRING",
+            "Accept button": "GROUP",
+            "Accept button.Text": "STRING",
+            "Title": "GROUP",
+            "Title.Color": "COLOR",
+            "Accept button.Text color": "COLOR",
+            "Accept button.Background color": "COLOR",
+            "Message.Color": "COLOR"
+          },
+          "values": {
+            "Title": {
+              "Color": 4278190080,
+              "Text": "Leanplum-SDK_Example"
+            },
+            "Background image": "",
+            "Message": {
+              "Color": 4278190080,
+              "Text": "Interstitial message goes here."
+            },
+            "Accept action": {
+              "__name__": ""
+            },
+            "Accept button": {
+              "Text color": 4278221311,
+              "Background color": 4294967295,
+              "Text": "OK"
+            },
+            "Background color": 4294967295
+          }
+        },
+        "Center Popup": {
+          "kind": 3,
+          "options": {
+          },
+          "kinds": {
+            "Accept button.Text color": "COLOR",
+            "Message": "GROUP",
+            "Background image": "FILE",
+            "Background color": "COLOR",
+            "Accept action": "ACTION",
+            "Layout.Height": "FLOAT",
+            "Message.Text": "STRING",
+            "Title.Text": "STRING",
+            "Accept button": "GROUP",
+            "Accept button.Text": "STRING",
+            "Layout.Width": "FLOAT",
+            "Title": "GROUP",
+            "Layout": "GROUP",
+            "Title.Color": "COLOR",
+            "Accept button.Background color": "COLOR",
+            "Message.Color": "COLOR"
+          },
+          "values": {
+            "Layout": {
+              "Height": 250,
+              "Width": 300
+            },
+            "Accept button": {
+              "Text color": 4278221311,
+              "Background color": 4294967295,
+              "Text": "OK"
+            },
+            "Background image": "",
+            "Accept action": {
+              "__name__": ""
+            },
+            "Background color": 4294967295,
+            "Title": {
+              "Color": 4278190080,
+              "Text": "Leanplum-SDK_Example"
+            },
+            "Message": {
+              "Color": 4278190080,
+              "Text": "Popup message goes here."
+            }
+          }
+        }
+      },
+      "isRegisteredFromOtherApp": false,
+      "interfaceEvents": [
+      ],
+      "isRegistered": true,
+      "messages": {
+      },
+      "uploadUrl": "https:\/\/www.leanplum.com\/_ah\/upload\/AMmfu6ZIARglyuX_0BSToIs6XBz95loTBkk07deYwj5RVjgBw43xAlUrpTj4FfG2jfsvXyFxFii_XnVzHR9Iwv0uyb7bk0lfcUXBXgNxFS6uQrsilRnDePHVC_QXFwPZvcP4fQtrY8Bw\/ALBNUaYAAAAAWBIFTE5eDv_upkTmdHzodpIVmqt6w354\/",
+      "syncNewsfeed": false,
+      "latestVersion": "1.4.0.2",
+      "interfaceRules": [
+        {
+          "viewPath": [
+            {
+              "index": 0,
+              "class": "UITableView"
+            }
+          ],
+          "viewControllerAncestors": [
+            "UIApplication"
+          ],
+          "changes": [
+            {
+              "value": -6382179,
+              "key": "backgroundColor"
+            }
+          ],
+          "viewController": "UIViewController"
+        },
+        {
+          "viewPath": [
+            {
+              "index": 0,
+              "class": "UITableView"
+            },
+            {
+              "class": "UITableViewCell",
+              "row": 1,
+              "section": 0
+            }
+          ],
+          "viewControllerAncestors": [
+            "UIApplication"
+          ],
+          "changes": [
+            {
+              "value": "cell at row 1 from dashboard",
+              "key": "text"
+            },
+            {
+              "value": -65536,
+              "key": "textColor"
+            },
+            {
+              "value": 14,
+              "key": "fontSize"
+            },
+            {
+              "value": -16711773,
+              "key": "backgroundColor"
+            }
+          ],
+          "viewController": "UIViewController"
+        },
+        {
+          "viewPath": [
+            {
+              "index": 0,
+              "class": "UITableView"
+            },
+            {
+              "class": "UITableViewCell",
+              "row": 5,
+              "section": 0
+            }
+          ],
+          "viewControllerAncestors": [
+            "UIApplication"
+          ],
+          "changes": [
+            {
+              "value": "cell at row 5 from dashboard",
+              "key": "text"
+            },
+            {
+              "value": -16770305,
+              "key": "textColor"
+            },
+            {
+              "value": 13,
+              "key": "fontSize"
+            },
+            {
+              "value": -2816,
+              "key": "backgroundColor"
+            }
+          ],
+          "viewController": "UIViewController"
+        },
+        {
+          "viewPath": [
+            {
+              "index": 0,
+              "class": "UITableView"
+            },
+            {
+              "class": "UITableViewCell",
+              "row": 9,
+              "section": 0
+            }
+          ],
+          "viewControllerAncestors": [
+            "UIApplication"
+          ],
+          "changes": [
+            {
+              "value": "cell at row 9 from dashboard",
+              "key": "text"
+            },
+            {
+              "value": -16711865,
+              "key": "textColor"
+            },
+            {
+              "value": 12,
+              "key": "fontSize"
+            },
+            {
+              "value": -65536,
+              "key": "backgroundColor"
+            }
+          ],
+          "viewController": "UIViewController"
+        }
+      ],
+      "vars": {
+      },
+      "fileAttributes": {
+        "test.pdf": {
+          "": {
+            "hash": null,
+            "size": 54318
+          }
+        },
+        "back.pdf": {
+          "": {
+            "hash": null,
+            "size": 42388
+          }
+        }
+      },
+      "regions": {
+      },
+      "varsFromCode": {
+        "stringVariable": "test_string",
+        "dictionaryVariable": {
+          "unicode": "?.!sœ∑πøˆ˜¨&\/\/.sd",
+          "test_string": "string",
+          "test_number": 535
+        },
+        "floatVariable": 5,
+        "intVariable": 100,
+        "fileVariable": "Mario.png",
+        "emptyDictionary": {
+          "integerValue": 50
+        },
+        "arrayVariable": {
+          "[4]": 5,
+          "[2]": 3,
+          "[0]": 1,
+          "[3]": 4,
+          "[1]": 2
+        },
+        "boolVariable": false,
+        "integerVariable": 1
+      },
+      "token": "xalxpNEoQS6HjJtFQoO30NHtJ6Ljt0oymOqASID8lHg",
+      "variants": [
+        {
+          "id": 4956434226216960
+        }
+      ],
+      "success": true
+    }
+  ]
+}
