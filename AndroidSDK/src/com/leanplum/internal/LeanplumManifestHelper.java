@@ -419,6 +419,10 @@ public class LeanplumManifestHelper {
    */
   private static boolean isInstance(ManifestComponent component, String className) {
     try {
+      if (component == null || component.name == null) {
+        return false;
+      }
+      
       if (component.name.equals(className)) {
         return true;
       } else {
