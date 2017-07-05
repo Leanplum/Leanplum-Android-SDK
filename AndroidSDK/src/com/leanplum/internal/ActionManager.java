@@ -233,7 +233,7 @@ public class ActionManager {
           SharedPreferencesUtil.commitChanges(editor);
 
           // Cancel notification.
-          Intent intentAlarm = new Intent(context, LeanplumPushService.class);
+          Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
           AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
           PendingIntent existingIntent = PendingIntent.getService(
               context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
