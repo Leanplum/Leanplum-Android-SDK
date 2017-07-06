@@ -39,3 +39,14 @@ dependencies {
     testCompile 'org.powermock:powermock-classloading-xstream:1.6.6'
     testCompile 'org.bouncycastle:bcmail-jdk15on:1.54'
 }
+
+task jarTests(type: Jar, dependsOn: "assembleDebugUnitTest") {
+    classifier = 'tests'
+    from "$buildDir/intermediates/classes/test/debug"
+}
+configurations {
+    unitTestArtifact
+}
+artifacts {
+    unitTestArtifact jarTests
+}
