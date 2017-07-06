@@ -751,7 +751,7 @@ public class LeanplumTest extends AbstractTest {
     args.with(integerArgumentName, 5);
     args.with(stringArgumentName, "test_string");
     args.with(boolArgumentName, true);
-    args.withAsset(fileArgumentName, "Mario.png");
+    args.withAsset(fileArgumentName, "leanplum_watermark.jpg");
     args.with(dictionaryArgumentName, CollectionUtil.newHashMap(
         "test_value", "test"
     ));
@@ -797,7 +797,7 @@ public class LeanplumTest extends AbstractTest {
         assertNotNull(values.get(arrayArgumentName));
         assertEquals("action_test", values.get(actionArgumentName));
         assertEquals(Color.BLUE, values.get(colorArgumentName));
-        assertEquals("Mario.png", values.get(fileArgumentName));
+        assertEquals("leanplum_watermark.jpg", values.get(fileArgumentName));
       }
     });
     // Define action.

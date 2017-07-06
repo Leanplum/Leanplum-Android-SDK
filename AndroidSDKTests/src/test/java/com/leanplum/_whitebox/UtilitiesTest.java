@@ -133,10 +133,10 @@ public class UtilitiesTest extends AbstractTest {
     String invalidName = Util.generateResourceNameFromId(invalidResourceId);
     assertNull(invalidName);
 
-    int validResourceId = com.leanplum.tests.R.drawable.jinja;
+    int validResourceId = R.drawable.leanplum_watermark;
     String validName = Util.generateResourceNameFromId(validResourceId);
     assertNotNull(validName);
-    assertEquals("drawable/jinja.png", validName);
+    assertEquals("drawable/leanplum_watermark.jpg", validName);
   }
 
   @Test
@@ -145,13 +145,13 @@ public class UtilitiesTest extends AbstractTest {
     int invalidResourceId = Util.generateIdFromResourceName(invalidName);
     assertEquals(0, invalidResourceId);
 
-    String validName = "drawable/jinja.png";
+    String validName = "drawable/leanplum_watermark.jpg";
     int validResourceId = Util.generateIdFromResourceName(validName);
-    assertEquals(R.drawable.jinja, validResourceId);
+    assertEquals(R.drawable.leanplum_watermark, validResourceId);
 
     // Generated name can be without extension.
-    String validNameWithoutExtension = "drawable/jinja";
+    String validNameWithoutExtension = "drawable/leanplum_watermark";
     validResourceId = Util.generateIdFromResourceName(validNameWithoutExtension);
-    assertEquals(R.drawable.jinja, validResourceId);
+    assertEquals(R.drawable.leanplum_watermark, validResourceId);
   }
 }

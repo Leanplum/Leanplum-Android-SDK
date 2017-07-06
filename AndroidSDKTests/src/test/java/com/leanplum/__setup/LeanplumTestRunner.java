@@ -50,12 +50,11 @@ public class LeanplumTestRunner extends RobolectricTestRunner {
     }
 
     final String type = getType(config);
-    final String flavor = "sources";
     final String packageName = "com.leanplum.tests";
 
-    final FileFsFile res = FileFsFile.from(BUILD_OUTPUT, "res", "merged", flavor, type);
+    final FileFsFile res = FileFsFile.from(BUILD_OUTPUT, "res", "merged", type);
     final FileFsFile assets = FileFsFile.from("src", "test", "assets");
-    final FileFsFile manifest = FileFsFile.from(BUILD_OUTPUT, "manifests", "full", flavor, type,
+    final FileFsFile manifest = FileFsFile.from(BUILD_OUTPUT, "manifests", "full", type,
         "AndroidManifest.xml");
 
     Logger.debug("Robolectric assets directory: " + assets.getPath());

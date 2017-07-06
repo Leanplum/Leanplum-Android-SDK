@@ -102,7 +102,7 @@
               "[3]": 4,
               "[1]": 2
             },
-            "file_argument": "Mario.png",
+            "file_argument": "leanplum_watermark.jpg",
             "action_argument": {
               "__name__": "action_test"
             },
@@ -425,7 +425,7 @@
         },
         "floatVariable": 5,
         "intVariable": 100,
-        "fileVariable": "Mario.png",
+        "fileVariable": "leanplum_watermark.jpg",
         "emptyDictionary": {
           "integerValue": 50
         },

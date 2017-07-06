@@ -245,7 +245,7 @@
         "boolVariable": false,
         "floatVariable": 5,
         "integerVariable": 1,
-        "fileVariable": "Mario.png",
+        "fileVariable": "leanplum_watermark.jpg",
         "stringVariable": "test_string"
       },
       "latestVersion": "1.4.0.2",

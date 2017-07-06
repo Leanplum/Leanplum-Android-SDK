@@ -49,19 +49,19 @@ public class FileManagerTest extends AbstractTest {
 
   @Test
   public void testFileRelativeToDocuments() {
-    String file = FileManager.fileRelativeToDocuments("Mario.png");
+    String file = FileManager.fileRelativeToDocuments("leanplum_watermark.jpg");
     assertNotNull(file);
   }
 
   @Test
   public void testFileRelativeToLPBundle() {
-    String file = FileManager.fileRelativeToLPBundle("Mario.png");
+    String file = FileManager.fileRelativeToLPBundle("leanplum_watermark.jpg");
     assertNotNull(file);
   }
 
   @Test
   public void testFileExists() {
-    assertFalse(FileManager.fileExistsAtPath("Mario.png"));
+    assertFalse(FileManager.fileExistsAtPath("leanplum_watermark.jpg"));
     assertTrue(FileManager.fileExistsAtPath(getClass()
         .getResource("/responses/simple_start_response.json").getPath()));
   }
