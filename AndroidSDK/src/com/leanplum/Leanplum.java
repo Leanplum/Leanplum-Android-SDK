@@ -666,11 +666,11 @@ public class Leanplum {
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
-    Request req = Request.post(Constants.Methods.START, params);
+    final Request req = Request.post(Constants.Methods.START, params);
     req.onApiResponse(new Request.ApiResponseCallback() {
       @Override
       public void response(List<Map<String, Object>> requests, JSONObject response) {
-        Leanplum.handleApiResponse(response, requests);
+        Leanplum.handleApiResponse(response, requests, req);
       }
     });
 
@@ -683,13 +683,19 @@ public class Leanplum {
     LeanplumInternal.triggerStartIssued();
   }
 
-  private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests) {
+  private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests,
+      final Request req) {
     boolean hasStartResponse = false;
     JSONObject lastStartResponse = null;
 
     // Find and handle the last start response.
     try {
-      int numResponses = Request.numResponses(response);
+      final int numResponses = Request.numResponses(response);
+      if (req.getDataBaseIndex() >= numResponses) {
+        req.setDataBaseIndex(req.getDataBaseIndex() - numResponses);
+        return;
+      }
+
       for (int i = requests.size() - 1; i >= 0; i--) {
         Map<String, Object> request = requests.get(i);
         if (Constants.Methods.START.equals(request.get(Constants.Params.ACTION))) {
@@ -706,176 +712,184 @@ public class Leanplum {
 
     if (hasStartResponse) {
       if (!LeanplumInternal.hasStarted()) {
+        // Set start response to null.
+        req.onApiResponse(null);
         Leanplum.handleStartResponse(lastStartResponse);
       }
     }
   }
 
-  private static void handleStartResponse(JSONObject response) {
-    boolean success = Request.isResponseSuccess(response);
-    if (!success) {
-      try {
-        LeanplumInternal.setHasStarted(true);
-        LeanplumInternal.setStartSuccessful(false);
+  private static void handleStartResponse(final JSONObject response) {
+    Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
+      @Override
+      protected Void doInBackground(Void... params) {
+        boolean success = Request.isResponseSuccess(response);
+        if (!success) {
+          try {
+            LeanplumInternal.setHasStarted(true);
+            LeanplumInternal.setStartSuccessful(false);
 
-        // Load the variables that were stored on the device from the last session.
-        VarCache.loadDiffs();
+            // Load the variables that were stored on the device from the last session.
+            VarCache.loadDiffs();
 
-        triggerStartResponse(false);
-      } catch (Throwable t) {
-        Util.handleException(t);
-      }
-    } else {
-      try {
-        LeanplumInternal.setHasStarted(true);
-        LeanplumInternal.setStartSuccessful(true);
+            triggerStartResponse(false);
+          } catch (Throwable t) {
+            Util.handleException(t);
+          }
+        } else {
+          try {
+            LeanplumInternal.setHasStarted(true);
+            LeanplumInternal.setStartSuccessful(true);
 
-        JSONObject values = response.optJSONObject(Constants.Keys.VARS);
-        if (values == null) {
-          Log.e("No variable values were received from the server. " +
-              "Please contact us to investigate.");
-        }
+            JSONObject values = response.optJSONObject(Constants.Keys.VARS);
+            if (values == null) {
+              Log.e("No variable values were received from the server. " +
+                  "Please contact us to investigate.");
+            }
 
-        JSONObject messages = response.optJSONObject(Constants.Keys.MESSAGES);
-        if (messages == null) {
-          Log.d("No messages received from the server.");
-        }
+            JSONObject messages = response.optJSONObject(Constants.Keys.MESSAGES);
+            if (messages == null) {
+              Log.d("No messages received from the server.");
+            }
 
-        JSONObject regions = response.optJSONObject(Constants.Keys.REGIONS);
-        if (regions == null) {
-          Log.d("No regions received from the server.");
-        }
+            JSONObject regions = response.optJSONObject(Constants.Keys.REGIONS);
+            if (regions == null) {
+              Log.d("No regions received from the server.");
+            }
 
-        JSONArray variants = response.optJSONArray(Constants.Keys.VARIANTS);
-        if (variants == null) {
-          Log.d("No variants received from the server.");
-        }
+            JSONArray variants = response.optJSONArray(Constants.Keys.VARIANTS);
+            if (variants == null) {
+              Log.d("No variants received from the server.");
+            }
 
-        String token = response.optString(Constants.Keys.TOKEN, null);
-        Request.setToken(token);
-        Request.saveToken();
+            String token = response.optString(Constants.Keys.TOKEN, null);
+            Request.setToken(token);
+            Request.saveToken();
 
-        applyContentInResponse(response, true);
+            applyContentInResponse(response, true);
 
-        VarCache.saveUserAttributes();
-        triggerStartResponse(true);
+            VarCache.saveUserAttributes();
+            triggerStartResponse(true);
 
-        if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
-          LeanplumInbox.getInstance().downloadMessages();
-        }
+            if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
+              LeanplumInbox.getInstance().downloadMessages();
+            }
 
-        if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
-          Constants.loggingEnabled = true;
-        }
+            if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
+              Constants.loggingEnabled = true;
+            }
 
-        // Allow bidirectional realtime variable updates.
-        if (Constants.isDevelopmentModeEnabled) {
+            // Allow bidirectional realtime variable updates.
+            if (Constants.isDevelopmentModeEnabled) {
 
-          final Context currentContext = (
-              LeanplumActivityHelper.currentActivity != context &&
-                  LeanplumActivityHelper.currentActivity != null) ?
-              LeanplumActivityHelper.currentActivity
-              : context;
+              final Context currentContext = (
+                  LeanplumActivityHelper.currentActivity != context &&
+                      LeanplumActivityHelper.currentActivity != null) ?
+                  LeanplumActivityHelper.currentActivity
+                  : context;
 
-          // Register device.
-          if (!response.optBoolean(
-              Constants.Keys.IS_REGISTERED) && registerDeviceHandler != null) {
-            registerDeviceHandler.setResponseHandler(new RegisterDeviceCallback.EmailCallback() {
-              @Override
-              public void onResponse(String email) {
-                try {
-                  if (email != null) {
-                    Registration.registerDevice(email, new StartCallback() {
-                      @Override
-                      public void onResponse(boolean success) {
-                        if (registerDeviceFinishedHandler != null) {
-                          registerDeviceFinishedHandler.setSuccess(success);
-                          OsHandler.getInstance().post(registerDeviceFinishedHandler);
-                        }
-                        if (success) {
-                          try {
-                            LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
-                          } catch (Throwable t) {
-                            Util.handleException(t);
+              // Register device.
+              if (!response.optBoolean(
+                  Constants.Keys.IS_REGISTERED) && registerDeviceHandler != null) {
+                registerDeviceHandler.setResponseHandler(new RegisterDeviceCallback.EmailCallback() {
+                  @Override
+                  public void onResponse(String email) {
+                    try {
+                      if (email != null) {
+                        Registration.registerDevice(email, new StartCallback() {
+                          @Override
+                          public void onResponse(boolean success) {
+                            if (registerDeviceFinishedHandler != null) {
+                              registerDeviceFinishedHandler.setSuccess(success);
+                              OsHandler.getInstance().post(registerDeviceFinishedHandler);
+                            }
+                            if (success) {
+                              try {
+                                LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
+                              } catch (Throwable t) {
+                                Util.handleException(t);
+                              }
+                            }
                           }
-                        }
+                        });
                       }
-                    });
+                    } catch (Throwable t) {
+                      Util.handleException(t);
+                    }
                   }
-                } catch (Throwable t) {
-                  Util.handleException(t);
-                }
+                });
+                OsHandler.getInstance().post(registerDeviceHandler);
               }
-            });
-            OsHandler.getInstance().post(registerDeviceHandler);
-          }
 
-          // Show device is already registered.
-          if (response.optBoolean(Constants.Keys.IS_REGISTERED_FROM_OTHER_APP)) {
-            OsHandler.getInstance().post(new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  NotificationCompat.Builder mBuilder =
-                      new NotificationCompat.Builder(currentContext)
-                          .setSmallIcon(android.R.drawable.star_on)
-                          .setContentTitle("Leanplum")
-                          .setContentText("Your device is registered.");
-                  mBuilder.setContentIntent(PendingIntent.getActivity(
-                      currentContext.getApplicationContext(), 0, new Intent(), 0));
-                  NotificationManager mNotificationManager =
-                      (NotificationManager) currentContext.getSystemService(
-                          Context.NOTIFICATION_SERVICE);
-                  // mId allows you to update the notification later on.
-                  mNotificationManager.notify(0, mBuilder.build());
-                } catch (Throwable t) {
-                  Log.i("Device is registered.");
-                }
+              // Show device is already registered.
+              if (response.optBoolean(Constants.Keys.IS_REGISTERED_FROM_OTHER_APP)) {
+                OsHandler.getInstance().post(new Runnable() {
+                  @Override
+                  public void run() {
+                    try {
+                      NotificationCompat.Builder mBuilder =
+                          new NotificationCompat.Builder(currentContext)
+                              .setSmallIcon(android.R.drawable.star_on)
+                              .setContentTitle("Leanplum")
+                              .setContentText("Your device is registered.");
+                      mBuilder.setContentIntent(PendingIntent.getActivity(
+                          currentContext.getApplicationContext(), 0, new Intent(), 0));
+                      NotificationManager mNotificationManager =
+                          (NotificationManager) currentContext.getSystemService(
+                              Context.NOTIFICATION_SERVICE);
+                      // mId allows you to update the notification later on.
+                      mNotificationManager.notify(0, mBuilder.build());
+                    } catch (Throwable t) {
+                      Log.i("Device is registered.");
+                    }
+                  }
+                });
               }
-            });
-          }
 
-          boolean isRegistered = response.optBoolean(Constants.Keys.IS_REGISTERED);
+              boolean isRegistered = response.optBoolean(Constants.Keys.IS_REGISTERED);
 
-          // Check for updates.
-          final String latestVersion = response.optString(Constants.Keys.LATEST_VERSION, null);
-          if (isRegistered && latestVersion != null) {
-            Log.i("An update to Leanplum Android SDK, " + latestVersion +
-                ", is available. Go to leanplum.com to download it.");
-          }
+              // Check for updates.
+              final String latestVersion = response.optString(Constants.Keys.LATEST_VERSION, null);
+              if (isRegistered && latestVersion != null) {
+                Log.i("An update to Leanplum Android SDK, " + latestVersion +
+                    ", is available. Go to leanplum.com to download it.");
+              }
 
-          JSONObject valuesFromCode = response.optJSONObject(Constants.Keys.VARS_FROM_CODE);
-          if (valuesFromCode == null) {
-            valuesFromCode = new JSONObject();
-          }
+              JSONObject valuesFromCode = response.optJSONObject(Constants.Keys.VARS_FROM_CODE);
+              if (valuesFromCode == null) {
+                valuesFromCode = new JSONObject();
+              }
 
-          JSONObject actionDefinitions =
-              response.optJSONObject(Constants.Params.ACTION_DEFINITIONS);
-          if (actionDefinitions == null) {
-            actionDefinitions = new JSONObject();
-          }
+              JSONObject actionDefinitions =
+                  response.optJSONObject(Constants.Params.ACTION_DEFINITIONS);
+              if (actionDefinitions == null) {
+                actionDefinitions = new JSONObject();
+              }
 
-          JSONObject fileAttributes = response.optJSONObject(Constants.Params.FILE_ATTRIBUTES);
-          if (fileAttributes == null) {
-            fileAttributes = new JSONObject();
-          }
+              JSONObject fileAttributes = response.optJSONObject(Constants.Params.FILE_ATTRIBUTES);
+              if (fileAttributes == null) {
+                fileAttributes = new JSONObject();
+              }
 
-          VarCache.setDevModeValuesFromServer(
-              JsonConverter.mapFromJson(valuesFromCode),
-              JsonConverter.mapFromJson(fileAttributes),
-              JsonConverter.mapFromJson(actionDefinitions));
+              VarCache.setDevModeValuesFromServer(
+                  JsonConverter.mapFromJson(valuesFromCode),
+                  JsonConverter.mapFromJson(fileAttributes),
+                  JsonConverter.mapFromJson(actionDefinitions));
 
-          if (isRegistered) {
-            LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
+              if (isRegistered) {
+                LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
+              }
+            }
+
+            LeanplumInternal.moveToForeground();
+            startHeartbeat();
+          } catch (Throwable t) {
+            Util.handleException(t);
           }
         }
-
-        LeanplumInternal.moveToForeground();
-        startHeartbeat();
-      } catch (Throwable t) {
-        Util.handleException(t);
+        return null;
       }
-    }
+    });
   }
 
   /**
@@ -1911,8 +1925,7 @@ public class Leanplum {
           }
         }
       });
-      req.onError(
-          new Request.ErrorCallback() {
+      req.onError(new Request.ErrorCallback() {
             @Override
             public void error(Exception e) {
               if (callback != null) {
