@@ -87,7 +87,7 @@ public class ActionManager {
         }
       } catch (Throwable e) {
         if (!loggedLocationManagerFailure) {
-          Log.e("Geofencing support requires Google Play Services v8.1 and higher.\n" +
+          Log.w("Geofencing support requires Google Play Services v8.1 and higher.\n" +
               "Add this to your build.gradle file:\n" +
               "compile ('com.google.android.gms:play-services-location:8.3.0+')");
           loggedLocationManagerFailure = true;
