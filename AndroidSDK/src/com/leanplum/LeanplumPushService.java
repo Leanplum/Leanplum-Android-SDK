@@ -283,6 +283,10 @@ public class LeanplumPushService {
    * Put the message into a notification and post it.
    */
   private static void showNotification(Context context, Bundle message) {
+    if (context == null || message == null) {
+      return;
+    }
+
     NotificationManager notificationManager = (NotificationManager)
         context.getSystemService(Context.NOTIFICATION_SERVICE);
 
