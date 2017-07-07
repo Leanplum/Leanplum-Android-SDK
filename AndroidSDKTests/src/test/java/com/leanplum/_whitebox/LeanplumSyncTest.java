@@ -60,7 +60,7 @@ public class LeanplumSyncTest extends AbstractTest {
       return;
     }
 
-    setupSDK(mContext, "/responses/simple_start_response.json");
+    setupSDK(mContext, "/responses/files_start_response.json");
 
     final String fileName = "test_file.txt";
     final String fileContent = "test";

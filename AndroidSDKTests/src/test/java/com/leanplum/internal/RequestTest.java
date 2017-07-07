@@ -202,5 +202,6 @@ public class RequestTest extends TestCase {
     assertNotNull(unsentRequestsData);
     assertEquals(3, unsentRequestsData.size());
     Request.deleteSentRequests(unsentRequests.size());
+    LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 }
