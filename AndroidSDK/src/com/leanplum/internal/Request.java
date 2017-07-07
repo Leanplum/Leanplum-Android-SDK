@@ -24,9 +24,9 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 
 import com.leanplum.Leanplum;
-import com.leanplum.LeanplumException;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -65,6 +65,9 @@ public class Request {
   private static String accessKey;
   private static String deviceId;
   private static String userId;
+
+  private static final LeanplumEventCallbackManager eventCallbackManager =
+      new LeanplumEventCallbackManager();
   private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
   private static int pendingDownloads;
   private static NoPendingDownloadsCallback noPendingDownloadsBlock;
@@ -84,6 +87,7 @@ public class Request {
   private ResponseCallback response;
   private ErrorCallback error;
   private boolean sent;
+  private long dataBaseIndex;
 
   private static ApiResponseCallback apiResponse;
 
@@ -108,6 +112,22 @@ public class Request {
 
   public static String token() {
     return token;
+  }
+
+  /**
+   * Since requests are batched there can be a case where other Request can take future Request
+   * events. We need to have for each Request database index for handle response, error or start
+   * callbacks.
+   *
+   * @return Index of event at database.
+   */
+  public long getDataBaseIndex() {
+    return dataBaseIndex;
+  }
+
+  // Update index of event at database.
+  public void setDataBaseIndex(long dataBaseIndex) {
+    this.dataBaseIndex = dataBaseIndex;
   }
 
   public static void loadToken() {
@@ -152,6 +172,7 @@ public class Request {
     }
     // Make sure the Handler is initialized on the main thread.
     OsHandler.getInstance();
+    dataBaseIndex = -1;
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
@@ -195,7 +216,7 @@ public class Request {
     return args;
   }
 
-  private static void saveRequestForLater(Map<String, Object> args) {
+  private void saveRequestForLater(Map<String, Object> args) {
     synchronized (Request.class) {
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
@@ -210,6 +231,14 @@ public class Request {
       }
       args.put(UUID_KEY, uuid);
       LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
+
+      dataBaseIndex = count;
+      // Checks if here response and/or error callback for this request. We need to add callbacks to
+      // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
+      // will handle error callback for this event.
+      if (response != null || error != null && !Util.isConnected()) {
+        eventCallbackManager.addCallbacks(this, response, error);
+      }
     }
   }
 
@@ -285,7 +314,7 @@ public class Request {
     if (apiResponse != null) {
       List<Map<String, Object>> requests = getUnsentRequests();
       List<Map<String, Object>> requestsToSend = removeIrrelevantBackgroundStartRequests(requests);
-      apiResponse.response(requestsToSend, null);
+      apiResponse.response(requestsToSend, null, requests.size());
     }
   }
 
@@ -307,7 +336,7 @@ public class Request {
   }
 
   public interface ApiResponseCallback {
-    void response(List<Map<String, Object>> requests, JSONObject response);
+    void response(List<Map<String, Object>> requests, JSONObject response, int countOfEvents);
   }
 
   public interface ErrorCallback {
@@ -318,53 +347,84 @@ public class Request {
     void noPendingDownloads();
   }
 
-  private void parseResponseJson(JSONObject responseJson, List<Map<String, Object>> requestsToSend,
-      Exception error) {
-    if (apiResponse != null) {
-      apiResponse.response(requestsToSend, responseJson);
-    }
+  /**
+   * Parse response body from server.  Invoke potential error or response callbacks for all events
+   * of this request.
+   *
+   * @param responseBody JSONObject with response body from server.
+   * @param requestsToSend List of requests that were sent to the server/
+   * @param error Exception.
+   * @param unsentRequestsSize Size of unsent request, that we will delete.
+   */
+  private void parseResponseBody(JSONObject responseBody, List<Map<String, Object>>
+      requestsToSend, Exception error, int unsentRequestsSize) {
+    synchronized (Request.class) {
+      if (responseBody == null && error != null) {
+        // Invoke potential error callbacks for all events of this request.
+        eventCallbackManager.invokeAllCallbacksWithError(error, unsentRequestsSize);
+        return;
+      } else if (responseBody == null) {
+        return;
+      }
 
-    if (responseJson != null) {
-      Exception lastResponseError = null;
-      int numResponses = Request.numResponses(responseJson);
+      // Response for last start call.
+      if (apiResponse != null) {
+        apiResponse.response(requestsToSend, responseBody, unsentRequestsSize);
+      }
+
+      // We will replace it with error from response body, if we found it.
+      Exception lastResponseError = error;
+      // Valid response, parse and handle response body.
+      int numResponses = Request.numResponses(responseBody);
       for (int i = 0; i < numResponses; i++) {
-        JSONObject response = Request.getResponseAt(responseJson, i);
-        if (!Request.isResponseSuccess(response)) {
-          String errorMessage = Request.getResponseError(response);
-          if (errorMessage == null || errorMessage.length() == 0) {
-            errorMessage = "API error";
-          } else if (errorMessage.startsWith("App not found")) {
-            errorMessage = "No app matching the provided app ID was found.";
-            Constants.isInPermanentFailureState = true;
-          } else if (errorMessage.startsWith("Invalid access key")) {
-            errorMessage = "The access key you provided is not valid for this app.";
-            Constants.isInPermanentFailureState = true;
-          } else if (errorMessage.startsWith("Development mode requested but not permitted")) {
-            errorMessage = "A call to Leanplum.setAppIdForDevelopmentMode "
-                + "with your production key was made, which is not permitted.";
-            Constants.isInPermanentFailureState = true;
-          } else {
-            errorMessage = "API error: " + errorMessage;
-          }
-          Log.e(errorMessage);
-          if (i == numResponses - 1) {
-            lastResponseError = new Exception(errorMessage);
-          }
+        JSONObject response = Request.getResponseAt(responseBody, i);
+        if (Request.isResponseSuccess(response)) {
+          continue; // If event response is successful, proceed with next one.
+        }
+
+        // If event response was not successful, handle error.
+        String errorMessage = getReadableErrorMessage(Request.getResponseError(response));
+        Log.e(errorMessage);
+        // Throw an exception if last event response is negative.
+        if (i == numResponses - 1) {
+          lastResponseError = new Exception(errorMessage);
         }
       }
 
-      if (lastResponseError == null) {
-        lastResponseError = error;
+      if (lastResponseError != null) {
+        // Invoke potential error callbacks for all events of this request.
+        eventCallbackManager.invokeAllCallbacksWithError(lastResponseError, unsentRequestsSize);
+      } else {
+        // Invoke potential response callbacks for all events of this request.
+        eventCallbackManager.invokeAllCallbacksForResponse(responseBody, unsentRequestsSize);
       }
-
-      if (lastResponseError != null && this.error != null) {
-        this.error.error(lastResponseError);
-      } else if (this.response != null) {
-        this.response.response(responseJson);
-      }
-    } else if (error != null && this.error != null) {
-      this.error.error(error);
     }
+  }
+
+  /**
+   * Parse error message from server response and return readable error message.
+   *
+   * @param errorMessage String of error from server response.
+   * @return String of readable error message.
+   */
+  @NonNull
+  private String getReadableErrorMessage(String errorMessage) {
+    if (errorMessage == null || errorMessage.length() == 0) {
+      errorMessage = "API error";
+    } else if (errorMessage.startsWith("App not found")) {
+      errorMessage = "No app matching the provided app ID was found.";
+      Constants.isInPermanentFailureState = true;
+    } else if (errorMessage.startsWith("Invalid access key")) {
+      errorMessage = "The access key you provided is not valid for this app.";
+      Constants.isInPermanentFailureState = true;
+    } else if (errorMessage.startsWith("Development mode requested but not permitted")) {
+      errorMessage = "A call to Leanplum.setAppIdForDevelopmentMode "
+          + "with your production key was made, which is not permitted.";
+      Constants.isInPermanentFailureState = true;
+    } else {
+      errorMessage = "API error: " + errorMessage;
+    }
+    return errorMessage;
   }
 
   private void sendNow() {
@@ -420,7 +480,7 @@ public class Request {
     multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
 
-    JSONObject result = null;
+    JSONObject responseBody;
     HttpURLConnection op = null;
     try {
       try {
@@ -432,45 +492,50 @@ public class Request {
             Constants.API_SSL,
             Constants.NETWORK_TIMEOUT_SECONDS);
 
-        result = Util.getJsonResponse(op);
+        responseBody = Util.getJsonResponse(op);
         int statusCode = op.getResponseCode();
 
-        Exception errorException = null;
+        Exception errorException;
         if (statusCode >= 200 && statusCode <= 299) {
-          // Clear localErrors list.
-          localErrors.clear();
-          deleteSentRequests(unsentRequests.size());
-          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
-            sendRequests();
-          }
-        } else if (statusCode >= 400) {
-          errorException = new LeanplumException("HTTP error " + statusCode);
-          if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
+          synchronized (Request.class) {
+            if (responseBody == null) {
+              errorException = new Exception("Response JSON is null.");
+              deleteSentRequests(unsentRequests.size());
+              parseResponseBody(null, requestsToSend, errorException, unsentRequests.size());
+              return;
+            }
+
+            // Checks if we received the same number of responses as a number of sent request.
+            int numResponses = Request.numResponses(responseBody);
+            if (numResponses != requestsToSend.size()) {
+              String warningMessage = "Sent " + requestsToSend.size() + " requests but only" +
+                  " received " + numResponses;
+              Log.w(warningMessage);
+              Exception exception = new Exception(warningMessage);
+              Util.handleException(exception);
+            }
+            parseResponseBody(responseBody, requestsToSend, null, unsentRequests.size());
+            // Clear localErrors list.
+            localErrors.clear();
             deleteSentRequests(unsentRequests.size());
+            // Send another request if the last request had maximum events per api call.
+            if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
+              sendRequests();
+            }
           }
         } else {
-          if (result != null) {
-            int numResponses = Request.numResponses(result);
-            if (numResponses != requestsToSend.size()) {
-              Log.w("Sent " + requestsToSend.size() +
-                  " requests but only" + " received " + numResponses);
-            } else {
-              deleteSentRequests(unsentRequests.size());
-            }
-          } else {
-            errorException = new LeanplumException("Response JSON is null.");
+          errorException = new Exception("HTTP error " + statusCode);
+          if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
             deleteSentRequests(unsentRequests.size());
+            parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
           }
         }
-        parseResponseJson(result, requestsToSend, errorException);
       } catch (JSONException e) {
-        Log.e("Error parsing JSON response: " + e.toString() + "\n" +
-            Log.getStackTraceString(e));
-        parseResponseJson(null, requestsToSend, e);
+        Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
+        deleteSentRequests(unsentRequests.size());
+        parseResponseBody(null, requestsToSend, e, unsentRequests.size());
       } catch (Exception e) {
-        Log.e("Unable to send request: " + e.toString() + "\n" +
-            Log.getStackTraceString(e));
-        parseResponseJson(result, requestsToSend, e);
+        Log.e("Unable to send request: " + e.toString() + "\n" + Log.getStackTraceString(e));
       } finally {
         if (op != null) {
           op.disconnect();
