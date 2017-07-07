@@ -29,7 +29,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * LeanplumEventCallbackManager class for handle events callbacks.
+ * LeanplumEventCallbackManager class to handle event callbacks.
  *
  * @author Anna Orlova
  */

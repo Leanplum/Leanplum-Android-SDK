@@ -666,40 +666,43 @@ public class Leanplum {
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
-    final Request req = Request.post(Constants.Methods.START, params);
-    req.onApiResponse(new Request.ApiResponseCallback() {
+    final Request request = Request.post(Constants.Methods.START, params);
+    request.onApiResponse(new Request.ApiResponseCallback() {
       @Override
-      public void response(List<Map<String, Object>> requests, JSONObject response) {
-        Leanplum.handleApiResponse(response, requests, req);
+      public void response(List<Map<String, Object>> requests, JSONObject response, int countOfEvents) {
+        Leanplum.handleApiResponse(response, requests, request, countOfEvents);
       }
     });
 
     if (isBackground) {
-      req.sendEventually();
+      request.sendEventually();
     } else {
-      req.sendIfConnected();
+      request.sendIfConnected();
     }
 
     LeanplumInternal.triggerStartIssued();
   }
 
   private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests,
-      final Request req) {
+      final Request request, int countOfUnsentRequests) {
     boolean hasStartResponse = false;
     JSONObject lastStartResponse = null;
 
     // Find and handle the last start response.
     try {
-      final int numResponses = Request.numResponses(response);
-      if (req.getDataBaseIndex() >= numResponses) {
-        req.setDataBaseIndex(req.getDataBaseIndex() - numResponses);
+      // Checks if START event inside the current batch. If database index of START event bigger
+      // then a number of count of events that we got from the database - decrease START event
+      // database index.
+      if (request.getDataBaseIndex() >= countOfUnsentRequests) {
+        request.setDataBaseIndex(request.getDataBaseIndex() - countOfUnsentRequests);
         return;
       }
 
+      final int responseCount = Request.numResponses(response);
       for (int i = requests.size() - 1; i >= 0; i--) {
-        Map<String, Object> request = requests.get(i);
-        if (Constants.Methods.START.equals(request.get(Constants.Params.ACTION))) {
-          if (i < numResponses) {
+        Map<String, Object> currentRequest = requests.get(i);
+        if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
+          if (i < responseCount) {
             lastStartResponse = Request.getResponseAt(response, i);
           }
           hasStartResponse = true;
@@ -713,7 +716,7 @@ public class Leanplum {
     if (hasStartResponse) {
       if (!LeanplumInternal.hasStarted()) {
         // Set start response to null.
-        req.onApiResponse(null);
+        request.onApiResponse(null);
         Leanplum.handleStartResponse(lastStartResponse);
       }
     }

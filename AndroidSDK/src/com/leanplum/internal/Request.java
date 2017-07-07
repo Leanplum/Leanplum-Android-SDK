@@ -114,10 +114,18 @@ public class Request {
     return token;
   }
 
+  /**
+   * Since requests are batched there can be a case where other Request can take future Request
+   * events. We need to have for each Request database index for handle response, error or start
+   * callbacks.
+   *
+   * @return Index of event at database.
+   */
   public long getDataBaseIndex() {
     return dataBaseIndex;
   }
 
+  // Update index of event at database.
   public void setDataBaseIndex(long dataBaseIndex) {
     this.dataBaseIndex = dataBaseIndex;
   }
@@ -306,7 +314,7 @@ public class Request {
     if (apiResponse != null) {
       List<Map<String, Object>> requests = getUnsentRequests();
       List<Map<String, Object>> requestsToSend = removeIrrelevantBackgroundStartRequests(requests);
-      apiResponse.response(requestsToSend, null);
+      apiResponse.response(requestsToSend, null, requests.size());
     }
   }
 
@@ -328,7 +336,7 @@ public class Request {
   }
 
   public interface ApiResponseCallback {
-    void response(List<Map<String, Object>> requests, JSONObject response);
+    void response(List<Map<String, Object>> requests, JSONObject response, int countOfEvents);
   }
 
   public interface ErrorCallback {
@@ -361,7 +369,7 @@ public class Request {
 
       // Response for last start call.
       if (apiResponse != null) {
-        apiResponse.response(requestsToSend, responseBody);
+        apiResponse.response(requestsToSend, responseBody, unsentRequestsSize);
       }
 
       // We will replace it with error from response body, if we found it.
