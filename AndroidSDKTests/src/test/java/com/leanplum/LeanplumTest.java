@@ -733,7 +733,7 @@ public class LeanplumTest extends AbstractTest {
 
   @Test
   public void testActions() throws Exception {
-    setupSDK(mContext, "");
+    setupSDK(mContext, "/responses/simple_start_response.json");
 
     final String actionName = "test_action";
 
