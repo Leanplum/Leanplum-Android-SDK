@@ -53,6 +53,7 @@ class LeanplumManifestParser {
   private static final int END_TAG = 0x00100103;
   private static final int START_NAMESPACE_TAG = 0x00100100;
   private static final int END_NAMESPACE_TAG = 0x00100101;
+  private static final int XML_TEXT_TAG = 0x00100104;
   private static final String SPACES = "                                             ";
 
   /**
@@ -108,10 +109,10 @@ class LeanplumManifestParser {
         indent++;
       } else if (tag0 == END_TAG) { // END_TAG.
         indent--;
-        off += 6 * 4;  // Skip over 6 words of END_TAG data
+        off += 6 * 4;  // Skip over 6 words of END_TAG data.
         String name = compXmlString(xml, sitOff, stOff, nameSi);
         out += SPACES.substring(0, Math.min(indent * 2, SPACES.length())) + "</" + name + ">";
-      } else if (tag0 == START_NAMESPACE_TAG) { // START_NAMESPACE_TAG
+      } else if (tag0 == START_NAMESPACE_TAG) { // START_NAMESPACE_TAG.
         // Sometimes here can be nested group of START_NAMESPACE_TAG and END_NAMESPACE_TAG. We
         // should parse all of them.
         // Increase START_NAMESPACE_TAG counter.
@@ -127,6 +128,8 @@ class LeanplumManifestParser {
         }
         // If here is more START_NAMESPACE_TAG then skip over 6 words of START_NAMESPACE_TAG.
         off += 4 * 6;
+      } else if (tag0 == XML_TEXT_TAG) { // XML_TEXT_TAG.
+        off += 4 * 7;// Skip over 7 words of XML_TEXT_TAG data.
       } else {
         break;
       }
