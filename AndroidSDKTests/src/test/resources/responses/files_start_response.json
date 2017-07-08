@@ -1,7 +1,7 @@
 {
   "response": [
     {
-      "uploadUrl": "https:\/\/www.leanplum.com\/_ah\/upload\/AMmfu6by_4mWZUn19c8v_omIeRezDaIfzqCosKTZTY4HnsxrA963YsrYMMnTPd538fmb4Gyx17-evF7X_QBqFIYjwPuTeHzihGM5-FHkW8o1zKxNl8E9yB2ZiumXvOj-gMbotIZYA1I_\/ALBNUaYAAAAAWAZDRSTEVp_wufYkJ7EFVZK_9eVhM32E\/",
+      "uploadUrl": "https:\/\/www.leanplum.com\/_ah\/upload\/AMmfu6alo6HoX69hRTLNVHSoTyaZNu7bu1-tDEsDtrFY0EuBeDZhdjVlDNNaiA65HjWrW8wcszrIWsg0_0dqgGp8ZGV3A2CfSON1xE_I8suTldOm_UonazhuufEQZlt2u5YsnVkk_bCY\/ALBNUaYAAAAAWATNRrT10LtTa4ZmLtSWc89sJ77oIGST\/",
       "interfaceRules": [
       ],
       "actionDefinitions": {
@@ -220,46 +220,19 @@
           "options": null
         }
       },
-      "isRegistered": false,
+      "isRegistered": true,
       "regions": {
       },
       "messages": {
       },
       "varsFromCode": {
-        "emptyDictionary": {
-          "integerValue": 50
-        },
-        "dictionaryVariable": {
-          "unicode": "?.!s\u0153\u2211\u03c0\u00f8\u02c6\u02dc\u00a8&\/\/.sd",
-          "test_number": 535,
-          "test_string": "string"
-        },
-        "arrayVariable": {
-          "[0]": 1,
-          "[2]": 3,
-          "[1]": 2,
-          "[3]": 4,
-          "[4]": 5
-        },
-        "intVariable": 100,
-        "boolVariable": false,
-        "floatVariable": 5,
-        "integerVariable": 1,
-        "fileVariable": "leanplum_watermark.jpg",
-        "stringVariable": "test_string"
       },
       "latestVersion": "1.4.0.2",
       "vars": {
       },
       "fileAttributes": {
-        "PlugIns\/Leanplum-SDK_Tests.xctest\/test.file": {
-          "_empty_": {
-            "hash": "754e4eaae3c92be6e5d45c92b385c8fd",
-            "size": 25
-          }
-        }
       },
-      "token": "jRSv9YRFQ9yVPN80JP0quwHmN9rKk0Crm7awgTwZgCs",
+      "token": "beIU7isQQsCFFkd4R1e6l4ODGfBfKEJLiHQ6ZRPUfOY",
       "variants": [
       ],
       "syncNewsfeed": false,

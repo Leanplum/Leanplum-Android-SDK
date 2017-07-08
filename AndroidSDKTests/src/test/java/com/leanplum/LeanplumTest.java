@@ -20,6 +20,7 @@
  */
 package com.leanplum;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -37,6 +38,8 @@ import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
+import com.leanplum.internal.LeanplumEventDataManager;
+import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
@@ -63,11 +66,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
@@ -377,6 +385,69 @@ public class LeanplumTest extends AbstractTest {
     VarCache.applyVariableDiffs(null, messages, null, null, null, variants);
     assertEquals(variants, Leanplum.variants());
     assertEquals(messages, Leanplum.messageMetadata());
+  }
+
+  @Test
+  public void testCrashes() throws Exception {
+    // Setup sdk first.
+    setupSDK(mContext, "/responses/start_variables_response.json");
+
+    Context currentCotext = Leanplum.getContext();
+    assertNotNull(currentCotext);
+    LeanplumEventDataManager.init(Leanplum.getContext());
+
+    // Add two events to database.
+    new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null).sendEventually();
+    new Request("POST", Constants.Methods.LOG, null).sendEventually();
+
+    // Get a number of events in the database.
+    // Expectation: 2 events.
+    Method getUnsentRequests = Request.class.getDeclaredMethod("getUnsentRequests");
+    getUnsentRequests.setAccessible(true);
+    List unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    assertNotNull(unsentRequests);
+    assertEquals(2, unsentRequests.size());
+
+    // Verify handleException method is never called.
+    verifyStatic(never());
+    Util.handleException(any(Throwable.class));
+
+    doNothing().when(Util.class, "handleException", any(Throwable.class));
+
+    // Crash SDK.
+    ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
+      put("1", "aaa");
+    }}, "messageId");
+    actionContext.numberNamed("1");
+
+    // Verify handleException method is called 1 time.
+    verifyStatic(times(1));
+    Util.handleException(any(Throwable.class));
+
+    // Get a number of events in the database. Checks if ours two events still here.
+    // Expectation: 2 events.
+    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    assertNotNull(unsentRequests);
+    assertEquals(2, unsentRequests.size());
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.PAUSE_STATE, apiMethod);
+      }
+    });
+
+    // Call pause method.
+    Leanplum.pauseState();
+
+    // Get a number of events in the database. Make sure we sent all events.
+    // Expectation: 0 events.
+    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    assertNotNull(unsentRequests);
+    assertEquals(0, unsentRequests.size());
+
+    LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
   @Test
@@ -733,7 +804,7 @@ public class LeanplumTest extends AbstractTest {
 
   @Test
   public void testActions() throws Exception {
-    setupSDK(mContext, "");
+    setupSDK(mContext, "/responses/simple_start_response.json");
 
     final String actionName = "test_action";
 

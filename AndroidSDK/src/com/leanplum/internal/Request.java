@@ -505,19 +505,18 @@ public class Request {
               return;
             }
 
+            Exception exception = null;
             // Checks if we received the same number of responses as a number of sent request.
             int numResponses = Request.numResponses(responseBody);
             if (numResponses != requestsToSend.size()) {
-              String warningMessage = "Sent " + requestsToSend.size() + " requests but only" +
-                  " received " + numResponses;
-              Log.w(warningMessage);
-              Exception exception = new Exception(warningMessage);
-              Util.handleException(exception);
+              Log.w("Sent " + requestsToSend.size() + " requests but only" +
+                  " received " + numResponses);
             }
             parseResponseBody(responseBody, requestsToSend, null, unsentRequests.size());
             // Clear localErrors list.
             localErrors.clear();
             deleteSentRequests(unsentRequests.size());
+
             // Send another request if the last request had maximum events per api call.
             if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
               sendRequests();

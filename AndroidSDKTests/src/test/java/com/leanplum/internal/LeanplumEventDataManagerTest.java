@@ -122,7 +122,7 @@ public class LeanplumEventDataManagerTest {
     setDatabaseToNull();
   }
 
-  public void setDatabaseToNull(){
+  public static void setDatabaseToNull(){
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "databaseManager",
         null);
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "database",
