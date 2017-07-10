@@ -383,6 +383,9 @@ public class LeanplumPushService {
 
     if (shouldStartActivity) {
       Intent actionIntent = getActionIntent(context);
+      if (actionIntent == null) {
+        return;
+      }
       actionIntent.putExtras(notification);
       actionIntent.addFlags(
           Intent.FLAG_ACTIVITY_CLEAR_TOP |
