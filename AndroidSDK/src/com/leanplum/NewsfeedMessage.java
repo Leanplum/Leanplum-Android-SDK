@@ -146,9 +146,13 @@ public abstract class NewsfeedMessage {
   }
 
   /**
-   * Returns the delivery timestamp of the newsfeed message.
+   * Returns the delivery timestamp of the newsfeed message,
+   * or null if delivery timestamp is not present.
    */
   public Date getDeliveryTimestamp() {
+    if (deliveryTimestamp == null) {
+      return null;
+    }
     return new Date(deliveryTimestamp);
   }
 

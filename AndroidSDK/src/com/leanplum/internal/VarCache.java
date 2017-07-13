@@ -465,11 +465,14 @@ public class VarCache {
   private static void fileVariableFinish() {
     for (String name : new HashMap<>(vars).keySet()) {
       Var<?> var = vars.get(name);
+      if (var == null) {
+        continue;
+      }
       String overrideFile = var.stringValue;
-      if (var.isResource && (var.kind().equals(Constants.Kinds.FILE)) && overrideFile != null &&
-          !var.defaultValue().equals(overrideFile)) {
+      if (var.isResource && Constants.Kinds.FILE.equals(var.kind()) && overrideFile != null &&
+              !overrideFile.equals(var.defaultValue())) {
         Map<String, Object> variationAttributes = CollectionUtil.uncheckedCast(fileAttributes.get
-            (overrideFile));
+                (overrideFile));
         InputStream stream = fileStreams.get(overrideFile);
         if (variationAttributes != null && stream != null) {
           var.setOverrideResId(getResIdFromPath(var.stringValue()));
@@ -520,7 +523,7 @@ public class VarCache {
         String name = entry.getKey();
         Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(VarCache.messages.get
             (name));
-        if (messageConfig.get("action") != null) {
+        if (messageConfig != null && messageConfig.get("action") != null) {
           Map<String, Object> actionArgs =
               CollectionUtil.uncheckedCast(messageConfig.get(Constants.Keys.VARS));
           new ActionContext(

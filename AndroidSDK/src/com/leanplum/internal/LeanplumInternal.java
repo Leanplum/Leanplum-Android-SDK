@@ -413,6 +413,9 @@ public class LeanplumInternal {
                 }
               } catch (IOException e) {
                 Log.e("Failed to connect to Geocoder: " + e);
+              } catch (IllegalArgumentException e) {
+                Log.e("Invalid latitude or longitude values: " + e);
+              } catch (Throwable ignored) {
               }
             }
             Request req = Request.post(Constants.Methods.SET_USER_ATTRIBUTES, params);
@@ -532,10 +535,6 @@ public class LeanplumInternal {
       for (Map.Entry<String, T> entry : attributes.entrySet()) {
         T value = entry.getValue();
 
-        if (value == null) {
-          continue;
-        }
-
         // Validate lists.
         if (allowLists && value instanceof Iterable<?>) {
           boolean valid = true;
@@ -556,7 +555,7 @@ public class LeanplumInternal {
             Date date = CollectionUtil.uncheckedCast(value);
             value = CollectionUtil.uncheckedCast(date.getTime());
           }
-          if (!isValidScalarValue(value, argName)) {
+          if (value != null && !isValidScalarValue(value, argName)) {
             continue;
           }
         }

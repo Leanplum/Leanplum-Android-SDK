@@ -86,7 +86,7 @@ public class ActionManager {
         }
       } catch (Throwable e) {
         if (!loggedLocationManagerFailure) {
-          Log.e("Geofencing support requires Google Play Services v8.1 and higher.\n" +
+          Log.w("Geofencing support requires Google Play Services v8.1 and higher.\n" +
               "Add this to your build.gradle file:\n" +
               "compile ('com.google.android.gms:play-services-location:8.3.0+')");
           loggedLocationManagerFailure = true;
@@ -240,7 +240,7 @@ public class ActionManager {
           }
 
           // Cancel notification.
-          Intent intentAlarm = new Intent(context, LeanplumPushService.class);
+          Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
           AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
           PendingIntent existingIntent = PendingIntent.getService(
               context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);

@@ -35,7 +35,7 @@ class LeanplumManifestParser {
   //   3rd word: FFFFFFFF ??
   //   4th word: StringIndex of NameSpace name, or FFFFFFFF for default NS
   //   5th word: StringIndex of Element Name
-  //   (Note: 01011000 in 0th word means end of XML document, END_DOC_TAG).
+  //   (Note: 01011000 in 0th word means end of XML document, END_NAMESPACE_TAG).
 
   // Start tags (not end tags) contain 3 more words:
   //   6th word: 14001400 meaning??
@@ -48,9 +48,12 @@ class LeanplumManifestParser {
   //   2nd word: StringIndex of Attribute Value, or FFFFFFF if ResourceId used
   //   3rd word: Flags?
   //   4th word: str ind of attr value again, or ResourceId of value.
-  // END_DOC_TAG = 0x00100101;
+
   private static final int START_TAG = 0x00100102;
   private static final int END_TAG = 0x00100103;
+  private static final int START_NAMESPACE_TAG = 0x00100100;
+  private static final int END_NAMESPACE_TAG = 0x00100101;
+  private static final int XML_TEXT_TAG = 0x00100104;
   private static final String SPACES = "                                             ";
 
   /**
@@ -79,15 +82,16 @@ class LeanplumManifestParser {
     // Step through the XML tree element tags and attributes.
     int off = scanForFirstStartTag(xml);
     int indent = 0;
-
+    // Counter of nested START_NAMESPACE_TAG. By default here will be one START_NAMESPACE_TAG.
+    int startNamestaceTagCounter = 1;
     while (off < xml.length) {
       int tag0 = littleEndianValue(xml, off);
       int nameSi = littleEndianValue(xml, off + 5 * 4);
-      if (tag0 == START_TAG) {
+      if (tag0 == START_TAG) { // START_TAG.
         int numbAttrs = littleEndianValue(xml, off + 7 * 4);  // Number of Attributes to follow.
-        off += 9 * 4;  // Skip over 6+3 words of START_TAG data
+        off += 9 * 4;  // Skip over 6+3 words of START_TAG data.
         String name = compXmlString(xml, sitOff, stOff, nameSi);
-        // Look for the Attributes
+        // Look for the Attributes.
         StringBuilder sb = new StringBuilder();
         for (int ii = 0; ii < numbAttrs; ii++) {
           int attrNameSi = littleEndianValue(xml, off + 4);  // AttrName String Index.
@@ -103,12 +107,29 @@ class LeanplumManifestParser {
         }
         out += SPACES.substring(0, Math.min(indent * 2, SPACES.length())) + "<" + name + sb + ">";
         indent++;
-      } else if (tag0 == END_TAG) {
+      } else if (tag0 == END_TAG) { // END_TAG.
         indent--;
-        off += 6 * 4;  // Skip over 6 words of END_TAG data
+        off += 6 * 4;  // Skip over 6 words of END_TAG data.
         String name = compXmlString(xml, sitOff, stOff, nameSi);
         out += SPACES.substring(0, Math.min(indent * 2, SPACES.length())) + "</" + name + ">";
-
+      } else if (tag0 == START_NAMESPACE_TAG) { // START_NAMESPACE_TAG.
+        // Sometimes here can be nested group of START_NAMESPACE_TAG and END_NAMESPACE_TAG. We
+        // should parse all of them.
+        // Increase START_NAMESPACE_TAG counter.
+        startNamestaceTagCounter++;
+        off += 4 * 6;  // Skip over 6 words of START_NAMESPACE_TAG.
+      } else if (tag0 == END_NAMESPACE_TAG) { // END_NAMESPACE_TAG.
+        // When we found END_NAMESPACE_TAG we should decrease START_NAMESPACE_TAG counter.
+        startNamestaceTagCounter--;
+        // Checks if we found END_NAMESPACE_TAG for all nested START_NAMESPACE_TAG.
+        if (startNamestaceTagCounter == 0) {
+          // Finish parsing of xml.
+          break;
+        }
+        // If here is more START_NAMESPACE_TAG then skip over 6 words of START_NAMESPACE_TAG.
+        off += 4 * 6;
+      } else if (tag0 == XML_TEXT_TAG) { // XML_TEXT_TAG.
+        off += 4 * 7;// Skip over 7 words of XML_TEXT_TAG data.
       } else {
         break;
       }

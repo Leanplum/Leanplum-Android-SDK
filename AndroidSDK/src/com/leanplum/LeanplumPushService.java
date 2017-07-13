@@ -283,6 +283,10 @@ public class LeanplumPushService {
    * Put the message into a notification and post it.
    */
   private static void showNotification(Context context, Bundle message) {
+    if (context == null || message == null) {
+      return;
+    }
+
     NotificationManager notificationManager = (NotificationManager)
         context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -346,7 +350,15 @@ public class LeanplumPushService {
         notificationId = value.hashCode();
       }
     }
-    notificationManager.notify(notificationId, builder.build());
+
+    try {
+      notificationManager.notify(notificationId, builder.build());
+    } catch (NullPointerException e) {
+      Log.e("Unable to show push notification.", e);
+    } catch (Throwable t) {
+      Log.e("Unable to show push notification.", t);
+      Util.handleException(t);
+    }
   }
 
   static void openNotification(Context context, final Bundle notification) {
@@ -375,6 +387,9 @@ public class LeanplumPushService {
 
     if (shouldStartActivity) {
       Intent actionIntent = getActionIntent(context);
+      if (actionIntent == null) {
+        return;
+      }
       actionIntent.putExtras(notification);
       actionIntent.addFlags(
           Intent.FLAG_ACTIVITY_CLEAR_TOP |

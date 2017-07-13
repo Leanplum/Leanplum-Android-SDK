@@ -78,7 +78,10 @@ public class LeanplumManifestHelper {
   /**
    * Gets application components from AndroidManifest.xml file.
    */
-  private static void parseManifestNodeChildren() {
+  private static synchronized void parseManifestNodeChildren() {
+    if (manifestData != null) {
+      return;
+    }
     manifestData = new ManifestData();
     byte[] manifestXml = getByteArrayOfManifest();
     Document manifestDocument = getManifestDocument(manifestXml);
@@ -97,15 +100,31 @@ public class LeanplumManifestHelper {
       return null;
     }
     byte[] manifestXml = null;
+    JarFile jarFile = null;
+    DataInputStream dataInputStream = null;
     try {
-      JarFile jarFile = new JarFile(context.getPackageResourcePath());
+      jarFile = new JarFile(context.getPackageResourcePath());
       ZipEntry entry = jarFile.getEntry(ANDROID_MANIFEST);
       manifestXml = new byte[(int) entry.getSize()];
-      DataInputStream dataInputStream = new DataInputStream(jarFile.getInputStream(entry));
+      dataInputStream = new DataInputStream(jarFile.getInputStream(entry));
       dataInputStream.readFully(manifestXml);
-      dataInputStream.close();
     } catch (Exception e) {
       Log.e("Cannot parse " + ANDROID_MANIFEST + " file: " + e.getMessage());
+    } catch (Throwable t) {
+      Log.e("Cannot parse " + ANDROID_MANIFEST + " file: " + t.getMessage());
+      Util.handleException(t);
+    } finally {
+      try {
+        if (jarFile != null) {
+          jarFile.close();
+        }
+
+        if (dataInputStream != null) {
+          dataInputStream.close();
+        }
+      } catch (Throwable ignored) {
+
+      }
     }
     return manifestXml;
   }
@@ -400,6 +419,10 @@ public class LeanplumManifestHelper {
    */
   private static boolean isInstance(ManifestComponent component, String className) {
     try {
+      if (component == null || component.name == null) {
+        return false;
+      }
+      
       if (component.name.equals(className)) {
         return true;
       } else {
