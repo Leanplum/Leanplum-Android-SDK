@@ -549,6 +549,11 @@ public class Request {
     if (Constants.isTestMode) {
       return;
     }
+
+    if(LeanplumEventDataManager.willSendErrorLog){
+      return;
+    }
+
     if (!sent) {
       sent = true;
       Map<String, Object> args = createArgsDictionary();
