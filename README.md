@@ -1,6 +1,6 @@
 # Leanplum-Android-SDK
 ## Installation & Usage
-Please refer to: https://www.leanplum.com/docs#/setup/android
+Please refer to: https://www.leanplum.com/docs/android/setup
 ## Development Workflow
 - We are using GitFlow branching model: https://github.com/nvie/gitflow
 - We use the Conventional Changelog Commit Style for commit messages: https://github.com/commitizen/cz-cli
