@@ -524,7 +524,7 @@ public class Request {
           }
         } else {
           errorException = new Exception("HTTP error " + statusCode);
-          if (statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
+          if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
             deleteSentRequests(unsentRequests.size());
             parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
           }
