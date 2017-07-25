@@ -24,6 +24,7 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import com.leanplum.Leanplum;
@@ -57,7 +58,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  static final int MAX_EVENTS_PER_API_CALL = 10000;
+  static final int MAX_EVENTS_PER_API_CALL;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
 
@@ -92,6 +93,14 @@ public class Request {
   private static ApiResponseCallback apiResponse;
 
   private static List<Map<String, Object>> localErrors = new ArrayList<>();
+
+  static {
+    if (Build.VERSION.SDK_INT <= 17) {
+      MAX_EVENTS_PER_API_CALL = 5000;
+    } else {
+      MAX_EVENTS_PER_API_CALL = 10000;
+    }
+  }
 
   public static void setAppId(String appId, String accessKey) {
     Request.appId = appId;
