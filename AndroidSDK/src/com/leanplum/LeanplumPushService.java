@@ -351,7 +351,12 @@ public class LeanplumPushService {
     builder.setContentIntent(contentIntent);
 
     if (LeanplumPushService.customizer != null) {
-      LeanplumPushService.customizer.customize(builder, message);
+      try {
+        LeanplumPushService.customizer.customize(builder, message);
+      } catch (Throwable t) {
+        Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
+        return;
+      }
     }
 
     int notificationId = LeanplumPushService.NOTIFICATION_ID;
@@ -397,7 +402,7 @@ public class LeanplumPushService {
     // Start activity.
     Class<? extends Activity> callbackClass = LeanplumPushService.getCallbackClass();
     boolean shouldStartActivity = true;
-    Activity currentActivity= LeanplumActivityHelper.currentActivity;
+    Activity currentActivity = LeanplumActivityHelper.currentActivity;
     if (currentActivity != null && !LeanplumActivityHelper.isActivityPaused) {
       if (callbackClass == null) {
         shouldStartActivity = false;
