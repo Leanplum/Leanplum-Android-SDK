@@ -214,12 +214,11 @@ public class LeanplumInbox {
       return;
     }
 
-    Request req = Request.post(Constants.Methods.GET_INBOX_MESSAGES, null);
+    final Request req = Request.post(Constants.Methods.GET_INBOX_MESSAGES, null);
     req.onResponse(new Request.ResponseCallback() {
       @Override
-      public void response(JSONObject responses) {
+      public void response(JSONObject response) {
         try {
-          JSONObject response = Request.getLastResponse(responses);
           if (response == null) {
             Log.e("No inbox response received from the server.");
             return;
