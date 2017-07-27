@@ -75,6 +75,9 @@ class LeanplumEventCallbackManager {
     // Loop over all callbacks.
     for (; iterator.hasNext(); ) {
       final Map.Entry<Request, LeanplumEventCallbacks> entry = iterator.next();
+      if (entry.getKey() == null) {
+        continue;
+      }
       if (entry.getKey().getDataBaseIndex() >= countOfEvents) {
         entry.getKey().setDataBaseIndex(entry.getKey().getDataBaseIndex() - countOfEvents);
       } else {
@@ -111,6 +114,10 @@ class LeanplumEventCallbackManager {
     // Loop over all callbacks.
     for (; iterator.hasNext(); ) {
       final Map.Entry<Request, LeanplumEventCallbacks> entry = iterator.next();
+      if (entry.getKey() == null) {
+        continue;
+      }
+
       if (entry.getKey().getDataBaseIndex() >= countOfEvents) {
         entry.getKey().setDataBaseIndex(entry.getKey().getDataBaseIndex() - countOfEvents);
       } else {
