@@ -1908,15 +1908,14 @@ public class Leanplum {
         @Override
         public void response(JSONObject response) {
           try {
-            JSONObject lastResponse = Request.getLastResponse(response);
-            if (lastResponse == null) {
+            if (response == null) {
               Log.e("No response received from the server. Please contact us to investigate.");
             } else {
-              applyContentInResponse(lastResponse, false);
-              if (lastResponse.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
+              applyContentInResponse(response, false);
+              if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
                 LeanplumInbox.getInstance().downloadMessages();
               }
-              if (lastResponse.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
+              if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
               }
             }

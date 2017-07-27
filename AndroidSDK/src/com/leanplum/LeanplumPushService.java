@@ -212,19 +212,18 @@ public class LeanplumPushService {
               @Override
               public void response(JSONObject response) {
                 try {
-                  JSONObject getVariablesResponse = Request.getLastResponse(response);
-                  if (getVariablesResponse == null) {
+                  if (response == null) {
                     Log.e("No response received from the server. Please contact us to " +
                         "investigate.");
                   } else {
                     Map<String, Object> values = JsonConverter.mapFromJson(
-                        getVariablesResponse.optJSONObject(Constants.Keys.VARS));
+                        response.optJSONObject(Constants.Keys.VARS));
                     Map<String, Object> messages = JsonConverter.mapFromJson(
-                        getVariablesResponse.optJSONObject(Constants.Keys.MESSAGES));
+                        response.optJSONObject(Constants.Keys.MESSAGES));
                     Map<String, Object> regions = JsonConverter.mapFromJson(
-                        getVariablesResponse.optJSONObject(Constants.Keys.REGIONS));
+                        response.optJSONObject(Constants.Keys.REGIONS));
                     List<Map<String, Object>> variants = JsonConverter.listFromJson(
-                        getVariablesResponse.optJSONArray(Constants.Keys.VARIANTS));
+                        response.optJSONArray(Constants.Keys.VARIANTS));
                     if (!Constants.canDownloadContentMidSessionInProduction ||
                         VarCache.getDiffs().equals(values)) {
                       values = null;

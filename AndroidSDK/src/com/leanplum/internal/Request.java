@@ -506,30 +506,28 @@ public class Request {
 
         Exception errorException;
         if (statusCode >= 200 && statusCode <= 299) {
-          synchronized (Request.class) {
-            if (responseBody == null) {
-              errorException = new Exception("Response JSON is null.");
-              deleteSentRequests(unsentRequests.size());
-              parseResponseBody(null, requestsToSend, errorException, unsentRequests.size());
-              return;
-            }
-
-            Exception exception = null;
-            // Checks if we received the same number of responses as a number of sent request.
-            int numResponses = Request.numResponses(responseBody);
-            if (numResponses != requestsToSend.size()) {
-              Log.w("Sent " + requestsToSend.size() + " requests but only" +
-                  " received " + numResponses);
-            }
-            parseResponseBody(responseBody, requestsToSend, null, unsentRequests.size());
-            // Clear localErrors list.
-            localErrors.clear();
+          if (responseBody == null) {
+            errorException = new Exception("Response JSON is null.");
             deleteSentRequests(unsentRequests.size());
+            parseResponseBody(null, requestsToSend, errorException, unsentRequests.size());
+            return;
+          }
 
-            // Send another request if the last request had maximum events per api call.
-            if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
-              sendRequests();
-            }
+          Exception exception = null;
+          // Checks if we received the same number of responses as a number of sent request.
+          int numResponses = Request.numResponses(responseBody);
+          if (numResponses != requestsToSend.size()) {
+            Log.w("Sent " + requestsToSend.size() + " requests but only" +
+                " received " + numResponses);
+          }
+          parseResponseBody(responseBody, requestsToSend, null, unsentRequests.size());
+          // Clear localErrors list.
+          localErrors.clear();
+          deleteSentRequests(unsentRequests.size());
+
+          // Send another request if the last request had maximum events per api call.
+          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
+            sendRequests();
           }
         } else {
           errorException = new Exception("HTTP error " + statusCode);
@@ -559,7 +557,7 @@ public class Request {
       return;
     }
 
-    if(LeanplumEventDataManager.willSendErrorLog){
+    if (LeanplumEventDataManager.willSendErrorLog) {
       return;
     }
 
