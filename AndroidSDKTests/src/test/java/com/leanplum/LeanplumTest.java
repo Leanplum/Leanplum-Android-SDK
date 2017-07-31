@@ -463,6 +463,9 @@ public class LeanplumTest extends AbstractTest {
         "test_param_string", "string",
         "test_param_int", 42
     );
+    final HashMap<String, String> eventArgs = CollectionUtil.newHashMap(
+        Constants.Params.IAP_CURRENCY_CODE, "EUR"
+    );
 
     // Validate request for track with event name.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
@@ -584,7 +587,31 @@ public class LeanplumTest extends AbstractTest {
     });
     Leanplum.track(eventName, eventValue, eventInfo, eventParams);
 
-    // Validate request for purchae.
+    // Validate request for track with event name, value, info, params, and args.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.TRACK, apiMethod);
+
+        String requestEventName = (String) params.get("event");
+        String requestEventValue = (String) params.get("value");
+        String requestEventInfo = (String) params.get("info");
+        String requestEventParams = (String) params.get("params");
+        String requestEventArg = (String) params.get(Constants.Params.IAP_CURRENCY_CODE);
+
+        assertEquals(eventName, requestEventName);
+        assertEquals(String.valueOf(eventValue), requestEventValue);
+        assertEquals(eventInfo, requestEventInfo);
+        assertTrue(eventParams.keySet()
+            .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
+        assertTrue(eventParams.values()
+            .containsAll(JsonConverter.fromJson(requestEventParams).values()));
+        assertTrue(eventArgs.values().toArray()[0].equals(requestEventArg));
+      }
+    });
+    Leanplum.track(eventName, eventValue, eventInfo, eventParams, eventArgs);
+
+    // Validate request for purchase.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
@@ -603,7 +630,7 @@ public class LeanplumTest extends AbstractTest {
     });
     Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature");
 
-    // Validate request for purchae.
+    // Validate request for purchase.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
@@ -620,7 +647,8 @@ public class LeanplumTest extends AbstractTest {
         assertEquals("data", requestPurchaseData);
       }
     });
-    Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature", new HashMap<String, Object>());
+    Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature",
+        new HashMap<String, Object>());
   }
 
   @Test
