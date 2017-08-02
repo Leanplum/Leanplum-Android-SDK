@@ -226,7 +226,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     }
   }
 
-  private String fillTemplate(String value) {
+  public String fillTemplate(String value) {
     if (contextualValues == null || value == null || !value.contains("##")) {
       return value;
     }
