@@ -170,8 +170,14 @@ class HTMLOptions {
     try {
       htmlString = (htmlTemplate.replace("##Vars##",
           ActionContext.mapToJsonObject(htmlArgs).toString()));
+      try {
+        htmlString = context.fillTemplate(htmlString);
+      } catch (Throwable ignored) {
+      }
     } catch (JSONException e) {
       Log.e("Leanplum", "Cannot convert map of arguments to JSON object.");
+    } catch (Throwable t) {
+      Log.e("Leanplum", "Cannot get html template.", t);
     }
     return htmlString.replace("\\/", "/");
   }
