@@ -13,9 +13,9 @@ allprojects {
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
     //noinspection GradleDynamicVersion
-    compile 'com.android.support:support-v4:[14.0.0,26.+['
+    compile 'com.android.support:support-v4:[14.0.0,)'
     //noinspection GradleDynamicVersion
-    compile 'com.android.support:appcompat-v7:[14.0.0,26.+['
+    compile 'com.android.support:appcompat-v7:[14.0.0,)'
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
     provided('com.google.android.gms:play-services-gcm:[8.3.0,)') {
@@ -30,8 +30,8 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
     useLibrary 'org.apache.http.legacy'
     publishNonDefault true
 
