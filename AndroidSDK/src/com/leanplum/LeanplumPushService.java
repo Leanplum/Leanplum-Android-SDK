@@ -100,15 +100,13 @@ public class LeanplumPushService {
   private static final String LEANPLUM_PUSH_LISTENER_SERVICE_CLASS =
       "com.leanplum.LeanplumPushListenerService";
   private static final String GCM_RECEIVER_CLASS = "com.google.android.gms.gcm.GcmReceiver";
-
-  private static Class<? extends Activity> callbackClass;
-  private static LeanplumCloudMessagingProvider provider;
-  private static boolean isFirebaseEnabled = false;
   private static final int NOTIFICATION_ID = 1;
-
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
+  private static Class<? extends Activity> callbackClass;
+  private static LeanplumCloudMessagingProvider provider;
+  private static boolean isFirebaseEnabled = false;
   private static LeanplumPushNotificationCustomizer customizer;
 
   /**
@@ -320,8 +318,39 @@ public class LeanplumPushService {
     if (message.getString("title") != null) {
       title = message.getString("title");
     }
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-        .setSmallIcon(context.getApplicationInfo().icon)
+    NotificationCompat.Builder builder = null;
+
+    // If we are targeting API 26, try to find supplied channel to post notification.
+    if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
+      try {
+        String channel = message.getString("lp_channel");
+        if (!TextUtils.isEmpty(channel)) {
+          // Create channel if it doesn't exist and post notification to that channel.
+          Map<String, Object> channelDetails = JsonConverter.fromJson(channel);
+          String channelId = LeanplumNotificationChannel.createNotificationChannel(context, channelDetails);
+          builder = new NotificationCompat.Builder(context, channelId);
+        } else {
+          // If channel isn't supplied, try to look up for default channel.
+          String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
+          if (!TextUtils.isEmpty(channelId)) {
+            builder = new NotificationCompat.Builder(context, channelId);
+          } else {
+            Log.w("Failed to post notification, there are no notification channels configured.");
+            return;
+          }
+        }
+      } catch (Exception e) {
+        Log.e("Failed to post notification to specified channel.");
+      }
+    } else {
+      builder = new NotificationCompat.Builder(context);
+    }
+
+    if (builder == null) {
+      return;
+    }
+
+    builder.setSmallIcon(context.getApplicationInfo().icon)
         .setContentTitle(title)
         .setStyle(new NotificationCompat.BigTextStyle()
             .bigText(message.getString(Keys.PUSH_MESSAGE_TEXT)))

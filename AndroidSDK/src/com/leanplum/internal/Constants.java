@@ -68,6 +68,7 @@ public class Constants {
   }
 
   public static class Defaults {
+    public static final String LEANPLUM = "__leanplum__";
     public static final String COUNT_KEY = "__leanplum_unsynced";
     public static final String ITEM_KEY = "__leanplum_unsynced_%d";
     public static final String UUID_KEY = "__leanplum_uuid";
@@ -89,6 +90,9 @@ public class Constants {
     public static final String APP_ID = "__app_id";
     public static final String PROPERTY_REGISTRATION_ID = "registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
+    public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
+    public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";
+    public static final String NOTIFICATION_GROUPS_KEY = "__leanplum_notification_groups";
   }
 
   public static class Methods {
@@ -210,6 +214,9 @@ public class Constants {
     public static final String VARIANTS = "variants";
     public static final String VARS = "vars";
     public static final String VARS_FROM_CODE = "varsFromCode";
+    public static final String NOTIFICATION_CHANNELS = "notificationChannels";
+    public static final String DEFAULT_NOTIFICATION_CHANNEL = "defaultNotificationChannel";
+    public static final String NOTIFICATION_GROUPS = "notificationChannelGroups";
   }
 
   public static class Kinds {
