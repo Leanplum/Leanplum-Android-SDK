@@ -23,14 +23,22 @@ package com.leanplum.activities;
 
 import android.annotation.SuppressLint;
 import android.content.res.Resources;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
+/**
+ * LeanplumActionBarActivity
+ * <p>
+ * In support library 22.1, ActionBarActivity has been deprecated in favor of the new
+ * AppCompatActivity. In support library 26 ActionBarActivity was completely removed, hence
+ * Leanplum uses AppCompatActivity from now on.
+ * <p>
+ * Source: https://android-developers.googleblog.com/2015/04/android-support-library-221.html
+ */
 @SuppressLint("Registered")
-@SuppressWarnings("deprecation")
-public class LeanplumActionBarActivity extends ActionBarActivity {
+public class LeanplumActionBarActivity extends AppCompatActivity {
   private LeanplumActivityHelper helper;
 
   private LeanplumActivityHelper getHelper() {
