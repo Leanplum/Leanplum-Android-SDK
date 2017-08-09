@@ -22,12 +22,14 @@
 package com.leanplum;
 
 import android.app.Activity;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
@@ -52,6 +54,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.utils.LeanplumNotificationChannelsUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
@@ -883,9 +886,28 @@ public class Leanplum {
                 LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
               }
             }
-
             LeanplumInternal.moveToForeground();
             startHeartbeat();
+            // Send notification channels to the server on Android O and upper(only with target sdk
+            // 26 and upper).
+            if (Build.VERSION.SDK_INT >= 26 &&
+                LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+              List<NotificationChannel> channels =
+                  LeanplumNotificationChannelsUtil.getNotificationChannels(context);
+              if (channels == null || channels.size() == 0) {
+                Log.w("No notification channels was found. Please create minimum one " +
+                    "notification channel.");
+              } else {
+                Map<String, String> channelsPair = new HashMap<>();
+                for (NotificationChannel channel : channels) {
+                  channelsPair.put(channel.getId(), channel.getName().toString());
+                }
+                HashMap<String, Object> channelsAttributes = new HashMap<>();
+                channelsAttributes.put("android_notification_channels",
+                    new JSONObject(channelsPair).toString());
+                setUserAttributes(channelsAttributes);
+              }
+            }
           } catch (Throwable t) {
             Util.handleException(t);
           }
@@ -1928,13 +1950,13 @@ public class Leanplum {
         }
       });
       req.onError(new Request.ErrorCallback() {
-            @Override
-            public void error(Exception e) {
-              if (callback != null) {
-                OsHandler.getInstance().post(callback);
-              }
-            }
-          });
+        @Override
+        public void error(Exception e) {
+          if (callback != null) {
+            OsHandler.getInstance().post(callback);
+          }
+        }
+      });
       req.sendIfConnected();
     } catch (Throwable t) {
       Util.handleException(t);

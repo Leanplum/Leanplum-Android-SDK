@@ -50,6 +50,7 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BitmapUtil;
+import com.leanplum.utils.LeanplumNotificationChannelsUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -103,6 +104,7 @@ public class LeanplumPushService {
 
   private static Class<? extends Activity> callbackClass;
   private static LeanplumCloudMessagingProvider provider;
+  private static String defaultNotificationChannelId;
   private static boolean isFirebaseEnabled = false;
   private static final int NOTIFICATION_ID = 1;
 
@@ -320,12 +322,32 @@ public class LeanplumPushService {
     if (message.getString("title") != null) {
       title = message.getString("title");
     }
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
-        .setSmallIcon(context.getApplicationInfo().icon)
+    NotificationCompat.Builder builder;
+
+    if (Build.VERSION.SDK_INT >= 26 &&
+        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+      String channelId = message.getString("notification_channel");
+      if (!TextUtils.isEmpty(channelId) &&
+          LeanplumNotificationChannelsUtil.isNotificationChannelExists(context, channelId)) {
+        builder = new NotificationCompat.Builder(context, channelId);
+      } else if (!TextUtils.isEmpty(defaultNotificationChannelId)) {
+        Log.w("Notification channel with id " + channelId + " not found. Default notification " +
+            "channel will be used.");
+        builder = new NotificationCompat.Builder(context, defaultNotificationChannelId);
+      } else {
+        Log.w("Notification channel with id " + channelId + " and default notification channel" +
+            " not found. Please create minimum one notification channel.");
+        return;
+      }
+    } else {
+      builder = new NotificationCompat.Builder(context);
+    }
+
+    builder.setSmallIcon(context.getApplicationInfo().icon)
         .setContentTitle(title)
         .setStyle(new NotificationCompat.BigTextStyle()
-            .bigText(message.getString(Keys.PUSH_MESSAGE_TEXT)))
-        .setContentText(message.getString(Keys.PUSH_MESSAGE_TEXT));
+            .bigText(message.getString(Keys.PUSH_MESSAGE_TEXT)));
+
 
     String imageUrl = message.getString(Keys.PUSH_MESSAGE_IMAGE_URL);
     // BigPictureStyle support requires API 16 and higher.
@@ -881,4 +903,100 @@ public class LeanplumPushService {
     }
     return false;
   }
+
+  /**
+   * Set default notification channel.
+   *
+   * @param context The application context.
+   * @param defaultChannelId The id of the channel.
+   */
+  public static void setDefaultNotificationChannel(Context context, String defaultChannelId) {
+    if (context == null || TextUtils.isEmpty(defaultChannelId)) {
+      return;
+    }
+
+    if (Build.VERSION.SDK_INT >= 26 &&
+        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+      if (LeanplumNotificationChannelsUtil.isNotificationChannelExists(context, defaultChannelId)) {
+        defaultNotificationChannelId = defaultChannelId;
+      } else {
+        Log.w("Notification channel with id " + defaultChannelId + " not exists, please call " +
+            "LeanplumNotificationChannelsUtil.createNotificationChannel for create channel or use" +
+            "createAndSetNotificationChannel.");
+      }
+    }
+  }
+
+  /**
+   * Create and set default notification channel.
+   *
+   * @param context The application context.
+   * @param defaultChannelId The id of the channel.
+   * @param defaultChannelName The user-visible name of the channel.
+   */
+  public static void createAndSetNotificationChannel(Context context, String defaultChannelId,
+      String defaultChannelName) {
+    if (context == null || TextUtils.isEmpty(defaultChannelId)) {
+      return;
+    }
+
+    if (Build.VERSION.SDK_INT >= 26 &&
+        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+      LeanplumNotificationChannelsUtil.createNotificationChannel(context, defaultChannelId,
+          defaultChannelName, NotificationManager.IMPORTANCE_DEFAULT);
+      setDefaultNotificationChannel(context, defaultChannelId);
+    }
+  }
+
+  /**
+   * Create and set default notification channel.
+   *
+   * @param context The application context.
+   * @param defaultChannelId The id of the channel.
+   * @param defaultChannelName The user-visible name of the channel.
+   * @param defaultChannelImportance The importance of the channel. Use value from 0 to 5. 3 is
+   * default. Read more https://developer.android.com/reference/android/app/NotificationManager.html#IMPORTANCE_DEFAULT
+   * Once you create a notification channel, only the system can modify its importance.
+   */
+  public static void createAndSetNotificationChannel(Context context, String defaultChannelId,
+      String defaultChannelName, int defaultChannelImportance) {
+    if (context == null || TextUtils.isEmpty(defaultChannelId)) {
+      return;
+    }
+
+    if (Build.VERSION.SDK_INT >= 26 &&
+        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+      LeanplumNotificationChannelsUtil.createNotificationChannel(context, defaultChannelId,
+          defaultChannelName, defaultChannelImportance);
+      setDefaultNotificationChannel(context, defaultChannelId);
+    }
+  }
+
+  /**
+   * Create and set default notification channel.
+   *
+   * @param context The application context.
+   * @param defaultChannelId The id of the channel.
+   * @param defaultChannelName The user-visible name of the channel.
+   * @param defaultChannelImportance The importance of the channel. Use value from 0 to 5. 3 is
+   * default. Read more https://developer.android.com/reference/android/app/NotificationManager.html#IMPORTANCE_DEFAULT
+   * Once you create a notification channel, only the system can modify its importance.
+   * @param defaultNotificationDescription The user-visible description of the channel.
+   */
+  public static void createAndSetNotificationChannel(Context context, String defaultChannelId,
+      String defaultChannelName, int defaultChannelImportance,
+      String defaultNotificationDescription) {
+    if (context == null || TextUtils.isEmpty(defaultChannelId)) {
+      return;
+    }
+
+    if (Build.VERSION.SDK_INT >= 26 &&
+        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+      LeanplumNotificationChannelsUtil.createNotificationChannel(context, defaultChannelId,
+          defaultChannelName, defaultChannelImportance, defaultNotificationDescription);
+      setDefaultNotificationChannel(context, defaultChannelId);
+    }
+  }
+
+
 }
