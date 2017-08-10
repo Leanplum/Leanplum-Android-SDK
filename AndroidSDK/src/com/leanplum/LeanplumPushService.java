@@ -50,7 +50,7 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BitmapUtil;
-import com.leanplum.utils.LeanplumNotificationChannelsUtil;
+import com.leanplum.utils.LeanplumNotificationChannelUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -325,10 +325,10 @@ public class LeanplumPushService {
     NotificationCompat.Builder builder;
 
     if (Build.VERSION.SDK_INT >= 26 &&
-        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+        LeanplumNotificationChannelUtil.currentTargetSdk(context) >= 26) {
       String channelId = message.getString("notification_channel");
       if (!TextUtils.isEmpty(channelId) &&
-          LeanplumNotificationChannelsUtil.isNotificationChannelExists(context, channelId)) {
+          LeanplumNotificationChannelUtil.isNotificationChannelExists(context, channelId)) {
         builder = new NotificationCompat.Builder(context, channelId);
       } else if (!TextUtils.isEmpty(defaultNotificationChannelId)) {
         Log.w("Notification channel with id " + channelId + " not found. Default notification " +
@@ -336,7 +336,7 @@ public class LeanplumPushService {
         builder = new NotificationCompat.Builder(context, defaultNotificationChannelId);
       } else {
         Log.w("Notification channel with id " + channelId + " and default notification channel" +
-            " not found. Please create minimum one notification channel.");
+            " not found. Please create at least one notification channel.");
         return;
       }
     } else {
@@ -916,12 +916,12 @@ public class LeanplumPushService {
     }
 
     if (Build.VERSION.SDK_INT >= 26 &&
-        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
-      if (LeanplumNotificationChannelsUtil.isNotificationChannelExists(context, defaultChannelId)) {
+        LeanplumNotificationChannelUtil.currentTargetSdk(context) >= 26) {
+      if (LeanplumNotificationChannelUtil.isNotificationChannelExists(context, defaultChannelId)) {
         defaultNotificationChannelId = defaultChannelId;
       } else {
         Log.w("Notification channel with id " + defaultChannelId + " not exists, please call " +
-            "LeanplumNotificationChannelsUtil.createNotificationChannel for create channel or use" +
+            "LeanplumNotificationChannelUtil.createNotificationChannel for create channel or use" +
             "createAndSetNotificationChannel.");
       }
     }
@@ -941,8 +941,8 @@ public class LeanplumPushService {
     }
 
     if (Build.VERSION.SDK_INT >= 26 &&
-        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
-      LeanplumNotificationChannelsUtil.createNotificationChannel(context, defaultChannelId,
+        LeanplumNotificationChannelUtil.currentTargetSdk(context) >= 26) {
+      LeanplumNotificationChannelUtil.createNotificationChannel(context, defaultChannelId,
           defaultChannelName, NotificationManager.IMPORTANCE_DEFAULT);
       setDefaultNotificationChannel(context, defaultChannelId);
     }
@@ -965,8 +965,8 @@ public class LeanplumPushService {
     }
 
     if (Build.VERSION.SDK_INT >= 26 &&
-        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
-      LeanplumNotificationChannelsUtil.createNotificationChannel(context, defaultChannelId,
+        LeanplumNotificationChannelUtil.currentTargetSdk(context) >= 26) {
+      LeanplumNotificationChannelUtil.createNotificationChannel(context, defaultChannelId,
           defaultChannelName, defaultChannelImportance);
       setDefaultNotificationChannel(context, defaultChannelId);
     }
@@ -991,8 +991,8 @@ public class LeanplumPushService {
     }
 
     if (Build.VERSION.SDK_INT >= 26 &&
-        LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
-      LeanplumNotificationChannelsUtil.createNotificationChannel(context, defaultChannelId,
+        LeanplumNotificationChannelUtil.currentTargetSdk(context) >= 26) {
+      LeanplumNotificationChannelUtil.createNotificationChannel(context, defaultChannelId,
           defaultChannelName, defaultChannelImportance, defaultNotificationDescription);
       setDefaultNotificationChannel(context, defaultChannelId);
     }

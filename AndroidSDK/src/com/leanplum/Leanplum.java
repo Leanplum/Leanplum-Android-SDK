@@ -54,7 +54,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
-import com.leanplum.utils.LeanplumNotificationChannelsUtil;
+import com.leanplum.utils.LeanplumNotificationChannelUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
@@ -891,11 +891,11 @@ public class Leanplum {
             // Send notification channels to the server on Android O and upper(only with target sdk
             // 26 and upper).
             if (Build.VERSION.SDK_INT >= 26 &&
-                LeanplumNotificationChannelsUtil.currentTargetSdk(context) >= 26) {
+                LeanplumNotificationChannelUtil.currentTargetSdk(context) >= 26) {
               List<NotificationChannel> channels =
-                  LeanplumNotificationChannelsUtil.getNotificationChannels(context);
+                  LeanplumNotificationChannelUtil.getNotificationChannels(context);
               if (channels == null || channels.size() == 0) {
-                Log.w("No notification channels was found. Please create minimum one " +
+                Log.w("No notification channels was found. Please create at least one " +
                     "notification channel.");
               } else {
                 Map<String, String> channelsPair = new HashMap<>();
