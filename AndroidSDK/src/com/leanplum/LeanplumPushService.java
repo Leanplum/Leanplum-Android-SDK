@@ -25,7 +25,6 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -45,6 +44,7 @@ import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
@@ -100,15 +100,13 @@ public class LeanplumPushService {
   private static final String LEANPLUM_PUSH_LISTENER_SERVICE_CLASS =
       "com.leanplum.LeanplumPushListenerService";
   private static final String GCM_RECEIVER_CLASS = "com.google.android.gms.gcm.GcmReceiver";
-
-  private static Class<? extends Activity> callbackClass;
-  private static LeanplumCloudMessagingProvider provider;
-  private static boolean isFirebaseEnabled = false;
   private static final int NOTIFICATION_ID = 1;
-
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
+  private static Class<? extends Activity> callbackClass;
+  private static LeanplumCloudMessagingProvider provider;
+  private static boolean isFirebaseEnabled = false;
   private static LeanplumPushNotificationCustomizer customizer;
 
   /**
@@ -660,6 +658,9 @@ public class LeanplumPushService {
     }
   }
 
+  /**
+   * Initialize push service.
+   */
   private static void initPushService() {
     if (isFirebaseEnabled()) {
       if (!enableFcmServices()) {
@@ -683,23 +684,34 @@ public class LeanplumPushService {
     registerInBackground();
   }
 
+  /**
+   * Enables Firebase services. By default, all Firebase services are disabled.
+   *
+   * @return true if services are successfully enabled, false otherwise
+   */
   private static boolean enableFcmServices() {
     Context context = Leanplum.getContext();
     if (context == null) {
       Log.i("Failed to enable FCM services, context is null.");
       return false;
     }
+
     PackageManager packageManager = context.getPackageManager();
+    if (packageManager == null) {
+      Log.i("Failed to enable FCM services, PackageManager is null.");
+      return false;
+    }
 
     if (isFirebaseEnabled()) {
-      Class fcmListenerClass = getClassForName(LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
+      Class fcmListenerClass = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
       if (fcmListenerClass == null) {
+        Log.e("Failed to setup Firebase, please compile Firebase library.");
         return false;
       }
 
-      if (!wasComponentEnabled(context, packageManager, fcmListenerClass)) {
-        if (!enableServiceAndStart(context, packageManager, PUSH_FIREBASE_MESSAGING_SERVICE_CLASS)
-            || !enableServiceAndStart(context, packageManager, fcmListenerClass)) {
+      if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, fcmListenerClass)) {
+        if (!LeanplumManifestHelper.enableServiceAndStart(context, packageManager, PUSH_FIREBASE_MESSAGING_SERVICE_CLASS)
+            || !LeanplumManifestHelper.enableServiceAndStart(context, packageManager, fcmListenerClass)) {
           return false;
         }
       }
@@ -707,149 +719,36 @@ public class LeanplumPushService {
     return true;
   }
 
+  /**
+   * Enables GCM services. By default, all GCM services are disabled.
+   *
+   * @return true if services are successfully enabled, false otherwise
+   */
   private static boolean enableGcmServices() {
     Context context = Leanplum.getContext();
     if (context == null) {
       Log.i("Failed to enable FCM services, context is null.");
       return false;
     }
+
     PackageManager packageManager = context.getPackageManager();
-    Class gcmPushInstanceIDClass = getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
-    if (gcmPushInstanceIDClass == null) {
+    if (packageManager == null) {
+      Log.i("Failed to enable FCM services, PackageManager is null.");
       return false;
     }
 
-    if (!wasComponentEnabled(context, packageManager, gcmPushInstanceIDClass)) {
-      if (!enableComponent(context, packageManager, LEANPLUM_PUSH_LISTENER_SERVICE_CLASS) ||
-          !enableComponent(context, packageManager, gcmPushInstanceIDClass) ||
-          !enableComponent(context, packageManager, GCM_RECEIVER_CLASS)) {
+    Class gcmPushInstanceIDClass = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
+    if (gcmPushInstanceIDClass == null) {
+      Log.e("Failed to setup GCM, please compile GCM library.");
+      return false;
+    }
+
+    if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, gcmPushInstanceIDClass)) {
+      if (!LeanplumManifestHelper.enableComponent(context, packageManager, LEANPLUM_PUSH_LISTENER_SERVICE_CLASS) ||
+          !LeanplumManifestHelper.enableComponent(context, packageManager, gcmPushInstanceIDClass) ||
+          !LeanplumManifestHelper.enableComponent(context, packageManager, GCM_RECEIVER_CLASS)) {
         return false;
       }
-
-    }
-    return true;
-  }
-
-  /**
-   * Gets Class for name.
-   *
-   * @param className - class name.
-   * @return Class for provided class name.
-   */
-  private static Class getClassForName(String className) {
-    try {
-      return Class.forName(className);
-    } catch (Throwable t) {
-      if (isFirebaseEnabled) {
-        Log.e("Please compile FCM library.");
-      } else {
-        Log.e("Please compile GCM library.");
-      }
-      return null;
-    }
-  }
-
-  /**
-   * Enables and starts service for provided class name.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param className Name of Class that needs to be enabled and started.
-   * @return True if service was enabled and started.
-   */
-  private static boolean enableServiceAndStart(Context context, PackageManager packageManager,
-      String className) {
-    Class clazz;
-    try {
-      clazz = Class.forName(className);
-    } catch (Throwable t) {
-      return false;
-    }
-    return enableServiceAndStart(context, packageManager, clazz);
-  }
-
-  /**
-   * Enables and starts service for provided class name.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param clazz Class of service that needs to be enabled and started.
-   * @return True if service was enabled and started.
-   */
-  private static boolean enableServiceAndStart(Context context, PackageManager packageManager,
-      Class clazz) {
-    if (!enableComponent(context, packageManager, clazz)) {
-      return false;
-    }
-    try {
-      context.startService(new Intent(context, clazz));
-    } catch (Throwable t) {
-      Log.w("Could not start service " + clazz.getName());
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Enables component for provided class name.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param className Name of Class for enable.
-   * @return True if component was enabled.
-   */
-  private static boolean enableComponent(Context context, PackageManager packageManager,
-      String className) {
-    try {
-      Class clazz = Class.forName(className);
-      return enableComponent(context, packageManager, clazz);
-    } catch (Throwable t) {
-      return false;
-    }
-  }
-
-  /**
-   * Enables component for provided class.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param clazz Class for enable.
-   * @return True if component was enabled.
-   */
-  private static boolean enableComponent(Context context, PackageManager packageManager,
-      Class clazz) {
-    if (clazz == null || context == null || packageManager == null) {
-      return false;
-    }
-
-    try {
-      packageManager.setComponentEnabledSetting(new ComponentName(context, clazz),
-          PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-    } catch (Throwable t) {
-      Log.w("Could not enable component " + clazz.getName());
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Checks if component for provided class enabled before.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param clazz Class for check.
-   * @return True if component was enabled before.
-   */
-  private static boolean wasComponentEnabled(Context context, PackageManager packageManager,
-      Class clazz) {
-    if (clazz == null || context == null || packageManager == null) {
-      return false;
-    }
-    int componentStatus = packageManager.getComponentEnabledSetting(new ComponentName(context,
-        clazz));
-    if (PackageManager.COMPONENT_ENABLED_STATE_DEFAULT == componentStatus ||
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED == componentStatus) {
-      return false;
     }
     return true;
   }
