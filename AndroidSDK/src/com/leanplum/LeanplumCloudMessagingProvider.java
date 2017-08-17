@@ -45,13 +45,6 @@ abstract class LeanplumCloudMessagingProvider {
    */
   public abstract String getRegistrationId();
 
-  /**
-   * Verifies that Android Manifest is set up correctly.
-   *
-   * @return true If Android Manifest is set up correctly.
-   */
-  public abstract boolean isManifestSetUp();
-
   public abstract boolean isInitialized();
 
   /**

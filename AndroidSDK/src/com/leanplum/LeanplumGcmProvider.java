@@ -47,16 +47,6 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
   private static final String ERROR_PHONE_REGISTRATION_ERROR = "PHONE_REGISTRATION_ERROR";
   private static final String ERROR_TOO_MANY_REGISTRATIONS = "TOO_MANY_REGISTRATIONS";
 
-  private static final String SEND_PERMISSION = "com.google.android.c2dm.permission.SEND";
-  private static final String RECEIVE_PERMISSION = "com.google.android.c2dm.permission.RECEIVE";
-  private static final String RECEIVE_ACTION = "com.google.android.c2dm.intent.RECEIVE";
-  private static final String REGISTRATION_ACTION = "com.google.android.c2dm.intent.REGISTRATION";
-  private static final String INSTANCE_ID_ACTION = "com.google.android.gms.iid.InstanceID";
-  private static final String PUSH_LISTENER_SERVICE = "com.leanplum.LeanplumPushListenerService";
-  private static final String GCM_RECEIVER = "com.google.android.gms.gcm.GcmReceiver";
-  private static final String PUSH_INSTANCE_ID_SERVICE =
-      "com.leanplum.LeanplumPushInstanceIDService";
-
   private static String senderIds;
 
   static void setSenderId(String senderId) {
@@ -119,41 +109,6 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
 
   public boolean isInitialized() {
     return senderIds != null || getCurrentRegistrationId() != null;
-  }
-
-  public boolean isManifestSetUp() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return false;
-    }
-
-    boolean hasPermissions = LeanplumManifestHelper.checkPermission(RECEIVE_PERMISSION, false, true)
-        && (LeanplumManifestHelper.checkPermission(context.getPackageName() +
-        ".gcm.permission.C2D_MESSAGE", true, false) || LeanplumManifestHelper.checkPermission(
-        context.getPackageName() + ".permission.C2D_MESSAGE", true, true));
-
-    boolean hasGcmReceiver = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getReceivers(), GCM_RECEIVER, true, SEND_PERMISSION,
-        Arrays.asList(RECEIVE_ACTION, REGISTRATION_ACTION), context.getPackageName());
-    boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getReceivers(), PUSH_RECEIVER, false, null,
-        Collections.singletonList(PUSH_LISTENER_SERVICE), null);
-
-    boolean hasReceivers = hasGcmReceiver && hasPushReceiver;
-
-    boolean hasPushListenerService = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getServices(), PUSH_LISTENER_SERVICE, false, null,
-        Collections.singletonList(RECEIVE_ACTION), null);
-    boolean hasPushInstanceIDService = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getServices(), PUSH_INSTANCE_ID_SERVICE, false, null,
-        Collections.singletonList(INSTANCE_ID_ACTION), null);
-    boolean hasPushRegistrationService = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getServices(), PUSH_REGISTRATION_SERVICE, false, null, null, null);
-
-    boolean hasServices = hasPushListenerService && hasPushInstanceIDService
-        && hasPushRegistrationService;
-
-    return hasPermissions && hasReceivers && hasServices;
   }
 
   /**

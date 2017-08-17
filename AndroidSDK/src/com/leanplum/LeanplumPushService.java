@@ -662,17 +662,19 @@ public class LeanplumPushService {
 
   private static void initPushService() {
     if (isFirebaseEnabled()) {
-      if (!enableServices()) {
+      if (!enableFcmServices()) {
+        Log.i("Failed to initialize FCM services.");
         return;
       }
       provider = new LeanplumFcmProvider();
     } else {
-      if (!enableServices()) {
+      if (!enableGcmServices()) {
+        Log.i("Failed to initialize GCM services.");
         return;
       }
       provider = new LeanplumGcmProvider();
     }
-    if (!provider.isInitialized() || !provider.isManifestSetUp()) {
+    if (!provider.isInitialized()) {
       return;
     }
     if (hasAppIDChanged(Request.appId())) {
@@ -681,24 +683,15 @@ public class LeanplumPushService {
     registerInBackground();
   }
 
-
-  /**
-   * Enable Leanplum GCM or FCM services.
-   *
-   * @return True if services was enabled.
-   */
-  private static boolean enableServices() {
+  private static boolean enableFcmServices() {
     Context context = Leanplum.getContext();
     if (context == null) {
+      Log.i("Failed to enable FCM services, context is null.");
       return false;
     }
-
     PackageManager packageManager = context.getPackageManager();
-    if (packageManager == null) {
-      return false;
-    }
 
-    if (isFirebaseEnabled) {
+    if (isFirebaseEnabled()) {
       Class fcmListenerClass = getClassForName(LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
       if (fcmListenerClass == null) {
         return false;
@@ -710,20 +703,29 @@ public class LeanplumPushService {
           return false;
         }
       }
-    } else {
-      Class gcmPushInstanceIDClass = getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
-      if (gcmPushInstanceIDClass == null) {
+    }
+    return true;
+  }
+
+  private static boolean enableGcmServices() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      Log.i("Failed to enable FCM services, context is null.");
+      return false;
+    }
+    PackageManager packageManager = context.getPackageManager();
+    Class gcmPushInstanceIDClass = getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
+    if (gcmPushInstanceIDClass == null) {
+      return false;
+    }
+
+    if (!wasComponentEnabled(context, packageManager, gcmPushInstanceIDClass)) {
+      if (!enableComponent(context, packageManager, LEANPLUM_PUSH_LISTENER_SERVICE_CLASS) ||
+          !enableComponent(context, packageManager, gcmPushInstanceIDClass) ||
+          !enableComponent(context, packageManager, GCM_RECEIVER_CLASS)) {
         return false;
       }
 
-      if (!wasComponentEnabled(context, packageManager, gcmPushInstanceIDClass)) {
-        if (!enableComponent(context, packageManager, LEANPLUM_PUSH_LISTENER_SERVICE_CLASS) ||
-            !enableComponent(context, packageManager, gcmPushInstanceIDClass) ||
-            !enableComponent(context, packageManager, GCM_RECEIVER_CLASS)) {
-          return false;
-        }
-
-      }
     }
     return true;
   }
