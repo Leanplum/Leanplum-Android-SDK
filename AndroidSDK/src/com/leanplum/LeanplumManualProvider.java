@@ -41,10 +41,6 @@ public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
     return true;
   }
 
-  public boolean isManifestSetUp() {
-    return true;
-  }
-
   public void unregister() {
 
   }

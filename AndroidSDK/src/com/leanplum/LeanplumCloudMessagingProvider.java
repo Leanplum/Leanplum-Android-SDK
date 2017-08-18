@@ -33,9 +33,6 @@ import com.leanplum.utils.SharedPreferencesUtil;
  * @author Anna Orlova
  */
 abstract class LeanplumCloudMessagingProvider {
-  static final String PUSH_REGISTRATION_SERVICE = "com.leanplum.LeanplumPushRegistrationService";
-  static final String PUSH_RECEIVER = "com.leanplum.LeanplumPushReceiver";
-
   private static String registrationId;
 
   /**
