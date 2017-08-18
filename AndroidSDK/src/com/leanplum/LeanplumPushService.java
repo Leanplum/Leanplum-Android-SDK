@@ -708,11 +708,16 @@ public class LeanplumPushService {
         Log.e("Failed to setup Firebase, please compile Firebase library.");
         return false;
       }
-
+      // We will only enable component once, if we are switching from GCM to FCM, we have to disable
+      // GCM services first.
       if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, fcmListenerClass)) {
-        if (!LeanplumManifestHelper.enableServiceAndStart(context, packageManager, PUSH_FIREBASE_MESSAGING_SERVICE_CLASS)
-            || !LeanplumManifestHelper.enableServiceAndStart(context, packageManager, fcmListenerClass)) {
-          return false;
+        // Try to disable GCM services first.
+        disableGcmServices();
+        LeanplumManifestHelper.enableServiceAndStart(context, packageManager, fcmListenerClass);
+
+        Class pushListener = LeanplumManifestHelper.getClassForName(PUSH_FIREBASE_MESSAGING_SERVICE_CLASS);
+        if (pushListener != null) {
+          LeanplumManifestHelper.enableServiceAndStart(context, packageManager, pushListener);
         }
       }
     }
@@ -737,20 +742,71 @@ public class LeanplumPushService {
       return false;
     }
 
-    Class gcmPushInstanceIDClass = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
-    if (gcmPushInstanceIDClass == null) {
+    Class gcm = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
+    if (gcm == null) {
       Log.e("Failed to setup GCM, please compile GCM library.");
       return false;
     }
+    // We will only enable component once, if we are switching from FCM to GCM, we have to disable
+    // FCM services first.
+    if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, gcm)) {
+      // Try to disable FCM first.
+      disableFcmServices();
+      LeanplumManifestHelper.enableComponent(context, packageManager, gcm);
 
-    if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, gcmPushInstanceIDClass)) {
-      if (!LeanplumManifestHelper.enableComponent(context, packageManager, LEANPLUM_PUSH_LISTENER_SERVICE_CLASS) ||
-          !LeanplumManifestHelper.enableComponent(context, packageManager, gcmPushInstanceIDClass) ||
-          !LeanplumManifestHelper.enableComponent(context, packageManager, GCM_RECEIVER_CLASS)) {
-        return false;
+      // Make sure we can find the class before enabling it.
+      Class gcmReceiver = LeanplumManifestHelper.getClassForName(GCM_RECEIVER_CLASS);
+      if (gcmReceiver != null) {
+        LeanplumManifestHelper.enableComponent(context, packageManager, gcmReceiver);
+      }
+      Class pushListener = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
+      if (pushListener != null) {
+        LeanplumManifestHelper.enableComponent(context, packageManager, pushListener);
       }
     }
     return true;
+  }
+
+  /**
+   * Disables FCM services.
+   */
+  private static void disableFcmServices() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return;
+    }
+
+    PackageManager packageManager = context.getPackageManager();
+    if (packageManager == null) {
+      return;
+    }
+
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        PUSH_FIREBASE_MESSAGING_SERVICE_CLASS);
+  }
+
+  /**
+   * Disables GCM services
+   */
+  private static void disableGcmServices() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return;
+    }
+
+    PackageManager packageManager = context.getPackageManager();
+    if (packageManager == null) {
+      return;
+    }
+
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        GCM_RECEIVER_CLASS);
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
   }
 
   /**

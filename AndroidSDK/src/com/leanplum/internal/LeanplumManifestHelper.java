@@ -135,6 +135,19 @@ public class LeanplumManifestHelper {
     return true;
   }
 
+  public static boolean disableComponent(Context context, PackageManager packageManager, String className) {
+    if (context == null || packageManager == null || className == null) {
+      return false;
+    }
+    try {
+      packageManager.setComponentEnabledSetting(new ComponentName(context, className),
+          PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+    } catch (Throwable t) {
+      return false;
+    }
+    return true;
+  }
+
   /**
    * Checks if component for provided class enabled before.
    *
