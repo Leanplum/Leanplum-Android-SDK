@@ -1,13 +1,17 @@
 apply plugin: 'com.android.application'
 
+def COMPILE_SDK_VERSION=26
+def BUILD_TOOLS_VERSION='26.0.1'
+def SUPPORT_LIBRARY_VERSION='26.0.1'
+
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion "${BUILD_TOOLS_VERSION}"
 
     defaultConfig {
         applicationId "com.leanplum.tests"
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion COMPILE_SDK_VERSION
         versionCode 1
         versionName "1.0"
     }
@@ -21,7 +25,7 @@ android {
 
 dependencies {
     compile project(path: ':AndroidSDK', configuration: 'debug')
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
     compile 'com.google.android.gms:play-services-gcm:11.0.1'
     compile 'com.google.android.gms:play-services-location:11.0.1'
 
