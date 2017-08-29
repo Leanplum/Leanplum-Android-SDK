@@ -1,4 +1,4 @@
-![Leanplum](Leanplum.png)
+![Leanplum](Leanplum.svg)
 
 <p align="center">
 <img src='https://jenkins.leanplum.com/buildStatus/icon?job=android-sdk'></a>
