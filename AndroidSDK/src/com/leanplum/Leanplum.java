@@ -38,9 +38,9 @@ import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Constants;
-import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
+import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.LeanplumUIEditorWrapper;
@@ -88,18 +88,15 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
+  private static final Object heartbeatLock = new Object();
   private static RegisterDeviceCallback registerDeviceHandler;
   private static RegisterDeviceFinishedCallback registerDeviceFinishedHandler;
-
   private static LeanplumDeviceIdMode deviceIdMode = LeanplumDeviceIdMode.MD5_MAC_ADDRESS;
   private static String customDeviceId;
   private static boolean userSpecifiedDeviceId;
   private static boolean initializedMessageTemplates = false;
   private static boolean locationCollectionEnabled = true;
-
   private static ScheduledExecutorService heartbeatExecutor;
-  private static final Object heartbeatLock = new Object();
-
   private static Context context;
 
   private static Runnable pushStartCallback;
@@ -765,6 +762,22 @@ public class Leanplum {
               Log.d("No variants received from the server.");
             }
 
+            // Get notification channels and groups.
+            JSONArray notificationChannels = response.optJSONArray(
+                Constants.Keys.NOTIFICATION_CHANNELS);
+            JSONArray notificationGroups = response.optJSONArray(
+                Constants.Keys.NOTIFICATION_GROUPS);
+            String defaultNotificationChannel = response.optString(
+                Constants.Keys.DEFAULT_NOTIFICATION_CHANNEL);
+
+            // Configure notification channels and groups
+            LeanplumNotificationChannel.configureNotificationGroups(
+                context, notificationGroups);
+            LeanplumNotificationChannel.configureNotificationChannels(
+                context, notificationChannels);
+            LeanplumNotificationChannel.configureDefaultNotificationChannel(
+                context, defaultNotificationChannel);
+
             String token = response.optString(Constants.Keys.TOKEN, null);
             Request.setToken(token);
             Request.saveToken();
@@ -883,7 +896,6 @@ public class Leanplum {
                 LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
               }
             }
-
             LeanplumInternal.moveToForeground();
             startHeartbeat();
           } catch (Throwable t) {
@@ -1928,13 +1940,13 @@ public class Leanplum {
         }
       });
       req.onError(new Request.ErrorCallback() {
-            @Override
-            public void error(Exception e) {
-              if (callback != null) {
-                OsHandler.getInstance().post(callback);
-              }
-            }
-          });
+        @Override
+        public void error(Exception e) {
+          if (callback != null) {
+            OsHandler.getInstance().post(callback);
+          }
+        }
+      });
       req.sendIfConnected();
     } catch (Throwable t) {
       Util.handleException(t);

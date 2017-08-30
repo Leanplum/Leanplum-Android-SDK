@@ -17,6 +17,9 @@ allprojects {
         maven {
             url "https://repo.leanplum.com/"
         }
+        maven {
+            url "https://maven.google.com"
+        }
     }
 }
 
