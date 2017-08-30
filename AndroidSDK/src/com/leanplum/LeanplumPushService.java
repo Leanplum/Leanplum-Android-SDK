@@ -686,6 +686,7 @@ public class LeanplumPushService {
     } catch (LeanplumException e) {
       Log.e("There was an error registering for push notifications.\n" +
           Log.getStackTraceString(e));
+    } catch (Throwable ignored) {
     }
   }
 
