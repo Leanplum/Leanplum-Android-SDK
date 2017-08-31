@@ -1553,6 +1553,30 @@ public class Leanplum {
   }
 
   /**
+   * Logs a particular event in your application. The string can be any value of your choosing, and
+   * will show up in the dashboard.
+   * <p>
+   * <p>To track Purchase events, call {@link Leanplum#trackGooglePlayPurchase} instead for in-app
+   * purchases, or use {@link Leanplum#PURCHASE_EVENT_NAME} as the event name for other types of
+   * purchases.
+   *
+   * @param event Name of the event. Event may be empty for message impression events.
+   * @param value The value of the event. The value is special in that you can use it for targeting
+   * content and messages to users who have a particular lifetime value. For purchase events, the
+   * value is the revenue associated with the purchase.
+   * @param info Basic context associated with the event, such as the item purchased. info is
+   * treated like a default parameter.
+   * @param params Key-value pairs with metrics or data associated with the event. Parameters can be
+   * strings or numbers. You can use up to 200 different parameter names in your app.
+   * @param args Key-value pairs with metrics or data associated with the event. Args can be
+   * strings.
+   */
+  public static void track(final String event, double value, String info, Map<String, ?> params,
+      Map<String, String> args) {
+    LeanplumInternal.track(event, value, info, params, args);
+  }
+
+  /**
    * Tracks an in-app purchase as a Purchase event.
    *
    * @param item The name of the item that was purchased.
