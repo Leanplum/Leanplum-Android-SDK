@@ -40,7 +40,9 @@ import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -602,10 +604,14 @@ class LeanplumNotificationChannel {
       showBadge = (boolean) CollectionUtil.getOrDefault(channel, "show_badge", showBadge);
 
       try {
-        List<Long> pattern = CollectionUtil.uncheckedCast(
+        List<Number> pattern = CollectionUtil.uncheckedCast(
             CollectionUtil.getOrDefault(channel, "vibration_pattern", null));
         if (pattern != null) {
-          vibrationPattern = CollectionUtil.toPrimitive(pattern.toArray(new Long[pattern.size()]));
+          vibrationPattern = new long[pattern.size()];
+          Iterator<Number> iterator = pattern.iterator();
+          for (int i = 0; i < vibrationPattern.length; i++) {
+            vibrationPattern[i] = iterator.next().longValue();
+          }
         }
       } catch (Exception e) {
         Log.w("Failed to parse vibration pattern.");
