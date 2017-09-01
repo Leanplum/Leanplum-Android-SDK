@@ -372,7 +372,7 @@ public class LeanplumPushService {
     }
 
     // Try to put notification on top of notification area.
-    if (Build.VERSION.SDK_INT >= 16) {
+    if (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 26) {
       builder.setPriority(Notification.PRIORITY_MAX);
     }
     builder.setAutoCancel(true);

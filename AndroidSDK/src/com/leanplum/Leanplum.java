@@ -843,18 +843,38 @@ public class Leanplum {
                   @Override
                   public void run() {
                     try {
-                      NotificationCompat.Builder mBuilder =
-                          new NotificationCompat.Builder(currentContext)
-                              .setSmallIcon(android.R.drawable.star_on)
-                              .setContentTitle("Leanplum")
-                              .setContentText("Your device is registered.");
-                      mBuilder.setContentIntent(PendingIntent.getActivity(
+                      NotificationCompat.Builder builder = null;
+                      // If we are targeting API 26, try to post notification to default channel.
+                      if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
+                        try {
+                          String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
+                          if (!TextUtils.isEmpty(channelId)) {
+                            builder = new NotificationCompat.Builder(context, channelId);
+                          } else {
+                            Log.w("Failed to post notification, there are no notification channels configured.");
+                            return;
+                          }
+                        } catch (Exception e) {
+                          Log.e("Failed to post notification, there are no notification channels configured.");
+                        }
+                      } else {
+                        builder = new NotificationCompat.Builder(context);
+                      }
+
+                      if (builder == null) {
+                        return;
+                      }
+
+                      builder.setSmallIcon(android.R.drawable.star_on)
+                          .setContentTitle("Leanplum")
+                          .setContentText("Your device is registered.");
+                      builder.setContentIntent(PendingIntent.getActivity(
                           currentContext.getApplicationContext(), 0, new Intent(), 0));
                       NotificationManager mNotificationManager =
                           (NotificationManager) currentContext.getSystemService(
                               Context.NOTIFICATION_SERVICE);
                       // mId allows you to update the notification later on.
-                      mNotificationManager.notify(0, mBuilder.build());
+                      mNotificationManager.notify(0, builder.build());
                     } catch (Throwable t) {
                       Log.i("Device is registered.");
                     }
