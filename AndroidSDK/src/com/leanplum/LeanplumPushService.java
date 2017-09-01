@@ -328,7 +328,12 @@ public class LeanplumPushService {
           // Create channel if it doesn't exist and post notification to that channel.
           Map<String, Object> channelDetails = JsonConverter.fromJson(channel);
           String channelId = LeanplumNotificationChannel.createNotificationChannel(context, channelDetails);
-          builder = new NotificationCompat.Builder(context, channelId);
+          if (!TextUtils.isEmpty(channelId)) {
+            builder = new NotificationCompat.Builder(context, channelId);
+          } else {
+            Log.w("Failed to post notification to specified channel.");
+            return;
+          }
         } else {
           // If channel isn't supplied, try to look up for default channel.
           String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
