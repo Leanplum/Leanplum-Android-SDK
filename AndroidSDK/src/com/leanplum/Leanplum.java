@@ -1576,6 +1576,7 @@ public class Leanplum {
 
       LeanplumInternal.track(event, value, null, params, requestArgs);
     } catch (Throwable t) {
+      Log.e("trackPurchase - Failed to track purchase event.");
       Util.handleException(t);
     }
   }
