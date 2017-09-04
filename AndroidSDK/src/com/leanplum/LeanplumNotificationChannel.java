@@ -610,7 +610,10 @@ class LeanplumNotificationChannel {
           vibrationPattern = new long[pattern.size()];
           Iterator<Number> iterator = pattern.iterator();
           for (int i = 0; i < vibrationPattern.length; i++) {
-            vibrationPattern[i] = iterator.next().longValue();
+            Number next = iterator.next();
+            if (next != null) {
+              vibrationPattern[i] = next.longValue();
+            }
           }
         }
       } catch (Exception e) {
