@@ -41,12 +41,19 @@ import java.util.List;
  * @author Anna Orlova
  */
 public class LeanplumManifestHelper {
+  // Google Cloud Messaging
   public static final String SEND_PERMISSION = "com.google.android.c2dm.permission.SEND";
   public static final String RECEIVE_PERMISSION = "com.google.android.c2dm.permission.RECEIVE";
   public static final String RECEIVE_ACTION = "com.google.android.c2dm.intent.RECEIVE";
   public static final String REGISTRATION_ACTION = "com.google.android.c2dm.intent.REGISTRATION";
   public static final String INSTANCE_ID_ACTION = "com.google.android.gms.iid.InstanceID";
   public static final String GCM_RECEIVER = "com.google.android.gms.gcm.GcmReceiver";
+
+  // Firebase
+  public static final String INSTANCE_ID_EVENT = "com.google.firebase.INSTANCE_ID_EVENT";
+  public static final String MESSAGING_EVENT = "com.google.firebase.MESSAGING_EVENT";
+
+  // Leanplum
   public static final String PUSH_LISTENER_SERVICE_FILTER = "com.leanplum.LeanplumPushListenerService";
 
   /**

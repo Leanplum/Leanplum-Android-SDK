@@ -157,7 +157,7 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    Log.i("Failed to setup Google Cloud Messaging, check your manifest configuration.");
+    Log.e("Failed to setup Google Cloud Messaging, check your manifest configuration.");
     return false;
   }
 

@@ -21,8 +21,14 @@
 
 package com.leanplum;
 
+import android.content.Context;
+
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.Util;
+
+import java.util.Collections;
 
 /**
  * Leanplum provider for work with Firebase.
@@ -41,8 +47,39 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   public boolean isManifestSetup() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return false;
+    }
+
+    if (!BuildConfig.DEBUG) {
+      return true;
+    }
     // Firebase can only be setup through gradle, so we don't have to check manually
-    // whether manifest is properly setup.
+    // whether manifest is properly setup. We will only check our own services.
+    try {
+      boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
+          LeanplumManifestHelper.ApplicationComponent.SERVICE,
+          LeanplumPushFirebaseMessagingService.class.getName(), false, null,
+          Collections.singletonList(LeanplumManifestHelper.MESSAGING_EVENT), null);
+
+      boolean hasPushFirebaseListenerService = LeanplumManifestHelper.checkComponent(
+          LeanplumManifestHelper.ApplicationComponent.SERVICE,
+          LeanplumPushFcmListenerService.class.getName(), false, null,
+          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_EVENT), null);
+
+      boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
+          LeanplumManifestHelper.ApplicationComponent.SERVICE,
+          LeanplumPushRegistrationService.class.getName(), false, null, null, null);
+
+      if (hasPushFirebaseMessagingService && hasPushFirebaseListenerService && hasRegistrationService) {
+        Log.i("Firebase Messaging is setup correctly.");
+        return true;
+      }
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    Log.e("Failed to setup Firebase Messaging, check your manifest configuration.");
     return true;
   }
 
