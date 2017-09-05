@@ -95,12 +95,16 @@ public class LeanplumNotificationChannelTests extends AbstractTest {
     channel2.put("name", "name_2");
     channel2.put("importance", 1);
     channel2.put("description", "description_2");
+    channel2.put("enable_vibration", true);
+    channel2.put("vibration_pattern", new long[] {1L, 2L, 3L, 4L, 5L});
 
     HashMap<String, Object> channel3 = new HashMap<>();
     channel3.put("id", "id_3");
     channel3.put("name", "name_3");
     channel3.put("importance", 1);
     channel3.put("description", "description_3");
+    channel3.put("enable_vibration", true);
+    channel3.put("vibration_pattern", new ArrayList<Long>() {{add(1L); add(2L); add(3L);}});
 
     groupList.add(group1);
     groupList.add(group2);
