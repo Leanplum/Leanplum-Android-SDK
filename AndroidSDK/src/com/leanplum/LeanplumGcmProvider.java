@@ -132,21 +132,21 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
               LeanplumManifestHelper.REGISTRATION_ACTION), context.getPackageName());
       boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.ApplicationComponent.RECEIVER,
           LeanplumPushReceiver.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.PUSH_LISTENER_SERVICE_FILTER), null);
+          Collections.singletonList(LeanplumManifestHelper.PUSH_LISTENER_SERVICE_FILTER), context.getPackageName());
 
       boolean hasReceivers = hasGcmReceiver && hasPushReceiver;
 
       boolean hasPushListenerService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
           LeanplumPushListenerService.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.RECEIVE_ACTION), null);
+          Collections.singletonList(LeanplumManifestHelper.RECEIVE_ACTION), context.getPackageName());
       boolean hasInstanceIdService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
           LeanplumPushInstanceIDService.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_ACTION), null);
+          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_ACTION), context.getPackageName());
       boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushRegistrationService.class.getName(), false, null, null, null);
+          LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
 
       boolean hasServices = hasPushListenerService && hasInstanceIdService && hasRegistrationService;
 

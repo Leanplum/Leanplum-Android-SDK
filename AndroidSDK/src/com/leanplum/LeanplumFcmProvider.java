@@ -61,16 +61,16 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
       boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
           LeanplumPushFirebaseMessagingService.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.MESSAGING_EVENT), null);
+          Collections.singletonList(LeanplumManifestHelper.MESSAGING_EVENT), context.getPackageName());
 
       boolean hasPushFirebaseListenerService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
           LeanplumPushFcmListenerService.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_EVENT), null);
+          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_EVENT), context.getPackageName());
 
       boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushRegistrationService.class.getName(), false, null, null, null);
+          LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
 
       if (hasPushFirebaseMessagingService && hasPushFirebaseListenerService && hasRegistrationService) {
         Log.i("Firebase Messaging is setup correctly.");
