@@ -1553,6 +1553,35 @@ public class Leanplum {
   }
 
   /**
+   * Manually track purchase event with currency code in your application. It is advised to use
+   * {@link Leanplum#trackGooglePlayPurchase} instead for in-app purchases.
+   *
+   * @param event Name of the event.
+   * @param value The value of the event. Can be price.
+   * @param currencyCode The currency code corresponding to the price.
+   * @param params Key-value pairs with metrics or data associated with the event. Parameters can be
+   * strings or numbers. You can use up to 200 different parameter names in your app.
+   */
+  public static void trackPurchase(final String event, double value, String currencyCode,
+      Map<String, ?> params) {
+    try {
+      if (TextUtils.isEmpty(event)) {
+        Log.w("trackPurchase - Empty event parameter provided.");
+      }
+
+      final Map<String, String> requestArgs = new HashMap<>();
+      if (!TextUtils.isEmpty(currencyCode)) {
+        requestArgs.put(Constants.Params.IAP_CURRENCY_CODE, currencyCode);
+      }
+
+      LeanplumInternal.track(event, value, null, params, requestArgs);
+    } catch (Throwable t) {
+      Log.e("trackPurchase - Failed to track purchase event.");
+      Util.handleException(t);
+    }
+  }
+
+  /**
    * Tracks an in-app purchase as a Purchase event.
    *
    * @param item The name of the item that was purchased.

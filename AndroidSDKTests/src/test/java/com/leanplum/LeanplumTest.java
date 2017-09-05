@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -603,7 +604,7 @@ public class LeanplumTest extends AbstractTest {
     });
     Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature");
 
-    // Validate request for purchae.
+    // Validate request for purchase.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
@@ -621,6 +622,23 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature", new HashMap<String, Object>());
+
+    // Validate request for manual purchase.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.TRACK, apiMethod);
+
+        String requestEventName = (String) params.get("event");
+        String requestEventValue = (String) params.get("value");
+        String requestCurrencyCode = (String) params.get("currencyCode");
+
+        assertEquals(eventName, requestEventName);
+        assertEquals("1.99", requestEventValue);
+        assertEquals("USD", requestCurrencyCode);
+      }
+    });
+    Leanplum.trackPurchase(eventName, 1.99, "USD", new HashMap<String, Objects>());
   }
 
   @Test
