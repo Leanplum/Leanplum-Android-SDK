@@ -39,9 +39,13 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
     return true;
   }
 
-  /**
-   * Unregister from FCM.
-   */
+  @Override
+  public boolean isManifestSetup() {
+    // Firebase can only be setup through gradle, so we don't have to check manually
+    // whether manifest is properly setup.
+    return true;
+  }
+
   public void unregister() {
     try {
       FirebaseInstanceId.getInstance().deleteInstanceId();

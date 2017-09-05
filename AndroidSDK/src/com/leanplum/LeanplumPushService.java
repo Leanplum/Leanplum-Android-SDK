@@ -675,7 +675,7 @@ public class LeanplumPushService {
       }
       provider = new LeanplumGcmProvider();
     }
-    if (!provider.isInitialized()) {
+    if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
     if (hasAppIDChanged(Request.appId())) {

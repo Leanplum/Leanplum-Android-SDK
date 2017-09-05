@@ -35,6 +35,17 @@ import com.leanplum.utils.SharedPreferencesUtil;
 abstract class LeanplumCloudMessagingProvider {
   private static String registrationId;
 
+  static String getCurrentRegistrationId() {
+    return registrationId;
+  }
+
+  /**
+   * Sends the registration ID to the server over HTTP.
+   */
+  private static void sendRegistrationIdToBackend(String registrationId) {
+    Leanplum.setRegistrationId(registrationId);
+  }
+
   /**
    * Registration app for Cloud Messaging.
    *
@@ -42,17 +53,31 @@ abstract class LeanplumCloudMessagingProvider {
    */
   public abstract String getRegistrationId();
 
+  /**
+   * Whether Messaging Provider is initialized correctly.
+   *
+   * @return True if provider is initialized, false otherwise.
+   */
   public abstract boolean isInitialized();
+
+  /**
+   * Whether app manifest is setup correctly. This will be checked only in DEBUG builds.
+   *
+   * @return True if manifest is setup, false otherwise.
+   */
+  public abstract boolean isManifestSetup();
 
   /**
    * Unregister from cloud messaging.
    */
   public abstract void unregister();
 
-  static String getCurrentRegistrationId() {
-    return registrationId;
-  }
-
+  /**
+   * Callback should be invoked when Registration ID is received from provider.
+   *
+   * @param context The application context.
+   * @param registrationId Registration Id.
+   */
   void onRegistrationIdReceived(Context context, String registrationId) {
     if (registrationId == null) {
       Log.w("Registration ID is undefined.");
@@ -70,16 +95,9 @@ abstract class LeanplumCloudMessagingProvider {
   }
 
   /**
-   * Sends the registration ID to the server over HTTP.
-   */
-  private static void sendRegistrationIdToBackend(String registrationId) {
-    Leanplum.setRegistrationId(registrationId);
-  }
-
-  /**
    * Stores the registration ID in the application's {@code SharedPreferences}.
    *
-   * @param context application's context.
+   * @param context The application context.
    */
   public void storePreferences(Context context) {
     Log.v("Saving the registration ID in the shared preferences.");
