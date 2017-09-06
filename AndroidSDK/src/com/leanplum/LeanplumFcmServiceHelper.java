@@ -30,7 +30,7 @@ import android.support.annotation.Nullable;
  *
  * @author Anna Orlova
  */
-public class LeanplumFcmServiceHelper extends IntentService {
+class LeanplumFcmServiceHelper extends IntentService {
   public LeanplumFcmServiceHelper() {
     super("LeanplumFcmServiceHelper");
   }

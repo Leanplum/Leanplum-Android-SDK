@@ -843,28 +843,12 @@ public class Leanplum {
                   @Override
                   public void run() {
                     try {
-                      NotificationCompat.Builder builder = null;
-                      // If we are targeting API 26, try to post notification to default channel.
-                      if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
-                        try {
-                          String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
-                          if (!TextUtils.isEmpty(channelId)) {
-                            builder = new NotificationCompat.Builder(context, channelId);
-                          } else {
-                            Log.w("Failed to post notification, there are no notification channels configured.");
-                            return;
-                          }
-                        } catch (Exception e) {
-                          Log.e("Failed to post notification, there are no notification channels configured.");
-                        }
-                      } else {
-                        builder = new NotificationCompat.Builder(context);
-                      }
-
+                      NotificationCompat.Builder builder =
+                          LeanplumNotificationHelper.getDefaultNotificationBuilder(context,
+                              LeanplumNotificationChannel.isNotificationChannelSupported(context));
                       if (builder == null) {
                         return;
                       }
-
                       builder.setSmallIcon(android.R.drawable.star_on)
                           .setContentTitle("Leanplum")
                           .setContentText("Your device is registered.");
