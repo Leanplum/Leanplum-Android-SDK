@@ -1094,15 +1094,6 @@ public class Leanplum {
   }
 
   /**
-   * Returns an instance to the singleton Newsfeed object.
-   *
-   * @deprecated use {@link #getInbox} instead
-   */
-  public static Newsfeed newsfeed() {
-    return Newsfeed.getInstance();
-  }
-
-  /**
    * Returns an instance to the singleton LeanplumInbox object.
    */
   public static LeanplumInbox getInbox() {

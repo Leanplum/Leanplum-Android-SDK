@@ -55,26 +55,127 @@ import java.util.Set;
  * @author Aleksandar Gyorev, Anna Orlova
  */
 public class LeanplumInbox {
-  static boolean isInboxImagePrefetchingEnabled = true;
-  /**
-   * Should be like this until Newsfeed is removed for backward compatibility.
-   */
-  static Newsfeed instance = new Newsfeed();
-  static Set<String> downloadedImageUrls;
+  private static LeanplumInbox instance = new LeanplumInbox();
 
-  // Inbox properties.
+  static Set<String> downloadedImageUrls;
+  static boolean isInboxImagePrefetchingEnabled = true;
+
   private int unreadCount;
   private Map<String, LeanplumInboxMessage> messages;
   private boolean didLoad = false;
-  private List<InboxChangedCallback> changedCallbacks;
-  private Object updatingLock = new Object();
 
-  LeanplumInbox() {
+  private final List<InboxChangedCallback> changedCallbacks;
+  private final Object updatingLock = new Object();
+
+  private LeanplumInbox() {
     this.unreadCount = 0;
     this.messages = new HashMap<>();
     this.didLoad = false;
     this.changedCallbacks = new ArrayList<>();
     downloadedImageUrls = new HashSet<>();
+  }
+
+  /**
+   * Disable prefetching images.
+   */
+  public static void disableImagePrefetching() {
+    isInboxImagePrefetchingEnabled = false;
+  }
+
+  /**
+   * Returns the number of all inbox messages on the device.
+   */
+  public int count() {
+    return messages.size();
+  }
+
+  /**
+   * Returns the number of the unread inbox messages on the device.
+   */
+  public int unreadCount() {
+    return unreadCount;
+  }
+
+  /**
+   * Returns the identifiers of all inbox messages on the device sorted in ascending
+   * chronological order, i.e. the id of the oldest message is the first one, and the most recent
+   * one is the last one in the array.
+   */
+  public List<String> messagesIds() {
+    List<String> messageIds = new ArrayList<>(messages.keySet());
+    try {
+      Collections.sort(messageIds, new Comparator<String>() {
+        @Override
+        public int compare(String firstMessageId, String secondMessageId) {
+          // Message that is null will be moved to the back of the list.
+          LeanplumInboxMessage firstMessage = messageForId(firstMessageId);
+          if (firstMessage == null) {
+            return -1;
+          }
+          LeanplumInboxMessage secondMessage = messageForId(secondMessageId);
+          if (secondMessage == null) {
+            return 1;
+          }
+          // Message with null date will be moved to the back of the list.
+          Date firstDate = firstMessage.getDeliveryTimestamp();
+          if (firstDate == null) {
+            return -1;
+          }
+          Date secondDate = secondMessage.getDeliveryTimestamp();
+          if (secondDate == null) {
+            return 1;
+          }
+          return firstDate.compareTo(secondDate);
+        }
+      });
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    return messageIds;
+  }
+
+  /**
+   * Returns a List containing all of the inbox messages sorted chronologically ascending (i.e.
+   * the oldest first and the newest last).
+   */
+  public List<LeanplumInboxMessage> allMessages() {
+    return allMessages(new ArrayList<LeanplumInboxMessage>());
+  }
+
+  /**
+   * Returns a List containing all of the unread inbox messages sorted chronologically ascending
+   * (i.e. the oldest first and the newest last).
+   */
+  public List<LeanplumInboxMessage> unreadMessages() {
+    return unreadMessages(new ArrayList<LeanplumInboxMessage>());
+  }
+
+  /**
+   * Returns the inbox messages associated with the given getMessageId identifier.
+   */
+  public LeanplumInboxMessage messageForId(String messageId) {
+    return messages.get(messageId);
+  }
+
+  /**
+   * Add a callback for when the inbox receives new values from the server.
+   */
+  public void addChangedHandler(InboxChangedCallback handler) {
+    synchronized (changedCallbacks) {
+      changedCallbacks.add(handler);
+    }
+    if (this.didLoad) {
+      handler.inboxChanged();
+    }
+  }
+
+  /**
+   * Removes a inbox changed callback.
+   */
+  public void removeChangedHandler(InboxChangedCallback handler) {
+    synchronized (changedCallbacks) {
+      changedCallbacks.remove(handler);
+    }
   }
 
   /**
@@ -84,12 +185,6 @@ public class LeanplumInbox {
     return instance;
   }
 
-  /**
-   * Disable prefetching images.
-   */
-  public static void disableImagePrefetching() {
-    isInboxImagePrefetchingEnabled = false;
-  }
 
   boolean isInboxImagePrefetchingEnabled() {
     return isInboxImagePrefetchingEnabled;
@@ -199,8 +294,8 @@ public class LeanplumInbox {
     Map<String, Object> messages = new HashMap<>();
     for (Map.Entry<String, LeanplumInboxMessage> entry : this.messages.entrySet()) {
       String messageId = entry.getKey();
-      NewsfeedMessage newsfeedMessage = entry.getValue();
-      Map<String, Object> data = newsfeedMessage.toJsonMap();
+      LeanplumInboxMessage inboxMessage = entry.getValue();
+      Map<String, Object> data = inboxMessage.toJsonMap();
       messages.put(messageId, data);
     }
     String messagesJson = JsonConverter.toJson(messages);
@@ -279,90 +374,16 @@ public class LeanplumInbox {
   }
 
   /**
-   * Returns the number of all inbox messages on the device.
-   */
-  public int count() {
-    return messages.size();
-  }
-
-  /**
-   * Returns the number of the unread inbox messages on the device.
-   */
-  public int unreadCount() {
-    return unreadCount;
-  }
-
-  /**
-   * Returns the identifiers of all inbox messages on the device sorted in ascending
-   * chronological order, i.e. the id of the oldest message is the first one, and the most recent
-   * one is the last one in the array.
-   */
-  public List<String> messagesIds() {
-    List<String> messageIds = new ArrayList<>(messages.keySet());
-    try {
-      Collections.sort(messageIds, new Comparator<String>() {
-        @Override
-        public int compare(String firstMessageId, String secondMessageId) {
-          // Message that is null will be moved to the back of the list.
-          LeanplumInboxMessage firstMessage = messageForId(firstMessageId);
-          if (firstMessage == null) {
-            return -1;
-          }
-          LeanplumInboxMessage secondMessage = messageForId(secondMessageId);
-          if (secondMessage == null) {
-            return 1;
-          }
-          // Message with null date will be moved to the back of the list.
-          Date firstDate = firstMessage.getDeliveryTimestamp();
-          if (firstDate == null) {
-            return -1;
-          }
-          Date secondDate = secondMessage.getDeliveryTimestamp();
-          if (secondDate == null) {
-            return 1;
-          }
-          return firstDate.compareTo(secondDate);
-        }
-      });
-    } catch (Throwable t) {
-      Util.handleException(t);
-    }
-    return messageIds;
-  }
-
-  /**
-   * Have to stay as is because of backward compatibility + generics super-sub incompatibility
-   * (http://www.angelikalanger.com/GenericsFAQ/FAQSections/ParameterizedTypes.html#Topic2).
-   * <p>
-   * Returns a List containing all of the newsfeed messages sorted chronologically ascending (i.e.
+   * Returns a List containing all of the inbox messages sorted chronologically ascending (i.e.
    * the oldest first and the newest last).
    */
-  public List<NewsfeedMessage> allMessages() {
-    return allMessages(new ArrayList<NewsfeedMessage>());
-  }
-
-  /**
-   * Have to stay as is because of backward compatibility + generics super-sub incompatibility
-   * (http://www.angelikalanger.com/GenericsFAQ/FAQSections/ParameterizedTypes.html#Topic2).
-   * <p>
-   * Returns a List containing all of the unread newsfeed messages sorted chronologically ascending
-   * (i.e. the oldest first and the newest last).
-   */
-  public List<NewsfeedMessage> unreadMessages() {
-    return unreadMessages(new ArrayList<NewsfeedMessage>());
-  }
-
-  /**
-   * Suggested workaround for generics to be used with {@link LeanplumInbox#getInstance()} although
-   * only LeanplumInboxMessage could be an instance of NewsfeedMessage.
-   */
-  private <T extends NewsfeedMessage> List<T> allMessages(List<T> messages) {
+  private List<LeanplumInboxMessage> allMessages(List<LeanplumInboxMessage> messages) {
     if (messages == null) {
       messages = new ArrayList<>();
     }
     try {
       for (String messageId : messagesIds()) {
-        messages.add((T) messageForId(messageId));
+        messages.add(messageForId(messageId));
       }
     } catch (Throwable t) {
       Util.handleException(t);
@@ -371,47 +392,19 @@ public class LeanplumInbox {
   }
 
   /**
-   * Suggested workaround for generics to be used with {@link LeanplumInbox#getInstance()} although
-   * only LeanplumInboxMessage could be an instance of NewsfeedMessage.
+   * Returns a List containing all of the unread inbox messages sorted chronologically ascending
+   * (i.e. the oldest first and the newest last).
    */
-  private <T extends NewsfeedMessage> List<T> unreadMessages(List<T> unreadMessages) {
+  private List<LeanplumInboxMessage> unreadMessages(List<LeanplumInboxMessage> unreadMessages) {
     if (unreadMessages == null) {
       unreadMessages = new ArrayList<>();
     }
     List<LeanplumInboxMessage> messages = allMessages(null);
     for (LeanplumInboxMessage message : messages) {
       if (!message.isRead()) {
-        unreadMessages.add((T) message);
+        unreadMessages.add(message);
       }
     }
     return unreadMessages;
-  }
-
-  /**
-   * Returns the inbox messages associated with the given getMessageId identifier.
-   */
-  public LeanplumInboxMessage messageForId(String messageId) {
-    return messages.get(messageId);
-  }
-
-  /**
-   * Add a callback for when the inbox receives new values from the server.
-   */
-  public void addChangedHandler(InboxChangedCallback handler) {
-    synchronized (changedCallbacks) {
-      changedCallbacks.add(handler);
-    }
-    if (this.didLoad) {
-      handler.inboxChanged();
-    }
-  }
-
-  /**
-   * Removes a inbox changed callback.
-   */
-  public void removeChangedHandler(InboxChangedCallback handler) {
-    synchronized (changedCallbacks) {
-      changedCallbacks.remove(handler);
-    }
   }
 }
