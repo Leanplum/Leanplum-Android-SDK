@@ -20,14 +20,13 @@
  */
 package com.leanplum.activities;
 
-import android.annotation.SuppressLint;
 import android.content.res.Resources;
 import android.preference.PreferenceActivity;
 
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
-@SuppressLint("Registered")
+@Deprecated
 public class LeanplumPreferenceActivity extends PreferenceActivity {
   private LeanplumActivityHelper helper;
 

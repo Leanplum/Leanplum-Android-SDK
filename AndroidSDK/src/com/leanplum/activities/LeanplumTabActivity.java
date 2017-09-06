@@ -21,15 +21,13 @@
 
 package com.leanplum.activities;
 
-import android.annotation.SuppressLint;
 import android.app.TabActivity;
 import android.content.res.Resources;
 
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
-@SuppressLint("Registered")
-@SuppressWarnings("deprecation")
+@Deprecated
 public class LeanplumTabActivity extends TabActivity {
   private LeanplumActivityHelper helper;
 

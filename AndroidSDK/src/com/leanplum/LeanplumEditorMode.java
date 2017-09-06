@@ -26,6 +26,7 @@ package com.leanplum;
  *
  * @author Ben Marten
  */
+@Deprecated
 public enum LeanplumEditorMode {
   LP_EDITOR_MODE_INTERFACE(0),
   LP_EDITOR_MODE_EVENT(1);

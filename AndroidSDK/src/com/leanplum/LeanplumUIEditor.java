@@ -26,6 +26,7 @@ import android.app.Activity;
 /**
  * Describes the API of the visual editor package.
  */
+@Deprecated
 public interface LeanplumUIEditor {
   /**
    * Enable interface editing via Leanplum.com Visual Editor.

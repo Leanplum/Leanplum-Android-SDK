@@ -27,6 +27,7 @@ import android.content.res.Resources;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
+@Deprecated
 public abstract class LeanplumActivity extends Activity {
   private LeanplumActivityHelper helper;
 

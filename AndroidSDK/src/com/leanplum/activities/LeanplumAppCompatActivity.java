@@ -21,14 +21,13 @@
 
 package com.leanplum.activities;
 
-import android.annotation.SuppressLint;
 import android.content.res.Resources;
 import android.support.v7.app.AppCompatActivity;
 
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
-@SuppressLint("Registered")
+@Deprecated
 public class LeanplumAppCompatActivity extends AppCompatActivity {
   private LeanplumActivityHelper helper;
 

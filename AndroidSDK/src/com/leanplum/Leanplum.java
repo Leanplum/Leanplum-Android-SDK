@@ -244,18 +244,6 @@ public class Leanplum {
   }
 
   /**
-   * Enable interface editing via Leanplum.com Visual Editor.
-   */
-  @Deprecated
-  public static void allowInterfaceEditing() {
-    if (Constants.isDevelopmentModeEnabled) {
-      throw new LeanplumException("Leanplum UI Editor has moved to a separate package. " +
-          "Please remove this method call and include this line in your build.gradle: " +
-          "compile 'com.leanplum:UIEditor:+'");
-    }
-  }
-
-  /**
    * Enable screen tracking.
    */
   public static void trackAllAppScreens() {
@@ -1304,12 +1292,6 @@ public class Leanplum {
    */
   public static void defineAction(String name, int kind, ActionArgs args) {
     defineAction(name, kind, args, null, null);
-  }
-
-  @Deprecated
-  static void defineAction(String name, int kind, ActionArgs args,
-      Map<String, Object> options) {
-    defineAction(name, kind, args, options, null);
   }
 
   /**

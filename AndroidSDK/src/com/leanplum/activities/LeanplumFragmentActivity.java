@@ -27,6 +27,7 @@ import android.support.v4.app.FragmentActivity;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
+@Deprecated
 public abstract class LeanplumFragmentActivity extends FragmentActivity {
   private LeanplumActivityHelper helper;
 
