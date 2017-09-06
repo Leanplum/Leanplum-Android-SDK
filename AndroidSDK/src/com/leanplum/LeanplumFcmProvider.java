@@ -37,10 +37,12 @@ import java.util.Collections;
  */
 class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
+  @Override
   public String getRegistrationId() {
     return FirebaseInstanceId.getInstance().getToken();
   }
 
+  @Override
   public boolean isInitialized() {
     return true;
   }
@@ -83,6 +85,7 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
     return true;
   }
 
+  @Override
   public void unregister() {
     try {
       FirebaseInstanceId.getInstance().deleteInstanceId();

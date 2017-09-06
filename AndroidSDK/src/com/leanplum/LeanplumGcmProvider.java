@@ -66,6 +66,7 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
         Constants.Defaults.PROPERTY_SENDER_IDS, senderIds);
   }
 
+  @Override
   public String getRegistrationId() {
     String registrationId = null;
     try {
@@ -107,6 +108,7 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
     return registrationId;
   }
 
+  @Override
   public boolean isInitialized() {
     return senderIds != null || getCurrentRegistrationId() != null;
   }
@@ -161,6 +163,7 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
     return false;
   }
 
+  @Override
   public void unregister() {
     try {
       InstanceID.getInstance(Leanplum.getContext()).deleteInstanceID();

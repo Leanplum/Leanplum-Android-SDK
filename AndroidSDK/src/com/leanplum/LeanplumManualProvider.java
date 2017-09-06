@@ -29,14 +29,17 @@ import android.content.Context;
  * @author Anna Orlova
  */
 public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
+
   LeanplumManualProvider(Context context, String registrationId) {
     onRegistrationIdReceived(context, registrationId);
   }
 
+  @Override
   public String getRegistrationId() {
     return getCurrentRegistrationId();
   }
 
+  @Override
   public boolean isInitialized() {
     return true;
   }
@@ -46,6 +49,7 @@ public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
     return true;
   }
 
+  @Override
   public void unregister() {
   }
 }

@@ -223,13 +223,19 @@ public class LeanplumManifestHelper {
         List<ResolveInfo> components = (componentType == ApplicationComponent.RECEIVER)
             ? context.getPackageManager().queryBroadcastReceivers(new Intent(action), 0)
             : context.getPackageManager().queryIntentServices(new Intent(action), 0);
+        if (components == null) {
+          return false;
+        }
         boolean foundComponent = false;
         for (ResolveInfo component : components) {
+          if (component == null) {
+            continue;
+          }
           ComponentInfo componentInfo = (componentType == ApplicationComponent.RECEIVER)
               ? component.activityInfo : component.serviceInfo;
-          if (componentInfo.name.equals(name)) {
+          if (componentInfo != null && componentInfo.name.equals(name)) {
             // Only check components from our package.
-            if (componentInfo.packageName.equals(packageName)) {
+            if (componentInfo.packageName != null && componentInfo.packageName.equals(packageName)) {
               foundComponent = true;
             }
           }

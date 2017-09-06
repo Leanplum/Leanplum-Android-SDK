@@ -35,6 +35,11 @@ import com.leanplum.utils.SharedPreferencesUtil;
 abstract class LeanplumCloudMessagingProvider {
   private static String registrationId;
 
+  /**
+   * Gets the registration Id associated with current messaging provider.
+   *
+   * @return Registration Id.
+   */
   static String getCurrentRegistrationId() {
     return registrationId;
   }
