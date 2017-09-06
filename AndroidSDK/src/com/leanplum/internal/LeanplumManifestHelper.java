@@ -55,6 +55,8 @@ public class LeanplumManifestHelper {
 
   // Leanplum
   public static final String PUSH_LISTENER_SERVICE_FILTER = "com.leanplum.LeanplumPushListenerService";
+  public static final String PUSH_FCM_LISTENER_SERVICE = "com.leanplum.LeanplumPushFcmListenerService";
+  public static final String PUSH_FIREBASE_MESSAGING_SERVICE = "com.leanplum.LeanplumPushFirebaseMessagingService";
 
   /**
    * Gets Class for name.

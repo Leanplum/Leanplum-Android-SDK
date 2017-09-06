@@ -53,21 +53,17 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
     if (context == null) {
       return false;
     }
-
-    if (!BuildConfig.DEBUG) {
-      return true;
-    }
     // Firebase can only be setup through gradle, so we don't have to check manually
     // whether manifest is properly setup. We will only check our own services.
     try {
       boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushFirebaseMessagingService.class.getName(), false, null,
+          LeanplumManifestHelper.PUSH_FIREBASE_MESSAGING_SERVICE, false, null,
           Collections.singletonList(LeanplumManifestHelper.MESSAGING_EVENT), context.getPackageName());
 
       boolean hasPushFirebaseListenerService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushFcmListenerService.class.getName(), false, null,
+          LeanplumManifestHelper.PUSH_FCM_LISTENER_SERVICE, false, null,
           Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_EVENT), context.getPackageName());
 
       boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
@@ -82,7 +78,7 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
       Util.handleException(t);
     }
     Log.e("Failed to setup Firebase Messaging, check your manifest configuration.");
-    return true;
+    return false;
   }
 
   @Override

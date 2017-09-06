@@ -49,15 +49,15 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
 
   private static String senderIds;
 
+  /**
+   * Sets GCM sender id.
+   *
+   * @param senderId Sender id.
+   */
   static void setSenderId(String senderId) {
     senderIds = senderId;
   }
 
-  /**
-   * Stores the GCM sender ID in the application's {@code SharedPreferences}.
-   *
-   * @param context application's context.
-   */
   @Override
   public void storePreferences(Context context) {
     super.storePreferences(context);
@@ -118,10 +118,6 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
     Context context = Leanplum.getContext();
     if (context == null) {
       return false;
-    }
-    // We don't want to check if manifest is setup in Release build.
-    if (!BuildConfig.DEBUG) {
-      return true;
     }
     try {
       boolean hasPermissions = LeanplumManifestHelper.checkPermission(LeanplumManifestHelper.RECEIVE_PERMISSION, false, true)
