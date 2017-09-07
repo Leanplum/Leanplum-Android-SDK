@@ -66,7 +66,7 @@ abstract class LeanplumCloudMessagingProvider {
   public abstract boolean isInitialized();
 
   /**
-   * Whether app manifest is setup correctly. This will be checked only in DEBUG builds.
+   * Whether app manifest is setup correctly.
    *
    * @return True if manifest is setup, false otherwise.
    */

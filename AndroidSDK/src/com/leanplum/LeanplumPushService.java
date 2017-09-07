@@ -664,13 +664,13 @@ public class LeanplumPushService {
   private static void initPushService() {
     if (isFirebaseEnabled()) {
       if (!enableFcmServices()) {
-        Log.i("Failed to initialize FCM services.");
+        Log.w("Failed to initialize FCM services.");
         return;
       }
       provider = new LeanplumFcmProvider();
     } else {
       if (!enableGcmServices()) {
-        Log.i("Failed to initialize GCM services.");
+        Log.w("Failed to initialize GCM services.");
         return;
       }
       provider = new LeanplumGcmProvider();

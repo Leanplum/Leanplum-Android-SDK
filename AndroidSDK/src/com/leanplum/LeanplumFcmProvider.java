@@ -53,24 +53,30 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
     if (context == null) {
       return false;
     }
-    // Firebase can only be setup through gradle, so we don't have to check manually
-    // whether manifest is properly setup. We will only check our own services.
+
     try {
+      boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.ApplicationComponent.RECEIVER,
+          LeanplumManifestHelper.LP_PUSH_RECEIVER, false, null,
+          Collections.singletonList(LeanplumManifestHelper.LP_PUSH_FCM_LISTENER_SERVICE), context.getPackageName());
+
       boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumManifestHelper.PUSH_FIREBASE_MESSAGING_SERVICE, false, null,
-          Collections.singletonList(LeanplumManifestHelper.MESSAGING_EVENT), context.getPackageName());
+          LeanplumManifestHelper.LP_PUSH_FCM_MESSAGING_SERVICE, false, null,
+          Collections.singletonList(LeanplumManifestHelper.FCM_MESSAGING_EVENT), context.getPackageName());
 
       boolean hasPushFirebaseListenerService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumManifestHelper.PUSH_FCM_LISTENER_SERVICE, false, null,
-          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_EVENT), context.getPackageName());
+          LeanplumManifestHelper.LP_PUSH_FCM_LISTENER_SERVICE, false, null,
+          Collections.singletonList(LeanplumManifestHelper.FCM_INSTANCE_ID_EVENT), context.getPackageName());
 
       boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
           LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
 
-      if (hasPushFirebaseMessagingService && hasPushFirebaseListenerService && hasRegistrationService) {
+      boolean hasServices = hasPushFirebaseMessagingService && hasPushFirebaseListenerService &&
+          hasRegistrationService;
+
+      if (hasPushReceiver && hasServices) {
         Log.i("Firebase Messaging is setup correctly.");
         return true;
       }

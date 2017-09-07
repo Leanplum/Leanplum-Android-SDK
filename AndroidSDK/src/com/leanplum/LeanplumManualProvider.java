@@ -29,7 +29,6 @@ import android.content.Context;
  * @author Anna Orlova
  */
 public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
-
   LeanplumManualProvider(Context context, String registrationId) {
     onRegistrationIdReceived(context, registrationId);
   }

@@ -120,31 +120,31 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
       return false;
     }
     try {
-      boolean hasPermissions = LeanplumManifestHelper.checkPermission(LeanplumManifestHelper.RECEIVE_PERMISSION, false, true)
+      boolean hasPermissions = LeanplumManifestHelper.checkPermission(LeanplumManifestHelper.GCM_RECEIVE_PERMISSION, false, true)
           && (LeanplumManifestHelper.checkPermission(context.getPackageName() + ".gcm.permission.C2D_MESSAGE", true, false)
           || LeanplumManifestHelper.checkPermission(context.getPackageName() + ".permission.C2D_MESSAGE", true, true));
 
       boolean hasGcmReceiver = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.RECEIVER, LeanplumManifestHelper.GCM_RECEIVER,
-          true, LeanplumManifestHelper.SEND_PERMISSION, Arrays.asList(LeanplumManifestHelper.RECEIVE_ACTION,
-              LeanplumManifestHelper.REGISTRATION_ACTION), context.getPackageName());
+          true, LeanplumManifestHelper.GCM_SEND_PERMISSION, Arrays.asList(LeanplumManifestHelper.GCM_RECEIVE_ACTION,
+              LeanplumManifestHelper.GCM_REGISTRATION_ACTION), context.getPackageName());
       boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.ApplicationComponent.RECEIVER,
-          LeanplumPushReceiver.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.PUSH_LISTENER_SERVICE_FILTER), context.getPackageName());
+          LeanplumManifestHelper.LP_PUSH_RECEIVER, false, null,
+          Collections.singletonList(LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE), context.getPackageName());
 
       boolean hasReceivers = hasGcmReceiver && hasPushReceiver;
 
       boolean hasPushListenerService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushListenerService.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.RECEIVE_ACTION), context.getPackageName());
+          LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE, false, null,
+          Collections.singletonList(LeanplumManifestHelper.GCM_RECEIVE_ACTION), context.getPackageName());
       boolean hasInstanceIdService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushInstanceIDService.class.getName(), false, null,
-          Collections.singletonList(LeanplumManifestHelper.INSTANCE_ID_ACTION), context.getPackageName());
+          LeanplumManifestHelper.LP_PUSH_INSTANCE_ID_SERVICE, false, null,
+          Collections.singletonList(LeanplumManifestHelper.GCM_INSTANCE_ID_ACTION), context.getPackageName());
       boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
+          LeanplumManifestHelper.LP_PUSH_REGISTRATION_SERVICE, false, null, null, context.getPackageName());
 
       boolean hasServices = hasPushListenerService && hasInstanceIdService && hasRegistrationService;
 
