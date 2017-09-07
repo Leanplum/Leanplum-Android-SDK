@@ -843,18 +843,22 @@ public class Leanplum {
                   @Override
                   public void run() {
                     try {
-                      NotificationCompat.Builder mBuilder =
-                          new NotificationCompat.Builder(currentContext)
-                              .setSmallIcon(android.R.drawable.star_on)
-                              .setContentTitle("Leanplum")
-                              .setContentText("Your device is registered.");
-                      mBuilder.setContentIntent(PendingIntent.getActivity(
+                      NotificationCompat.Builder builder =
+                          LeanplumNotificationHelper.getDefaultNotificationBuilder(context,
+                              LeanplumNotificationChannel.isNotificationChannelSupported(context));
+                      if (builder == null) {
+                        return;
+                      }
+                      builder.setSmallIcon(android.R.drawable.star_on)
+                          .setContentTitle("Leanplum")
+                          .setContentText("Your device is registered.");
+                      builder.setContentIntent(PendingIntent.getActivity(
                           currentContext.getApplicationContext(), 0, new Intent(), 0));
                       NotificationManager mNotificationManager =
                           (NotificationManager) currentContext.getSystemService(
                               Context.NOTIFICATION_SERVICE);
                       // mId allows you to update the notification later on.
-                      mNotificationManager.notify(0, mBuilder.build());
+                      mNotificationManager.notify(0, builder.build());
                     } catch (Throwable t) {
                       Log.i("Device is registered.");
                     }

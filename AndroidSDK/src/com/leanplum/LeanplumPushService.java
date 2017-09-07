@@ -318,38 +318,8 @@ public class LeanplumPushService {
     if (message.getString("title") != null) {
       title = message.getString("title");
     }
-    NotificationCompat.Builder builder = null;
-
-    // If we are targeting API 26, try to find supplied channel to post notification.
-    if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
-      try {
-        String channel = message.getString("lp_channel");
-        if (!TextUtils.isEmpty(channel)) {
-          // Create channel if it doesn't exist and post notification to that channel.
-          Map<String, Object> channelDetails = JsonConverter.fromJson(channel);
-          String channelId = LeanplumNotificationChannel.createNotificationChannel(context, channelDetails);
-          if (!TextUtils.isEmpty(channelId)) {
-            builder = new NotificationCompat.Builder(context, channelId);
-          } else {
-            Log.w("Failed to post notification to specified channel.");
-            return;
-          }
-        } else {
-          // If channel isn't supplied, try to look up for default channel.
-          String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
-          if (!TextUtils.isEmpty(channelId)) {
-            builder = new NotificationCompat.Builder(context, channelId);
-          } else {
-            Log.w("Failed to post notification, there are no notification channels configured.");
-            return;
-          }
-        }
-      } catch (Exception e) {
-        Log.e("Failed to post notification to specified channel.");
-      }
-    } else {
-      builder = new NotificationCompat.Builder(context);
-    }
+    NotificationCompat.Builder builder =
+        LeanplumNotificationHelper.getNotificationBuilder(context, message);
 
     if (builder == null) {
       return;
@@ -376,8 +346,10 @@ public class LeanplumPushService {
       }
     }
 
-    // Try to put notification on top of notification area.
-    if (Build.VERSION.SDK_INT >= 16) {
+    // Try to put a notification on top of the notification area. This method was deprecated in API
+    // level 26. For API level 26 and above we must use setImportance(int) for each notification
+    // channel, not for each notification message.
+    if (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 26) {
       builder.setPriority(Notification.PRIORITY_MAX);
     }
     builder.setAutoCancel(true);
