@@ -80,6 +80,7 @@ public class ResourceQualifiers {
 
       @Override
       public boolean isMatch(Object value, Configuration config, DisplayMetrics display) {
+        // We should switch to getLocale() instead of reading directly locale.
         //noinspection deprecation
         return config.locale.getLanguage().equals(value);
       }
@@ -95,6 +96,7 @@ public class ResourceQualifiers {
 
       @Override
       public boolean isMatch(Object value, Configuration config, DisplayMetrics display) {
+        // We should switch to getLocale() instead of reading directly locale.
         //noinspection deprecation
         return config.locale.getCountry().toLowerCase().equals(value);
       }

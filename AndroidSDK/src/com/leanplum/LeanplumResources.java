@@ -42,6 +42,7 @@ import java.util.Set;
 
 // Description of resources.asrc file (we don't use this right nwo)
 // http://ekasiswanto.wordpress.com/2012/09/19/descriptions-of-androids-resources-arsc/
+// We should switch from deprecated API to newer one.
 @SuppressWarnings("deprecation")
 public class LeanplumResources extends Resources {
   public LeanplumResources(Resources base) {
