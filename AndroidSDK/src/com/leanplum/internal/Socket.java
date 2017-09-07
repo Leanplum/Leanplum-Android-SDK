@@ -48,8 +48,7 @@ import java.util.TimerTask;
  *
  * @author Andrew First, Ben Marten
  */
-// Suppressing apache dependency deprecation. We should upgrade our socket IO client to new version
-// which uses okhttp library.
+// Suppressing deprecated apache dependency.
 @SuppressWarnings("deprecation")
 public class Socket {
   private static final String TAG = "Leanplum";

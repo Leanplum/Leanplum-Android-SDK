@@ -53,8 +53,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-// Suppressing apache dependency deprecation. We should upgrade our socket IO client to new version
-// which uses okhttp library.
+// Suppressing deprecated apache dependency.
 @SuppressWarnings("deprecation")
 class WebSocketClient {
   private static final String TAG = "WebSocketClient";
