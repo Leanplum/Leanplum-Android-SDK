@@ -27,6 +27,11 @@ import android.support.v7.app.AppCompatActivity;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
+/**
+ *  @deprecated due to rising minimal API to 14. This class will be removed in a
+ *  future major release. Please use {@link LeanplumActivityHelper} to track your activities
+ *  automatically.
+ */
 @Deprecated
 public class LeanplumAppCompatActivity extends AppCompatActivity {
   private LeanplumActivityHelper helper;

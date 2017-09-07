@@ -26,6 +26,11 @@ import android.preference.PreferenceActivity;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 
+/**
+ *  @deprecated due to rising minimal API to 14. This class will be removed in a
+ *  future major release. Please use {@link LeanplumActivityHelper} to track your activities
+ *  automatically.
+ */
 @Deprecated
 public class LeanplumPreferenceActivity extends PreferenceActivity {
   private LeanplumActivityHelper helper;

@@ -25,6 +25,8 @@ package com.leanplum;
  * Enum for describing the Editor Mode.
  *
  * @author Ben Marten
+ * @deprecated {@link LeanplumEditorMode} will be made private in future releases, since it is not
+ * intended to be public API.
  */
 @Deprecated
 public enum LeanplumEditorMode {

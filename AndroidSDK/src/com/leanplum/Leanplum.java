@@ -319,20 +319,6 @@ public class Leanplum {
   }
 
   /**
-   * Called when the device needs to be registered in development mode.
-   */
-  @Deprecated
-  public static void setRegisterDeviceHandler(RegisterDeviceCallback handler,
-      RegisterDeviceFinishedCallback finishHandler) {
-    if (handler == null && finishHandler == null) {
-      Log.w("setRegisterDeviceHandler - Invalid handler parameter provided.");
-    }
-
-    registerDeviceHandler = handler;
-    registerDeviceFinishedHandler = finishHandler;
-  }
-
-  /**
    * Syncs resources between Leanplum and the current app. You should only call this once, and
    * before {@link Leanplum#start}. syncResourcesAsync should be used instead unless file variables
    * need to be defined early
