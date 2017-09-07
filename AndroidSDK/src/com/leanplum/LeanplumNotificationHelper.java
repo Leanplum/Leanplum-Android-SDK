@@ -31,12 +31,21 @@ import com.leanplum.internal.Log;
 import java.util.Map;
 
 /**
- * LeanplumNotificationHelper class.
+ * LeanplumNotificationHelper helper class for push notifications.
  *
  * @author Anna Orlova
  */
 class LeanplumNotificationHelper {
-
+  /**
+   * If notification channels are supported this method will try to create
+   * NotificationCompat.Builder with default notification channel if default channel id is provided.
+   * If notification channels not supported this method will return NotificationCompat.Builder for
+   * context.
+   *
+   * @param context The application context.
+   * @param isNotificationChannelSupported True if notification channels are supported.
+   * @return NotificationCompat.Builder for provided context or null.
+   */
   // NotificationCompat.Builder(Context context) constructor was deprecated in API level 26.
   @SuppressWarnings("deprecation")
   static NotificationCompat.Builder getDefaultNotificationBuilder(Context context,
@@ -53,6 +62,17 @@ class LeanplumNotificationHelper {
     }
   }
 
+  /**
+   * If notification channels are supported this method will try to create a channel with
+   * information from the message if it doesn't exist and return NotificationCompat.Builder for this
+   * channel. In the case where no channel information inside the message, we will try to get a
+   * channel with default channel id. If notification channels not supported this method will return
+   * NotificationCompat.Builder for context.
+   *
+   * @param context The application context.
+   * @param message Push notification Bundle.
+   * @return NotificationCompat.Builder or null.
+   */
   // NotificationCompat.Builder(Context context) constructor was deprecated in API level 26.
   @SuppressWarnings("deprecation")
   static NotificationCompat.Builder getNotificationBuilder(Context context, Bundle message) {
