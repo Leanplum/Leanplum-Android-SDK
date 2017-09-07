@@ -21,9 +21,12 @@
 
 package com.leanplum;
 
+import android.content.Context;
+
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.Util;
 
 import java.util.Collections;
 
@@ -33,49 +36,62 @@ import java.util.Collections;
  * @author Anna Orlova
  */
 class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
-  private static final String INSTANCE_ID_EVENT = "com.google.firebase.INSTANCE_ID_EVENT";
-  private static final String MESSAGING_EVENT = "com.google.firebase.MESSAGING_EVENT";
-  private static final String PUSH_FCM_LISTENER_SERVICE =
-      "com.leanplum.LeanplumPushFcmListenerService";
-  private static final String PUSH_FIREBASE_MESSAGING_SERVICE =
-      "com.leanplum.LeanplumPushFirebaseMessagingService";
 
+  @Override
   public String getRegistrationId() {
     return FirebaseInstanceId.getInstance().getToken();
   }
 
+  @Override
   public boolean isInitialized() {
     return true;
   }
 
-  public boolean isManifestSetUp() {
-    boolean hasReceivers =
-        LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.getReceivers(),
-            PUSH_RECEIVER, false, null,
-            Collections.singletonList(PUSH_FIREBASE_MESSAGING_SERVICE), null);
+  @Override
+  public boolean isManifestSetup() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return false;
+    }
 
-    boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getServices(), PUSH_FIREBASE_MESSAGING_SERVICE, false, null,
-        Collections.singletonList(MESSAGING_EVENT), null);
-    boolean hasPushFcmListenerService = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getServices(), PUSH_FCM_LISTENER_SERVICE, false, null,
-        Collections.singletonList(INSTANCE_ID_EVENT), null);
-    boolean hasPushRegistrationService = LeanplumManifestHelper.checkComponent(
-        LeanplumManifestHelper.getServices(), PUSH_REGISTRATION_SERVICE, false, null, null, null);
+    try {
+      boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.ApplicationComponent.RECEIVER,
+          LeanplumManifestHelper.LP_PUSH_RECEIVER, false, null,
+          Collections.singletonList(LeanplumManifestHelper.LP_PUSH_FCM_LISTENER_SERVICE), context.getPackageName());
 
-    boolean hasServices = hasPushFirebaseMessagingService && hasPushFcmListenerService
-        && hasPushRegistrationService;
+      boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
+          LeanplumManifestHelper.ApplicationComponent.SERVICE,
+          LeanplumManifestHelper.LP_PUSH_FCM_MESSAGING_SERVICE, false, null,
+          Collections.singletonList(LeanplumManifestHelper.FCM_MESSAGING_EVENT), context.getPackageName());
 
-    return hasReceivers && hasServices;
+      boolean hasPushFirebaseListenerService = LeanplumManifestHelper.checkComponent(
+          LeanplumManifestHelper.ApplicationComponent.SERVICE,
+          LeanplumManifestHelper.LP_PUSH_FCM_LISTENER_SERVICE, false, null,
+          Collections.singletonList(LeanplumManifestHelper.FCM_INSTANCE_ID_EVENT), context.getPackageName());
+
+      boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
+          LeanplumManifestHelper.ApplicationComponent.SERVICE,
+          LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
+
+      boolean hasServices = hasPushFirebaseMessagingService && hasPushFirebaseListenerService &&
+          hasRegistrationService;
+
+      if (hasPushReceiver && hasServices) {
+        Log.i("Firebase Messaging is setup correctly.");
+        return true;
+      }
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    Log.e("Failed to setup Firebase Messaging, check your manifest configuration.");
+    return false;
   }
 
-  /**
-   * Unregister from FCM.
-   */
+  @Override
   public void unregister() {
     try {
       FirebaseInstanceId.getInstance().deleteInstanceId();
-      Log.i("Application was unregistred from FCM.");
+      Log.i("Application was unregistered from FCM.");
     } catch (Exception e) {
       Log.e("Failed to unregister from FCM.");
     }

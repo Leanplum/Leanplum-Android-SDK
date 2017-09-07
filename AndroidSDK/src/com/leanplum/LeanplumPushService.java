@@ -25,7 +25,6 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -45,6 +44,7 @@ import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
@@ -667,19 +667,24 @@ public class LeanplumPushService {
     }
   }
 
+  /**
+   * Initialize push service.
+   */
   private static void initPushService() {
     if (isFirebaseEnabled()) {
-      if (!enableServices()) {
+      if (!enableFcmServices()) {
+        Log.w("Failed to initialize FCM services.");
         return;
       }
       provider = new LeanplumFcmProvider();
     } else {
-      if (!enableServices()) {
+      if (!enableGcmServices()) {
+        Log.w("Failed to initialize GCM services.");
         return;
       }
       provider = new LeanplumGcmProvider();
     }
-    if (!provider.isInitialized() || !provider.isManifestSetUp()) {
+    if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
     if (hasAppIDChanged(Request.appId())) {
@@ -688,175 +693,129 @@ public class LeanplumPushService {
     registerInBackground();
   }
 
-
   /**
-   * Enable Leanplum GCM or FCM services.
+   * Enables Firebase services. By default, all Firebase services are disabled.
    *
-   * @return True if services was enabled.
+   * @return true if services are successfully enabled, false otherwise
    */
-  private static boolean enableServices() {
+  private static boolean enableFcmServices() {
     Context context = Leanplum.getContext();
     if (context == null) {
+      Log.i("Failed to enable FCM services, context is null.");
       return false;
     }
 
     PackageManager packageManager = context.getPackageManager();
     if (packageManager == null) {
+      Log.i("Failed to enable FCM services, PackageManager is null.");
       return false;
     }
 
-    if (isFirebaseEnabled) {
-      Class fcmListenerClass = getClassForName(LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
+    if (isFirebaseEnabled()) {
+      Class fcmListenerClass = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
       if (fcmListenerClass == null) {
+        Log.e("Failed to setup Firebase, please compile Firebase library.");
         return false;
       }
+      // We will only enable component once, if we are switching from GCM to FCM, we have to disable
+      // GCM services first.
+      if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, fcmListenerClass)) {
+        // Try to disable GCM services first.
+        disableGcmServices();
+        LeanplumManifestHelper.enableServiceAndStart(context, packageManager, fcmListenerClass);
 
-      if (!wasComponentEnabled(context, packageManager, fcmListenerClass)) {
-        if (!enableServiceAndStart(context, packageManager, PUSH_FIREBASE_MESSAGING_SERVICE_CLASS)
-            || !enableServiceAndStart(context, packageManager, fcmListenerClass)) {
-          return false;
+        Class pushListener = LeanplumManifestHelper.getClassForName(PUSH_FIREBASE_MESSAGING_SERVICE_CLASS);
+        if (pushListener != null) {
+          LeanplumManifestHelper.enableServiceAndStart(context, packageManager, pushListener);
         }
       }
-    } else {
-      Class gcmPushInstanceIDClass = getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
-      if (gcmPushInstanceIDClass == null) {
-        return false;
+    }
+    return true;
+  }
+
+  /**
+   * Enables GCM services. By default, all GCM services are disabled.
+   *
+   * @return true if services are successfully enabled, false otherwise
+   */
+  private static boolean enableGcmServices() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      Log.i("Failed to enable FCM services, context is null.");
+      return false;
+    }
+
+    PackageManager packageManager = context.getPackageManager();
+    if (packageManager == null) {
+      Log.i("Failed to enable FCM services, PackageManager is null.");
+      return false;
+    }
+
+    Class gcm = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
+    if (gcm == null) {
+      Log.e("Failed to setup GCM, please compile GCM library.");
+      return false;
+    }
+    // We will only enable component once, if we are switching from FCM to GCM, we have to disable
+    // FCM services first.
+    if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, gcm)) {
+      // Try to disable FCM first.
+      disableFcmServices();
+      LeanplumManifestHelper.enableComponent(context, packageManager, gcm);
+
+      // Make sure we can find the class before enabling it.
+      Class gcmReceiver = LeanplumManifestHelper.getClassForName(GCM_RECEIVER_CLASS);
+      if (gcmReceiver != null) {
+        LeanplumManifestHelper.enableComponent(context, packageManager, gcmReceiver);
       }
-
-      if (!wasComponentEnabled(context, packageManager, gcmPushInstanceIDClass)) {
-        if (!enableComponent(context, packageManager, LEANPLUM_PUSH_LISTENER_SERVICE_CLASS) ||
-            !enableComponent(context, packageManager, gcmPushInstanceIDClass) ||
-            !enableComponent(context, packageManager, GCM_RECEIVER_CLASS)) {
-          return false;
-        }
-
+      Class pushListener = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
+      if (pushListener != null) {
+        LeanplumManifestHelper.enableComponent(context, packageManager, pushListener);
       }
     }
     return true;
   }
 
   /**
-   * Gets Class for name.
-   *
-   * @param className - class name.
-   * @return Class for provided class name.
+   * Disables FCM services.
    */
-  private static Class getClassForName(String className) {
-    try {
-      return Class.forName(className);
-    } catch (Throwable t) {
-      if (isFirebaseEnabled) {
-        Log.e("Please compile FCM library.");
-      } else {
-        Log.e("Please compile GCM library.");
-      }
-      return null;
+  private static void disableFcmServices() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return;
     }
+
+    PackageManager packageManager = context.getPackageManager();
+    if (packageManager == null) {
+      return;
+    }
+
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        PUSH_FIREBASE_MESSAGING_SERVICE_CLASS);
   }
 
   /**
-   * Enables and starts service for provided class name.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param className Name of Class that needs to be enabled and started.
-   * @return True if service was enabled and started.
+   * Disables GCM services
    */
-  private static boolean enableServiceAndStart(Context context, PackageManager packageManager,
-      String className) {
-    Class clazz;
-    try {
-      clazz = Class.forName(className);
-    } catch (Throwable t) {
-      return false;
-    }
-    return enableServiceAndStart(context, packageManager, clazz);
-  }
-
-  /**
-   * Enables and starts service for provided class name.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param clazz Class of service that needs to be enabled and started.
-   * @return True if service was enabled and started.
-   */
-  private static boolean enableServiceAndStart(Context context, PackageManager packageManager,
-      Class clazz) {
-    if (!enableComponent(context, packageManager, clazz)) {
-      return false;
-    }
-    try {
-      context.startService(new Intent(context, clazz));
-    } catch (Throwable t) {
-      Log.w("Could not start service " + clazz.getName());
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Enables component for provided class name.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param className Name of Class for enable.
-   * @return True if component was enabled.
-   */
-  private static boolean enableComponent(Context context, PackageManager packageManager,
-      String className) {
-    try {
-      Class clazz = Class.forName(className);
-      return enableComponent(context, packageManager, clazz);
-    } catch (Throwable t) {
-      return false;
-    }
-  }
-
-  /**
-   * Enables component for provided class.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param clazz Class for enable.
-   * @return True if component was enabled.
-   */
-  private static boolean enableComponent(Context context, PackageManager packageManager,
-      Class clazz) {
-    if (clazz == null || context == null || packageManager == null) {
-      return false;
+  private static void disableGcmServices() {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return;
     }
 
-    try {
-      packageManager.setComponentEnabledSetting(new ComponentName(context, clazz),
-          PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-    } catch (Throwable t) {
-      Log.w("Could not enable component " + clazz.getName());
-      return false;
+    PackageManager packageManager = context.getPackageManager();
+    if (packageManager == null) {
+      return;
     }
-    return true;
-  }
 
-  /**
-   * Checks if component for provided class enabled before.
-   *
-   * @param context Current Context.
-   * @param packageManager Current PackageManager.
-   * @param clazz Class for check.
-   * @return True if component was enabled before.
-   */
-  private static boolean wasComponentEnabled(Context context, PackageManager packageManager,
-      Class clazz) {
-    if (clazz == null || context == null || packageManager == null) {
-      return false;
-    }
-    int componentStatus = packageManager.getComponentEnabledSetting(new ComponentName(context,
-        clazz));
-    if (PackageManager.COMPONENT_ENABLED_STATE_DEFAULT == componentStatus ||
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED == componentStatus) {
-      return false;
-    }
-    return true;
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        GCM_RECEIVER_CLASS);
+    LeanplumManifestHelper.disableComponent(context, packageManager,
+        LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
   }
 
   /**

@@ -352,9 +352,6 @@ public class Util {
     }
     Context context = Leanplum.getContext();
     try {
-      versionName = LeanplumManifestHelper.getAppVersionName();
-      // If we didn't get application version name from AndroidManifest.xml - will try to get it
-      // from PackageInfo.
       if (TextUtils.isEmpty(versionName)) {
         PackageInfo pInfo = context.getPackageManager().getPackageInfo(
             context.getPackageName(), 0);
