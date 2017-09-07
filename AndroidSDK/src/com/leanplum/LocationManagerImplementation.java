@@ -436,6 +436,8 @@ class LocationManagerImplementation implements
   /**
    * Request location for user location update if googleApiClient is connected.
    */
+  // Suppressing missing permission warning which since it is up to client to add location
+  // permission to their manifest.
   @SuppressWarnings("MissingPermission")
   private void requestLocation() {
     if (!Leanplum.isLocationCollectionEnabled() || googleApiClient == null

@@ -44,6 +44,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+// Suppressing apache dependency deprecation. We should upgrade our socket IO client to new version
+// which uses okhttp library.
 @SuppressWarnings("deprecation")
 class SocketIOClient {
   interface Handler {
