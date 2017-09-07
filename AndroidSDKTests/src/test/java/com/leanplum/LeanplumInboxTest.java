@@ -23,7 +23,7 @@ package com.leanplum;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
-import com.leanplum.callbacks.NewsfeedChangedCallback;
+import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.internal.Constants;
 
 import org.junit.Test;
@@ -46,10 +46,10 @@ import static org.junit.Assert.assertTrue;
  */
 public class LeanplumInboxTest extends AbstractTest {
     @Test
-    public void testNewsfeed() throws Exception {
+    public void testInbox() throws Exception {
         setupSDK(mContext, "/responses/simple_start_response.json");
 
-        // Seed newsfeed response which contains messages.
+        // Seed inbox response which contains messages.
         ResponseHelper.seedResponse("/responses/newsfeed_response.json");
 
         // Validate downloadMessages() request.
@@ -62,17 +62,17 @@ public class LeanplumInboxTest extends AbstractTest {
         // Download messages.
         Leanplum.getInbox().downloadMessages();
 
-        // Validate newsfeed callback when messages changes.
-        NewsfeedChangedCallback callback = new NewsfeedChangedCallback() {
+        // Validate inbox callback when messages changes.
+        InboxChangedCallback callback = new InboxChangedCallback() {
             @Override
-            public void newsfeedChanged() {
+            public void inboxChanged() {
                 assertEquals(2, Leanplum.getInbox().unreadCount());
                 assertEquals(2, Leanplum.getInbox().count());
 
-                List<NewsfeedMessage> messageList = Leanplum.getInbox().unreadMessages();
+                List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
 
-                NewsfeedMessage message1 = messageList.get(0);
-                NewsfeedMessage message2 = messageList.get(1);
+                LeanplumInboxMessage message1 = messageList.get(0);
+                LeanplumInboxMessage message2 = messageList.get(1);
 
                 assertEquals("5231495977893888##1", message1.getMessageId());
                 assertEquals("This is a test inbox message", message1.getTitle());
@@ -95,10 +95,10 @@ public class LeanplumInboxTest extends AbstractTest {
         Leanplum.getInbox().removeChangedHandler(callback);
 
         // Validate message state.
-        List<NewsfeedMessage> messageList = Leanplum.getInbox().unreadMessages();
+        List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
 
-        NewsfeedMessage message1 = messageList.get(0);
-        NewsfeedMessage message2 = messageList.get(1);
+        LeanplumInboxMessage message1 = messageList.get(0);
+        LeanplumInboxMessage message2 = messageList.get(1);
 
         message1.read();
         assertTrue(message1.isRead());
@@ -110,7 +110,7 @@ public class LeanplumInboxTest extends AbstractTest {
 
         assertEquals(2, Leanplum.getInbox().count());
 
-        NewsfeedMessage messageById = Leanplum.getInbox().messageForId(message1.getMessageId());
+        LeanplumInboxMessage messageById = Leanplum.getInbox().messageForId(message1.getMessageId());
         assertNotNull(messageById);
         assertEquals(message1, messageById);
 
