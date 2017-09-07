@@ -157,8 +157,11 @@ public class LeanplumManifestHelper {
     }
     int componentStatus = packageManager.getComponentEnabledSetting(new ComponentName(context,
         clazz));
-    return PackageManager.COMPONENT_ENABLED_STATE_DEFAULT == componentStatus ||
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED == componentStatus;
+    if (PackageManager.COMPONENT_ENABLED_STATE_DEFAULT == componentStatus ||
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED == componentStatus) {
+      return false;
+    }
+    return true;
   }
 
   /**
