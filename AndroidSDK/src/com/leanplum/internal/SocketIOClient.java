@@ -44,6 +44,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+@SuppressWarnings("deprecation")
 class SocketIOClient {
   interface Handler {
     void onConnect();

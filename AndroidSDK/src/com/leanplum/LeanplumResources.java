@@ -42,7 +42,7 @@ import java.util.Set;
 
 // Description of resources.asrc file (we don't use this right nwo)
 // http://ekasiswanto.wordpress.com/2012/09/19/descriptions-of-androids-resources-arsc/
-
+@SuppressWarnings("deprecation")
 public class LeanplumResources extends Resources {
   public LeanplumResources(Resources base) {
     super(base.getAssets(), base.getDisplayMetrics(), base.getConfiguration());

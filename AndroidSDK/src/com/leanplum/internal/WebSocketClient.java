@@ -53,6 +53,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
+@SuppressWarnings("deprecation")
 class WebSocketClient {
   private static final String TAG = "WebSocketClient";
 
