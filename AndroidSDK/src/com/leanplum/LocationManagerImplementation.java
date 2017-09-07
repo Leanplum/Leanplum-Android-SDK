@@ -264,6 +264,9 @@ class LocationManagerImplementation implements
       return false;
     }
   }
+
+  // Suppressing missing permission warning which since it is up to client to add location
+  // permission to their manifest.
   @SuppressWarnings("MissingPermission")
   private void updateTrackedGeofences() {
     if (allGeofences == null || googleApiClient == null || !googleApiClient.isConnected()) {
