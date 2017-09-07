@@ -185,7 +185,6 @@ public class LeanplumInbox {
     return instance;
   }
 
-
   boolean isInboxImagePrefetchingEnabled() {
     return isInboxImagePrefetchingEnabled;
   }
