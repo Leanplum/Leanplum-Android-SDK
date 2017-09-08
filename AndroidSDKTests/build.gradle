@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 def COMPILE_SDK_VERSION=26
 def BUILD_TOOLS_VERSION='26.0.1'
-def SUPPORT_LIBRARY_VERSION='26.0.1'
+def SUPPORT_LIBRARY_VERSION='26.0.2'
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
@@ -26,8 +26,8 @@ android {
 dependencies {
     compile project(path: ':AndroidSDK', configuration: 'debug')
     compile "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
-    compile 'com.google.android.gms:play-services-gcm:11.0.1'
-    compile 'com.google.android.gms:play-services-location:11.0.1'
+    compile 'com.google.android.gms:play-services-gcm:11.0.4'
+    compile 'com.google.android.gms:play-services-location:11.0.4'
 
     // Dependencies used for unit tests.
     testCompile 'junit:junit:4.12'
