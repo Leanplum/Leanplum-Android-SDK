@@ -48,6 +48,8 @@ import java.util.TimerTask;
  *
  * @author Andrew First, Ben Marten
  */
+// Suppressing deprecated apache dependency.
+@SuppressWarnings("deprecation")
 public class Socket {
   private static final String TAG = "Leanplum";
   private static final String EVENT_CONTENT_RESPONSE = "getContentResponse";

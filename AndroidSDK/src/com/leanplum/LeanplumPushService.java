@@ -350,6 +350,7 @@ public class LeanplumPushService {
     // level 26. For API level 26 and above we must use setImportance(int) for each notification
     // channel, not for each notification message.
     if (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 26) {
+      //noinspection deprecation
       builder.setPriority(Notification.PRIORITY_MAX);
     }
     builder.setAutoCancel(true);

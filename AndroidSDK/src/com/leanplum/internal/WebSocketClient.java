@@ -53,6 +53,8 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
+// Suppressing deprecated apache dependency.
+@SuppressWarnings("deprecation")
 class WebSocketClient {
   private static final String TAG = "WebSocketClient";
 

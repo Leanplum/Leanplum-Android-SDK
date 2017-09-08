@@ -441,7 +441,6 @@ public class BaseMessageDialog extends Dialog {
       webViewSettings.setMediaPlaybackRequiresUserGesture(false);
     }
     webViewSettings.setAppCacheEnabled(true);
-    webViewSettings.getSaveFormData();
     webViewSettings.setAllowFileAccess(true);
     webViewSettings.setJavaScriptEnabled(true);
     webViewSettings.setDomStorageEnabled(true);

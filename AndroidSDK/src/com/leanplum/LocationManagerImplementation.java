@@ -36,6 +36,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.Geofence.Builder;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -264,6 +265,9 @@ class LocationManagerImplementation implements
     }
   }
 
+  // Suppressing missing permission warning which since it is up to client to add location
+  // permission to their manifest.
+  @SuppressWarnings("MissingPermission")
   private void updateTrackedGeofences() {
     if (allGeofences == null || googleApiClient == null || !googleApiClient.isConnected()) {
       return;
@@ -282,8 +286,11 @@ class LocationManagerImplementation implements
     }
     trackedGeofenceIds = new ArrayList<>();
     if (toBeTrackedGeofences != null && toBeTrackedGeofences.size() > 0) {
-      LocationServices.GeofencingApi.addGeofences(
-          googleApiClient, toBeTrackedGeofences, getTransitionPendingIntent());
+      GeofencingRequest request = new GeofencingRequest.Builder()
+          .addGeofences(toBeTrackedGeofences)
+          .build();
+      LocationServices.GeofencingApi.addGeofences(googleApiClient,
+          request, getTransitionPendingIntent());
       for (Geofence geofence : toBeTrackedGeofences) {
         trackedGeofenceIds.add(geofence.getRequestId());
         //TODO: stateBeforeBackground doesn't get persisted.
@@ -432,6 +439,9 @@ class LocationManagerImplementation implements
   /**
    * Request location for user location update if googleApiClient is connected.
    */
+  // Suppressing missing permission warning which since it is up to client to add location
+  // permission to their manifest.
+  @SuppressWarnings("MissingPermission")
   private void requestLocation() {
     if (!Leanplum.isLocationCollectionEnabled() || googleApiClient == null
         || !googleApiClient.isConnected()) {
