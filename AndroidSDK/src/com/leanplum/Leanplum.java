@@ -736,21 +736,23 @@ public class Leanplum {
               Log.d("No variants received from the server.");
             }
 
-            // Get notification channels and groups.
-            JSONArray notificationChannels = response.optJSONArray(
-                Constants.Keys.NOTIFICATION_CHANNELS);
-            JSONArray notificationGroups = response.optJSONArray(
-                Constants.Keys.NOTIFICATION_GROUPS);
-            String defaultNotificationChannel = response.optString(
-                Constants.Keys.DEFAULT_NOTIFICATION_CHANNEL);
+            if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
+              // Get notification channels and groups.
+              JSONArray notificationChannels = response.optJSONArray(
+                  Constants.Keys.NOTIFICATION_CHANNELS);
+              JSONArray notificationGroups = response.optJSONArray(
+                  Constants.Keys.NOTIFICATION_GROUPS);
+              String defaultNotificationChannel = response.optString(
+                  Constants.Keys.DEFAULT_NOTIFICATION_CHANNEL);
 
-            // Configure notification channels and groups
-            LeanplumNotificationChannel.configureNotificationGroups(
-                context, notificationGroups);
-            LeanplumNotificationChannel.configureNotificationChannels(
-                context, notificationChannels);
-            LeanplumNotificationChannel.configureDefaultNotificationChannel(
-                context, defaultNotificationChannel);
+              // Configure notification channels and groups
+              LeanplumNotificationChannel.configureNotificationGroups(
+                  context, notificationGroups);
+              LeanplumNotificationChannel.configureNotificationChannels(
+                  context, notificationChannels);
+              LeanplumNotificationChannel.configureDefaultNotificationChannel(
+                  context, defaultNotificationChannel);
+            }
 
             String token = response.optString(Constants.Keys.TOKEN, null);
             Request.setToken(token);
