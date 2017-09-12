@@ -55,6 +55,7 @@ public class MessageTemplates {
     static final String BACKGROUND_COLOR = "Background color";
     static final String LAYOUT_WIDTH = "Layout.Width";
     static final String LAYOUT_HEIGHT = "Layout.Height";
+    static final String HTML_WIDTH = "HTML Width";
     static final String HTML_HEIGHT = "HTML Height";
     static final String HTML_ALIGN = "HTML Align";
     static final String HTML_ALIGN_TOP = "Top";
