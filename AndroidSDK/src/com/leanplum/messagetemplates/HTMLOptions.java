@@ -52,6 +52,8 @@ class HTMLOptions {
   private ActionContext actionContext;
   private String htmlAlign;
   private int htmlHeight;
+  private int htmlWidth;
+  private String htmlWidthType;
 
   HTMLOptions(ActionContext context) {
     this.setActionContext(context);
@@ -63,6 +65,7 @@ class HTMLOptions {
     this.setTrackActionUrl(context.stringNamed(MessageTemplates.Args.TRACK_ACTION_URL));
     this.setHtmlAlign(context.stringNamed(MessageTemplates.Args.HTML_ALIGN));
     this.setHtmlHeight(context.numberNamed(MessageTemplates.Args.HTML_HEIGHT).intValue());
+    this.setHtmlWidth(context.stringNamed(MessageTemplates.Args.HTML_WIDTH));
   }
 
   /**
@@ -191,6 +194,27 @@ class HTMLOptions {
 
   int getHtmlHeight() {
     return htmlHeight;
+  }
+
+  int getHtmlWidth() {
+    return htmlWidth;
+  }
+
+  String getHtmlWidthType() {
+    return htmlWidthType;
+  }
+
+  private void setHtmlWidth(String htmlWidth) {
+    if (TextUtils.isEmpty(htmlWidth)) {
+      return;
+    }
+    if (htmlWidth.contains("px")) {
+      this.htmlWidth = Integer.parseInt(htmlWidth.split("px")[0]);
+      this.htmlWidthType = "px";
+    } else if (htmlWidth.contains("%")) {
+      this.htmlWidth = Integer.parseInt(htmlWidth.split("%")[0]);
+      this.htmlWidthType = "%";
+    }
   }
 
   private void setHtmlHeight(int htmlHeight) {

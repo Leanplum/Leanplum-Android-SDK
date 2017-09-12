@@ -243,10 +243,25 @@ public class BaseMessageDialog extends Dialog {
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else if (isHtml) {
       int height = SizeUtil.dpToPx(context, htmlOptions.getHtmlHeight());
-      layoutParams = new RelativeLayout.LayoutParams(
-          LayoutParams.MATCH_PARENT, height);
+      String widthType = htmlOptions.getHtmlWidthType();
+      if (TextUtils.isEmpty(widthType)) {
+        layoutParams = new RelativeLayout.LayoutParams(
+            LayoutParams.MATCH_PARENT, height);
+      } else {
+        int width = htmlOptions.getHtmlWidth();
+        if ("%".equals(widthType)) {
+          Display display = context.getWindowManager().getDefaultDisplay();
+          Point size = new Point();
+          display.getSize(size);
+          width = size.x * width / 100;
+        } else {
+          width = SizeUtil.dpToPx(context, width);
+        }
+        layoutParams = new RelativeLayout.LayoutParams(
+            width, height);
+      }
+      layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
     } else {
-
       // Make sure the dialog fits on screen.
       Display display = context.getWindowManager().getDefaultDisplay();
       Point size = new Point();
@@ -268,7 +283,9 @@ public class BaseMessageDialog extends Dialog {
 
       layoutParams = new RelativeLayout.LayoutParams(width, height);
       layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+
     }
+
 
     view.setLayoutParams(layoutParams);
 
