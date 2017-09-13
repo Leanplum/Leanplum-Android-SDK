@@ -52,6 +52,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
@@ -736,7 +737,7 @@ public class Leanplum {
               Log.d("No variants received from the server.");
             }
 
-            if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
+            if (BuildUtil.isNotificationChannelSupported(context)) {
               // Get notification channels and groups.
               JSONArray notificationChannels = response.optJSONArray(
                   Constants.Keys.NOTIFICATION_CHANNELS);
@@ -821,7 +822,7 @@ public class Leanplum {
                     try {
                       NotificationCompat.Builder builder =
                           LeanplumNotificationHelper.getDefaultNotificationBuilder(context,
-                              LeanplumNotificationChannel.isNotificationChannelSupported(context));
+                              BuildUtil.isNotificationChannelSupported(context));
                       if (builder == null) {
                         return;
                       }

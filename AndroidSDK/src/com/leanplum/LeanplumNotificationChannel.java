@@ -28,7 +28,6 @@ import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.leanplum.internal.CollectionUtil;
@@ -36,11 +35,11 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
+import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -54,7 +53,6 @@ import java.util.Map;
  */
 @TargetApi(26)
 class LeanplumNotificationChannel {
-  private static int targetSdk = -1;
 
   /**
    * Configures notification channels.
@@ -359,7 +357,7 @@ class LeanplumNotificationChannel {
     if (context == null || TextUtils.isEmpty(channelId)) {
       return;
     }
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
         NotificationManager notificationManager =
             context.getSystemService(NotificationManager.class);
@@ -408,7 +406,7 @@ class LeanplumNotificationChannel {
     if (context == null) {
       return;
     }
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
         NotificationManager notificationManager =
             (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -451,7 +449,7 @@ class LeanplumNotificationChannel {
     if (context == null || TextUtils.isEmpty(groupId)) {
       return;
     }
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
         NotificationManager notificationManager =
             (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -478,7 +476,7 @@ class LeanplumNotificationChannel {
     if (context == null || TextUtils.isEmpty(groupId)) {
       return;
     }
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
         NotificationManager notificationManager =
             (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -501,7 +499,7 @@ class LeanplumNotificationChannel {
    * @return Returns all notification channels belonging to the calling package.
    */
   static List<NotificationChannel> getNotificationChannels(Context context) {
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       NotificationManager notificationManager =
           (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
       if (notificationManager == null) {
@@ -520,7 +518,7 @@ class LeanplumNotificationChannel {
    * @return Id of default notification channel.
    */
   static String getDefaultNotificationChannelId(Context context) {
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       return retrieveDefaultNotificationChannel(context);
     }
     return null;
@@ -533,7 +531,7 @@ class LeanplumNotificationChannel {
    * @return Returns all notification groups.
    */
   static List<NotificationChannelGroup> getNotificationGroups(Context context) {
-    if (isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       NotificationManager notificationManager = (NotificationManager) context.getSystemService(
           Context.NOTIFICATION_SERVICE);
       if (notificationManager == null) {
@@ -543,29 +541,6 @@ class LeanplumNotificationChannel {
       return notificationManager.getNotificationChannelGroups();
     }
     return null;
-  }
-
-  /**
-   * Whether notification channels are supported.
-   *
-   * @param context The application context.
-   * @return True if notification channels are supported, false otherwise.
-   */
-  static boolean isNotificationChannelSupported(Context context) {
-    return Build.VERSION.SDK_INT >= 26 && getTargetSdkVersion(context) >= 26;
-  }
-
-  /**
-   * Returns target SDK version parsed from manifest.
-   *
-   * @param context The application context.
-   * @return Target SDK version.
-   */
-  private static int getTargetSdkVersion(Context context) {
-    if (targetSdk == -1 && context != null) {
-      targetSdk = context.getApplicationInfo().targetSdkVersion;
-    }
-    return targetSdk;
   }
 
   /**
