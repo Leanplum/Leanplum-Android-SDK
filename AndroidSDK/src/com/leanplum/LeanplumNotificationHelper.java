@@ -27,6 +27,7 @@ import android.text.TextUtils;
 
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
+import com.leanplum.utils.BuildUtil;
 
 import java.util.Map;
 
@@ -78,7 +79,7 @@ class LeanplumNotificationHelper {
   static NotificationCompat.Builder getNotificationBuilder(Context context, Bundle message) {
     NotificationCompat.Builder builder = null;
     // If we are targeting API 26, try to find supplied channel to post notification.
-    if (LeanplumNotificationChannel.isNotificationChannelSupported(context)) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
         String channel = message.getString("lp_channel");
         if (!TextUtils.isEmpty(channel)) {
