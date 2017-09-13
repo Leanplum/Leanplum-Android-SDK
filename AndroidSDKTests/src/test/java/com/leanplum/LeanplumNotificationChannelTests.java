@@ -24,6 +24,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 
 import com.leanplum.__setup.AbstractTest;
+import com.leanplum.utils.BuildUtil;
 
 import org.json.JSONArray;
 import org.junit.Test;
@@ -45,7 +46,8 @@ import static org.powermock.api.mockito.PowerMockito.spy;
     sdk = 26
 )
 @PrepareForTest(value = {
-    LeanplumNotificationChannel.class
+    LeanplumNotificationChannel.class,
+    BuildUtil.class
 })
 /**
  * Notifiction channels tests
@@ -62,7 +64,8 @@ public class LeanplumNotificationChannelTests extends AbstractTest {
   public void before() throws Exception {
     super.before();
     spy(LeanplumNotificationChannel.class);
-    doReturn(26).when(LeanplumNotificationChannel.class, "getTargetSdkVersion", Matchers.anyObject());
+    spy(BuildUtil.class);
+    doReturn(26).when(BuildUtil.class, "getTargetSdkVersion", Matchers.anyObject());
   }
 
   @Test
