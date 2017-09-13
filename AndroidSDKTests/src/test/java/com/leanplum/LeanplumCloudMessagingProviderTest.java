@@ -102,12 +102,12 @@ public class LeanplumCloudMessagingProviderTest {
       }
 
       @Override
-      public boolean isManifestSetUp() {
+      public boolean isInitialized() {
         return false;
       }
 
       @Override
-      public boolean isInitialized() {
+      public boolean isManifestSetup() {
         return false;
       }
 
