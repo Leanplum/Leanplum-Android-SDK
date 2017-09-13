@@ -140,14 +140,14 @@ public class LeanplumPushServiceTest {
     when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
 
     // Test if Manifest is not set up and provider is initialized.
-    doReturn(false).when(fcmProviderMock).isManifestSetUp();
+    doReturn(false).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(0)).invoke("registerInBackground");
 
     // Test if Manifest is set up and provider is initialized.
-    doReturn(true).when(fcmProviderMock).isManifestSetUp();
+    doReturn(true).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
@@ -157,21 +157,21 @@ public class LeanplumPushServiceTest {
     when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
 
     // Test if Manifest is not set up and provider is initialized.
-    doReturn(false).when(gcmProviderMock).isManifestSetUp();
+    doReturn(false).when(gcmProviderMock).isManifestSetup();
     doReturn(true).when(gcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
 
     // Test if Manifest is set up and provider not initialized.
-    doReturn(true).when(gcmProviderMock).isManifestSetUp();
+    doReturn(true).when(gcmProviderMock).isManifestSetup();
     doReturn(false).when(gcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
 
     // Test if Manifest is set up and provider is initialized.
-    doReturn(true).when(gcmProviderMock).isManifestSetUp();
+    doReturn(true).when(gcmProviderMock).isManifestSetup();
     doReturn(true).when(gcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
@@ -343,14 +343,14 @@ public class LeanplumPushServiceTest {
 
     LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
     whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);
-    doReturn(true).when(gcmProviderMock).isManifestSetUp();
+    doReturn(true).when(gcmProviderMock).isManifestSetup();
     doReturn(true).when(gcmProviderMock).isInitialized();
 
     LeanplumPushService.onStart();
 
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
-    doReturn(true).when(fcmProviderMock).isManifestSetUp();
+    doReturn(true).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
 
     PowerMockito.doReturn(true).when(LeanplumPushService.class, "isFirebaseEnabled");
