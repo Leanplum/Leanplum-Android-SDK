@@ -297,6 +297,10 @@ public class Socket {
    * Apply variables passed in from applyVars endpoint.
    */
   static void handleApplyVarsEvent(JSONArray args) {
+    if (args == null) {
+      return;
+    }
+
     try {
       JSONObject object = args.getJSONObject(0);
       if (object == null) {
