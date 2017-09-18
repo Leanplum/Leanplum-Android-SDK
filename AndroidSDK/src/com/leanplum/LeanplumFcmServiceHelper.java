@@ -32,7 +32,7 @@ import android.support.annotation.Nullable;
  * @deprecated {@link LeanplumFcmServiceHelper} will be made private in future releases, since it is
  * not intended to be public API.
  */
-class LeanplumFcmServiceHelper extends IntentService {
+public class LeanplumFcmServiceHelper extends IntentService {
   public LeanplumFcmServiceHelper() {
     super("LeanplumFcmServiceHelper");
   }
