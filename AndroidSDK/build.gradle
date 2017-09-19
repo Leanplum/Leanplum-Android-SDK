@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 
 def COMPILE_SDK_VERSION=26
 def BUILD_TOOLS_VERSION='26.0.1'
-def SUPPORT_LIBRARY_VERSION='26.0.2'
+def SUPPORT_LIBRARY_VERSION='26.1.0'
 
 allprojects {
     gradle.projectsEvaluated {
