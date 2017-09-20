@@ -232,6 +232,25 @@ public class BaseMessageDialog extends Dialog {
     return closeButton;
   }
 
+  /**
+   * Gets the size of display in pixels.
+   *
+   * @param context Current activity.
+   * @return A Point object with display size information.
+   */
+  private Point getDisplaySize(Activity context) {
+    Point size = new Point();
+    if (context == null) {
+      return size;
+    }
+    try {
+      Display display = context.getWindowManager().getDefaultDisplay();
+      display.getSize(size);
+    } catch (Throwable ignored) {
+    }
+    return size;
+  }
+
   @SuppressWarnings("deprecation")
   private RelativeLayout createContainerView(Activity context, boolean fullscreen) {
     RelativeLayout view = new RelativeLayout(context);
@@ -243,29 +262,40 @@ public class BaseMessageDialog extends Dialog {
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else if (isHtml) {
       int height = SizeUtil.dpToPx(context, htmlOptions.getHtmlHeight());
-      String widthType = htmlOptions.getHtmlWidthType();
-      if (TextUtils.isEmpty(widthType)) {
+      HTMLOptions.Size htmlWidth = htmlOptions.getHtmlWidth();
+      if (htmlWidth == null || TextUtils.isEmpty(htmlWidth.type)) {
         layoutParams = new RelativeLayout.LayoutParams(
             LayoutParams.MATCH_PARENT, height);
       } else {
-        int width = htmlOptions.getHtmlWidth();
-        if ("%".equals(widthType)) {
-          Display display = context.getWindowManager().getDefaultDisplay();
-          Point size = new Point();
-          display.getSize(size);
+        int width = htmlWidth.value;
+        if ("%".equals(htmlWidth.type)) {
+          Point size = getDisplaySize(context);
           width = size.x * width / 100;
         } else {
           width = SizeUtil.dpToPx(context, width);
         }
-        layoutParams = new RelativeLayout.LayoutParams(
-            width, height);
+        layoutParams = new RelativeLayout.LayoutParams(width, height);
       }
+
       layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+      HTMLOptions.Size offset = htmlOptions.getHtmlYOffset();
+      if (offset != null && !TextUtils.isEmpty(offset.type)) {
+        int htmlYOffset = offset.value;
+        if ("%".equals(offset.type)) {
+          Point size = getDisplaySize(context);
+          htmlYOffset = (size.y - SizeUtil.getStatusBarHeight(context)) * htmlYOffset / 100;
+        } else {
+          htmlYOffset = SizeUtil.dpToPx(context, htmlYOffset);
+        }
+        if ("Top".equals(htmlOptions.getHtmlAlign())) {
+          layoutParams.topMargin = htmlYOffset;
+        } else {
+          layoutParams.bottomMargin = htmlYOffset;
+        }
+      }
     } else {
       // Make sure the dialog fits on screen.
-      Display display = context.getWindowManager().getDefaultDisplay();
-      Point size = new Point();
-      display.getSize(size);
+      Point size = getDisplaySize(context);
       int width = SizeUtil.dpToPx(context, ((CenterPopupOptions) options).getWidth());
       int height = SizeUtil.dpToPx(context, ((CenterPopupOptions) options).getHeight());
 
@@ -283,9 +313,7 @@ public class BaseMessageDialog extends Dialog {
 
       layoutParams = new RelativeLayout.LayoutParams(width, height);
       layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-
     }
-
 
     view.setLayoutParams(layoutParams);
 
