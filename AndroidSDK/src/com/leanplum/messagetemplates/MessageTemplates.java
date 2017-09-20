@@ -57,6 +57,7 @@ public class MessageTemplates {
     static final String LAYOUT_HEIGHT = "Layout.Height";
     static final String HTML_WIDTH = "HTML Width";
     static final String HTML_HEIGHT = "HTML Height";
+    static final String HTML_Y_OFFSET = "HTML Y Offset";
     static final String HTML_ALIGN = "HTML Align";
     static final String HTML_ALIGN_TOP = "Top";
     static final String HTML_ALIGN_BOTTOM = "Bottom";
