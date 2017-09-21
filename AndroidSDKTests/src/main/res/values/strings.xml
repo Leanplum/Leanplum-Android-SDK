@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World!</string>
+    <string name="app_name">Android SDK Tests</string>
+    <string name="not_available_short">n/a</string>
+    <string name="switch_text">Play with the Switch</string>
+    <string name="unread_count"><![CDATA[<unread count>]]></string>
+    <string name="unread_newsfeed">Unread Newsfeed#:</string>
+    <string name="change_attribute">Change Attribute</string>
+    <string name="attribute_value">Attribute value</string>
+    <string name="attribute_name">Attribute name</string>
+    <string name="cancel">Cancel</string>
+    <string name="button_schedule">Schedule</string>
+    <string name="button_open_dialog">Open Dialog</string>
+    <string name="button_open_inbox">Open Inbox</string>
+    <string name="test_image">test image</string>
+    <string name="button_back">Back</string>
+    <string name="label_no_data">No data</string>
+    <string name="label_no_news">No News Available</string>
+    <string name="fragment">Fragment:</string>
+    <string name="splash_screen_text">Welcome to the Leanplum Android SDK Test App</string>
+    <string name="imageView">ImageView</string>
+    <string name="button_open_newsfeed_list">Show Newsfeed (List)</string>
+    <string name="button_open_newsfeed_grid">Show Newsfeed (Grid)</string>
+    <string name="button_open_newsfeed_recycler">Show Newsfeed (Recycler)</string>
+    <string name="show_newsfeed_list">Show Newsfeed (List)</string>
+    <string name="show_newsfeed_grid">Show Newsfeed (Grid)</string>
+    <string name="show_newsfeed_recycler">Show Newsfeed (Recycler)</string>
+</resources>

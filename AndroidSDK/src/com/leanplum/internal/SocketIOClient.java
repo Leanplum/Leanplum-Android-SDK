@@ -44,6 +44,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+// Suppressing deprecated apache dependency.
+@SuppressWarnings("deprecation")
 class SocketIOClient {
   interface Handler {
     void onConnect();

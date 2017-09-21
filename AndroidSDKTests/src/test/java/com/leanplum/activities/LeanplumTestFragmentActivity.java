@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, Leanplum, Inc. All rights reserved.
+ * Copyright 2016, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,19 +18,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package com.leanplum.activities;
 
-package com.leanplum.callbacks;
+import android.annotation.SuppressLint;
 
 /**
- * Newsfeed changed callback.
- *
- * @author Aleksandar Gyorev
+ * @author Milos Jakovljevic
  */
-public abstract class NewsfeedChangedCallback extends InboxChangedCallback {
-  @Override
-  public void inboxChanged() {
-    newsfeedChanged();
-  }
-
-  public abstract void newsfeedChanged();
+@SuppressLint("Registered")
+public class LeanplumTestFragmentActivity extends LeanplumFragmentActivity {
 }

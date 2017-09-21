@@ -24,6 +24,7 @@ package com.leanplum;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.BaseActionContext;
 import com.leanplum.internal.CollectionUtil;
@@ -225,7 +226,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     }
   }
 
-  private String fillTemplate(String value) {
+  public String fillTemplate(String value) {
     if (contextualValues == null || value == null || !value.contains("##")) {
       return value;
     }
@@ -365,7 +366,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       // Try to start action "Chain to a new Message".
       Object messageAction = args.get(Constants.Values.ACTION_ARG);
       if (messageAction != null) {
-        createActionContextForMessageId(messageAction.toString(), args, messageId, name);
+        createActionContextForMessageId(messageAction.toString(), args, messageId, name, false);
       }
     }
   }
@@ -374,16 +375,29 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
    * Return true if here was an action for this message and we started it.
    */
   private boolean createActionContextForMessageId(String messageAction, Map<String, Object>
-      messageArgs, String messageId, String name) {
+      messageArgs, String messageId, String name, Boolean chained) {
     try {
-      ActionContext actionContext = new ActionContext(messageAction,
+      final ActionContext actionContext = new ActionContext(messageAction,
           messageArgs, messageId);
       actionContext.contextualValues = contextualValues;
       actionContext.preventRealtimeUpdating = preventRealtimeUpdating;
       actionContext.isRooted = isRooted;
-      actionContext.parentContext = this;
       actionContext.key = name;
-      LeanplumInternal.triggerAction(actionContext);
+      if (chained) {
+        LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
+          @Override
+          public void variablesChanged() {
+            try {
+              ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
+            } catch (Throwable t) {
+              Util.handleException(t);
+            }
+          }
+        });
+      } else {
+        actionContext.parentContext = this;
+        LeanplumInternal.triggerAction(actionContext);
+      }
       return true;
     } catch (Throwable t) {
       Util.handleException(t);
@@ -410,7 +424,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
               message.get(Constants.Keys.VARS));
           Object messageAction = message.get("action");
           return messageAction != null && createActionContextForMessageId(messageAction.toString(),
-              messageArgs, messageId, name);
+              messageArgs, messageId, name, true);
         }
       }
     }

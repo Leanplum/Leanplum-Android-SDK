@@ -143,7 +143,7 @@ public class BaseMessageDialog extends Dialog {
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     try {
-      if (webView != null && Build.VERSION.SDK_INT >= 11) {
+      if (webView != null) {
         if (hasFocus) {
           webView.onResume();
         } else {
@@ -250,12 +250,7 @@ public class BaseMessageDialog extends Dialog {
       // Make sure the dialog fits on screen.
       Display display = context.getWindowManager().getDefaultDisplay();
       Point size = new Point();
-      if (Build.VERSION.SDK_INT >= 13) {
-        display.getSize(size);
-      } else {
-        size = new Point(display.getHeight(), display.getHeight());
-      }
-
+      display.getSize(size);
       int width = SizeUtil.dpToPx(context, ((CenterPopupOptions) options).getWidth());
       int height = SizeUtil.dpToPx(context, ((CenterPopupOptions) options).getHeight());
 
@@ -321,6 +316,7 @@ public class BaseMessageDialog extends Dialog {
     return new RoundRectShape(outerRadii, null, null);
   }
 
+  // setBackgroundDrawable was deprecated at API 16.
   @SuppressWarnings("deprecation")
   private ImageView createBackgroundImageView(Context context, boolean fullscreen) {
     BackgroundImageView view = new BackgroundImageView(context, fullscreen);
@@ -445,7 +441,6 @@ public class BaseMessageDialog extends Dialog {
       webViewSettings.setMediaPlaybackRequiresUserGesture(false);
     }
     webViewSettings.setAppCacheEnabled(true);
-    webViewSettings.getSaveFormData();
     webViewSettings.setAllowFileAccess(true);
     webViewSettings.setJavaScriptEnabled(true);
     webViewSettings.setDomStorageEnabled(true);
@@ -457,10 +452,9 @@ public class BaseMessageDialog extends Dialog {
       webViewSettings.setAllowFileAccessFromFileURLs(true);
       webViewSettings.setAllowUniversalAccessFromFileURLs(true);
     }
-    if (Build.VERSION.SDK_INT >= 11) {
-      webViewSettings.setBuiltInZoomControls(false);
-      webViewSettings.setDisplayZoomControls(false);
-    }
+
+    webViewSettings.setBuiltInZoomControls(false);
+    webViewSettings.setDisplayZoomControls(false);
     webViewSettings.setSupportZoom(false);
 
     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
@@ -469,6 +463,7 @@ public class BaseMessageDialog extends Dialog {
     final Dialog currentDialog = this;
     webView.setWebChromeClient(new WebChromeClient());
     webView.setWebViewClient(new WebViewClient() {
+      // shouldOverrideUrlLoading(WebView wView, String url) was deprecated at API 24.
       @SuppressWarnings("deprecation")
       @Override
       public boolean shouldOverrideUrlLoading(WebView wView, String url) {

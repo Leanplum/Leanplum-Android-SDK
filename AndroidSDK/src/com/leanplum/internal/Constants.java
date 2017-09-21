@@ -29,17 +29,17 @@ import com.leanplum.BuildConfig;
  * @author Andrew First.
  */
 public class Constants {
-  public static String API_HOST_NAME = "www.leanplum.com";
+  public static String API_HOST_NAME = "api.leanplum.com";
+  public static String API_SERVLET = "api";
+  public static boolean API_SSL = true;
   public static String SOCKET_HOST = "dev.leanplum.com";
   public static int SOCKET_PORT = 80;
-  public static boolean API_SSL = true;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
-  static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
-
-  public static String LEANPLUM_VERSION = "2.2.3";
+  public static String LEANPLUM_VERSION = "3.0.0";
   public static String CLIENT = "android";
 
+  static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";
   static final String INVALID_MAC_ADDRESS_HASH = "0f607264fc6318a92b9e13c65db7cd3c";
 
@@ -66,11 +66,11 @@ public class Constants {
     return isTestMode || isInPermanentFailureState;
   }
 
-  public static String API_SERVLET = "api";
-
   public static class Defaults {
+    public static final String LEANPLUM = "__leanplum__";
     public static final String COUNT_KEY = "__leanplum_unsynced";
     public static final String ITEM_KEY = "__leanplum_unsynced_%d";
+    public static final String UUID_KEY = "__leanplum_uuid";
     public static final String VARIABLES_KEY = "__leanplum_variables";
     public static final String ATTRIBUTES_KEY = "__leanplum_attributes";
     public static final String TOKEN_KEY = "__leanplum_token";
@@ -89,6 +89,9 @@ public class Constants {
     public static final String APP_ID = "__app_id";
     public static final String PROPERTY_REGISTRATION_ID = "registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
+    public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
+    public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";
+    public static final String NOTIFICATION_GROUPS_KEY = "__leanplum_notification_groups";
   }
 
   public static class Methods {
@@ -210,6 +213,9 @@ public class Constants {
     public static final String VARIANTS = "variants";
     public static final String VARS = "vars";
     public static final String VARS_FROM_CODE = "varsFromCode";
+    public static final String NOTIFICATION_CHANNELS = "notificationChannels";
+    public static final String DEFAULT_NOTIFICATION_CHANNEL = "defaultNotificationChannel";
+    public static final String NOTIFICATION_GROUPS = "notificationChannelGroups";
   }
 
   public static class Kinds {

@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+
+def COMPILE_SDK_VERSION=26
+def BUILD_TOOLS_VERSION='26.0.1'
+def SUPPORT_LIBRARY_VERSION='26.0.2'
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion "${BUILD_TOOLS_VERSION}"
+
+    defaultConfig {
+        applicationId "com.leanplum.tests"
+        minSdkVersion 14
+        targetSdkVersion COMPILE_SDK_VERSION
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile project(path: ':AndroidSDK', configuration: 'debug')
+    compile "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
+    compile 'com.google.android.gms:play-services-gcm:11.0.4'
+    compile 'com.google.android.gms:play-services-location:11.0.4'
+
+    // Dependencies used for unit tests.
+    testCompile 'junit:junit:4.12'
+    testCompile('org.robolectric:robolectric:3.4.2') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    }
+    testCompile 'org.robolectric:shadows-play-services:3.3.2'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.6'
+    testCompile 'org.powermock:powermock-module-junit4-rule:1.6.6'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.6'
+    testCompile 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testCompile 'org.bouncycastle:bcmail-jdk15on:1.54'
+}
+
+task jarTests(type: Jar, dependsOn: "assembleDebugUnitTest") {
+    classifier = 'tests'
+    from "$buildDir/intermediates/classes/test/debug"
+}
+configurations {
+    unitTestArtifact
+}
+artifacts {
+    unitTestArtifact jarTests
+}
