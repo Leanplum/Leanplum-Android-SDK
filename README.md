@@ -1,8 +1,15 @@
 ![Leanplum](Leanplum.svg)
 
 <p align="center">
-<img src='https://jenkins.leanplum.com/buildStatus/icon?job=android-sdk'></a>
-<a href="https://raw.githubusercontent.com/Leanplum/Leanplum-iOS-SDK/master/LICENSE"><img src="https://img.shields.io/badge/license-apache%202.0-blue.svg?style=flat" alt="License: Apache 2.0" /></a>
+    <img src='https://img.shields.io/badge/branch-master-blue.svg'>
+    <img src='https://jenkins.leanplum.com/buildStatus/icon?job=android-sdk-master' alt="Build status">
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <img src='https://img.shields.io/badge/branch-develop-red.svg'>
+    <img src='https://jenkins.leanplum.com/buildStatus/icon?job=android-sdk-develop' alt="Build status">
+</p>
+<p align="center">
+    <a href="https://github.com/Leanplum/Leanplum-Android-SDK/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-apache%202.0-blue.svg?style=flat" alt="License: Apache 2.0" /></a> 
 </p>
 
 ## Installation & Usage
