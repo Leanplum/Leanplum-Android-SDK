@@ -21,12 +21,15 @@
 
 package com.leanplum.messagetemplates;
 
+import android.app.Activity;
+import android.graphics.Point;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
+import com.leanplum.utils.SizeUtil;
 
 import org.json.JSONException;
 
@@ -54,6 +57,7 @@ class HTMLOptions {
   private int htmlHeight;
   private Size htmlWidth;
   private Size htmlYOffset;
+  private boolean htmlTabOutsideToClose;
 
   HTMLOptions(ActionContext context) {
     this.setActionContext(context);
@@ -67,6 +71,8 @@ class HTMLOptions {
     this.setHtmlHeight(context.numberNamed(MessageTemplates.Args.HTML_HEIGHT).intValue());
     this.setHtmlWidth(context.stringNamed(MessageTemplates.Args.HTML_WIDTH));
     this.setHtmlYOffset(context.stringNamed(MessageTemplates.Args.HTML_Y_OFFSET));
+    this.setHtmlTabOutsideToClose(context.booleanNamed(
+        MessageTemplates.Args.HTML_TAP_OUTSIDE_TO_CLOSE));
   }
 
   /**
@@ -206,8 +212,23 @@ class HTMLOptions {
     this.htmlWidth = getSizeValueAndType(htmlWidth);
   }
 
-  Size getHtmlYOffset() {
-    return htmlYOffset;
+  //Gets html y offset in pixels.
+  int getHtmlYOffset(Activity context) {
+    int yOffset = 0;
+    if (context == null) {
+      return yOffset;
+    }
+
+    if (htmlYOffset != null && !TextUtils.isEmpty(htmlYOffset.type)) {
+      yOffset = htmlYOffset.value;
+      if ("%".equals(htmlYOffset.type)) {
+        Point size = SizeUtil.getDisplaySize(context);
+        yOffset = (size.y - SizeUtil.getStatusBarHeight(context)) * yOffset / 100;
+      } else {
+        yOffset = SizeUtil.dpToPx(context, yOffset);
+      }
+    }
+    return yOffset;
   }
 
   private void setHtmlYOffset(String htmlYOffset) {
@@ -234,6 +255,14 @@ class HTMLOptions {
       out.type = "%";
     }
     return out;
+  }
+
+  boolean isHtmlTabOutsideToClose() {
+    return htmlTabOutsideToClose;
+  }
+
+  private void setHtmlTabOutsideToClose(boolean htmlTabOutsideToClose) {
+    this.htmlTabOutsideToClose = htmlTabOutsideToClose;
   }
 
   private void setHtmlHeight(int htmlHeight) {
