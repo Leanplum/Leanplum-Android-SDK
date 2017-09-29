@@ -26,6 +26,7 @@ import android.text.TextUtils;
 
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
@@ -110,11 +111,10 @@ public class LeanplumInboxMessage {
   public JSONObject getData() {
     JSONObject object = null;
     try {
-      String dataString = getContext().stringNamed(Constants.Keys.DATA);
-      if (!TextUtils.isEmpty(dataString)) {
-        object = new JSONObject(dataString);
-      }
-    } catch (Exception e) {
+      Map<String, ?> mapData =
+          CollectionUtil.uncheckedCast(getContext().objectNamed(Constants.Keys.DATA));
+      object = JsonConverter.mapToJsonObject(mapData);
+    } catch (Throwable t) {
       Log.w("Unable to parse JSONObject for Data field of inbox message.");
     }
     return object;
@@ -126,7 +126,6 @@ public class LeanplumInboxMessage {
   public String getMessageId() {
     return messageId;
   }
-
 
   /**
    * Returns the title of the inbox message.
@@ -293,5 +292,4 @@ public class LeanplumInboxMessage {
   private void setIsRead(boolean isRead) {
     this.isRead = isRead;
   }
-
 }
