@@ -103,8 +103,8 @@ public class Request {
   }
 
   public static void setAppId(String appId, String accessKey) {
-    Request.appId = appId;
-    Request.accessKey = accessKey;
+    Request.appId = appId.trim();
+    Request.accessKey = accessKey.trim();
   }
 
   public static void setDeviceId(String deviceId) {
