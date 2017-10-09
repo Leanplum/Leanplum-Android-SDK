@@ -20,6 +20,8 @@
  */
 package com.leanplum._whitebox;
 
+import android.content.res.Resources;
+
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum.__setup.LeanplumTestHelper;
@@ -28,9 +30,12 @@ import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.Registration;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
-import com.leanplum.tests.R;
+import com.leanplum.R;
 
 import org.junit.Test;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+
 
 /**
  * Tests the Utilities class.
@@ -133,7 +139,7 @@ public class UtilitiesTest extends AbstractTest {
     String invalidName = Util.generateResourceNameFromId(invalidResourceId);
     assertNull(invalidName);
 
-    int validResourceId = R.drawable.leanplum_watermark;
+    int validResourceId = R.drawable.test;
     String validName = Util.generateResourceNameFromId(validResourceId);
     assertNotNull(validName);
     assertEquals("drawable/leanplum_watermark.jpg", validName);

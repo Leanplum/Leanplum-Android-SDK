@@ -24,7 +24,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.leanplum.tests.R;
 
 /**
  * @author Milos Jakovljevic
@@ -35,6 +34,6 @@ public class InterfaceTestActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     setTheme(android.R.style.Theme);
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+//    setContentView(R.layout.);
   }
 }

@@ -29,7 +29,7 @@ import com.leanplum.callbacks.VariableCallback;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Socket;
 import com.leanplum.internal.VarCache;
-import com.leanplum.tests.BuildConfig;
+import com.leanplum.BuildConfig;
 
 import org.junit.Test;
 

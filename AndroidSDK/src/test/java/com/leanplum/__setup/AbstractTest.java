@@ -41,7 +41,7 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
-import com.leanplum.tests.BuildConfig;
+import com.leanplum.BuildConfig;
 
 import org.junit.After;
 import org.junit.Before;
@@ -80,7 +80,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     constants = BuildConfig.class,
     sdk = 16,
     application = LeanplumTestApp.class,
-    packageName = "com.leanplum.tests",
+    packageName = "com.leanplum",
     shadows = {
         ShadowLooper.class
     }

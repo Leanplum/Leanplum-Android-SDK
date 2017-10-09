@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AndroidSDK/AndroidSDK.iml" filepath="$PROJECT_DIR$/AndroidSDK/AndroidSDK.iml" />
-      <module fileurl="file://$PROJECT_DIR$/AndroidSDKTests/AndroidSDKTests.iml" filepath="$PROJECT_DIR$/AndroidSDKTests/AndroidSDKTests.iml" />
       <module fileurl="file://$PROJECT_DIR$/Leanplum-Android-SDK.iml" filepath="$PROJECT_DIR$/Leanplum-Android-SDK.iml" />
     </modules>
   </component>

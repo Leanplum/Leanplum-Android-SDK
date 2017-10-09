@@ -31,6 +31,20 @@ dependencies {
     provided('com.google.android.gms:play-services-location:[10.0.0,)') {
         exclude module: 'support-v4'
     }
+
+    // Dependencies used for unit tests.
+    testCompile 'junit:junit:4.12'
+    testCompile('org.robolectric:robolectric:3.4.2') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    }
+    testCompile 'org.robolectric:shadows-play-services:3.3.2'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.6'
+    testCompile 'org.powermock:powermock-module-junit4-rule:1.6.6'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.6'
+    testCompile 'org.powermock:powermock-classloading-xstream:1.6.6'
+    testCompile 'org.bouncycastle:bcmail-jdk15on:1.54'
 }
 
 android {
@@ -54,30 +68,6 @@ android {
                     '\"'
             it.buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
         }
-    }
-
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-        }
-
-        // Move the tests to tests/java, tests/res, etc...
-        instrumentTest.setRoot('tests')
-
-        // Move the build types to build-types/<type>
-        // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
-        // This moves them out of them default location under src/<type>/... which would
-        // conflict with src/ being used by the main source set.
-        // Adding new build types or product flavors should be accompanied
-        // by a similar customization.
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
     }
 }
 
