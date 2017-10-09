@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -103,8 +104,12 @@ public class Request {
   }
 
   public static void setAppId(String appId, String accessKey) {
-    Request.appId = appId.trim();
-    Request.accessKey = accessKey.trim();
+    if (!TextUtils.isEmpty(appId)) {
+      Request.appId = appId.trim();
+    }
+    if (!TextUtils.isEmpty(accessKey)) {
+      Request.accessKey = accessKey.trim();
+    }
   }
 
   public static void setDeviceId(String deviceId) {
