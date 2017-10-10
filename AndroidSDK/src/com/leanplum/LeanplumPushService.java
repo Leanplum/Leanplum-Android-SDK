@@ -304,7 +304,7 @@ public class LeanplumPushService {
       return;
     }
 
-    NotificationManager notificationManager = (NotificationManager)
+    final NotificationManager notificationManager = (NotificationManager)
         context.getSystemService(Context.NOTIFICATION_SERVICE);
 
     Intent intent = new Intent(context, LeanplumPushReceiver.class);
@@ -318,7 +318,7 @@ public class LeanplumPushService {
     if (message.getString("title") != null) {
       title = message.getString("title");
     }
-    NotificationCompat.Builder builder =
+    final NotificationCompat.Builder builder =
         LeanplumNotificationHelper.getNotificationBuilder(context, message);
 
     if (builder == null) {
@@ -383,7 +383,19 @@ public class LeanplumPushService {
     }
 
     try {
-      notificationManager.notify(notificationId, builder.build());
+      // Check if we have a chained message, and if it exists in var cache.
+      if (ActionContext.shouldForceContentUpdateForChainedMessage(
+              JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
+        final int currentNotificationId = notificationId;
+        Leanplum.forceContentUpdate(new VariablesChangedCallback() {
+          @Override
+          public void variablesChanged() {
+            notificationManager.notify(currentNotificationId, builder.build());
+          }
+        });
+      } else {
+        notificationManager.notify(notificationId, builder.build());
+      }
     } catch (NullPointerException e) {
       Log.e("Unable to show push notification.", e);
     } catch (Throwable t) {
