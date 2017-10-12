@@ -29,12 +29,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
+import android.util.TypedValue;
+import android.widget.RemoteViews;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -50,6 +53,7 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BitmapUtil;
+import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -299,7 +303,7 @@ public class LeanplumPushService {
   /**
    * Put the message into a notification and post it.
    */
-  private static void showNotification(Context context, Bundle message) {
+  private static void showNotification(Context context, final Bundle message) {
     if (context == null || message == null) {
       return;
     }
@@ -318,28 +322,34 @@ public class LeanplumPushService {
     if (message.getString("title") != null) {
       title = message.getString("title");
     }
-    final NotificationCompat.Builder builder =
-        LeanplumNotificationHelper.getNotificationBuilder(context, message);
+    final NotificationCompat.Builder notificationCompatBuilder =
+        LeanplumNotificationHelper.getNotificationCompatBuilder(context, message);
 
-    if (builder == null) {
+    if (notificationCompatBuilder == null) {
       return;
     }
-
-    builder.setSmallIcon(context.getApplicationInfo().icon)
+    final String messageText = message.getString(Keys.PUSH_MESSAGE_TEXT);
+    notificationCompatBuilder.setSmallIcon(context.getApplicationInfo().icon)
         .setContentTitle(title)
         .setStyle(new NotificationCompat.BigTextStyle()
-            .bigText(message.getString(Keys.PUSH_MESSAGE_TEXT)))
-        .setContentText(message.getString(Keys.PUSH_MESSAGE_TEXT));
+            .bigText(messageText))
+        .setContentText(messageText);
 
     String imageUrl = message.getString(Keys.PUSH_MESSAGE_IMAGE_URL);
+    Notification.Builder notificationBuilder = null;
     // BigPictureStyle support requires API 16 and higher.
     if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
       Bitmap bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
       if (bigPicture != null) {
-        builder.setStyle(new NotificationCompat.BigPictureStyle()
-            .bigPicture(bigPicture)
-            .setBigContentTitle(title)
-            .setSummaryText(message.getString(Keys.PUSH_MESSAGE_TEXT)));
+        if ((messageText != null && messageText.length() < 37) || customizer != null) {
+          notificationCompatBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+              .bigPicture(bigPicture)
+              .setBigContentTitle(title)
+              .setSummaryText(messageText));
+        } else {
+          notificationBuilder = getNotificationBuilder(context, message, contentIntent, title,
+              messageText, bigPicture);
+        }
       } else {
         Log.w(String.format("Image download failed for push notification with big picture. " +
             "No image will be included with the push notification. Image URL: %s.", imageUrl));
@@ -349,16 +359,16 @@ public class LeanplumPushService {
     // Try to put a notification on top of the notification area. This method was deprecated in API
     // level 26. For API level 26 and above we must use setImportance(int) for each notification
     // channel, not for each notification message.
-    if (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 26) {
+    if (Build.VERSION.SDK_INT >= 16 && !BuildUtil.isNotificationChannelSupported(context)) {
       //noinspection deprecation
-      builder.setPriority(Notification.PRIORITY_MAX);
+      notificationCompatBuilder.setPriority(Notification.PRIORITY_MAX);
     }
-    builder.setAutoCancel(true);
-    builder.setContentIntent(contentIntent);
+    notificationCompatBuilder.setAutoCancel(true);
+    notificationCompatBuilder.setContentIntent(contentIntent);
 
     if (LeanplumPushService.customizer != null) {
       try {
-        LeanplumPushService.customizer.customize(builder, message);
+        LeanplumPushService.customizer.customize(notificationCompatBuilder, message);
       } catch (Throwable t) {
         Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
         return;
@@ -385,16 +395,25 @@ public class LeanplumPushService {
     try {
       // Check if we have a chained message, and if it exists in var cache.
       if (ActionContext.shouldForceContentUpdateForChainedMessage(
-              JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
+          JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
         final int currentNotificationId = notificationId;
+        final Notification.Builder currentNotificationBuilder = notificationBuilder;
         Leanplum.forceContentUpdate(new VariablesChangedCallback() {
           @Override
           public void variablesChanged() {
-            notificationManager.notify(currentNotificationId, builder.build());
+            if (currentNotificationBuilder != null) {
+              notificationManager.notify(currentNotificationId, currentNotificationBuilder.build());
+            } else {
+              notificationManager.notify(currentNotificationId, notificationCompatBuilder.build());
+            }
           }
         });
       } else {
-        notificationManager.notify(notificationId, builder.build());
+        if (notificationBuilder != null) {
+          notificationManager.notify(notificationId, notificationBuilder.build());
+        } else {
+          notificationManager.notify(notificationId, notificationCompatBuilder.build());
+        }
       }
     } catch (NullPointerException e) {
       Log.e("Unable to show push notification.", e);
@@ -859,5 +878,72 @@ public class LeanplumPushService {
       }
     }
     return false;
+  }
+
+  /**
+   * Gets Notification.Builder with 2 lines at BigPictureStyle notification text.
+   *
+   * @param context The application context.
+   * @param message Push notification Bundle.
+   * @param contentIntent PendingIntent.
+   * @param title String with title for push notification.
+   * @param messageText String with text for push notification.
+   * @param bigPicture Bitmap for BigPictureStyle notification.
+   * @return Notification.Builder or null.
+   */
+  private static Notification.Builder getNotificationBuilder(Context context, Bundle message,
+      PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture) {
+    if (Build.VERSION.SDK_INT < 16) {
+      return null;
+    }
+    Notification.Builder notificationBuilder =
+        LeanplumNotificationHelper.getNotificationBuilder(context, message);
+    notificationBuilder.setSmallIcon(context.getApplicationInfo().icon)
+        .setContentTitle(title)
+        .setContentText(messageText);
+    Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
+      @Override
+      protected RemoteViews getStandardView(int layoutId) {
+        RemoteViews remoteViews = super.getStandardView(layoutId);
+        // Modifications of stanxdard push RemoteView.
+        try {
+          int id = Resources.getSystem().getIdentifier("text", "id", "android");
+          remoteViews.setBoolean(id, "setSingleLine", false);
+          remoteViews.setInt(id, "setLines", 2);
+          if (Build.VERSION.SDK_INT < 23) {
+            // Make text smaller.
+            remoteViews.setViewPadding(id, 0, -14, 0, 0);
+            remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, 14);
+          }
+        } catch (Throwable throwable) {
+          Log.e("Cannot modify push notification layout.");
+        }
+        return remoteViews;
+      }
+    };
+
+    bigPictureStyle.bigPicture(bigPicture)
+        .setBigContentTitle(title)
+        .setSummaryText(message.getString(Keys.PUSH_MESSAGE_TEXT));
+    notificationBuilder.setStyle(bigPictureStyle);
+
+    if (Build.VERSION.SDK_INT >= 24) {
+      // By default we cannot reach getStandardView method on API>=24. I we call
+      // createBigContentView, Android will call getStandardView method and we can get
+      // modified RemoteView.
+      try {
+        RemoteViews remoteView = notificationBuilder.createBigContentView();
+        if (remoteView != null) {
+          // We need to set received RemoteView as a custom big content view.
+          notificationBuilder.setCustomBigContentView(remoteView);
+        }
+      } catch (Throwable t) {
+        Log.e("Cannot modify push notification layout.", t);
+      }
+    }
+
+    notificationBuilder.setAutoCancel(true);
+    notificationBuilder.setContentIntent(contentIntent);
+    return notificationBuilder;
   }
 }

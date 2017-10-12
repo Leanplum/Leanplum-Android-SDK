@@ -20,6 +20,7 @@
  */
 package com.leanplum;
 
+import android.app.Notification;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
@@ -49,7 +50,7 @@ class LeanplumNotificationHelper {
    */
   // NotificationCompat.Builder(Context context) constructor was deprecated in API level 26.
   @SuppressWarnings("deprecation")
-  static NotificationCompat.Builder getDefaultNotificationBuilder(Context context,
+  static NotificationCompat.Builder getDefaultCompatNotificationBuilder(Context context,
       boolean isNotificationChannelSupported) {
     if (!isNotificationChannelSupported) {
       return new NotificationCompat.Builder(context);
@@ -57,6 +58,32 @@ class LeanplumNotificationHelper {
     String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
     if (!TextUtils.isEmpty(channelId)) {
       return new NotificationCompat.Builder(context, channelId);
+    } else {
+      Log.w("Failed to post notification, there are no notification channels configured.");
+      return null;
+    }
+  }
+
+  /**
+   * If notification channels are supported this method will try to create
+   * Notification.Builder with default notification channel if default channel id is provided.
+   * If notification channels not supported this method will return Notification.Builder for
+   * context.
+   *
+   * @param context The application context.
+   * @param isNotificationChannelSupported True if notification channels are supported.
+   * @return Notification.Builder for provided context or null.
+   */
+  // Notification.Builder(Context context) constructor was deprecated in API level 26.
+  @SuppressWarnings("deprecation")
+  private static Notification.Builder getDefaultNotificationBuilder(Context context,
+      boolean isNotificationChannelSupported) {
+    if (!isNotificationChannelSupported) {
+      return new Notification.Builder(context);
+    }
+    String channelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
+    if (!TextUtils.isEmpty(channelId)) {
+      return new Notification.Builder(context, channelId);
     } else {
       Log.w("Failed to post notification, there are no notification channels configured.");
       return null;
@@ -76,9 +103,9 @@ class LeanplumNotificationHelper {
    */
   // NotificationCompat.Builder(Context context) constructor was deprecated in API level 26.
   @SuppressWarnings("deprecation")
-  static NotificationCompat.Builder getNotificationBuilder(Context context, Bundle message) {
+  static NotificationCompat.Builder getNotificationCompatBuilder(Context context, Bundle message) {
     NotificationCompat.Builder builder = null;
-    // If we are targeting API 26, try to find supplied channel to post notification.
+    // If we are targeting API 26, try to find supplied chLannel to post notification.
     if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
         String channel = message.getString("lp_channel");
@@ -94,13 +121,53 @@ class LeanplumNotificationHelper {
           }
         } else {
           // If channel isn't supplied, try to look up for default channel.
-          builder = LeanplumNotificationHelper.getDefaultNotificationBuilder(context, true);
+          builder = LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context, true);
         }
       } catch (Exception e) {
         Log.e("Failed to post notification to specified channel.");
       }
     } else {
       builder = new NotificationCompat.Builder(context);
+    }
+    return builder;
+  }
+
+  /**
+   * If notification channels are supported this method will try to create a channel with
+   * information from the message if it doesn't exist and return Notification.Builder for this
+   * channel. In the case where no channel information inside the message, we will try to get a
+   * channel with default channel id. If notification channels not supported this method will return
+   * Notification.Builder for context.
+   *
+   * @param context The application context.
+   * @param message Push notification Bundle.
+   * @return Notification.Builder or null.
+   */
+  static Notification.Builder getNotificationBuilder(Context context, Bundle message) {
+    Notification.Builder builder = null;
+    // If we are targeting API 26, try to find supplied channel to post notification.
+    if (BuildUtil.isNotificationChannelSupported(context)) {
+      try {
+        String channel = message.getString("lp_channel");
+        if (!TextUtils.isEmpty(channel)) {
+          // Create channel if it doesn't exist and post notification to that channel.
+          Map<String, Object> channelDetails = JsonConverter.fromJson(channel);
+          String channelId = LeanplumNotificationChannel.createNotificationChannel(context,
+              channelDetails);
+          if (!TextUtils.isEmpty(channelId)) {
+            builder = new Notification.Builder(context, channelId);
+          } else {
+            Log.w("Failed to post notification to specified channel.");
+          }
+        } else {
+          // If channel isn't supplied, try to look up for default channel.
+          builder = LeanplumNotificationHelper.getDefaultNotificationBuilder(context, true);
+        }
+      } catch (Exception e) {
+        Log.e("Failed to post notification to specified channel.");
+      }
+    } else {
+      builder = new Notification.Builder(context);
     }
     return builder;
   }
