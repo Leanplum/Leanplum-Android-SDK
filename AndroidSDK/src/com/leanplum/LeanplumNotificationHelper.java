@@ -46,7 +46,7 @@ import java.util.Map;
  */
 class LeanplumNotificationHelper {
 
-  private static final int BIGPICTURE_TEXT_TOP_PEDDING = -14;
+  private static final int BIGPICTURE_TEXT_TOP_PADDING = -14;
   private static final int BIGPICTURE_TEXT_SIZE = 14;
 
   /**
@@ -215,7 +215,7 @@ class LeanplumNotificationHelper {
           remoteViews.setInt(id, "setLines", 2);
           if (Build.VERSION.SDK_INT < 23) {
             // Make text smaller.
-            remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PEDDING, 0, 0);
+            remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PADDING, 0, 0);
             remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, BIGPICTURE_TEXT_SIZE);
           }
         } catch (Throwable throwable) {
