@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.HashMap;
@@ -229,27 +230,34 @@ public class LeanplumInternal {
     }
 
     if (!actionContexts.isEmpty()) {
-      Collections.sort(actionContexts);
+      Collections.sort(actionContexts, new Comparator<ActionContext>() {
+        @Override
+        public int compare(ActionContext o1, ActionContext o2) {
+          return o1.getPriority() - o2.getPriority();
+        }
+      });
       int priorityThreshold = actionContexts.get(0).getPriority();
+      boolean messageActionTriggered = false;
       for (final ActionContext actionContext : actionContexts) {
-        if (actionContext.getPriority() <= priorityThreshold) {
-          if (actionContext.actionName().equals(ActionManager.HELD_BACK_ACTION_NAME)) {
-            ActionManager.getInstance().recordHeldBackImpression(
-                actionContext.getMessageId(), actionContext.getOriginalMessageId());
-          } else {
-            LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
-              @Override
-              public void variablesChanged() {
-                try {
-                  ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
-                } catch (Throwable t) {
-                  Util.handleException(t);
-                }
-              }
-            });
-          }
-        } else {
+        if (actionContext.getPriority() > priorityThreshold) {
           break;
+        }
+
+        if (actionContext.actionName().equals(ActionManager.HELD_BACK_ACTION_NAME)) {
+          ActionManager.getInstance().recordHeldBackImpression(
+              actionContext.getMessageId(), actionContext.getOriginalMessageId());
+        } else if (!messageActionTriggered) {
+          messageActionTriggered = true;
+          LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
+            @Override
+            public void variablesChanged() {
+              try {
+                ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
+              } catch (Throwable t) {
+                Util.handleException(t);
+              }
+            }
+          });
         }
       }
     }
