@@ -142,7 +142,7 @@ public class MessagesTest extends AbstractTest {
   }
 
   /**
-   * Testing three messages with no priorities. All three should be called.
+   * Testing three messages with no priorities. Only one should be called.
    *
    * @throws Exception
    */
@@ -150,7 +150,7 @@ public class MessagesTest extends AbstractTest {
   public void testNoPriorities() throws Exception {
     InputStream inputStream = getClass().getResourceAsStream("/test_files/no_priorities.json");
     String jsonMessages = IOUtil.toString(inputStream);
-    Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1", "2", "3"));
+    Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
   }
 
@@ -185,16 +185,16 @@ public class MessagesTest extends AbstractTest {
   @Test
   public void testTiedPriorities() throws Exception {
     // Three messages with priorities of 5, no value, and 5.
-    // The first and the third one should be triggered.
+    // The first one should be triggered.
     InputStream inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_1.json");
     String jsonMessages = IOUtil.toString(inputStream);
-    Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1", "3"));
+    Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
 
-    // Three messages with same priority. All three should be triggered.
+    // Three messages with same priority. Only one should be triggered.
     inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_2.json");
     jsonMessages = IOUtil.toString(inputStream);
-    expectedMessageIds = new HashSet<>(Arrays.asList("1", "2", "3"));
+    expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
   }
 
