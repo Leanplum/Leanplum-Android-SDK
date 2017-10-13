@@ -29,15 +29,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.TypedValue;
-import android.widget.RemoteViews;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -108,6 +105,7 @@ public class LeanplumPushService {
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
+  private static final int MAX_ONE_LINE_TEXT_LENGTH = 37;
   private static Class<? extends Activity> callbackClass;
   private static LeanplumCloudMessagingProvider provider;
   private static boolean isFirebaseEnabled = false;
@@ -341,13 +339,14 @@ public class LeanplumPushService {
     if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
       Bitmap bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
       if (bigPicture != null) {
-        if ((messageText != null && messageText.length() < 37) || customizer != null) {
+        if ((messageText != null && messageText.length() < MAX_ONE_LINE_TEXT_LENGTH) ||
+            customizer != null) {
           notificationCompatBuilder.setStyle(new NotificationCompat.BigPictureStyle()
               .bigPicture(bigPicture)
               .setBigContentTitle(title)
               .setSummaryText(messageText));
         } else {
-          notificationBuilder = getNotificationBuilder(context, message, contentIntent, title,
+          notificationBuilder = LeanplumNotificationHelper.getNotificationBuilder(context, message, contentIntent, title,
               messageText, bigPicture);
         }
       } else {
@@ -880,70 +879,4 @@ public class LeanplumPushService {
     return false;
   }
 
-  /**
-   * Gets Notification.Builder with 2 lines at BigPictureStyle notification text.
-   *
-   * @param context The application context.
-   * @param message Push notification Bundle.
-   * @param contentIntent PendingIntent.
-   * @param title String with title for push notification.
-   * @param messageText String with text for push notification.
-   * @param bigPicture Bitmap for BigPictureStyle notification.
-   * @return Notification.Builder or null.
-   */
-  private static Notification.Builder getNotificationBuilder(Context context, Bundle message,
-      PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture) {
-    if (Build.VERSION.SDK_INT < 16) {
-      return null;
-    }
-    Notification.Builder notificationBuilder =
-        LeanplumNotificationHelper.getNotificationBuilder(context, message);
-    notificationBuilder.setSmallIcon(context.getApplicationInfo().icon)
-        .setContentTitle(title)
-        .setContentText(messageText);
-    Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
-      @Override
-      protected RemoteViews getStandardView(int layoutId) {
-        RemoteViews remoteViews = super.getStandardView(layoutId);
-        // Modifications of stanxdard push RemoteView.
-        try {
-          int id = Resources.getSystem().getIdentifier("text", "id", "android");
-          remoteViews.setBoolean(id, "setSingleLine", false);
-          remoteViews.setInt(id, "setLines", 2);
-          if (Build.VERSION.SDK_INT < 23) {
-            // Make text smaller.
-            remoteViews.setViewPadding(id, 0, -14, 0, 0);
-            remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, 14);
-          }
-        } catch (Throwable throwable) {
-          Log.e("Cannot modify push notification layout.");
-        }
-        return remoteViews;
-      }
-    };
-
-    bigPictureStyle.bigPicture(bigPicture)
-        .setBigContentTitle(title)
-        .setSummaryText(message.getString(Keys.PUSH_MESSAGE_TEXT));
-    notificationBuilder.setStyle(bigPictureStyle);
-
-    if (Build.VERSION.SDK_INT >= 24) {
-      // By default we cannot reach getStandardView method on API>=24. I we call
-      // createBigContentView, Android will call getStandardView method and we can get
-      // modified RemoteView.
-      try {
-        RemoteViews remoteView = notificationBuilder.createBigContentView();
-        if (remoteView != null) {
-          // We need to set received RemoteView as a custom big content view.
-          notificationBuilder.setCustomBigContentView(remoteView);
-        }
-      } catch (Throwable t) {
-        Log.e("Cannot modify push notification layout.", t);
-      }
-    }
-
-    notificationBuilder.setAutoCancel(true);
-    notificationBuilder.setContentIntent(contentIntent);
-    return notificationBuilder;
-  }
 }
