@@ -50,7 +50,7 @@ public class LeanplumTestRunner extends RobolectricTestRunner {
     }
 
     final String type = getType(config);
-    final String packageName = "com.leanplum.tests";
+    final String packageName = "com.leanplum";
 
     final FileFsFile res = FileFsFile.from(BUILD_OUTPUT, "res", "merged", type);
     final FileFsFile assets = FileFsFile.from("src", "test", "assets");

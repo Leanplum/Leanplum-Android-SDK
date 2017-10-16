@@ -41,6 +41,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.robolectric.shadows.ShadowLooper;
 
 /**
  * @author Ben Marten
@@ -49,7 +50,11 @@ import java.util.Map;
 @Config(
     constants = BuildConfig.class,
     sdk = 16,
-    application = LeanplumTestApp.class
+    application = LeanplumTestApp.class,
+    packageName = "com.leanplum",
+    shadows = {
+        ShadowLooper.class
+    }
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
 public class RequestTest extends TestCase {
@@ -81,7 +86,7 @@ public class RequestTest extends TestCase {
   @Test
   public void testRemoveIrrelevantBackgroundStartRequests() throws NoSuchMethodException,
       InvocationTargetException, IllegalAccessException {
-    LeanplumEventDataManager.init(Leanplum.getContext());
+    LeanplumEventDataManager.init(RuntimeEnvironment.application);
     // Prepare testable objects and method.
     Request request = new Request("POST", Constants.Methods.START, null);
     Method removeIrrelevantBackgroundStartRequests =

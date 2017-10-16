@@ -20,30 +20,28 @@
  */
 package com.leanplum.internal;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
-
 import com.leanplum.BuildConfig;
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.LeanplumTestHelper;
 import com.leanplum.__setup.LeanplumTestRunner;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
-import org.robolectric.util.ReflectionHelpers;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.util.ReflectionHelpers;
 
 /**
  * Tests for {@link LeanplumEventDataManager} class.
@@ -54,8 +52,13 @@ import static junit.framework.Assert.assertNotNull;
 @Config(
     constants = BuildConfig.class,
     sdk = 16,
-    application = LeanplumTestApp.class
+    application = LeanplumTestApp.class,
+    packageName = "com.leanplum",
+    shadows = {
+        ShadowLooper.class
+    }
 )
+@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
 public class LeanplumEventDataManagerTest {
   // The target context of the instrumentation.
   private Application mContext;
@@ -122,7 +125,7 @@ public class LeanplumEventDataManagerTest {
     setDatabaseToNull();
   }
 
-  public static void setDatabaseToNull(){
+  public static void setDatabaseToNull() {
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "databaseManager",
         null);
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "database",

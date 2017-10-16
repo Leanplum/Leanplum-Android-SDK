@@ -133,9 +133,8 @@ public class UtilitiesTest extends AbstractTest {
     String invalidName = Util.generateResourceNameFromId(invalidResourceId);
     assertNull(invalidName);
 
-    int validResourceId = R.string.app_name;
+    int validResourceId = R.drawable.leanplum_watermark;
     String validName = Util.generateResourceNameFromId(validResourceId);
-
     assertNotNull(validName);
     assertEquals("drawable/leanplum_watermark.jpg", validName);
   }
@@ -148,11 +147,11 @@ public class UtilitiesTest extends AbstractTest {
 
     String validName = "drawable/leanplum_watermark.jpg";
     int validResourceId = Util.generateIdFromResourceName(validName);
-    assertEquals(R.string.app_name, validResourceId);
+    assertEquals(R.drawable.leanplum_watermark, validResourceId);
 
     // Generated name can be without extension.
     String validNameWithoutExtension = "drawable/leanplum_watermark";
     validResourceId = Util.generateIdFromResourceName(validNameWithoutExtension);
-    assertEquals(R.string.app_name, validResourceId);
+    assertEquals(R.drawable.leanplum_watermark, validResourceId);
   }
 }
