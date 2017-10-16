@@ -20,15 +20,11 @@
  */
 package com.leanplum;
 
-import android.view.View;
+import static junit.framework.Assert.assertNotNull;
 
 import com.leanplum.__setup.AbstractTest;
-import com.leanplum.tests.R;
-
 import org.junit.Test;
 import org.robolectric.RuntimeEnvironment;
-
-import static junit.framework.Assert.assertNotNull;
 
 /**
  * @author Milos Jakovljevic
@@ -43,15 +39,5 @@ public class LeanplumInflaterTest extends AbstractTest {
     LeanplumInflater inflater = LeanplumInflater.from(RuntimeEnvironment.application.getApplicationContext());
     assertNotNull(inflater);
     assertNotNull(inflater.getLeanplumResources());
-  }
-
-  /**
-   * Test inflate
-   */
-  @Test
-  public void testInflate() {
-    LeanplumInflater inflater = LeanplumInflater.from(RuntimeEnvironment.application.getApplicationContext());
-    View root = inflater.inflate(R.layout.activity_main);
-    assertNotNull(root);
   }
 }

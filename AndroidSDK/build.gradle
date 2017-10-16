@@ -1,6 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
+apply plugin: 'jacoco'
+jacoco {
+    toolVersion = '0.7.1.201405082137'
+}
 
 def COMPILE_SDK_VERSION=26
 def BUILD_TOOLS_VERSION='26.0.1'
@@ -45,6 +49,8 @@ dependencies {
     testCompile 'org.powermock:powermock-api-mockito:1.6.6'
     testCompile 'org.powermock:powermock-classloading-xstream:1.6.6'
     testCompile 'org.bouncycastle:bcmail-jdk15on:1.54'
+    testCompile 'com.google.android.gms:play-services-location:11.4.2'
+    testCompile 'com.google.android.gms:play-services-gcm:11.4.2'
 }
 
 android {
@@ -62,6 +68,9 @@ android {
             minifyEnabled true
             proguardFiles 'proguard-rules.pro'
 
+        }
+        debug {
+            testCoverageEnabled = true
         }
         buildTypes.each {
             def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
@@ -166,4 +175,20 @@ if (project.hasProperty('artifactoryUsername') && project.hasProperty('artifacto
             }
         }
     }
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
+    group 'reporting'
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**/*Activity*.*', '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', 'android/**/*.*']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = files("${buildDir}/jacoco/testDebugUnitTest.exec")
 }

@@ -20,10 +20,13 @@
  */
 package com.leanplum.__setup;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumInbox;
@@ -33,8 +36,6 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.VarCache;
-import com.leanplum.tests.BuildConfig;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,10 +50,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 
 /**
  * Utility functions for SDK unit testing.
@@ -78,17 +75,14 @@ public class LeanplumTestHelper {
   public static void setUp() {
     RequestFactory.defaultFactory = new RequestFactory() {
       @Override
-      public Request createRequest(String httpMethod, String apiMethod,
+      public Request createRequest(
+          String httpMethod, String apiMethod,
           Map<String, Object> params) {
         return new RequestHelper(httpMethod, apiMethod, params);
       }
     };
 
-    if (BuildConfig.DEBUG) {
-      Leanplum.setAppIdForDevelopmentMode(APP_ID, DEVELOPMENT_KEY);
-    } else {
-      Leanplum.setAppIdForProductionMode(APP_ID, PRODUCTION_KEY);
-    }
+    Leanplum.setAppIdForDevelopmentMode(APP_ID, DEVELOPMENT_KEY);
     Leanplum.setDeviceId("leanplum-unit-test-20527411-BF1E-4E84-91AE-2E98CBCF30AF");
     Leanplum.setApiConnectionSettings(API_HOST_NAME, "api", API_SSL);
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
@@ -124,12 +118,14 @@ public class LeanplumTestHelper {
     List list = (List) TestClassUtil.getField(LeanplumInternal.class, "startIssuedHandlers");
     list.clear();
 
-    List variablesChangedHandlers = (List) TestClassUtil.getField(Leanplum.class,
+    List variablesChangedHandlers = (List) TestClassUtil.getField(
+        Leanplum.class,
         "variablesChangedHandlers");
     variablesChangedHandlers.clear();
     List noDownloadsHandlers = (List) TestClassUtil.getField(Leanplum.class, "noDownloadsHandlers");
     noDownloadsHandlers.clear();
-    List onceNoDownloadsHandlers = (List) TestClassUtil.getField(Leanplum.class,
+    List onceNoDownloadsHandlers = (List) TestClassUtil.getField(
+        Leanplum.class,
         "onceNoDownloadsHandlers");
     onceNoDownloadsHandlers.clear();
     LeanplumInternal.getActionHandlers().clear();
@@ -149,7 +145,8 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(Leanplum.class, "context", null);
     TestClassUtil.setField(Leanplum.class, "pushStartCallback", null);
 
-    LeanplumInbox newsfeed = (LeanplumInbox) TestClassUtil.getField(LeanplumInbox.class,
+    LeanplumInbox newsfeed = (LeanplumInbox) TestClassUtil.getField(
+        LeanplumInbox.class,
         "instance");
     TestClassUtil.setField(LeanplumInbox.class, newsfeed, "unreadCount", 0);
     Map messages = (Map) TestClassUtil.getField(LeanplumInbox.class, newsfeed, "messages");

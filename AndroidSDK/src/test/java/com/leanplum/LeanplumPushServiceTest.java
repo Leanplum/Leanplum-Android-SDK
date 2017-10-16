@@ -20,6 +20,7 @@
  */
 package com.leanplum;
 
+import android.app.Activity;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -34,7 +35,6 @@ import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
-import com.leanplum.tests.MainActivity;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.junit.Before;
@@ -295,10 +295,10 @@ public class LeanplumPushServiceTest {
     bundle.putString("title", "title_string");
     bundle.putString(Constants.Keys.PUSH_MESSAGE_TEXT, "message_text");
 
-    Intent intent = new Intent(mock, MainActivity.class);
+    Intent intent = new Intent(mock, Activity.class);
     intent.putExtras(bundle);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    LeanplumPushService.setDefaultCallbackClass(MainActivity.class);
+    LeanplumPushService.setDefaultCallbackClass(Activity.class);
     LeanplumPushService.openNotification(mock, intent);
     verify(mock, times(1)).startActivity(any(Intent.class));
 

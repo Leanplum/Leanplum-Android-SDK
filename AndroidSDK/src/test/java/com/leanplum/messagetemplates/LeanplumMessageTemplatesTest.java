@@ -20,10 +20,10 @@
  */
 package com.leanplum.messagetemplates;
 
+import android.app.Activity;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.AbstractTest;
-import com.leanplum.activities.LeanplumTestActivity;
 
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -51,7 +51,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Test
   public void testCenterPopup() throws Exception {
-    LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
+    Activity activity = Robolectric.buildActivity(Activity.class).
         create().start().resume().visible().get();
     setActivityVisibility(activity);
     Leanplum.setApplicationContext(activity);
@@ -80,7 +80,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     spy(HTMLOptions.class);
     PowerMockito.doReturn("<body></body>").when(HTMLOptions.class, "getTemplate", anyObject());
 
-    LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
+    Activity activity = Robolectric.buildActivity(Activity.class).
         create().start().resume().visible().get();
     setActivityVisibility(activity);
     Leanplum.setApplicationContext(activity);
@@ -114,7 +114,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Test
   public void testInterstitial() throws Exception {
-    LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
+    Activity activity = Robolectric.buildActivity(Activity.class).
         create().start().resume().visible().get();
     setActivityVisibility(activity);
     Leanplum.setApplicationContext(activity);
@@ -148,7 +148,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Test
   public void testWebInterstitial() throws Exception {
-    LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
+    Activity activity = Robolectric.buildActivity(Activity.class).
         create().start().resume().visible().get();
     setActivityVisibility(activity);
     Leanplum.setApplicationContext(activity);
