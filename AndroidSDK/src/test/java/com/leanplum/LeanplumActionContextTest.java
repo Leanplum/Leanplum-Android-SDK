@@ -23,6 +23,7 @@ package com.leanplum;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.google.common.collect.ImmutableMap;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
@@ -267,5 +268,33 @@ public class LeanplumActionContextTest extends AbstractTest {
         actionContext.track("test_event", 0.0, map);
         verifyStatic(never());
         actionContext.track(null, 0.0, map);
+    }
+
+    @Test
+    public void testPrefetchingChainedMessage() {
+        final String template = "{\"__name__\":\"Chain to Existing Message\",\"Chained message\":\"%d\"}";
+        final long chainedMessageId = 1337;
+        final String jsonData = String.format(template, chainedMessageId);
+
+        // Should be null safe and return false.
+        Assert.assertFalse(
+                ActionContext.shouldForceContentUpdateForChainedMessage(JsonConverter.fromJson(null)));
+        // Chained messageId should also be null.
+        Assert.assertNull(ActionContext.getChainedMessageId(JsonConverter.fromJson(null)));
+        // We should return true if we have a chained message that is not in our VarCache yet.
+        Assert.assertTrue(ActionContext.shouldForceContentUpdateForChainedMessage(
+                JsonConverter.fromJson(jsonData)));
+        // Add chained message to VarCache.
+        VarCache.applyVariableDiffs(null, new HashMap<>(
+                ImmutableMap.<String, Object>of(Long.toString(chainedMessageId),
+                ImmutableMap.<String, Object>of())),
+                null, null, null, null);
+        // Since it now exists locally, we should return false for forceContentUpdate.
+        Assert.assertFalse(ActionContext.shouldForceContentUpdateForChainedMessage(
+                JsonConverter.fromJson(jsonData)));
+        // However, we should still get proper messageId.
+        Assert.assertEquals(ActionContext.getChainedMessageId(JsonConverter.fromJson(jsonData)),
+                Long.toString(chainedMessageId));
+        VarCache.reset();
     }
 }
