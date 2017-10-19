@@ -821,7 +821,7 @@ public class Leanplum {
                   public void run() {
                     try {
                       NotificationCompat.Builder builder =
-                          LeanplumNotificationHelper.getDefaultNotificationBuilder(context,
+                          LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context,
                               BuildUtil.isNotificationChannelSupported(context));
                       if (builder == null) {
                         return;

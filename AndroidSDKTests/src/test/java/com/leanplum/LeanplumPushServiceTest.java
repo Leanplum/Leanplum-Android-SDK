@@ -340,6 +340,7 @@ public class LeanplumPushServiceTest {
     PowerMockito.doReturn(true).when(Util.class, "hasPlayServices");
     PowerMockito.doReturn(true).when(LeanplumPushService.class, "enableFcmServices");
     PowerMockito.doReturn(true).when(LeanplumPushService.class, "enableGcmServices");
+    PowerMockito.doReturn(false).when(LeanplumPushService.class, "hasAppIDChanged", any());
 
     LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
     whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);

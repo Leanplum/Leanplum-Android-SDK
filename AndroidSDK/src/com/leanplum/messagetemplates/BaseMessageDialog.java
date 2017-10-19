@@ -35,7 +35,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.TypedValue;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -243,14 +242,31 @@ public class BaseMessageDialog extends Dialog {
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else if (isHtml) {
       int height = SizeUtil.dpToPx(context, htmlOptions.getHtmlHeight());
-      layoutParams = new RelativeLayout.LayoutParams(
-          LayoutParams.MATCH_PARENT, height);
-    } else {
+      HTMLOptions.Size htmlWidth = htmlOptions.getHtmlWidth();
+      if (htmlWidth == null || TextUtils.isEmpty(htmlWidth.type)) {
+        layoutParams = new RelativeLayout.LayoutParams(
+            LayoutParams.MATCH_PARENT, height);
+      } else {
+        int width = htmlWidth.value;
+        if ("%".equals(htmlWidth.type)) {
+          Point size = SizeUtil.getDisplaySize(context);
+          width = size.x * width / 100;
+        } else {
+          width = SizeUtil.dpToPx(context, width);
+        }
+        layoutParams = new RelativeLayout.LayoutParams(width, height);
+      }
 
+      layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+      int htmlYOffset = htmlOptions.getHtmlYOffset(context);
+      if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
+        layoutParams.bottomMargin = htmlYOffset;
+      } else {
+        layoutParams.topMargin = htmlYOffset;
+      }
+    } else {
       // Make sure the dialog fits on screen.
-      Display display = context.getWindowManager().getDefaultDisplay();
-      Point size = new Point();
-      display.getSize(size);
+      Point size = SizeUtil.getDisplaySize(context);
       int width = SizeUtil.dpToPx(context, ((CenterPopupOptions) options).getWidth());
       int height = SizeUtil.dpToPx(context, ((CenterPopupOptions) options).getHeight());
 

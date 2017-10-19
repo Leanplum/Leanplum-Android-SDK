@@ -50,6 +50,7 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BitmapUtil;
+import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -104,6 +105,7 @@ public class LeanplumPushService {
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
+  private static final int MAX_ONE_LINE_TEXT_LENGTH = 37;
   private static Class<? extends Activity> callbackClass;
   private static LeanplumCloudMessagingProvider provider;
   private static boolean isFirebaseEnabled = false;
@@ -299,12 +301,12 @@ public class LeanplumPushService {
   /**
    * Put the message into a notification and post it.
    */
-  private static void showNotification(Context context, Bundle message) {
+  private static void showNotification(Context context, final Bundle message) {
     if (context == null || message == null) {
       return;
     }
 
-    NotificationManager notificationManager = (NotificationManager)
+    final NotificationManager notificationManager = (NotificationManager)
         context.getSystemService(Context.NOTIFICATION_SERVICE);
 
     Intent intent = new Intent(context, LeanplumPushReceiver.class);
@@ -318,28 +320,35 @@ public class LeanplumPushService {
     if (message.getString("title") != null) {
       title = message.getString("title");
     }
-    NotificationCompat.Builder builder =
-        LeanplumNotificationHelper.getNotificationBuilder(context, message);
+    final NotificationCompat.Builder notificationCompatBuilder =
+        LeanplumNotificationHelper.getNotificationCompatBuilder(context, message);
 
-    if (builder == null) {
+    if (notificationCompatBuilder == null) {
       return;
     }
-
-    builder.setSmallIcon(context.getApplicationInfo().icon)
+    final String messageText = message.getString(Keys.PUSH_MESSAGE_TEXT);
+    notificationCompatBuilder.setSmallIcon(context.getApplicationInfo().icon)
         .setContentTitle(title)
         .setStyle(new NotificationCompat.BigTextStyle()
-            .bigText(message.getString(Keys.PUSH_MESSAGE_TEXT)))
-        .setContentText(message.getString(Keys.PUSH_MESSAGE_TEXT));
+            .bigText(messageText))
+        .setContentText(messageText);
 
     String imageUrl = message.getString(Keys.PUSH_MESSAGE_IMAGE_URL);
+    Notification.Builder notificationBuilder = null;
     // BigPictureStyle support requires API 16 and higher.
     if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
       Bitmap bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
       if (bigPicture != null) {
-        builder.setStyle(new NotificationCompat.BigPictureStyle()
-            .bigPicture(bigPicture)
-            .setBigContentTitle(title)
-            .setSummaryText(message.getString(Keys.PUSH_MESSAGE_TEXT)));
+        if ((messageText != null && messageText.length() < MAX_ONE_LINE_TEXT_LENGTH) ||
+            customizer != null) {
+          notificationCompatBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+              .bigPicture(bigPicture)
+              .setBigContentTitle(title)
+              .setSummaryText(messageText));
+        } else {
+          notificationBuilder = LeanplumNotificationHelper.getNotificationBuilder(context, message, contentIntent, title,
+              messageText, bigPicture);
+        }
       } else {
         Log.w(String.format("Image download failed for push notification with big picture. " +
             "No image will be included with the push notification. Image URL: %s.", imageUrl));
@@ -349,16 +358,16 @@ public class LeanplumPushService {
     // Try to put a notification on top of the notification area. This method was deprecated in API
     // level 26. For API level 26 and above we must use setImportance(int) for each notification
     // channel, not for each notification message.
-    if (Build.VERSION.SDK_INT >= 16 && Build.VERSION.SDK_INT < 26) {
+    if (Build.VERSION.SDK_INT >= 16 && !BuildUtil.isNotificationChannelSupported(context)) {
       //noinspection deprecation
-      builder.setPriority(Notification.PRIORITY_MAX);
+      notificationCompatBuilder.setPriority(Notification.PRIORITY_MAX);
     }
-    builder.setAutoCancel(true);
-    builder.setContentIntent(contentIntent);
+    notificationCompatBuilder.setAutoCancel(true);
+    notificationCompatBuilder.setContentIntent(contentIntent);
 
     if (LeanplumPushService.customizer != null) {
       try {
-        LeanplumPushService.customizer.customize(builder, message);
+        LeanplumPushService.customizer.customize(notificationCompatBuilder, message);
       } catch (Throwable t) {
         Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
         return;
@@ -383,7 +392,28 @@ public class LeanplumPushService {
     }
 
     try {
-      notificationManager.notify(notificationId, builder.build());
+      // Check if we have a chained message, and if it exists in var cache.
+      if (ActionContext.shouldForceContentUpdateForChainedMessage(
+          JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
+        final int currentNotificationId = notificationId;
+        final Notification.Builder currentNotificationBuilder = notificationBuilder;
+        Leanplum.forceContentUpdate(new VariablesChangedCallback() {
+          @Override
+          public void variablesChanged() {
+            if (currentNotificationBuilder != null) {
+              notificationManager.notify(currentNotificationId, currentNotificationBuilder.build());
+            } else {
+              notificationManager.notify(currentNotificationId, notificationCompatBuilder.build());
+            }
+          }
+        });
+      } else {
+        if (notificationBuilder != null) {
+          notificationManager.notify(notificationId, notificationBuilder.build());
+        } else {
+          notificationManager.notify(notificationId, notificationCompatBuilder.build());
+        }
+      }
     } catch (NullPointerException e) {
       Log.e("Unable to show push notification.", e);
     } catch (Throwable t) {
