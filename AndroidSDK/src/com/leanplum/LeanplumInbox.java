@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.leanplum.callbacks.InboxChangedCallback;
+import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.AESCrypt;
 import com.leanplum.internal.CollectionUtil;
@@ -65,6 +66,7 @@ public class LeanplumInbox {
   private boolean didLoad = false;
 
   private final List<InboxChangedCallback> changedCallbacks;
+  private final List<InboxSyncedCallback> syncedCallbacks;
   private final Object updatingLock = new Object();
 
   private LeanplumInbox() {
@@ -72,6 +74,7 @@ public class LeanplumInbox {
     this.messages = new HashMap<>();
     this.didLoad = false;
     this.changedCallbacks = new ArrayList<>();
+    this.syncedCallbacks = new ArrayList<>();
     downloadedImageUrls = new HashSet<>();
   }
 
@@ -178,6 +181,20 @@ public class LeanplumInbox {
     }
   }
 
+  // Add a callback for when the forceContentUpdate was called.
+  public void addSyncedHandler(InboxSyncedCallback handler) {
+    synchronized (syncedCallbacks) {
+      syncedCallbacks.add(handler);
+    }
+  }
+
+  // Removes a inbox synced callback.
+  public void removeSyncedHandler(InboxSyncedCallback handler) {
+    synchronized (syncedCallbacks) {
+      syncedCallbacks.remove(handler);
+    }
+  }
+
   /**
    * Static 'getInstance' method.
    */
@@ -208,6 +225,7 @@ public class LeanplumInbox {
         save();
       }
       triggerChanged();
+      triggerInboxSyncedWithStatus(true);
     } catch (Throwable t) {
       Util.handleException(t);
     }
@@ -236,6 +254,15 @@ public class LeanplumInbox {
   void triggerChanged() {
     synchronized (changedCallbacks) {
       for (InboxChangedCallback callback : changedCallbacks) {
+        OsHandler.getInstance().post(callback);
+      }
+    }
+  }
+
+  void triggerInboxSyncedWithStatus(boolean success) {
+    synchronized (changedCallbacks) {
+      for (InboxSyncedCallback callback : syncedCallbacks) {
+        callback.setSuccess(success);
         OsHandler.getInstance().post(callback);
       }
     }
@@ -367,6 +394,12 @@ public class LeanplumInbox {
         } catch (Throwable t) {
           Util.handleException(t);
         }
+      }
+    });
+    req.onError(new Request.ErrorCallback() {
+      @Override
+      public void error(Exception e) {
+        triggerInboxSyncedWithStatus(false);
       }
     });
     req.sendIfConnected();
