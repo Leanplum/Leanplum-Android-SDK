@@ -225,7 +225,6 @@ public class LeanplumInbox {
         save();
       }
       triggerChanged();
-      triggerInboxSyncedWithStatus(true);
     } catch (Throwable t) {
       Util.handleException(t);
     }
@@ -380,6 +379,7 @@ public class LeanplumInbox {
 
           if (!willDownladImages) {
             update(messages, unreadCount, true);
+            triggerInboxSyncedWithStatus(true);
             return;
           }
 
@@ -389,9 +389,11 @@ public class LeanplumInbox {
                 @Override
                 public void variablesChanged() {
                   update(messages, totalUnreadCount, true);
+                  triggerInboxSyncedWithStatus(true);
                 }
               });
         } catch (Throwable t) {
+          triggerInboxSyncedWithStatus(false);
           Util.handleException(t);
         }
       }
