@@ -24,7 +24,9 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.InboxChangedCallback;
+import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Util;
 
 import org.junit.Test;
 
@@ -38,6 +40,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
 
 /**
  * Tests the inbox.
@@ -59,8 +62,24 @@ public class LeanplumInboxTest extends AbstractTest {
                 assertEquals(Constants.Methods.GET_INBOX_MESSAGES, apiMethod);
             }
         });
+
+        // Validate inbox synced callback when messages changes.
+        InboxSyncedCallback inboxSyncedCallback=new InboxSyncedCallback() {
+            @Override
+            public void onForceContentUpdate(boolean success) {
+                assertTrue(success);
+            }
+        };
+
+        // Add synced callback to be able to validate.
+        Leanplum.getInbox().addSyncedHandler(inboxSyncedCallback);
+
         // Download messages.
         Leanplum.getInbox().downloadMessages();
+
+        //  Remove synced callback afterwards so we don't get synced callbacks anymore.
+        Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallback);
+
 
         // Validate inbox callback when messages changes.
         InboxChangedCallback callback = new InboxChangedCallback() {
@@ -116,6 +135,26 @@ public class LeanplumInboxTest extends AbstractTest {
 
         Leanplum.getInbox().removeMessage(messageById.getMessageId());
         assertEquals(1, Leanplum.getInbox().allMessages().size());
+
+
+        // Validate inbox synced callback with false when there is no internet .
+        InboxSyncedCallback inboxSyncedCallbackFalse=new InboxSyncedCallback() {
+            @Override
+            public void onForceContentUpdate(boolean success) {
+                assertFalse(success);
+            }
+        };
+
+        // Add synced callback  to be able to validate.
+        Leanplum.getInbox().addSyncedHandler(inboxSyncedCallbackFalse);
+        // Return false when checks for internet connection.
+        doReturn(false).when(Util.class, "isConnected");
+        // Download messages.
+        Leanplum.getInbox().downloadMessages();
+
+        //  Remove synced callback afterwards so we don't get synced callbacks anymore.
+        Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallbackFalse);
+
     }
 
     @Test
