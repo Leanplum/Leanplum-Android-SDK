@@ -181,14 +181,23 @@ public class LeanplumInbox {
     }
   }
 
-  // Add a callback for when the forceContentUpdate was called.
+  /**
+   * Add a callback for when the forceContentUpdate was called.
+   *
+   * @param handler InboxSyncedCallback callback that need to be added.
+   */
   public void addSyncedHandler(InboxSyncedCallback handler) {
     synchronized (syncedCallbacks) {
       syncedCallbacks.add(handler);
     }
   }
 
-  // Removes a inbox synced callback.
+
+  /**
+   * Removes a inbox synced callback.
+   *
+   * @param handler InboxSyncedCallback callback that need to be removed.
+   */
   public void removeSyncedHandler(InboxSyncedCallback handler) {
     synchronized (syncedCallbacks) {
       syncedCallbacks.remove(handler);
@@ -258,6 +267,10 @@ public class LeanplumInbox {
     }
   }
 
+  /**
+   * Trigger InboxSyncedCallback with status of forceContentUpdate.
+   * @param success True if forceContentUpdate was successful.
+   */
   void triggerInboxSyncedWithStatus(boolean success) {
     synchronized (changedCallbacks) {
       for (InboxSyncedCallback callback : syncedCallbacks) {

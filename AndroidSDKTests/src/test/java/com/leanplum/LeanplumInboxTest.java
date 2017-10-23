@@ -80,7 +80,6 @@ public class LeanplumInboxTest extends AbstractTest {
         //  Remove synced callback afterwards so we don't get synced callbacks anymore.
         Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallback);
 
-
         // Validate inbox callback when messages changes.
         InboxChangedCallback callback = new InboxChangedCallback() {
             @Override
@@ -136,7 +135,6 @@ public class LeanplumInboxTest extends AbstractTest {
         Leanplum.getInbox().removeMessage(messageById.getMessageId());
         assertEquals(1, Leanplum.getInbox().allMessages().size());
 
-
         // Validate inbox synced callback with false when there is no internet .
         InboxSyncedCallback inboxSyncedCallbackFalse=new InboxSyncedCallback() {
             @Override
@@ -147,14 +145,15 @@ public class LeanplumInboxTest extends AbstractTest {
 
         // Add synced callback  to be able to validate.
         Leanplum.getInbox().addSyncedHandler(inboxSyncedCallbackFalse);
+
         // Return false when checks for internet connection.
         doReturn(false).when(Util.class, "isConnected");
+
         // Download messages.
         Leanplum.getInbox().downloadMessages();
 
         //  Remove synced callback afterwards so we don't get synced callbacks anymore.
         Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallbackFalse);
-
     }
 
     @Test
