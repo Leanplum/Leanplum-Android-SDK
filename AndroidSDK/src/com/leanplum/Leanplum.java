@@ -1922,7 +1922,7 @@ public class Leanplum {
               if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
                 LeanplumInbox.getInstance().downloadMessages();
               } else {
-                LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
+                LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(true);
               }
               if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
