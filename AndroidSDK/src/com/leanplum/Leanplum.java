@@ -1921,6 +1921,8 @@ public class Leanplum {
               applyContentInResponse(response, false);
               if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
                 LeanplumInbox.getInstance().downloadMessages();
+              } else {
+                LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(true);
               }
               if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
@@ -1940,6 +1942,7 @@ public class Leanplum {
           if (callback != null) {
             OsHandler.getInstance().post(callback);
           }
+          LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
         }
       });
       req.sendIfConnected();
