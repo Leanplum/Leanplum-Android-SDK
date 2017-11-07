@@ -21,17 +21,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
     implementation project(':AndroidSDK')
     implementation "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
-    implementation 'com.google.android.gms:play-services-gcm:11.4.2'
-    implementation 'com.google.android.gms:play-services-location:11.4.2'
+    implementation 'com.google.android.gms:play-services-gcm:11.6.0'
+    implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     // Dependencies used for unit tests.
     testImplementation 'junit:junit:4.12'
-    testImplementation('org.robolectric:robolectric:3.4.2') {
+    testImplementation('org.robolectric:robolectric:3.5.1') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }

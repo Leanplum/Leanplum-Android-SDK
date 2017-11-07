@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
@@ -75,9 +76,8 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(LeanplumTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(
-    constants = BuildConfig.class,
     sdk = 16,
     application = LeanplumTestApp.class,
     packageName = "com.leanplum.tests",

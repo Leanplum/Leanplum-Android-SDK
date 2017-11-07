@@ -25,15 +25,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.leanplum.BuildConfig;
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.LeanplumTestHelper;
-import com.leanplum.__setup.LeanplumTestRunner;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
@@ -50,9 +48,8 @@ import static junit.framework.Assert.assertNotNull;
  *
  * @author Anna Orlova
  */
-@RunWith(LeanplumTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(
-    constants = BuildConfig.class,
     sdk = 16,
     application = LeanplumTestApp.class
 )
