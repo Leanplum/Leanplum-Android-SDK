@@ -42,7 +42,7 @@ fi
 
 cd "${sdk_dir}"
 # shellcheck disable=SC2086
-gradle $GRADLE_TASK
+./gradle $GRADLE_TASK
 
 mv "${sdk_dir}/javadoc" "${release_dir}/."
 cp "${sdk_dir}/build/intermediates/bundles/release/classes.jar" "${release_dir}/Leanplum.jar"
