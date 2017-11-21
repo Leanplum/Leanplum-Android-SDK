@@ -40,7 +40,7 @@ else
   GRADLE_TASK="assemble${configuration} makeJar generateJavadoc artifactoryPublish"
 fi
 
-cd "${android_dir}"
+cd "${android_dir}/Leanplum-Android-SDK"
 # shellcheck disable=SC2086
 ./gradlew $GRADLE_TASK
 
