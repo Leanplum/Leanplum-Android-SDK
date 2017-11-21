@@ -23,12 +23,12 @@ package com.leanplum.internal;
 
 import com.leanplum.Var;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.LeanplumTestRunner;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 /**
@@ -36,9 +36,8 @@ import org.robolectric.annotation.Config;
  *
  * @author Lev Neiman
  */
-@RunWith(LeanplumTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(
-    constants = com.leanplum.BuildConfig.class,
     sdk = 16,
     application = LeanplumTestApp.class
 )

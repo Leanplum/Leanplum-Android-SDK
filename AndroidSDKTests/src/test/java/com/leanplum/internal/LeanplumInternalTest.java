@@ -22,7 +22,6 @@ package com.leanplum.internal;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.LeanplumTestRunner;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +31,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
@@ -49,9 +49,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
  *
  * @author Anna Orlova
  */
-@RunWith(LeanplumTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(
-    constants = com.leanplum.BuildConfig.class,
     sdk = 16,
     application = LeanplumTestApp.class
 )
