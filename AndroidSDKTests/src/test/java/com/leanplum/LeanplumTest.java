@@ -1213,4 +1213,17 @@ public class LeanplumTest extends AbstractTest {
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
     assertEquals(0, handlers.size());
   }
+
+  /**
+   * Test for {@link Leanplum#getDeviceId()}.
+   */
+  @Test
+  public void testGetDeviceId() {
+    String deviceId = Leanplum.getDeviceId();
+    assertNull(deviceId);
+    Leanplum.start(mContext);
+    assertTrue(Leanplum.hasStarted());
+    deviceId = Leanplum.getDeviceId();
+    assertNotNull(deviceId);
+  }
 }
