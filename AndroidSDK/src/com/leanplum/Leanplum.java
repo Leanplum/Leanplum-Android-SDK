@@ -296,6 +296,20 @@ public class Leanplum {
   }
 
   /**
+   * Gets the deviceId in the current Leanplum session. This should only be called after
+   * {@link Leanplum#start}.
+   *
+   * @return String Returns the deviceId in the current Leanplum session.
+   */
+  public static String getDeviceId() {
+    if (!LeanplumInternal.hasCalledStart()) {
+      Log.e("Leanplum.start() must be called before calling getDeviceId.");
+      return null;
+    }
+    return Request.deviceId();
+  }
+
+  /**
    * Sets the application context. This should be the first call to Leanplum.
    */
   public static void setApplicationContext(Context context) {
