@@ -195,7 +195,7 @@ class LeanplumNotificationHelper {
    * @param title String with title for push notification.
    * @param messageText String with text for push notification.
    * @param bigPicture Bitmap for BigPictureStyle notification.
-   * @param defaultNotificationIconResourceId int Resource id for default push notification.
+   * @param defaultNotificationIconResourceId int Resource id for default push notification icon.
    * @return Notification.Builder or null.
    */
   static Notification.Builder getNotificationBuilder(Context context, Bundle message,
@@ -291,15 +291,12 @@ class LeanplumNotificationHelper {
       return false;
     }
 
-    //TODO Potentially there should be checked for Build.VERSION.SDK_INT != 26, but we need to
-    //TODO confirm that adaptive icon works well on 27, before to change it.
-    // Checks current version of device. If current version less than 26, we can skip next step.
+    //TODO: Potentially there should be checked for Build.VERSION.SDK_INT != 26, but we need to
+    //TODO: confirm that adaptive icon works well on 27, before to change it.
     if (Build.VERSION.SDK_INT < 26) {
       return true;
     }
 
-    //If there is Android Oreo and app, we need to check for a possibility to create icon drawable
-    // from current app icon.
     return canCreateIconDrawable(context);
   }
 
