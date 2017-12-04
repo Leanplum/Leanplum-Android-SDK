@@ -291,8 +291,8 @@ class LeanplumNotificationHelper {
       return false;
     }
 
-    //TODO: Potentially there should be checked for Build.VERSION.SDK_INT != 26, but we need to
-    //TODO: confirm that adaptive icon works well on 27, before to change it.
+    // TODO: Potentially there should be checked for Build.VERSION.SDK_INT != 26, but we need to
+    // TODO: confirm that adaptive icon works well on 27, before to change it.
     if (Build.VERSION.SDK_INT < 26) {
       return true;
     }
