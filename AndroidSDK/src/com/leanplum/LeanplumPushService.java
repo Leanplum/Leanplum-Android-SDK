@@ -306,6 +306,23 @@ public class LeanplumPushService {
       return;
     }
 
+    int defaultIconId = 0;
+    // If client will start to use adaptive icon, there can be a problem
+    // https://issuetracker.google.com/issues/68716460 that can cause a factory reset of the device
+    // on Android Version 26.
+    if (!LeanplumNotificationHelper.isApplicationIconValid(context)) {
+      defaultIconId = LeanplumNotificationHelper.getDefaultPushNotificationIconResourceId(context);
+      if (defaultIconId == 0) {
+        Log.e("You are using adaptive icons without having a fallback icon for push" +
+            " notifications on Android Oreo. \n" + "This can cause a factory reset of the device" +
+            " on Android Version 26. Please add regular icon with name " +
+            "\"leanplum_default_push_icon.png\" to your \"drawable\" folder.\n" + "Google issue: " +
+            "https://issuetracker.google.com/issues/68716460"
+        );
+        return;
+      }
+    }
+
     final NotificationManager notificationManager = (NotificationManager)
         context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -327,8 +344,14 @@ public class LeanplumPushService {
       return;
     }
     final String messageText = message.getString(Keys.PUSH_MESSAGE_TEXT);
-    notificationCompatBuilder.setSmallIcon(context.getApplicationInfo().icon)
-        .setContentTitle(title)
+
+    if (defaultIconId == 0) {
+      notificationCompatBuilder.setSmallIcon(context.getApplicationInfo().icon);
+    } else {
+      notificationCompatBuilder.setSmallIcon(defaultIconId);
+    }
+
+    notificationCompatBuilder.setContentTitle(title)
         .setStyle(new NotificationCompat.BigTextStyle()
             .bigText(messageText))
         .setContentText(messageText);
@@ -346,8 +369,8 @@ public class LeanplumPushService {
               .setBigContentTitle(title)
               .setSummaryText(messageText));
         } else {
-          notificationBuilder = LeanplumNotificationHelper.getNotificationBuilder(context, message, contentIntent, title,
-              messageText, bigPicture);
+          notificationBuilder = LeanplumNotificationHelper.getNotificationBuilder(context, message,
+              contentIntent, title, messageText, bigPicture, defaultIconId);
         }
       } else {
         Log.w(String.format("Image download failed for push notification with big picture. " +

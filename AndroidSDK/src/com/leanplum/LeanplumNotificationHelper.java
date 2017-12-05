@@ -25,6 +25,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.drawable.AdaptiveIconDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
@@ -48,6 +50,7 @@ class LeanplumNotificationHelper {
 
   private static final int BIGPICTURE_TEXT_TOP_PADDING = -14;
   private static final int BIGPICTURE_TEXT_SIZE = 14;
+  private static final String LEANPLUM_DEFAULT_PUSH_ICON = "leanplum_default_push_icon";
 
   /**
    * If notification channels are supported this method will try to create
@@ -192,17 +195,23 @@ class LeanplumNotificationHelper {
    * @param title String with title for push notification.
    * @param messageText String with text for push notification.
    * @param bigPicture Bitmap for BigPictureStyle notification.
+   * @param defaultNotificationIconResourceId int Resource id for default push notification icon.
    * @return Notification.Builder or null.
    */
   static Notification.Builder getNotificationBuilder(Context context, Bundle message,
-      PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture) {
+      PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture,
+      int defaultNotificationIconResourceId) {
     if (Build.VERSION.SDK_INT < 16) {
       return null;
     }
     Notification.Builder notificationBuilder =
         getNotificationBuilder(context, message);
-    notificationBuilder.setSmallIcon(context.getApplicationInfo().icon)
-        .setContentTitle(title)
+    if (defaultNotificationIconResourceId == 0) {
+      notificationBuilder.setSmallIcon(context.getApplicationInfo().icon);
+    } else {
+      notificationBuilder.setSmallIcon(defaultNotificationIconResourceId);
+    }
+    notificationBuilder.setContentTitle(title)
         .setContentText(messageText);
     Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
       @Override
@@ -248,5 +257,62 @@ class LeanplumNotificationHelper {
     notificationBuilder.setAutoCancel(true);
     notificationBuilder.setContentIntent(contentIntent);
     return notificationBuilder;
+  }
+
+  /**
+   * Checks a possibility to create icon drawable from current app icon.
+   *
+   * @param context Current application context.
+   * @return boolean True if it is possible to create a drawable from current app icon.
+   */
+  private static boolean canCreateIconDrawable(Context context) {
+    try {
+      // Try to create icon drawable.
+      Drawable drawable = AdaptiveIconDrawable.createFromStream(
+          context.getResources().openRawResource(context.getApplicationInfo().icon),
+          "applicationInfo.icon");
+      // If there was no crash, we still need to check for null.
+      if (drawable != null) {
+        return true;
+      }
+    } catch (Throwable ignored) {
+    }
+    return false;
+  }
+
+  /**
+   * Validation of Application icon for small icon on push notification.
+   *
+   * @param context Current application context.
+   * @return boolean True if application icon can be used for small icon on push notification.
+   */
+  static boolean isApplicationIconValid(Context context) {
+    if (context == null) {
+      return false;
+    }
+
+    // TODO: Potentially there should be checked for Build.VERSION.SDK_INT != 26, but we need to
+    // TODO: confirm that adaptive icon works well on 27, before to change it.
+    if (Build.VERSION.SDK_INT < 26) {
+      return true;
+    }
+
+    return canCreateIconDrawable(context);
+  }
+
+  /**
+   * Gets default push notification resource id for LEANPLUM_DEFAULT_PUSH_ICON in drawable.
+   *
+   * @param context Current application context.
+   * @return int Resource id.
+   */
+  static int getDefaultPushNotificationIconResourceId(Context context) {
+    try {
+      Resources resources = context.getResources();
+      return resources.getIdentifier(LEANPLUM_DEFAULT_PUSH_ICON, "drawable",
+          context.getPackageName());
+    } catch (Throwable ignored) {
+      return 0;
+    }
   }
 }
