@@ -23,7 +23,7 @@ done
 LEANPLUM_SDK_ROOT=${LEANPLUM_SDK_ROOT:-"$(pwd)/."}
 configuration="Release"
 default="${LEANPLUM_SDK_ROOT}"
-android_dir=${android_dir:-$default}
+android_dir=${android_dir:-$default/..}
 default="${android_dir}/AndroidSDK"
 sdk_dir=${sdk_dir:-$default}
 release_dir="${android_dir}/Release"
