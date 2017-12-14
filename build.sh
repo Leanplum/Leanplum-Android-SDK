@@ -40,9 +40,9 @@ else
   GRADLE_TASK="assemble${configuration} makeJar generateJavadoc artifactoryPublish"
 fi
 
-cd "${sdk_dir}"
+cd "${android_dir}/Leanplum-Android-SDK"
 # shellcheck disable=SC2086
-gradle $GRADLE_TASK
+./gradlew $GRADLE_TASK
 
 mv "${sdk_dir}/javadoc" "${release_dir}/."
 cp "${sdk_dir}/build/intermediates/bundles/release/classes.jar" "${release_dir}/Leanplum.jar"

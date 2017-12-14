@@ -3,10 +3,11 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        google()
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.12'
-        classpath 'com.android.tools.build:gradle:2.3.3'
+        classpath 'com.android.tools.build:gradle:3.0.0'
     }
 }
 
@@ -14,11 +15,9 @@ allprojects {
     repositories {
         mavenCentral()
         jcenter()
+        google()
         maven {
             url "https://repo.leanplum.com/"
-        }
-        maven {
-            url "https://maven.google.com"
         }
     }
 }

@@ -21,10 +21,8 @@
 package com.leanplum;
 
 import android.app.Application;
-import android.os.Build;
 
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.LeanplumTestRunner;
 import com.leanplum.internal.Constants;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -36,6 +34,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
@@ -53,9 +52,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  *
  * @author Anna Orlova
  */
-@RunWith(LeanplumTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(
-    constants = BuildConfig.class,
     sdk = 16,
     application = LeanplumTestApp.class
 )

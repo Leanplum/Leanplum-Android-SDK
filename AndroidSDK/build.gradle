@@ -2,9 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
-def COMPILE_SDK_VERSION=26
-def BUILD_TOOLS_VERSION='26.0.1'
-def SUPPORT_LIBRARY_VERSION='26.1.0'
+def COMPILE_SDK_VERSION=27
+def BUILD_TOOLS_VERSION='27.0.2'
+def SUPPORT_LIBRARY_VERSION='27.0.2'
 
 allprojects {
     gradle.projectsEvaluated {
@@ -16,19 +16,17 @@ allprojects {
 
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
-    //noinspection GradleDynamicVersion
-    compile "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-    //noinspection GradleDynamicVersion
-    compile "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
-    provided('com.google.android.gms:play-services-gcm:[8.3.0,)') {
+    compileOnly('com.google.android.gms:play-services-gcm:[8.3.0,)') {
         exclude module: 'support-v4'
     }
-    provided('com.google.firebase:firebase-messaging:[10.0.0,)') {
+    compileOnly('com.google.firebase:firebase-messaging:[10.0.0,)') {
         exclude module: 'support-v4'
     }
-    provided('com.google.android.gms:play-services-location:[10.0.0,)') {
+    compileOnly('com.google.android.gms:play-services-location:[10.0.0,)') {
         exclude module: 'support-v4'
     }
 }
@@ -37,7 +35,7 @@ android {
     compileSdkVersion COMPILE_SDK_VERSION
     buildToolsVersion BUILD_TOOLS_VERSION
     useLibrary 'org.apache.http.legacy'
-    publishNonDefault true
+//    publishNonDefault true
 
     defaultConfig {
         consumerProguardFiles 'consumer-proguard-rules.pro'
@@ -119,7 +117,7 @@ publishing {
 
                 // Iterate over the compile dependencies (we don't want the test ones),
                 // adding a <dependency> node for each.
-                configurations.compile.allDependencies.each {
+                configurations.api.allDependencies.each {
                     if (it.group != null && it.name != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
@@ -144,7 +142,7 @@ publishing {
 
                 // Iterate over the compile dependencies (we don't want the test ones),
                 // adding a <dependency> node for each.
-                configurations.compile.allDependencies.each {
+                configurations.api.allDependencies.each {
                     if (it.group != null && it.name != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
