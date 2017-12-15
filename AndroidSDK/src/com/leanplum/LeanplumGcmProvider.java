@@ -128,15 +128,28 @@ class LeanplumGcmProvider extends LeanplumCloudMessagingProvider {
           LeanplumManifestHelper.ApplicationComponent.RECEIVER, LeanplumManifestHelper.GCM_RECEIVER,
           true, LeanplumManifestHelper.GCM_SEND_PERMISSION, Arrays.asList(LeanplumManifestHelper.GCM_RECEIVE_ACTION,
               LeanplumManifestHelper.GCM_REGISTRATION_ACTION), context.getPackageName());
+
+      String pushReceiverClassName = LeanplumManifestHelper.getStringMetadata(context, LeanplumManifestHelper.LP_PUSH_RECEIVER_KEY);
+      if(pushReceiverClassName == null || pushReceiverClassName.isEmpty())
+      {
+        pushReceiverClassName = LeanplumManifestHelper.LP_PUSH_RECEIVER;
+      }
+
+      String pushListenerServiceClassName = LeanplumManifestHelper.getStringMetadata(context, LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE_KEY);
+      if(pushListenerServiceClassName == null || pushListenerServiceClassName.isEmpty())
+      {
+        pushListenerServiceClassName = LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE;
+      }
+
       boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.ApplicationComponent.RECEIVER,
-          LeanplumManifestHelper.LP_PUSH_RECEIVER, false, null,
-          Collections.singletonList(LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE), context.getPackageName());
+              pushReceiverClassName, false, null,
+          Collections.singletonList(pushListenerServiceClassName), context.getPackageName());
 
       boolean hasReceivers = hasGcmReceiver && hasPushReceiver;
 
       boolean hasPushListenerService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE, false, null,
+              pushListenerServiceClassName, false, null,
           Collections.singletonList(LeanplumManifestHelper.GCM_RECEIVE_ACTION), context.getPackageName());
       boolean hasInstanceIdService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,

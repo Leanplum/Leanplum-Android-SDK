@@ -326,7 +326,14 @@ public class LeanplumPushService {
     final NotificationManager notificationManager = (NotificationManager)
         context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-    Intent intent = new Intent(context, LeanplumPushReceiver.class);
+    String pushReceiverClassName = LeanplumManifestHelper.getStringMetadata(context, LeanplumManifestHelper.LP_PUSH_RECEIVER_KEY);
+    if(pushReceiverClassName == null || pushReceiverClassName.isEmpty())
+    {
+      pushReceiverClassName = LeanplumManifestHelper.LP_PUSH_RECEIVER;
+    }
+    Class pushReceiverClass = LeanplumManifestHelper.getClassForName(pushReceiverClassName);
+
+    Intent intent = new Intent(context, pushReceiverClass);
     intent.addCategory("lpAction");
     intent.putExtras(message);
     PendingIntent contentIntent = PendingIntent.getBroadcast(
@@ -822,7 +829,14 @@ public class LeanplumPushService {
       if (gcmReceiver != null) {
         LeanplumManifestHelper.enableComponent(context, packageManager, gcmReceiver);
       }
-      Class pushListener = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
+
+      String pushListenerServiceClassName = LeanplumManifestHelper.getStringMetadata(context, LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE_KEY);
+      if(pushListenerServiceClassName == null || pushListenerServiceClassName.isEmpty())
+      {
+        pushListenerServiceClassName = LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE;
+      }
+
+      Class pushListener = LeanplumManifestHelper.getClassForName(pushListenerServiceClassName);
       if (pushListener != null) {
         LeanplumManifestHelper.enableComponent(context, packageManager, pushListener);
       }
@@ -864,12 +878,18 @@ public class LeanplumPushService {
       return;
     }
 
+    String pushListenerServiceClassName = LeanplumManifestHelper.getStringMetadata(context, LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE_KEY);
+    if(pushListenerServiceClassName == null || pushListenerServiceClassName.isEmpty())
+    {
+      pushListenerServiceClassName = LeanplumManifestHelper.LP_PUSH_LISTENER_SERVICE;
+    }
+
     LeanplumManifestHelper.disableComponent(context, packageManager,
         LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
     LeanplumManifestHelper.disableComponent(context, packageManager,
         GCM_RECEIVER_CLASS);
     LeanplumManifestHelper.disableComponent(context, packageManager,
-        LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
+            pushListenerServiceClassName);
   }
 
   /**

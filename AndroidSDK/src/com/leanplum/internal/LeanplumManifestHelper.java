@@ -61,6 +61,10 @@ public class LeanplumManifestHelper {
   public static final String LP_PUSH_REGISTRATION_SERVICE = "com.leanplum.LeanplumPushRegistrationService";
   public static final String LP_PUSH_RECEIVER = "com.leanplum.LeanplumPushReceiver";
 
+  //Metadata
+  public static final String LP_PUSH_RECEIVER_KEY = "LeanplumPushReceiver";
+  public static final String LP_PUSH_LISTENER_SERVICE_KEY = "LeanplumPushListenerService";
+
   /**
    * Gets Class for name.
    *
@@ -310,4 +314,19 @@ public class LeanplumManifestHelper {
   }
 
   public enum ApplicationComponent {SERVICE, RECEIVER}
+
+  public static String getStringMetadata(Context context, String key)
+  {
+    try {
+      ApplicationInfo app = context.getPackageManager().getApplicationInfo(context.getPackageName(),PackageManager.GET_META_DATA);
+      Bundle bundle = app.metaData;
+      String metaData = bundle.getString(key);
+      return bundle.getString(key);
+    } catch (PackageManager.NameNotFoundException e) {
+      e.printStackTrace();
+    } catch (NullPointerException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
 }
