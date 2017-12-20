@@ -20,7 +20,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    debugApi project(':AndroidSDK')
+    debugApi project(':AndroidSDKCore')
     debugApi project(':AndroidSDKPush')
     // Provided dependencies are optional dependencies and will not show up in pom file.
     compileOnly('com.google.android.gms:play-services-gcm:[8.3.0,)') {

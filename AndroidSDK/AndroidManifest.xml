@@ -5,12 +5,4 @@
           android:versionName="1.0">
 
     <uses-sdk android:minSdkVersion="14"/>
-    <!-- Minimum permissions needed for SDK to work -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-
-    <application>
-        <!-- Geofencing Service -->
-        <service android:name="com.leanplum.ReceiveTransitionsIntentService"/>
-    </application>
 </manifest>

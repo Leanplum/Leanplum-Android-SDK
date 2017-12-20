@@ -1,0 +1,40 @@
+apply plugin: 'com.android.library'
+
+def COMPILE_SDK_VERSION = 27
+def BUILD_TOOLS_VERSION = '27.0.2'
+def SUPPORT_LIBRARY_VERSION = '27.0.2'
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion BUILD_TOOLS_VERSION
+    useLibrary 'org.apache.http.legacy'
+    defaultConfig {
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        buildTypes.each {
+            def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
+                    '\"'
+            it.buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    compileOnly('com.google.android.gms:play-services-location:[10.0.0,)') {
+        exclude module: 'support-v4'
+    }
+    // Compile dependencies will be added as dependency in pom file.
+    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+}

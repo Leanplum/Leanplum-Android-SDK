@@ -4,7 +4,6 @@ apply plugin: 'maven-publish'
 
 def COMPILE_SDK_VERSION=27
 def BUILD_TOOLS_VERSION='27.0.2'
-def SUPPORT_LIBRARY_VERSION='27.0.2'
 
 allprojects {
     gradle.projectsEvaluated {
@@ -15,19 +14,12 @@ allprojects {
 }
 
 dependencies {
-    // Compile dependencies will be added as dependency in pom file.
-    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-
-    compileOnly('com.google.android.gms:play-services-location:[10.0.0,)') {
-        exclude module: 'support-v4'
-    }
+    debugApi project(':AndroidSDKGcm')
 }
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
     buildToolsVersion BUILD_TOOLS_VERSION
-    useLibrary 'org.apache.http.legacy'
 //    publishNonDefault true
 
     defaultConfig {
@@ -39,11 +31,6 @@ android {
             minifyEnabled true
             proguardFiles 'proguard-rules.pro'
 
-        }
-        buildTypes.each {
-            def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
-                    '\"'
-            it.buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
         }
     }
 

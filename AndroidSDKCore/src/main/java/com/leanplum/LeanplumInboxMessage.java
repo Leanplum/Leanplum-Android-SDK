@@ -26,6 +26,7 @@ import android.text.TextUtils;
 
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
@@ -39,9 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.leanplum.internal.FileManager.DownloadFileResult;
-import static com.leanplum.internal.FileManager.fileExistsAtPath;
-import static com.leanplum.internal.FileManager.fileValue;
-import static com.leanplum.internal.FileManager.maybeDownloadFile;
 
 /**
  * LeanplumInboxMessage class.
@@ -77,8 +75,8 @@ public class LeanplumInboxMessage {
    * Returns the image file path of the inbox message. Can be null.
    */
   public String getImageFilePath() {
-    String path = fileValue(imageFileName);
-    if (fileExistsAtPath(path)) {
+    String path = FileManager.fileValue(imageFileName);
+    if (FileManager.fileExistsAtPath(path)) {
       return new File(path).getAbsolutePath();
     }
     if (!LeanplumInbox.getInstance().isInboxImagePrefetchingEnabled()) {
@@ -94,8 +92,8 @@ public class LeanplumInboxMessage {
    * It will return the file Uri path instead if the image is in cache.
    */
   public Uri getImageUrl() {
-    String path = fileValue(imageFileName);
-    if (fileExistsAtPath(path)) {
+    String path = FileManager.fileValue(imageFileName);
+    if (FileManager.fileExistsAtPath(path)) {
       return Uri.fromFile(new File(path));
     }
     if (TextUtils.isEmpty(imageUrl)) {
@@ -253,7 +251,7 @@ public class LeanplumInboxMessage {
       return false;
     }
 
-    DownloadFileResult result = maybeDownloadFile(true, imageFileName,
+    DownloadFileResult result = FileManager.maybeDownloadFile(true, imageFileName,
         imageUrl, imageUrl, null);
     LeanplumInbox.downloadedImageUrls.add(imageUrl);
     return DownloadFileResult.DOWNLOADING == result;

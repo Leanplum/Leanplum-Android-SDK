@@ -49,14 +49,14 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     Class clazz = null;
     try {
       clazz = Class.forName(UI_INTERFACE_EDITOR);
-    } catch (ClassNotFoundException ignored) {
+    } catch (Throwable ignored) {
     }
     if (clazz != null) {
       Method method = null;
       try {
         method = clazz.getMethod("getInstance", null);
-      } catch (NoSuchMethodException e) {
-        Util.handleException(e);
+      } catch (Throwable t) {
+        Util.handleException(t);
       }
       if (method != null) {
         try {
@@ -68,6 +68,8 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
           Util.handleException(e);
         } catch (InvocationTargetException e) {
           Util.handleException(e);
+        } catch (Throwable t) {
+          Util.handleException(t);
         }
       }
     }
