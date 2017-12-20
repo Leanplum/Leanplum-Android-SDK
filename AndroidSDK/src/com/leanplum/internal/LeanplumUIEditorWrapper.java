@@ -34,6 +34,8 @@ import static com.leanplum.internal.Constants.ClassUtil.UI_INTERFACE_EDITOR;
 /**
  * Wrapper class for the UI Editor. Method calls will be forwarded to UI Editor package if its
  * available.
+ *
+ * @author Ben Marten
  */
 public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
   private static LeanplumUIEditor interfaceEditorSingleton;

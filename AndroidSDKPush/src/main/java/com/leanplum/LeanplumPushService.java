@@ -22,11 +22,13 @@
 package com.leanplum;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -44,7 +46,6 @@ import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
@@ -56,6 +57,7 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,25 +93,61 @@ public class LeanplumPushService {
    * LeanplumPushService#parseNotificationBundle(Bundle)}.
    */
   public static final String LEANPLUM_MESSAGE_ID = "lp_message_id";
+  private static final String LEANPLUM_PUSH_SERVICE_GCM = "com.leanplum.LeanplumPushServiceGcm";
+  private static final String LEANPLUM_PUSH_SERVICE_FCM = "com.leanplum.LeanplumPushServiceFcm";
 
-  private static final String LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS =
-      "com.leanplum.LeanplumPushFcmListenerService";
-  private static final String PUSH_FIREBASE_MESSAGING_SERVICE_CLASS =
-      "com.leanplum.LeanplumPushFirebaseMessagingService";
-  private static final String LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS =
-      "com.leanplum.LeanplumPushInstanceIDService";
-  private static final String LEANPLUM_PUSH_LISTENER_SERVICE_CLASS =
-      "com.leanplum.LeanplumPushListenerService";
-  private static final String GCM_RECEIVER_CLASS = "com.google.android.gms.gcm.GcmReceiver";
+  private static final String PREFERENCES_NAME = "__leanplum_messaging__";
   private static final int NOTIFICATION_ID = 1;
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
   private static final int MAX_ONE_LINE_TEXT_LENGTH = 37;
+  private static final String COM_LEANPLUM_GCM_PROVIDER = "com.leanplum.LeanplumGcmProvider";
   private static Class<? extends Activity> callbackClass;
   private static LeanplumCloudMessagingProvider provider;
   private static boolean isFirebaseEnabled = false;
   private static LeanplumPushNotificationCustomizer customizer;
+
+  /**
+   * Sets the Google Cloud Messaging sender ID. Required for push GCM notifications to work.
+   *
+   * @param senderId The GCM sender ID to permit notifications from. Use {@link
+   * LeanplumPushService#LEANPLUM_SENDER_ID} to use the built-in sender ID for GCM. If you have
+   * multiple sender IDs, use {@link LeanplumPushService#setGcmSenderIds}.
+   */
+  public static void setGcmSenderId(String senderId) {
+    try {
+      Class.forName(COM_LEANPLUM_GCM_PROVIDER).getDeclaredMethod("setSenderId",
+          String.class).invoke(new Object(), senderId);
+    } catch (Throwable throwable) {
+      Log.e("Couldn't invoke a LeanplumGcmProvider.setGcmSenderId method, please be " +
+          "sure you include LeanplumGCM module.", throwable);
+    }
+  }
+
+  /**
+   * Sets the Google Cloud Messaging sender ID. Required for push GCM notifications to work.
+   *
+   * @param senderIds The GCM sender IDs to permit notifications from. Use {@link
+   * LeanplumPushService#LEANPLUM_SENDER_ID} to use the built-in sender ID.
+   */
+  public static void setGcmSenderIds(String... senderIds) {
+    StringBuilder joinedSenderIds = new StringBuilder();
+    for (String senderId : senderIds) {
+      if (joinedSenderIds.length() > 0) {
+        joinedSenderIds.append(',');
+      }
+      joinedSenderIds.append(senderId);
+    }
+
+    try {
+      Class.forName(COM_LEANPLUM_GCM_PROVIDER).getDeclaredMethod("setSenderId",
+          String.class).invoke(new Object(), joinedSenderIds.toString());
+    } catch (Throwable throwable) {
+      Log.e("Couldn't invoke a LeanplumGcmProvider.setGcmSenderId method, please be " +
+          "sure you include LeanplumGCM module.", throwable);
+    }
+  }
 
   /**
    * Use Firebase Cloud Messaging, instead of the default Google Cloud Messaging.
@@ -136,6 +174,10 @@ public class LeanplumPushService {
     return provider;
   }
 
+  static void setCloudMessagingProvider(LeanplumCloudMessagingProvider cloudMessagingProvider) {
+    provider = cloudMessagingProvider;
+  }
+
   /**
    * Changes the default activity to launch if the user opens a push notification.
    *
@@ -152,36 +194,6 @@ public class LeanplumPushService {
    */
   public static void setCustomizer(LeanplumPushNotificationCustomizer customizer) {
     LeanplumPushService.customizer = customizer;
-  }
-
-  /**
-   * Sets the Google Cloud Messaging/Firebase Cloud Messaging sender ID. Required for push
-   * notifications to work.
-   *
-   * @param senderId The GCM/FCM sender ID to permit notifications from. Use {@link
-   * LeanplumPushService#LEANPLUM_SENDER_ID} to use the built-in sender ID for GCM. If you have
-   * multiple sender IDs, use {@link LeanplumPushService#setGcmSenderIds}.
-   */
-  public static void setGcmSenderId(String senderId) {
-    LeanplumGcmProvider.setSenderId(senderId);
-  }
-
-  /**
-   * Sets the Google Cloud Messaging/Firebase Cloud Messaging sender ID. Required for push
-   * notifications to work.
-   *
-   * @param senderIds The GCM/FCM sender IDs to permit notifications from. Use {@link
-   * LeanplumPushService#LEANPLUM_SENDER_ID} to use the built-in sender ID.
-   */
-  public static void setGcmSenderIds(String... senderIds) {
-    StringBuilder joinedSenderIds = new StringBuilder();
-    for (String senderId : senderIds) {
-      if (joinedSenderIds.length() > 0) {
-        joinedSenderIds.append(',');
-      }
-      joinedSenderIds.append(senderId);
-    }
-    LeanplumGcmProvider.setSenderId(joinedSenderIds.toString());
   }
 
   private static Class<? extends Activity> getCallbackClass() {
@@ -705,39 +717,26 @@ public class LeanplumPushService {
   }
 
   /**
-   * Call this when Leanplum starts.
+   * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
     try {
-      if (Util.hasPlayServices()) {
-        initPushService();
-      } else {
-        Log.i("No valid Google Play Services APK found.");
+      Class.forName(LEANPLUM_PUSH_SERVICE_GCM).getDeclaredMethod("onStart")
+          .invoke(null);
+    } catch (Throwable throwable) {
+      // If there not GCM try to check for FCM.
+      try {
+        Class.forName(LEANPLUM_PUSH_SERVICE_FCM)
+            .getDeclaredMethod("onStart").invoke(null);
+      } catch (Throwable ignored) {
       }
-    } catch (LeanplumException e) {
-      Log.e("There was an error registering for push notifications.\n" +
-          Log.getStackTraceString(e));
-    } catch (Throwable ignored) {
     }
   }
 
   /**
    * Initialize push service.
    */
-  private static void initPushService() {
-    if (isFirebaseEnabled()) {
-      if (!enableFcmServices()) {
-        Log.w("Failed to initialize FCM services.");
-        return;
-      }
-      provider = new LeanplumFcmProvider();
-    } else {
-      if (!enableGcmServices()) {
-        Log.w("Failed to initialize GCM services.");
-        return;
-      }
-      provider = new LeanplumGcmProvider();
-    }
+  static void initPushService() {
     if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
@@ -745,131 +744,6 @@ public class LeanplumPushService {
       provider.unregister();
     }
     registerInBackground();
-  }
-
-  /**
-   * Enables Firebase services. By default, all Firebase services are disabled.
-   *
-   * @return true if services are successfully enabled, false otherwise
-   */
-  private static boolean enableFcmServices() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      Log.i("Failed to enable FCM services, context is null.");
-      return false;
-    }
-
-    PackageManager packageManager = context.getPackageManager();
-    if (packageManager == null) {
-      Log.i("Failed to enable FCM services, PackageManager is null.");
-      return false;
-    }
-
-    if (isFirebaseEnabled()) {
-      Class fcmListenerClass = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
-      if (fcmListenerClass == null) {
-        Log.e("Failed to setup Firebase, please compile Firebase library.");
-        return false;
-      }
-      // We will only enable component once, if we are switching from GCM to FCM, we have to disable
-      // GCM services first.
-      if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, fcmListenerClass)) {
-        // Try to disable GCM services first.
-        disableGcmServices();
-        LeanplumManifestHelper.enableServiceAndStart(context, packageManager, fcmListenerClass);
-
-        Class pushListener = LeanplumManifestHelper.getClassForName(PUSH_FIREBASE_MESSAGING_SERVICE_CLASS);
-        if (pushListener != null) {
-          LeanplumManifestHelper.enableServiceAndStart(context, packageManager, pushListener);
-        }
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Enables GCM services. By default, all GCM services are disabled.
-   *
-   * @return true if services are successfully enabled, false otherwise
-   */
-  private static boolean enableGcmServices() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      Log.i("Failed to enable FCM services, context is null.");
-      return false;
-    }
-
-    PackageManager packageManager = context.getPackageManager();
-    if (packageManager == null) {
-      Log.i("Failed to enable FCM services, PackageManager is null.");
-      return false;
-    }
-
-    Class gcm = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
-    if (gcm == null) {
-      Log.e("Failed to setup GCM, please compile GCM library.");
-      return false;
-    }
-    // We will only enable component once, if we are switching from FCM to GCM, we have to disable
-    // FCM services first.
-    if (!LeanplumManifestHelper.wasComponentEnabled(context, packageManager, gcm)) {
-      // Try to disable FCM first.
-      disableFcmServices();
-      LeanplumManifestHelper.enableComponent(context, packageManager, gcm);
-
-      // Make sure we can find the class before enabling it.
-      Class gcmReceiver = LeanplumManifestHelper.getClassForName(GCM_RECEIVER_CLASS);
-      if (gcmReceiver != null) {
-        LeanplumManifestHelper.enableComponent(context, packageManager, gcmReceiver);
-      }
-      Class pushListener = LeanplumManifestHelper.getClassForName(LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
-      if (pushListener != null) {
-        LeanplumManifestHelper.enableComponent(context, packageManager, pushListener);
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Disables FCM services.
-   */
-  private static void disableFcmServices() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return;
-    }
-
-    PackageManager packageManager = context.getPackageManager();
-    if (packageManager == null) {
-      return;
-    }
-
-    LeanplumManifestHelper.disableComponent(context, packageManager,
-        LEANPLUM_PUSH_FCM_LISTENER_SERVICE_CLASS);
-    LeanplumManifestHelper.disableComponent(context, packageManager,
-        PUSH_FIREBASE_MESSAGING_SERVICE_CLASS);
-  }
-
-  /**
-   * Disables GCM services
-   */
-  private static void disableGcmServices() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return;
-    }
-
-    PackageManager packageManager = context.getPackageManager();
-    if (packageManager == null) {
-      return;
-    }
-
-    LeanplumManifestHelper.disableComponent(context, packageManager,
-        LEANPLUM_PUSH_INSTANCE_ID_SERVICE_CLASS);
-    LeanplumManifestHelper.disableComponent(context, packageManager,
-        GCM_RECEIVER_CLASS);
-    LeanplumManifestHelper.disableComponent(context, packageManager,
-        LEANPLUM_PUSH_LISTENER_SERVICE_CLASS);
   }
 
   /**
@@ -900,5 +774,149 @@ public class LeanplumPushService {
       }
     }
     return false;
+  }
+
+  /**
+   * Show notification that device was registered for push notifications. This method will call by
+   * reflection from AndroidSDKCore.
+   *
+   * @param context The application context.
+   * @param currentContext Current application context.
+   */
+  static void showDeviceRegistedPush(Context context, Context currentContext) {
+    try {
+      NotificationCompat.Builder builder =
+          LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context,
+              BuildUtil.isNotificationChannelSupported(context));
+      if (builder == null) {
+        return;
+      }
+      builder.setSmallIcon(android.R.drawable.star_on)
+          .setContentTitle("Leanplum")
+          .setContentText("Your device is registered.");
+      builder.setContentIntent(PendingIntent.getActivity(
+          currentContext.getApplicationContext(), 0, new Intent(), 0));
+      NotificationManager mNotificationManager =
+          (NotificationManager) currentContext.getSystemService(
+              Context.NOTIFICATION_SERVICE);
+      // mId allows you to update the notification later on.
+      mNotificationManager.notify(0, builder.build());
+    } catch (Throwable t) {
+      Log.i("Device is registered.");
+    }
+  }
+
+  /**
+   * Schedule local push notification. This method will call by reflection from AndroidSDKCore.
+   *
+   * @param actionContext Action Context.
+   * @param messageId String message id for local push notification.
+   * @param eta Eta for local push notification.
+   * @return True if notification was scheduled.
+   */
+  static boolean scheduleLocalPush(ActionContext actionContext, String messageId, long eta) {
+    try {
+      Context context = Leanplum.getContext();
+      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
+      AlarmManager alarmManager = (AlarmManager) context.getSystemService(
+          Context.ALARM_SERVICE);
+
+      // If there's already one scheduled before the eta, discard this.
+      // Otherwise, discard the scheduled one.
+      SharedPreferences preferences = context.getSharedPreferences(
+          PREFERENCES_NAME, Context.MODE_PRIVATE);
+      long existingEta = preferences.getLong(String.format(
+          Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), 0L);
+      if (existingEta > 0L && existingEta > System.currentTimeMillis()) {
+        if (existingEta < eta) {
+          return false;
+        } else if (existingEta >= eta) {
+          PendingIntent existingIntent = PendingIntent.getService(
+              context, messageId.hashCode(), intentAlarm,
+              PendingIntent.FLAG_UPDATE_CURRENT);
+          alarmManager.cancel(existingIntent);
+        }
+      }
+
+      // Specify custom data for the notification
+      Map<String, Serializable> data = actionContext.objectNamed("Advanced options.Data");
+      if (data != null) {
+        for (String key : data.keySet()) {
+          intentAlarm.putExtra(key, data.get(key));
+        }
+      }
+
+      // Specify open action
+      String openAction = actionContext.stringNamed(Constants.Values.DEFAULT_PUSH_ACTION);
+      boolean muteInsideApp = Boolean.TRUE.equals(actionContext.objectNamed(
+          "Advanced options.Mute inside app"));
+      if (openAction != null) {
+        if (muteInsideApp) {
+          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION, messageId);
+        } else {
+          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_NO_MUTE_WITH_ACTION, messageId);
+        }
+      } else {
+        if (muteInsideApp) {
+          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_MUTE, messageId);
+        } else {
+          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
+        }
+      }
+
+      // Message.
+      String message = actionContext.stringNamed("Message");
+      intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_TEXT,
+          message != null ? message : Constants.Values.DEFAULT_PUSH_MESSAGE);
+
+      // Collapse key.
+      String collapseKey = actionContext.stringNamed("Android options.Collapse key");
+      if (collapseKey != null) {
+        intentAlarm.putExtra("collapseKey", collapseKey);
+      }
+
+      // Delay while idle.
+      boolean delayWhileIdle = Boolean.TRUE.equals(actionContext.objectNamed(
+          "Android options.Delay while idle"));
+      if (delayWhileIdle) {
+        intentAlarm.putExtra("delayWhileIdle", true);
+      }
+
+      // Schedule notification.
+      PendingIntent operation = PendingIntent.getService(
+          context, messageId.hashCode(), intentAlarm,
+          PendingIntent.FLAG_UPDATE_CURRENT);
+      alarmManager.set(AlarmManager.RTC_WAKEUP, eta, operation);
+
+      // Save notification so we can cancel it later.
+      SharedPreferences.Editor editor = preferences.edit();
+      editor.putLong(String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), eta);
+      SharedPreferencesUtil.commitChanges(editor);
+
+      Log.i("Scheduled notification.");
+      return true;
+    } catch (Throwable t) {
+      Util.handleException(t);
+      return false;
+    }
+  }
+
+  /**
+   * Cancel local push notification. This method will call by reflection from AndroidSDKCore.
+   *
+   * @param context The application context.
+   * @param messageId Message id of notification that should be canceled.
+   */
+  static void cancelLocalPush(Context context, String messageId) {
+    try {
+      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
+      AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+      PendingIntent existingIntent = PendingIntent.getService(
+          context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
+      if (alarmManager != null && existingIntent != null) {
+        alarmManager.cancel(existingIntent);
+      }
+    } catch (Throwable ignored) {
+    }
   }
 }

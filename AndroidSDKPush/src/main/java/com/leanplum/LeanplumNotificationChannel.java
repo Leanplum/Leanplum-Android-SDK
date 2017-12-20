@@ -569,7 +569,8 @@ class LeanplumNotificationChannel {
 
       importance = (int) CollectionUtil.getOrDefault(channel, "importance",
           importance);
-      enableLights = (boolean) CollectionUtil.getOrDefault(channel, "enable_lights", enableLights);
+      enableLights = (boolean) CollectionUtil.getOrDefault(channel, "enable_lights",
+          enableLights);
       lightColor = (int) CollectionUtil.getOrDefault(channel, "light_color", lightColor);
       enableVibration = (boolean) CollectionUtil.getOrDefault(channel, "enable_vibration",
           enableVibration);
@@ -619,5 +620,25 @@ class LeanplumNotificationChannel {
       id = (String) group.get("id");
       name = (String) group.get("name");
     }
+  }
+
+  /**
+   * Configure groups, channels, default channel for application. This method will call by
+   * reflection from AndroidSDKCore.
+   *
+   * @param context The application context.
+   * @param notificationGroups Notification groups.
+   * @param notificationChannels Notification channels.
+   * @param defaultNotificationChannel Default channel details.
+   */
+  static void configureChannels(Context context, JSONArray notificationGroups,
+      JSONArray notificationChannels, String defaultNotificationChannel) {
+    // Configure notification channels and groups
+    configureNotificationGroups(
+        context, notificationGroups);
+    configureNotificationChannels(
+        context, notificationChannels);
+    configureDefaultNotificationChannel(
+        context, defaultNotificationChannel);
   }
 }

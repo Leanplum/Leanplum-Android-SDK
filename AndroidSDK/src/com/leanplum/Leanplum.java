@@ -22,13 +22,9 @@
 package com.leanplum;
 
 import android.app.Activity;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
@@ -81,6 +77,7 @@ public class Leanplum {
    * Default event name to use for Purchase events.
    */
   public static final String PURCHASE_EVENT_NAME = "Purchase";
+  public static final String LEANPLUM_PUSH_SERVICE = "com.leanplum.LeanplumPushService";
 
   private static final ArrayList<StartCallback> startHandlers = new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> variablesChangedHandlers =
@@ -90,6 +87,8 @@ public class Leanplum {
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
   private static final Object heartbeatLock = new Object();
+  private static final String LEANPLUM_NOTIFICATION_CHANNEL =
+      "com.leanplum.LeanplumNotificationChannel";
   private static RegisterDeviceCallback registerDeviceHandler;
   private static RegisterDeviceFinishedCallback registerDeviceFinishedHandler;
   private static LeanplumDeviceIdMode deviceIdMode = LeanplumDeviceIdMode.MD5_MAC_ADDRESS;
@@ -577,11 +576,25 @@ public class Leanplum {
     }
   }
 
+  /**
+   * Checks for leanplum notifications modules and if someone present - invoke onStart method.
+   */
+  private static void checkAndStartNotificationsModules() {
+    if (Util.hasPlayServices()) {
+      try {
+        Class.forName(LEANPLUM_PUSH_SERVICE).getDeclaredMethod("onStart")
+            .invoke(null);
+      } catch (Throwable ignored) {
+      }
+    } else {
+      Log.i("No valid Google Play Services APK found.");
+    }
+  }
+
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
     LeanplumEventDataManager.init(context);
-    LeanplumPushService.onStart();
-
+    checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
     String deviceId = Request.deviceId();
     if (deviceId == null) {
@@ -759,14 +772,13 @@ public class Leanplum {
                   Constants.Keys.NOTIFICATION_GROUPS);
               String defaultNotificationChannel = response.optString(
                   Constants.Keys.DEFAULT_NOTIFICATION_CHANNEL);
-
-              // Configure notification channels and groups
-              LeanplumNotificationChannel.configureNotificationGroups(
-                  context, notificationGroups);
-              LeanplumNotificationChannel.configureNotificationChannels(
-                  context, notificationChannels);
-              LeanplumNotificationChannel.configureDefaultNotificationChannel(
-                  context, defaultNotificationChannel);
+              try {
+                Class.forName(LEANPLUM_NOTIFICATION_CHANNEL)
+                    .getDeclaredMethod("configureChannels", Context.class, JSONArray.class,
+                        JSONArray.class, String.class).invoke(new Object(), context,
+                    notificationGroups, notificationChannels, defaultNotificationChannel);
+              } catch (Throwable ignored) {
+              }
             }
 
             String token = response.optString(Constants.Keys.TOKEN, null);
@@ -834,24 +846,10 @@ public class Leanplum {
                   @Override
                   public void run() {
                     try {
-                      NotificationCompat.Builder builder =
-                          LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context,
-                              BuildUtil.isNotificationChannelSupported(context));
-                      if (builder == null) {
-                        return;
-                      }
-                      builder.setSmallIcon(android.R.drawable.star_on)
-                          .setContentTitle("Leanplum")
-                          .setContentText("Your device is registered.");
-                      builder.setContentIntent(PendingIntent.getActivity(
-                          currentContext.getApplicationContext(), 0, new Intent(), 0));
-                      NotificationManager mNotificationManager =
-                          (NotificationManager) currentContext.getSystemService(
-                              Context.NOTIFICATION_SERVICE);
-                      // mId allows you to update the notification later on.
-                      mNotificationManager.notify(0, builder.build());
-                    } catch (Throwable t) {
-                      Log.i("Device is registered.");
+                      Class.forName(Leanplum.LEANPLUM_PUSH_SERVICE)
+                          .getDeclaredMethod("showDeviceRegistedPush", Context.class,
+                              Context.class).invoke(new Object(), context, currentContext);
+                    } catch (Throwable ignored) {
                     }
                   }
                 });

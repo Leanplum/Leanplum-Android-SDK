@@ -21,23 +21,17 @@
 
 package com.leanplum.internal;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 
 import com.google.android.gms.location.LocationServices;
 import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
-import com.leanplum.LeanplumLocalPushListenerService;
-import com.leanplum.LeanplumPushService;
 import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,91 +123,20 @@ public class ActionManager {
             return false;
           }
           long eta = System.currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
-
-          Context context = Leanplum.getContext();
-          Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
-          AlarmManager alarmManager = (AlarmManager) context.getSystemService(
-              Context.ALARM_SERVICE);
-
-          // If there's already one scheduled before the eta, discard this.
-          // Otherwise, discard the scheduled one.
-          SharedPreferences preferences = context.getSharedPreferences(
-              PREFERENCES_NAME, Context.MODE_PRIVATE);
-          long existingEta = preferences.getLong(String.format(
-              Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), 0L);
-          if (existingEta > 0L && existingEta > System.currentTimeMillis()) {
-            if (existingEta < eta) {
-              return false;
-            } else if (existingEta >= eta) {
-              PendingIntent existingIntent = PendingIntent.getService(
-                  context, messageId.hashCode(), intentAlarm,
-                  PendingIntent.FLAG_UPDATE_CURRENT);
-              alarmManager.cancel(existingIntent);
-            }
-          }
-
-          // Specify custom data for the notification
-          Map<String, Serializable> data = actionContext.objectNamed("Advanced options.Data");
-          if (data != null) {
-            for (String key : data.keySet()) {
-              intentAlarm.putExtra(key, data.get(key));
-            }
-          }
-
-          // Specify open action
-          String openAction = actionContext.stringNamed(Constants.Values.DEFAULT_PUSH_ACTION);
-          boolean muteInsideApp = Boolean.TRUE.equals(actionContext.objectNamed(
-              "Advanced options.Mute inside app"));
-          if (openAction != null) {
-            if (muteInsideApp) {
-              intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION, messageId);
-            } else {
-              intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_NO_MUTE_WITH_ACTION, messageId);
-            }
-          } else {
-            if (muteInsideApp) {
-              intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_MUTE, messageId);
-            } else {
-              intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-            }
-          }
-
-          // Message.
-          String message = actionContext.stringNamed("Message");
-          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_TEXT,
-              message != null ? message : Constants.Values.DEFAULT_PUSH_MESSAGE);
-
-          // Collapse key.
-          String collapseKey = actionContext.stringNamed("Android options.Collapse key");
-          if (collapseKey != null) {
-            intentAlarm.putExtra("collapseKey", collapseKey);
-          }
-
-          // Delay while idle.
-          boolean delayWhileIdle = Boolean.TRUE.equals(actionContext.objectNamed(
-              "Android options.Delay while idle"));
-          if (delayWhileIdle) {
-            intentAlarm.putExtra("delayWhileIdle", true);
-          }
-
           // Schedule notification.
-          PendingIntent operation = PendingIntent.getService(
-              context, messageId.hashCode(), intentAlarm,
-              PendingIntent.FLAG_UPDATE_CURRENT);
-          alarmManager.set(AlarmManager.RTC_WAKEUP, eta, operation);
-
-          // Save notification so we can cancel it later.
-          SharedPreferences.Editor editor = preferences.edit();
-          editor.putLong(String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), eta);
-          SharedPreferencesUtil.commitChanges(editor);
-
-          Log.i("Scheduled notification");
-          return true;
+          try {
+            return (boolean) Class.forName(Leanplum.LEANPLUM_PUSH_SERVICE)
+                .getDeclaredMethod("scheduleLocalPush", Context.class, String.class,
+                    long.class).invoke(new Object(), actionContext, messageId, eta);
+          } catch (Throwable throwable) {
+            return false;
+          }
         } catch (Throwable t) {
           Util.handleException(t);
           return false;
         }
       }
+
     });
 
     Leanplum.onAction("__Cancel" + PUSH_NOTIFICATION_ACTION_NAME, new ActionCallback() {
@@ -226,24 +149,26 @@ public class ActionManager {
           Context context = Leanplum.getContext();
           SharedPreferences preferences = context.getSharedPreferences(
               PREFERENCES_NAME, Context.MODE_PRIVATE);
-          String preferencesKey = String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId);
+          String preferencesKey = String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY,
+              messageId);
           long existingEta = preferences.getLong(preferencesKey, 0L);
           SharedPreferences.Editor editor = preferences.edit();
           editor.remove(preferencesKey);
           SharedPreferencesUtil.commitChanges(editor);
 
           // Cancel notification.
-          Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
-          AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-          PendingIntent existingIntent = PendingIntent.getService(
-              context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
-          alarmManager.cancel(existingIntent);
-
-          boolean didCancel = existingEta > System.currentTimeMillis();
-          if (didCancel) {
-            Log.i("Cancelled notification");
+          try {
+            Class.forName(Leanplum.LEANPLUM_PUSH_SERVICE)
+                .getDeclaredMethod("cancelLocalPush", Context.class, String.class)
+                .invoke(new Object(), context, messageId);
+            boolean didCancel = existingEta > System.currentTimeMillis();
+            if (didCancel) {
+              Log.i("Cancelled notification");
+            }
+            return didCancel;
+          } catch (Throwable throwable) {
+            return false;
           }
-          return didCancel;
         } catch (Throwable t) {
           Util.handleException(t);
           return false;
@@ -277,7 +202,7 @@ public class ActionManager {
         String.format(Constants.Defaults.MESSAGE_IMPRESSION_OCCURRENCES_KEY, messageId),
         JsonConverter.toJson(occurrences));
     messageImpressionOccurrences.put(messageId, occurrences);
-   SharedPreferencesUtil.commitChanges(editor);
+    SharedPreferencesUtil.commitChanges(editor);
   }
 
   public int getMessageTriggerOccurrences(String messageId) {

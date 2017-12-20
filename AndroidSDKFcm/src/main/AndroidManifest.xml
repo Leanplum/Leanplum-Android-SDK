@@ -1,0 +1,36 @@
+<manifest package="com.leanplum"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-sdk android:minSdkVersion="14"/>
+    <application>
+        <!-- Leanplum FCM Message Handling Service -->
+        <service
+            android:name="com.leanplum.LeanplumPushFirebaseMessagingService"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <!-- Leanplum FCM Instance ID Service -->
+        <service
+            android:name="com.leanplum.LeanplumPushFcmListenerService"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <!-- Leanplum Push Notification Receiver for FCM -->
+        <receiver
+            android:name="com.leanplum.LeanplumPushReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.leanplum.LeanplumPushFirebaseMessagingService"/>
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
