@@ -27,13 +27,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compileOnly('com.google.android.gms:play-services-location:[10.0.0,)') {
-        exclude module: 'support-v4'
-    }
     // Compile dependencies will be added as dependency in pom file.
     api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
     api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
