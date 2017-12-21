@@ -21,7 +21,7 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.BuildConfig;
+import com.leanplum.core.BuildConfig;
 
 /**
  * Leanplum constants.
