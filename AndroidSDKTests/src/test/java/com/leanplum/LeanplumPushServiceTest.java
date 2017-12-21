@@ -132,11 +132,13 @@ public class LeanplumPushServiceTest {
     Method initPushServiceMethod = LeanplumPushService.class.
         getDeclaredMethod("initPushService");
     initPushServiceMethod.setAccessible(true);
-    when(LeanplumPushService.class, "enableFcmServices").thenReturn(true);
-    when(LeanplumPushService.class, "enableGcmServices").thenReturn(true);
+
+//    when(LeanplumPushService.class, "enableFcmServices").thenReturn(true);
+//    when(LeanplumPushService.class, "enableGcmServices").thenReturn(true);
 
     // Tests for Firebase.
     when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
     // Test if Manifest is not set up and provider is initialized.
     doReturn(false).when(fcmProviderMock).isManifestSetup();
@@ -154,6 +156,7 @@ public class LeanplumPushServiceTest {
 
     // Tests for GCM.
     when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+    LeanplumPushService.setCloudMessagingProvider(gcmProviderMock);
 
     // Test if Manifest is not set up and provider is initialized.
     doReturn(false).when(gcmProviderMock).isManifestSetup();
@@ -337,16 +340,14 @@ public class LeanplumPushServiceTest {
     Request.setAppId(null, null);
 
     PowerMockito.doReturn(true).when(Util.class, "hasPlayServices");
-    PowerMockito.doReturn(true).when(LeanplumPushService.class, "enableFcmServices");
-    PowerMockito.doReturn(true).when(LeanplumPushService.class, "enableGcmServices");
     PowerMockito.doReturn(false).when(LeanplumPushService.class, "hasAppIDChanged", any());
 
     LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
     whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);
     doReturn(true).when(gcmProviderMock).isManifestSetup();
     doReturn(true).when(gcmProviderMock).isInitialized();
-
-    LeanplumPushService.onStart();
+    LeanplumPushService.setCloudMessagingProvider(gcmProviderMock);
+    LeanplumPushService.initPushService();
 
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
@@ -354,8 +355,9 @@ public class LeanplumPushServiceTest {
     doReturn(true).when(fcmProviderMock).isInitialized();
 
     PowerMockito.doReturn(true).when(LeanplumPushService.class, "isFirebaseEnabled");
+    LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
-    LeanplumPushService.onStart();
+    LeanplumPushService.initPushService();
     verify(mock, times(2)).startService(any(Intent.class));
   }
 }
