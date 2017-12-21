@@ -15,6 +15,7 @@ allprojects {
 
 dependencies {
     debugApi project(':AndroidSDKGcm')
+    debugApi project(':AndroidSDKLocation')
 }
 
 android {
@@ -30,7 +31,6 @@ android {
         release {
             minifyEnabled true
             proguardFiles 'proguard-rules.pro'
-
         }
     }
 
