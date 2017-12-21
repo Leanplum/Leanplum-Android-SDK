@@ -41,7 +41,6 @@ import android.support.annotation.RequiresPermission;
 import android.text.TextUtils;
 import android.util.TypedValue;
 
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumDeviceIdMode;
@@ -203,14 +202,18 @@ public class Util {
    */
   private static DeviceIdInfo getAdvertisingId(Context caller) throws Exception {
     try {
-      AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(caller);
-      if (info != null) {
-        String advertisingId = info.getId();
-        String deviceId = checkDeviceId("advertising id", advertisingId);
-        if (deviceId != null) {
-          boolean limitedTracking = info.isLimitAdTrackingEnabled();
-          return new DeviceIdInfo(deviceId, limitedTracking);
-        }
+      // Using reflection because the app will either crash or print warnings
+      // if the app doesn't link to Google Play Services, even if this method is not called.
+      Object adInfo = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient")
+          .getMethod("getAdvertisingIdInfo", Context.class).invoke(null, caller);
+      String id = checkDeviceId(
+          "advertising id", (String) adInfo.getClass().getMethod("getId")
+              .invoke(adInfo));
+      if (id != null) {
+        boolean limitTracking = (Boolean) adInfo.getClass()
+            .getMethod("isLimitAdTrackingEnabled").invoke(adInfo);
+        Log.v("Using advertising device id: " + id);
+        return new DeviceIdInfo(id, limitTracking);
       }
     } catch (Throwable t) {
       Log.e("Error getting advertising ID. Google Play Services are not available: ", t);
