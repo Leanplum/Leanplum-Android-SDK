@@ -90,18 +90,19 @@ public class MessageTemplates {
 
     // Open URL.
     static final String DEFAULT_URL = "http://www.example.com";
-
+    static final String DEFAULT_BASE_URL_NEW = "https://leanplum/";
+    static final String DEFAULT_BASE_URL = "http://leanplum:";
     // Web interstitial values.
-    static final String DEFAULT_CLOSE_URL = "https://leanplum/close";
+    static final String DEFAULT_CLOSE_URL = "close";
     static final boolean DEFAULT_HAS_DISMISS_BUTTON = true;
 
     // HTML Template values.
     public static final String FILE_PREFIX = "__file__";
     public static final String HTML_TEMPLATE_PREFIX = "__file__Template";
-    static final String DEFAULT_OPEN_URL = "https://leanplum/loadFinished";
-    static final String DEFAULT_TRACK_URL = "https://leanplum/track";
-    static final String DEFAULT_ACTION_URL = "https://leanplum/runAction";
-    static final String DEFAULT_TRACK_ACTION_URL = "https://leanplum/runTrackedAction";
+    static final String DEFAULT_OPEN_URL = "loadFinished";
+    static final String DEFAULT_TRACK_URL = "track";
+    static final String DEFAULT_ACTION_URL = "runAction";
+    static final String DEFAULT_TRACK_ACTION_URL = "runTrackedAction";
     static final boolean DEFAULT_USE_NEW_BASE_URL = true;
   }
 
