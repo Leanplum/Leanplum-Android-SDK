@@ -343,7 +343,9 @@ class HTMLOptions {
             MessageTemplates.Values.DEFAULT_TRACK_ACTION_URL)
         .with(MessageTemplates.Args.TRACK_URL, MessageTemplates.Values.DEFAULT_TRACK_URL)
         .with(MessageTemplates.Args.HTML_ALIGN, MessageTemplates.Values.DEFAULT_HTML_ALING)
-        .with(MessageTemplates.Args.HTML_HEIGHT, MessageTemplates.Values.DEFAULT_HTML_HEIGHT);
+        .with(MessageTemplates.Args.HTML_HEIGHT, MessageTemplates.Values.DEFAULT_HTML_HEIGHT)
+        .with(MessageTemplates.Args.HTML_USE_NEW_BASE_URL,
+            MessageTemplates.Values.DEFAULT_USE_NEW_BASE_URL);
   }
 
   static class Size {
