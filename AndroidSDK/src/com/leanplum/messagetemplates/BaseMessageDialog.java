@@ -484,7 +484,7 @@ public class BaseMessageDialog extends Dialog {
       @Override
       public boolean shouldOverrideUrlLoading(WebView wView, String url) {
         // Open URL event.
-        if (url.contains(htmlOptions.getOpenUrl())) {
+        if (url.contains(htmlOptions.getOpenUrlNew()) || url.contains(htmlOptions.getOpenUrl())) {
           dialogView.setVisibility(View.VISIBLE);
           if (activity != null && !activity.isFinishing()) {
             currentDialog.show();
@@ -493,7 +493,7 @@ public class BaseMessageDialog extends Dialog {
         }
 
         // Close URL event.
-        if (url.contains(htmlOptions.getCloseUrl())) {
+        if (url.contains(htmlOptions.getCloseUrlNew()) || url.contains(htmlOptions.getCloseUrl())) {
           cancel();
           String queryComponentsFromUrl = queryComponentsFromUrl(url, "result");
           if (!TextUtils.isEmpty(queryComponentsFromUrl)) {
@@ -503,7 +503,7 @@ public class BaseMessageDialog extends Dialog {
         }
 
         // Track URL event.
-        if (url.contains(htmlOptions.getTrackUrl())) {
+        if (url.contains(htmlOptions.getTrackUrlNew()) || url.contains(htmlOptions.getTrackUrl())) {
           String eventName = queryComponentsFromUrl(url, "event");
           if (!TextUtils.isEmpty(eventName)) {
             Double value = Double.parseDouble(queryComponentsFromUrl(url, "value"));
@@ -527,7 +527,9 @@ public class BaseMessageDialog extends Dialog {
         }
 
         // Action URL or track action URL event.
-        if (url.contains(htmlOptions.getActionUrl()) ||
+        if (url.contains(htmlOptions.getActionUrlNew()) ||
+            url.contains(htmlOptions.getTrackActionUrlNew()) ||
+            url.contains(htmlOptions.getActionUrl()) ||
             url.contains(htmlOptions.getTrackActionUrl())) {
           cancel();
           String queryComponentsFromUrl = queryComponentsFromUrl(url, "action");

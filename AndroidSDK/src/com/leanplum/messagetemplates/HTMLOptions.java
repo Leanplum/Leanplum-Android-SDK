@@ -51,6 +51,14 @@ class HTMLOptions {
   private String trackUrl;
   private String actionUrl;
   private String trackActionUrl;
+
+  private String closeUrlNew;
+  private String openUrlNew;
+  private String trackUrlNew;
+  private String actionUrlNew;
+  private String trackActionUrlNew;
+
+
   private String htmlTemplate;
   private ActionContext actionContext;
   private String htmlAlign;
@@ -62,17 +70,28 @@ class HTMLOptions {
   HTMLOptions(ActionContext context) {
     this.setActionContext(context);
     this.setHtmlTemplate(getTemplate(context));
-    this.setCloseUrl(context.stringNamed(MessageTemplates.Args.CLOSE_URL));
-    this.setOpenUrl(context.stringNamed(MessageTemplates.Args.OPEN_URL));
-    this.setTrackUrl(context.stringNamed(MessageTemplates.Args.TRACK_URL));
-    this.setActionUrl(context.stringNamed(MessageTemplates.Args.ACTION_URL));
-    this.setTrackActionUrl(context.stringNamed(MessageTemplates.Args.TRACK_ACTION_URL));
+    this.setCloseUrlNew(context.stringNamed(MessageTemplates.Args.CLOSE_URL));
+    this.setOpenUrlNew(context.stringNamed(MessageTemplates.Args.OPEN_URL));
+    this.setTrackUrlNew(context.stringNamed(MessageTemplates.Args.TRACK_URL));
+    this.setActionUrlNew(context.stringNamed(MessageTemplates.Args.ACTION_URL));
+    this.setTrackActionUrlNew(context.stringNamed(MessageTemplates.Args.TRACK_ACTION_URL));
     this.setHtmlAlign(context.stringNamed(MessageTemplates.Args.HTML_ALIGN));
     this.setHtmlHeight(context.numberNamed(MessageTemplates.Args.HTML_HEIGHT).intValue());
     this.setHtmlWidth(context.stringNamed(MessageTemplates.Args.HTML_WIDTH));
     this.setHtmlYOffset(context.stringNamed(MessageTemplates.Args.HTML_Y_OFFSET));
     this.setHtmlTabOutsideToClose(context.booleanNamed(
         MessageTemplates.Args.HTML_TAP_OUTSIDE_TO_CLOSE));
+
+    this.setCloseUrl(MessageTemplates.Values.DEFAULT_BASE_URL
+        + MessageTemplates.Values.DEFAULT_CLOSE_URL);
+    this.setOpenUrl(MessageTemplates.Values.DEFAULT_BASE_URL
+        + MessageTemplates.Values.DEFAULT_OPEN_URL);
+    this.setTrackUrl(MessageTemplates.Values.DEFAULT_BASE_URL
+        + MessageTemplates.Values.DEFAULT_TRACK_URL);
+    this.setActionUrl(MessageTemplates.Values.DEFAULT_BASE_URL
+        + MessageTemplates.Values.DEFAULT_ACTION_URL);
+    this.setTrackActionUrl(MessageTemplates.Values.DEFAULT_BASE_URL
+        + MessageTemplates.Values.DEFAULT_TRACK_ACTION_URL);
   }
 
   /**
@@ -334,14 +353,58 @@ class HTMLOptions {
     this.closeUrl = closeUrl;
   }
 
+  String getCloseUrlNew() {
+    return closeUrlNew;
+  }
+
+  private void setCloseUrlNew(String closeUrlNew) {
+    this.closeUrlNew = closeUrlNew;
+  }
+
+  String getOpenUrlNew() {
+    return openUrlNew;
+  }
+
+  private void setOpenUrlNew(String openUrlNew) {
+    this.openUrlNew = openUrlNew;
+  }
+
+  String getTrackUrlNew() {
+    return trackUrlNew;
+  }
+
+  private void setTrackUrlNew(String trackUrlNew) {
+    this.trackUrlNew = trackUrlNew;
+  }
+
+  String getActionUrlNew() {
+    return actionUrlNew;
+  }
+
+  private void setActionUrlNew(String actionUrlNew) {
+    this.actionUrlNew = actionUrlNew;
+  }
+
+  String getTrackActionUrlNew() {
+    return trackActionUrlNew;
+  }
+
+  private void setTrackActionUrlNew(String trackActionUrlNew) {
+    this.trackActionUrlNew = trackActionUrlNew;
+  }
+
   public static ActionArgs toArgs() {
     return new ActionArgs()
-        .with(MessageTemplates.Args.CLOSE_URL, MessageTemplates.Values.DEFAULT_CLOSE_URL)
-        .with(MessageTemplates.Args.OPEN_URL, MessageTemplates.Values.DEFAULT_OPEN_URL)
-        .with(MessageTemplates.Args.ACTION_URL, MessageTemplates.Values.DEFAULT_ACTION_URL)
-        .with(MessageTemplates.Args.TRACK_ACTION_URL,
-            MessageTemplates.Values.DEFAULT_TRACK_ACTION_URL)
-        .with(MessageTemplates.Args.TRACK_URL, MessageTemplates.Values.DEFAULT_TRACK_URL)
+        .with(MessageTemplates.Args.CLOSE_URL, MessageTemplates.Values.DEFAULT_BASE_URL_NEW
+            + MessageTemplates.Values.DEFAULT_CLOSE_URL)
+        .with(MessageTemplates.Args.OPEN_URL, MessageTemplates.Values.DEFAULT_BASE_URL_NEW
+            + MessageTemplates.Values.DEFAULT_OPEN_URL)
+        .with(MessageTemplates.Args.ACTION_URL, MessageTemplates.Values.DEFAULT_BASE_URL_NEW
+            + MessageTemplates.Values.DEFAULT_ACTION_URL)
+        .with(MessageTemplates.Args.TRACK_ACTION_URL, MessageTemplates.Values.DEFAULT_BASE_URL_NEW
+            + MessageTemplates.Values.DEFAULT_TRACK_ACTION_URL)
+        .with(MessageTemplates.Args.TRACK_URL, MessageTemplates.Values.DEFAULT_BASE_URL_NEW +
+            MessageTemplates.Values.DEFAULT_TRACK_URL)
         .with(MessageTemplates.Args.HTML_ALIGN, MessageTemplates.Values.DEFAULT_HTML_ALING)
         .with(MessageTemplates.Args.HTML_HEIGHT, MessageTemplates.Values.DEFAULT_HTML_HEIGHT)
         .with(MessageTemplates.Args.HTML_USE_NEW_BASE_URL,
