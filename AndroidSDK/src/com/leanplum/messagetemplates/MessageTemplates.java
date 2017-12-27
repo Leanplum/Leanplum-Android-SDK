@@ -57,6 +57,7 @@ public class MessageTemplates {
     static final String LAYOUT_HEIGHT = "Layout.Height";
     static final String HTML_WIDTH = "HTML Width";
     static final String HTML_HEIGHT = "HTML Height";
+    static final String HTML_USE_NEW_BASE_URL = "useNewBaseUrl";
     static final String HTML_Y_OFFSET = "HTML Y Offset";
     static final String HTML_TAP_OUTSIDE_TO_CLOSE = "Tap Outside to Close";
     static final String HTML_ALIGN = "HTML Align";
@@ -89,19 +90,20 @@ public class MessageTemplates {
 
     // Open URL.
     static final String DEFAULT_URL = "http://www.example.com";
-
+    static final String DEFAULT_BASE_URL_NEW = "https://leanplum/";
+    static final String DEFAULT_BASE_URL = "http://leanplum:";
     // Web interstitial values.
-    static final String DEFAULT_CLOSE_URL = "http://leanplum:close";
+    static final String DEFAULT_CLOSE_URL = "close";
     static final boolean DEFAULT_HAS_DISMISS_BUTTON = true;
 
     // HTML Template values.
     public static final String FILE_PREFIX = "__file__";
     public static final String HTML_TEMPLATE_PREFIX = "__file__Template";
-    static final String DEFAULT_OPEN_URL = "http://leanplum:loadFinished";
-    static final String DEFAULT_TRACK_URL = "http://leanplum:track";
-    static final String DEFAULT_ACTION_URL = "http://leanplum:runAction";
-    static final String DEFAULT_TRACK_ACTION_URL = "http://leanplum:runTrackedAction";
-
+    static final String DEFAULT_OPEN_URL = "loadFinished";
+    static final String DEFAULT_TRACK_URL = "track";
+    static final String DEFAULT_ACTION_URL = "runAction";
+    static final String DEFAULT_TRACK_ACTION_URL = "runTrackedAction";
+    static final boolean DEFAULT_USE_NEW_BASE_URL = true;
   }
 
   private static boolean registered = false;
