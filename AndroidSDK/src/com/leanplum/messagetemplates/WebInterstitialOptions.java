@@ -72,7 +72,7 @@ public class WebInterstitialOptions {
   public static ActionArgs toArgs() {
     return new ActionArgs()
         .with(Args.URL, Values.DEFAULT_URL)
-        .with(Args.CLOSE_URL, Values.DEFAULT_CLOSE_URL)
+        .with(Args.CLOSE_URL, Values.DEFAULT_BASE_URL + Values.DEFAULT_CLOSE_URL)
         .with(Args.HAS_DISMISS_BUTTON, Values.DEFAULT_HAS_DISMISS_BUTTON);
   }
 }
