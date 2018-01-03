@@ -9,6 +9,8 @@ def SUPPORT_LIBRARY_VERSION = '27.0.2'
 android {
     compileSdkVersion COMPILE_SDK_VERSION
     buildToolsVersion BUILD_TOOLS_VERSION
+    useLibrary 'org.apache.http.legacy'
+
     publishNonDefault true
 
     defaultConfig {
