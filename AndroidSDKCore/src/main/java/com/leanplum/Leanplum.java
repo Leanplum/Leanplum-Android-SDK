@@ -641,7 +641,9 @@ public class Leanplum {
     params.put(Constants.Params.DEVICE_MODEL, Util.getDeviceModel());
     params.put(Constants.Params.DEVICE_SYSTEM_NAME, Util.getSystemName());
     params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
-    params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
+    if (!TextUtils.isEmpty(registrationId)) {
+      params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
+    }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
     params.put(Constants.Keys.LOCALE, Util.getLocale());
