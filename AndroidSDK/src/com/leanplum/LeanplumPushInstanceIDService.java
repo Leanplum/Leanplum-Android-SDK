@@ -39,9 +39,12 @@ public class LeanplumPushInstanceIDService extends InstanceIDListenerService {
    */
   @Override
   public void onTokenRefresh() {
-    Log.i("GCM InstanceID token needs an update");
-    // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
-    Intent intent = new Intent(this, LeanplumPushRegistrationService.class);
-    startService(intent);
+    try {
+      Log.i("GCM InstanceID token needs an update");
+      // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
+      Intent intent = new Intent(this, LeanplumPushRegistrationService.class);
+      startService(intent);
+    } catch (Throwable ignored) {
+    }
   }
 }
