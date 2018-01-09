@@ -13,6 +13,11 @@
             </intent-filter>
         </service>
 
+        <!-- Leanplum FCM Registration Job Service -->
+        <service android:name="com.leanplum.LeanplumFcmRegistrationJobService"
+                 android:permission="android.permission.BIND_JOB_SERVICE"/>
+
+
         <!-- Leanplum FCM Instance ID Service -->
         <service
             android:name="com.leanplum.LeanplumPushFcmListenerService"

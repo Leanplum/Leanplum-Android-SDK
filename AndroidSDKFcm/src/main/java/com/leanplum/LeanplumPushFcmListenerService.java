@@ -21,8 +21,8 @@
 
 package com.leanplum;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.Build;
 
 import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.leanplum.internal.Log;
@@ -33,7 +33,6 @@ import com.leanplum.internal.Log;
  *
  * @author Anna Orlova
  */
-@SuppressLint("Registered")
 public class LeanplumPushFcmListenerService extends FirebaseInstanceIdService {
   /**
    * Called if InstanceID token is updated. This may occur if the security of the previous token had
@@ -41,9 +40,19 @@ public class LeanplumPushFcmListenerService extends FirebaseInstanceIdService {
    */
   @Override
   public void onTokenRefresh() {
-    Log.i("FCM InstanceID token needs an update");
-    // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
-    Intent intent = new Intent(this, LeanplumPushRegistrationService.class);
-    startService(intent);
+    try {
+      if (Build.VERSION.SDK_INT < 26) {
+        Log.i("FCM InstanceID token needs an update");
+        // Fetch updated Instance ID token and notify our app's server of any changes (if
+        // applicable).
+        Intent intent = new Intent(this, LeanplumPushRegistrationService.class);
+        startService(intent);
+      } else {
+        LeanplumNotificationHelper.scheduleJobService(this,
+            LeanplumFcmRegistrationJobService.class, LeanplumFcmRegistrationJobService.JOB_ID);
+      }
+    } catch (Throwable t) {
+      Log.e("Failed to update FMC token.", t);
+    }
   }
 }
