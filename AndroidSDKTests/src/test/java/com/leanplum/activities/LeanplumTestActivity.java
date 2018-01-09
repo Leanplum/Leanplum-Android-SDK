@@ -21,10 +21,11 @@
 package com.leanplum.activities;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 
 /**
  * @author Milos Jakovljevic
  */
 @SuppressLint("Registered")
-public class LeanplumTestActivity extends LeanplumActivity {
+public class LeanplumTestActivity extends Activity {
 }
