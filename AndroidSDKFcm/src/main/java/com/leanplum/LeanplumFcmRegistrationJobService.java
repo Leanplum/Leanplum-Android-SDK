@@ -24,12 +24,9 @@ package com.leanplum;
 import android.annotation.TargetApi;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.content.Intent;
-
-import com.leanplum.internal.Log;
 
 /**
- * Leanplum FCM registration Job Service for start registration service.
+ * Leanplum FCM registration Job Service to start registration service.
  *
  * @author Anna Orlova
  */
@@ -39,14 +36,7 @@ public class LeanplumFcmRegistrationJobService extends JobService {
 
   @Override
   public boolean onStartJob(JobParameters jobParameters) {
-    try {
-      Log.i("FCM InstanceID token needs an update");
-      // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
-      Intent intent = new Intent(this, LeanplumPushRegistrationService.class);
-      startService(intent);
-    } catch (Throwable t) {
-      Log.e("Couldn't start GCM registration service.", t);
-    }
+    LeanplumNotificationHelper.startPushRegistrationService(this, "FCM");
     return false;
   }
 

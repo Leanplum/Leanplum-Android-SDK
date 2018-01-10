@@ -21,7 +21,6 @@
 
 package com.leanplum;
 
-import android.content.Intent;
 import android.os.Build;
 
 import com.google.firebase.iid.FirebaseInstanceIdService;
@@ -42,17 +41,13 @@ public class LeanplumPushFcmListenerService extends FirebaseInstanceIdService {
   public void onTokenRefresh() {
     try {
       if (Build.VERSION.SDK_INT < 26) {
-        Log.i("FCM InstanceID token needs an update");
-        // Fetch updated Instance ID token and notify our app's server of any changes (if
-        // applicable).
-        Intent intent = new Intent(this, LeanplumPushRegistrationService.class);
-        startService(intent);
+        LeanplumNotificationHelper.startPushRegistrationService(this, "FCM");
       } else {
         LeanplumNotificationHelper.scheduleJobService(this,
             LeanplumFcmRegistrationJobService.class, LeanplumFcmRegistrationJobService.JOB_ID);
       }
     } catch (Throwable t) {
-      Log.e("Failed to update FMC token.", t);
+      Log.e("Failed to update FCM token.", t);
     }
   }
 }
