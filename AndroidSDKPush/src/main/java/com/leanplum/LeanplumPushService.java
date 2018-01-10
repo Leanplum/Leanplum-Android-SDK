@@ -698,13 +698,16 @@ public class LeanplumPushService {
    * Stores the registration ID and app versionCode in the application's shared preferences.
    */
   private static void registerInBackground() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      Log.e("Failed to register application with GCM/FCM. Your application context is not set.");
-      return;
+    try {
+      Context context = Leanplum.getContext();
+      if (context == null) {
+        Log.e("Failed to register application with GCM/FCM. Your application context is not set.");
+        return;
+      }
+      Intent registerIntent = new Intent(context, LeanplumPushRegistrationService.class);
+      context.startService(registerIntent);
+    } catch (Throwable ignored) {
     }
-    Intent registerIntent = new Intent(context, LeanplumPushRegistrationService.class);
-    context.startService(registerIntent);
   }
 
   /**
