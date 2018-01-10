@@ -23,6 +23,7 @@ package com.leanplum;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.text.TextUtils;
 
 import com.leanplum.internal.Log;
 
@@ -47,7 +48,7 @@ public class LeanplumPushRegistrationService extends IntentService {
       return;
     }
     String registrationId = provider.getRegistrationId();
-    if (registrationId != null) {
+    if (!TextUtils.isEmpty(registrationId)) {
       if (existingRegistrationId != null && !registrationId.equals(existingRegistrationId)) {
         Log.e("WARNING: It appears your app is registering " +
             "with GCM/FCM using multiple GCM/FCM sender ids. Please be sure to call " +
