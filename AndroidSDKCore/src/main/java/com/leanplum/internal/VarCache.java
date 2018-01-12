@@ -405,17 +405,21 @@ public class VarCache {
     editor.putString(Constants.Defaults.MESSAGES_KEY, messagesCipher);
 
     try {
-      String updateRulesCipher = aesContext.encrypt(
-          JsonConverter.listToJsonArray(updateRuleDiffs).toString());
-      editor.putString(Constants.Defaults.UPDATE_RULES_KEY, updateRulesCipher);
+      if (updateRuleDiffs != null && !updateRuleDiffs.isEmpty()) {
+        String updateRulesCipher = aesContext.encrypt(
+            JsonConverter.listToJsonArray(updateRuleDiffs).toString());
+        editor.putString(Constants.Defaults.UPDATE_RULES_KEY, updateRulesCipher);
+      }
     } catch (JSONException e) {
       Log.e("Error converting updateRuleDiffs to JSON", e);
     }
 
     try {
-      String eventRulesCipher = aesContext.encrypt(
-          JsonConverter.listToJsonArray(eventRuleDiffs).toString());
-      editor.putString(Constants.Defaults.EVENT_RULES_KEY, eventRulesCipher);
+      if (eventRuleDiffs != null && !eventRuleDiffs.isEmpty()) {
+        String eventRulesCipher = aesContext.encrypt(
+            JsonConverter.listToJsonArray(eventRuleDiffs).toString());
+        editor.putString(Constants.Defaults.EVENT_RULES_KEY, eventRulesCipher);
+      }
     } catch (JSONException e) {
       Log.e("Error converting eventRuleDiffs to JSON", e);
     }
@@ -424,8 +428,10 @@ public class VarCache {
     editor.putString(Constants.Defaults.REGIONS_KEY, regionsCipher);
 
     try {
-      String variantsJson = JsonConverter.listToJsonArray(variants).toString();
-      editor.putString(Constants.Keys.VARIANTS, aesContext.encrypt(variantsJson));
+      if (variants != null && !variants.isEmpty()) {
+        String variantsJson = JsonConverter.listToJsonArray(variants).toString();
+        editor.putString(Constants.Keys.VARIANTS, aesContext.encrypt(variantsJson));
+      }
     } catch (JSONException e1) {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
     }
@@ -467,9 +473,9 @@ public class VarCache {
       }
       String overrideFile = var.stringValue;
       if (var.isResource && Constants.Kinds.FILE.equals(var.kind()) && overrideFile != null &&
-              !overrideFile.equals(var.defaultValue())) {
+          !overrideFile.equals(var.defaultValue())) {
         Map<String, Object> variationAttributes = CollectionUtil.uncheckedCast(fileAttributes.get
-                (overrideFile));
+            (overrideFile));
         InputStream stream = fileStreams.get(overrideFile);
         if (variationAttributes != null && stream != null) {
           var.setOverrideResId(getResIdFromPath(var.stringValue()));
