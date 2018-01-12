@@ -415,28 +415,32 @@ class LocationManagerImplementation implements
 
   @Override
   public void onLocationChanged(Location location) {
-    if (!location.hasAccuracy()) {
-      Log.e("Received a location with no accuracy.");
-      return;
-    }
-
-    // Currently, location segment treats GPS and CELL the same. In the future, we might want more
-    // distinction in the accuracy types. For example, a customer might want to send messages only
-    // to the ones with very accurate location information. We are assuming that it is from GPS if
-    // the location accuracy is less than or equal to |ACCURACY_THRESHOLD_GPS|.
-    LeanplumLocationAccuracyType locationAccuracyType =
-        location.getAccuracy() >= ACCURACY_THRESHOLD_GPS ?
-            LeanplumLocationAccuracyType.CELL : LeanplumLocationAccuracyType.GPS;
-
-    if (!isSendingLocation && needToSendLocation(locationAccuracyType)) {
-      try {
-        setUserAttributesForLocationUpdate(location, locationAccuracyType);
-      } catch (Throwable t) {
-        Util.handleException(t);
+    try {
+      if (!location.hasAccuracy()) {
+        Log.e("Received a location with no accuracy.");
+        return;
       }
-    }
 
-    LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+      // Currently, location segment treats GPS and CELL the same. In the future, we might want more
+      // distinction in the accuracy types. For example, a customer might want to send messages only
+      // to the ones with very accurate location information. We are assuming that it is from GPS if
+      // the location accuracy is less than or equal to |ACCURACY_THRESHOLD_GPS|.
+      LeanplumLocationAccuracyType locationAccuracyType =
+          location.getAccuracy() >= ACCURACY_THRESHOLD_GPS ?
+              LeanplumLocationAccuracyType.CELL : LeanplumLocationAccuracyType.GPS;
+
+      if (!isSendingLocation && needToSendLocation(locationAccuracyType)) {
+        try {
+          setUserAttributesForLocationUpdate(location, locationAccuracyType);
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
+      }
+
+      LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+    } catch (Throwable t) {
+      Log.e("Cannot change location", t);
+    }
   }
 
   /**
@@ -446,17 +450,21 @@ class LocationManagerImplementation implements
   // permission to their manifest.
   @SuppressWarnings("MissingPermission")
   private void requestLocation() {
-    if (!Leanplum.isLocationCollectionEnabled() || googleApiClient == null
-        || !googleApiClient.isConnected()) {
-      return;
+    try {
+      if (!Leanplum.isLocationCollectionEnabled() || googleApiClient == null
+          || !googleApiClient.isConnected()) {
+        return;
+      }
+      LocationRequest request = new LocationRequest();
+      // Although we set the interval as |LOCATION_REQUEST_INTERVAL|, we stop listening
+      // |onLocationChanged|. So we are essentially requesting location only once.
+      request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+          .setInterval(LOCATION_REQUEST_INTERVAL)
+          .setFastestInterval(LOCATION_REQUEST_INTERVAL);
+      LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, request, this);
+    } catch (Throwable throwable) {
+      Log.e("Cannot request location updates.", throwable);
     }
-    LocationRequest request = new LocationRequest();
-    // Although we set the interval as |LOCATION_REQUEST_INTERVAL|, we stop listening
-    // |onLocationChanged|. So we are essentially requesting location only once.
-    request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-        .setInterval(LOCATION_REQUEST_INTERVAL)
-        .setFastestInterval(LOCATION_REQUEST_INTERVAL);
-    LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, request, this);
   }
 
   /**
