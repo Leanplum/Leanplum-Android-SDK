@@ -293,23 +293,25 @@ class LocationManagerImplementation implements
       LocationServices.GeofencingApi.addGeofences(googleApiClient,
           request, getTransitionPendingIntent());
       for (Geofence geofence : toBeTrackedGeofences) {
-        trackedGeofenceIds.add(geofence.getRequestId());
-        //TODO: stateBeforeBackground doesn't get persisted.
-        // If the app goes to the background and terminates, stateBeforeBackground will be reset.
-        if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null
-            // This is triggered only for in-app messages, since backgroundGeofences are only for
-            // pushes.
-            // TODO(aleks): This would not work for in-app messages if we have the same geolocation
-            // triggering it, as a locally triggered push notification.
-            && !backgroundGeofences.contains(geofence)) {
-          Number lastStatus = (Number) stateBeforeBackground.get(geofence.getRequestId());
-          Number currentStatus = (Number) lastKnownState.get(geofence.getRequestId());
-          if (currentStatus != null && lastStatus != null) {
-            if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
-              maybePerformActions(geofence, "enterRegion");
-            }
-            if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
-              maybePerformActions(geofence, "exitRegion");
+        if (geofence != null && geofence.getRequestId() != null) {
+          trackedGeofenceIds.add(geofence.getRequestId());
+          //TODO: stateBeforeBackground doesn't get persisted.
+          // If the app goes to the background and terminates, stateBeforeBackground will be reset.
+          if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null
+              // This is triggered only for in-app messages, since backgroundGeofences are only for
+              // pushes.
+              // TODO(aleks): This would not work for in-app messages if we have the same geolocation
+              // triggering it, as a locally triggered push notification.
+              && !backgroundGeofences.contains(geofence)) {
+            Number lastStatus = (Number) stateBeforeBackground.get(geofence.getRequestId());
+            Number currentStatus = (Number) lastKnownState.get(geofence.getRequestId());
+            if (currentStatus != null && lastStatus != null) {
+              if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
+                maybePerformActions(geofence, "enterRegion");
+              }
+              if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
+                maybePerformActions(geofence, "exitRegion");
+              }
             }
           }
         }
