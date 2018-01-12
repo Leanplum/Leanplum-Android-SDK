@@ -138,7 +138,8 @@ class LocationManagerImplementation implements
             backgroundGeofences.add(geofence);
           }
           allGeofences.add(geofence);
-          if (lastKnownState.get(geofence.getRequestId()) == null) {
+          if (lastKnownState != null && geofence.getRequestId() != null
+              && lastKnownState.get(geofence.getRequestId()) == null) {
             lastKnownState.put(geofence.getRequestId(), GeofenceStatus.UNKNOWN);
           }
         }
