@@ -60,6 +60,7 @@ class LeanplumNotificationHelper {
   private static final int BIGPICTURE_TEXT_TOP_PADDING = -14;
   private static final int BIGPICTURE_TEXT_SIZE = 14;
   private static final String LEANPLUM_DEFAULT_PUSH_ICON = "leanplum_default_push_icon";
+  private static final int MAX_ONE_LINE_TEXT_LENGTH = 37;
 
   /**
    * If notification channels are supported this method will try to create
@@ -166,7 +167,7 @@ class LeanplumNotificationHelper {
    * @param message Push notification Bundle.
    * @return Notification.Builder or null.
    */
-  static Notification.Builder getNotificationBuilder(Context context, Bundle message) {
+  private static Notification.Builder getNotificationBuilder(Context context, Bundle message) {
     Notification.Builder builder = null;
     // If we are targeting API 26, try to find supplied channel to post notification.
     if (BuildUtil.isNotificationChannelSupported(context)) {
@@ -196,6 +197,59 @@ class LeanplumNotificationHelper {
   }
 
   /**
+   * Gets NotificationCompat.Builder for provided parameters.
+   *
+   * @param context The application context.
+   * @param message Push notification Bundle.
+   * @param contentIntent PendingIntent.
+   * @param title String with title for push notification.
+   * @param messageText String with text for push notification.
+   * @param bigPicture Bitmap for BigPictureStyle notification.
+   * @param defaultNotificationIconResourceId int Resource id for default push notification icon.
+   * @return NotificationCompat.Builder or null.
+   */
+  static NotificationCompat.Builder getNotificationCompatBuilder(Context context, Bundle message,
+      PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture,
+      int defaultNotificationIconResourceId) {
+    NotificationCompat.Builder notificationCompatBuilder =
+        getNotificationCompatBuilder(context, message);
+    if (notificationCompatBuilder == null) {
+      return null;
+    }
+
+    if (defaultNotificationIconResourceId == 0) {
+      notificationCompatBuilder.setSmallIcon(context.getApplicationInfo().icon);
+    } else {
+      notificationCompatBuilder.setSmallIcon(defaultNotificationIconResourceId);
+    }
+
+    notificationCompatBuilder.setContentTitle(title)
+        .setStyle(new NotificationCompat.BigTextStyle()
+            .bigText(messageText))
+        .setContentText(messageText);
+
+    if (bigPicture != null) {
+      notificationCompatBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+          .bigPicture(bigPicture)
+          .setBigContentTitle(title)
+          .setSummaryText(messageText));
+    }
+
+    // Try to put a notification on top of the notification area. This method was deprecated in API
+    // level 26. For API level 26 and above we must use setImportance(int) for each notification
+    // channel, not for each notification message.
+    if (Build.VERSION.SDK_INT >= 16 && !BuildUtil.isNotificationChannelSupported(context)) {
+      //noinspection deprecation
+      notificationCompatBuilder.setPriority(Notification.PRIORITY_MAX);
+    }
+    notificationCompatBuilder.setAutoCancel(true);
+    notificationCompatBuilder.setContentIntent(contentIntent);
+
+    return notificationCompatBuilder;
+
+  }
+
+  /**
    * Gets Notification.Builder with 2 lines at BigPictureStyle notification text.
    *
    * @param context The application context.
@@ -215,56 +269,68 @@ class LeanplumNotificationHelper {
     }
     Notification.Builder notificationBuilder =
         getNotificationBuilder(context, message);
+    if (notificationBuilder == null) {
+      return null;
+    }
     if (defaultNotificationIconResourceId == 0) {
       notificationBuilder.setSmallIcon(context.getApplicationInfo().icon);
     } else {
       notificationBuilder.setSmallIcon(defaultNotificationIconResourceId);
     }
     notificationBuilder.setContentTitle(title)
+        .setStyle(new Notification.BigTextStyle()
+            .bigText(messageText))
         .setContentText(messageText);
-    Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
-      @Override
-      protected RemoteViews getStandardView(int layoutId) {
-        RemoteViews remoteViews = super.getStandardView(layoutId);
-        // Modifications of stanxdard push RemoteView.
-        try {
-          int id = Resources.getSystem().getIdentifier("text", "id", "android");
-          remoteViews.setBoolean(id, "setSingleLine", false);
-          remoteViews.setInt(id, "setLines", 2);
-          if (Build.VERSION.SDK_INT < 23) {
-            // Make text smaller.
-            remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PADDING, 0, 0);
-            remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, BIGPICTURE_TEXT_SIZE);
+    if (bigPicture != null) {
+      Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
+        @Override
+        protected RemoteViews getStandardView(int layoutId) {
+          RemoteViews remoteViews = super.getStandardView(layoutId);
+          if (messageText != null && messageText.length() >= MAX_ONE_LINE_TEXT_LENGTH) {
+            // Modifications of standard push RemoteView.
+            try {
+              int id = Resources.getSystem().getIdentifier("text", "id", "android");
+              remoteViews.setBoolean(id, "setSingleLine", false);
+              remoteViews.setInt(id, "setLines", 2);
+              if (Build.VERSION.SDK_INT < 23) {
+                // Make text smaller.
+                remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PADDING, 0, 0);
+                remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, BIGPICTURE_TEXT_SIZE);
+              }
+            } catch (Throwable throwable) {
+              Log.e("Cannot modify push notification layout.");
+            }
           }
-        } catch (Throwable throwable) {
-          Log.e("Cannot modify push notification layout.");
+          return remoteViews;
         }
-        return remoteViews;
-      }
-    };
+      };
 
-    bigPictureStyle.bigPicture(bigPicture)
-        .setBigContentTitle(title)
-        .setSummaryText(message.getString(Constants.Keys.PUSH_MESSAGE_TEXT));
-    notificationBuilder.setStyle(bigPictureStyle);
+      bigPictureStyle.bigPicture(bigPicture)
+          .setBigContentTitle(title)
+          .setSummaryText(message.getString(Constants.Keys.PUSH_MESSAGE_TEXT));
+      notificationBuilder.setStyle(bigPictureStyle);
 
-    if (Build.VERSION.SDK_INT >= 24) {
-      // By default we cannot reach getStandardView method on API>=24. I we call
-      // createBigContentView, Android will call getStandardView method and we can get
-      // modified RemoteView.
-      try {
-        RemoteViews remoteView = notificationBuilder.createBigContentView();
-        if (remoteView != null) {
-          // We need to set received RemoteView as a custom big content view.
-          notificationBuilder.setCustomBigContentView(remoteView);
+      if (Build.VERSION.SDK_INT >= 24) {
+        // By default we cannot reach getStandardView method on API>=24. I we call
+        // createBigContentView, Android will call getStandardView method and we can get
+        // modified RemoteView.
+        try {
+          RemoteViews remoteView = notificationBuilder.createBigContentView();
+          if (remoteView != null) {
+            // We need to set received RemoteView as a custom big content view.
+            notificationBuilder.setCustomBigContentView(remoteView);
+          }
+        } catch (Throwable t) {
+          Log.e("Cannot modify push notification layout.", t);
         }
-      } catch (Throwable t) {
-        Log.e("Cannot modify push notification layout.", t);
       }
     }
-
     notificationBuilder.setAutoCancel(true);
     notificationBuilder.setContentIntent(contentIntent);
+    if (!BuildUtil.isNotificationChannelSupported(context)) {
+      //noinspection deprecation
+      notificationBuilder.setPriority(Notification.PRIORITY_MAX);
+    }
     return notificationBuilder;
   }
 
