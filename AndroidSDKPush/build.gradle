@@ -24,7 +24,7 @@ android {
 
 dependencies {
     debugApi project(':AndroidSDKCore')
-    // releaseApi 'com.leanplum:Leanplum-core:4.+,)'
+    releaseApi project(':AndroidSDKCore')
 }
 task generateJavadoc(type: Javadoc) {
     exclude 'com/leanplum/internal'

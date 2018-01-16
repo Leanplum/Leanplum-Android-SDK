@@ -15,7 +15,9 @@ allprojects {
 
 dependencies {
     debugApi project(':AndroidSDKGcm')
+    releaseApi project(':AndroidSDKGcm')
     debugApi project(':AndroidSDKLocation')
+    releaseApi project(':AndroidSDKLocation')
 }
 
 android {

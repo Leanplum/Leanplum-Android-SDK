@@ -24,7 +24,7 @@ android {
 
 dependencies {
     debugApi project(':AndroidSDKCore')
-    // releaseApi 'com.leanplum:Leanplum-core:4.+,)'
+    releaseApi project(':AndroidSDKCore')
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
     compileOnly('com.google.android.gms:play-services-location:[10.0.0,)') {
