@@ -54,7 +54,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     if (clazz != null) {
       Method method = null;
       try {
-        method = clazz.getMethod("getInstance", null);
+        method = clazz.getMethod("getInstance");
       } catch (Throwable t) {
         Util.handleException(t);
       }
