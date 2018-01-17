@@ -83,5 +83,3 @@ mv "${sdk_push_dir}/javadoc" "${sdk_push_release_dir}/."
 cp "${sdk_push_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_push_release_dir}/Leanplum-push.jar"
 
 echo "${GREEN} Done.${NORMAL}"
-
-mv: rename /Users/leanplumbuild/build/SDK/Android/Leanplum-Android-SDK/AndroidSDK/javadoc to /Users/leanplumbuild/build/SDK/Android/Release/./javadoc: No such file or directory
