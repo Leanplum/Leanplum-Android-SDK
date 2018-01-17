@@ -194,9 +194,9 @@ public class LeanplumPushService {
    */
   public static void setCustomizer(LeanplumPushNotificationCustomizer customizer) {
     if (LeanplumPushService.notificationBuilderCustomizer != null) {
-      Log.e("You can use only one customizer for push notifications. Please remove " +
+      Log.e("You can only use one customizer for push notifications. Please remove " +
           "LeanplumPushService.setCustomizer(LeanplumNotificationBuilderCustomizer) from onCreate" +
-          "method in yours Application class if you decided not support 2 lines of text on " +
+          "method in your Application class if you do not want to support 2 lines of text on " +
           "BigPicture style push notification.");
       return;
     }
@@ -212,9 +212,9 @@ public class LeanplumPushService {
    */
   public static void setCustomizer(LeanplumNotificationBuilderCustomizer customizer) {
     if (LeanplumPushService.customizer != null) {
-      Log.e("You can use only one push notification customizer. Please remove " +
+      Log.e("You can only use one push notification customizer. Please remove " +
           "LeanplumPushService.setCustomizer(LeanplumPushNotificationCustomizer) from onCreate" +
-          "method in yours Application class if you want to support 2 lines of text on " +
+          "method in your Application class if you want to support 2 lines of text on " +
           "BigPicture style push notification.");
       return;
     }

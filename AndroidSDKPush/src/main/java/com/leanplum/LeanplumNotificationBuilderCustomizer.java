@@ -25,15 +25,15 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 
 /**
- * Implement LeanplumNotificationBuilderCustomizer to customize the appearance of notifications if
- * you want to support 2 lines of text in BigPicture style push notification.
+ * Implement LeanplumNotificationBuilderCustomizer to customize the appearance of notifications
+ * to support 2 lines of text in BigPicture style push notification.
  *
  * @author Anna Orlova
  */
 
 public interface LeanplumNotificationBuilderCustomizer extends LeanplumPushNotificationCustomizer{
   /**
-   * Implement this method if you want to support 2 lines of text in BigPicture style push
+   * Implement this method to support 2 lines of text in BigPicture style push
    * notification and you already have a customizer. Note, that you still need to implement
    * {@link LeanplumPushNotificationCustomizer#customize(NotificationCompat.Builder, Bundle)}
    * to support BigText style on devices with API less than 16. Please call
