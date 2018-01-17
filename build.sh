@@ -71,14 +71,23 @@ mkdir -p "${sdk_dir}/javadoc"
 mv "${sdk_dir}/javadoc" "${sdk_release_dir}/."
 cp "${sdk_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_release_dir}/Leanplum.jar"
 
+mkdir -p "${sdk_core_dir}/javadoc"
 mv "${sdk_core_dir}/javadoc" "${sdk_core_release_dir}/."
 cp "${sdk_core_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_core_release_dir}/Leanplum-core.jar"
+
+mkdir -p "${sdk_fcm_dir}/javadoc"
 mv "${sdk_fcm_dir}/javadoc" "${sdk_fcm_release_dir}/."
 cp "${sdk_fcm_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_fcm_release_dir}/Leanplum-fcm.jar"
+
+mkdir -p "${sdk_gcm_dir}/javadoc"
 mv "${sdk_gcm_dir}/javadoc" "${sdk_gcm_release_dir}/."
 cp "${sdk_gcm_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_gcm_release_dir}/Leanplum-gcm.jar"
+
+mkdir -p "${sdk_location_dir}/javadoc"
 mv "${sdk_location_dir}/javadoc" "${sdk_location_release_dir}/."
 cp "${sdk_location_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_location_release_dir}/Leanplum-location.jar"
+
+mkdir -p "${sdk_push_dir}/javadoc"
 mv "${sdk_push_dir}/javadoc" "${sdk_push_release_dir}/."
 cp "${sdk_push_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_push_release_dir}/Leanplum-push.jar"
 
