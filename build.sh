@@ -20,26 +20,40 @@ for i in "$@"; do
   esac
 done
 
-LEANPLUM_SDK_ROOT=${LEANPLUM_SDK_ROOT:-"$(pwd)/."}
+LEANPLUM_SDK_ROOT="${LEANPLUM_SDK_ROOT:-"$(pwd)/."}"
 configuration="Release"
 default="${LEANPLUM_SDK_ROOT}"
 android_dir=${android_dir:-$default}
 default="${android_dir}/AndroidSDK"
 sdk_dir=${sdk_dir:-$default}
-sdk_release_dir="${android_dir}/Release"
+release_dir="${android_dir}/Release"
 
-: ${sdk_core_dir:=$android_dir/AndroidSDKCore}
-sdk_core_release_dir="${sdk_release_dir}/AndroidSDKCoreRelease"
-: ${sdk_fcm_dir:=$android_dir/AndroidSDKFcm}
-sdk_fcm_release_dir="${sdk_release_dir}/AndroidSDKFcmRelease"
-: ${sdk_gcm_dir:=$android_dir/AndroidSDKGcm}
-sdk_gcm_release_dir="${sdk_release_dir}/AndroidSDKGcmRelease"
-: ${sdk_location_dir:=$android_dir/AndroidSDKLocation}
-sdk_location_release_dir="${sdk_release_dir}/AndroidSDKLocationRelease"
-: ${sdk_push_dir:=$android_dir/AndroidSDKPush}
-sdk_push_release_dir="${sdk_release_dir}/AndroidSDKPushRelease"
+sdk_release_dir="${release_dir}/AndroidSDK"
+sdk_core_dir="${sdk_dir}/../AndroidSDKCore"
+sdk_core_release_dir="${release_dir}/AndroidSDKCore"
+sdk_fcm_dir="${sdk_dir}/../AndroidSDKFcm"
+sdk_fcm_release_dir="${release_dir}/AndroidSDKFcm"
+sdk_gcm_dir="${sdk_dir}/../AndroidSDKGcm"
+sdk_gcm_release_dir="${release_dir}/AndroidSDKGcm"
+sdk_location_dir="${sdk_dir}/../AndroidSDKLocation"
+sdk_location_release_dir="${release_dir}/AndroidSDKLocation"
+sdk_push_dir="${sdk_dir}/../AndroidSDKPush"
+sdk_push_release_dir="${release_dir}/AndroidSDKPush"
+echo HEYHEYHEY
+echo $sdk_core_dir
+echo $sdk_core_release_dir
+echo $sdk_fcm_dir
+echo $sdk_fcm_release_dir
+echo $sdk_gcm_dir
+echo $sdk_gcm_release_dir
+echo $sdk_location_dir
+echo $sdk_location_release_dir
+echo $sdk_push_dir
+echo $sdk_push_release_dir
 
-rm -rf "$sdk_release_dir"
+
+rm -rf "$release_dir"
+mkdir -p "$sdk_release_dir"
 mkdir -p "$sdk_core_release_dir"
 mkdir -p "$sdk_fcm_release_dir"
 mkdir -p "$sdk_gcm_release_dir"
@@ -71,8 +85,8 @@ cd "${android_dir}/Leanplum-Android-SDK"
 # shellcheck disable=SC2086
 ./gradlew $GRADLE_TASK
 
-mkdir -p "${sdk_dir}/javadoc"
-mv "${sdk_dir}/javadoc" "${sdk_release_dir}/."
+# mkdir -p "${sdk_dir}/javadoc"
+# mv "${sdk_dir}/javadoc" "${sdk_release_dir}/."
 cp "${sdk_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_release_dir}/Leanplum.jar"
 
 mv "${sdk_core_dir}/javadoc" "${sdk_core_release_dir}/."
