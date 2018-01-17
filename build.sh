@@ -39,18 +39,6 @@ sdk_location_dir="${sdk_dir}/../AndroidSDKLocation"
 sdk_location_release_dir="${release_dir}/AndroidSDKLocation"
 sdk_push_dir="${sdk_dir}/../AndroidSDKPush"
 sdk_push_release_dir="${release_dir}/AndroidSDKPush"
-echo HEYHEYHEY
-echo $sdk_core_dir
-echo $sdk_core_release_dir
-echo $sdk_fcm_dir
-echo $sdk_fcm_release_dir
-echo $sdk_gcm_dir
-echo $sdk_gcm_release_dir
-echo $sdk_location_dir
-echo $sdk_location_release_dir
-echo $sdk_push_dir
-echo $sdk_push_release_dir
-
 
 rm -rf "$release_dir"
 mkdir -p "$sdk_release_dir"
