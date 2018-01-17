@@ -71,6 +71,8 @@ cd "${android_dir}/Leanplum-Android-SDK"
 # shellcheck disable=SC2086
 ./gradlew $GRADLE_TASK
 
+mkdir -p "${sdk_dir}/javadoc"
+mv "${sdk_dir}/javadoc" "${sdk_release_dir}/."
 cp "${sdk_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_release_dir}/Leanplum.jar"
 
 mv "${sdk_core_dir}/javadoc" "${sdk_core_release_dir}/."
