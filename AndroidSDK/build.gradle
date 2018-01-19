@@ -55,3 +55,5 @@ android {
     }
 }
 
+ext.packageName = 'AndroidSDK'
+ext.libraryArtifactId = 'Leanplum'
