@@ -26,11 +26,13 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+ext.COMPILE_SDK_VERSION = 27
+
 subprojects {
     apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'maven-publish'
 
-    ext.COMPILE_SDK_VERSION = 27
+
     ext.BUILD_TOOLS_VERSION = '27.0.2'
     ext.SUPPORT_LIBRARY_VERSION='27.0.2'
 
