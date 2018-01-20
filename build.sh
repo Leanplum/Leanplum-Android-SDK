@@ -20,14 +20,16 @@ for i in "$@"; do
   esac
 done
 
-LEANPLUM_SDK_ROOT="${LEANPLUM_SDK_ROOT:-"$(pwd)/."}"
+LEANPLUM_SDK_ROOT=${LEANPLUM_SDK_ROOT:-"$(pwd)/."}
 configuration="Release"
 default="${LEANPLUM_SDK_ROOT}"
 android_dir=${android_dir:-$default}
 default="${android_dir}/AndroidSDK"
 sdk_dir=${sdk_dir:-$default}
+# Root release directoy.
 release_dir="${android_dir}/Release"
 
+# Put 5 sub-modules into different dictories under Root release directory.
 sdk_release_dir="${release_dir}/AndroidSDK"
 sdk_core_dir="${sdk_dir}/../AndroidSDKCore"
 sdk_core_release_dir="${release_dir}/AndroidSDKCore"
@@ -51,7 +53,6 @@ mkdir -p "$sdk_push_release_dir"
 # Build the AndroidSDK using gradle.
 rm -rf "${sdk_dir}/build"
 rm -rf "${sdk_dir}/javadoc"
-
 rm -rf "${sdk_core_dir}/build"
 rm -rf "${sdk_core_dir}/javadoc"
 rm -rf "${sdk_fcm_dir}/build"
@@ -73,8 +74,7 @@ cd "${android_dir}/Leanplum-Android-SDK"
 # shellcheck disable=SC2086
 ./gradlew $GRADLE_TASK
 
-# mkdir -p "${sdk_dir}/javadoc"
-# mv "${sdk_dir}/javadoc" "${sdk_release_dir}/."
+# Copy Javadocs and jar files.
 cp "${sdk_dir}/build/intermediates/bundles/release/classes.jar" "${sdk_release_dir}/Leanplum.jar"
 
 mv "${sdk_core_dir}/javadoc" "${sdk_core_release_dir}/."
