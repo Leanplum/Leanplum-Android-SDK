@@ -151,9 +151,22 @@ public class LeanplumPushService {
 
   /**
    * Use Firebase Cloud Messaging, instead of the default Google Cloud Messaging.
+   *
+   * @deprecated FCM is no longer packaged in the SDK. Instead it is split up into modules.
+   *  Modify your build.gradle by replacing packagedReleaseCompile 'com.leanplum:Leanplum:'
+   *  with each module separately.
+   *
+   *  For example:
+   *    packagedReleaseCompile 'com.leanplum:Leanplum-core:'
+   *    packagedReleaseCompile 'com.leanplum:Leanplum-fcm:'
+   *    packagedReleaseCompile 'com.leanplum:Leanplum-location:'
    */
+  @Deprecated
   public static void enableFirebase() {
     LeanplumPushService.isFirebaseEnabled = true;
+    Log.e("enableFirebase() is deprecated and FCM is not enabled! " +
+            "SDK has split up into modules and you need to modify your build.gradle. " +
+            "See the doc for more info.");
   }
 
   /**
@@ -744,14 +757,21 @@ public class LeanplumPushService {
    * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
-    try {
-      Class.forName(LEANPLUM_PUSH_SERVICE_GCM).getDeclaredMethod("onStart")
-          .invoke(null);
-    } catch (Throwable throwable) {
-      // If there not GCM try to check for FCM.
+    boolean callFcmOnStart = isFirebaseEnabled;
+    if (!isFirebaseEnabled) {
       try {
-        Class.forName(LEANPLUM_PUSH_SERVICE_FCM)
-            .getDeclaredMethod("onStart").invoke(null);
+        Class.forName(LEANPLUM_PUSH_SERVICE_GCM).getDeclaredMethod("onStart")
+                .invoke(null);
+      } catch (Throwable ignored) {
+        callFcmOnStart = true;
+      }
+    }
+
+    // Try starting FCM if GCM module is not included.
+    if (callFcmOnStart) {
+      try {
+        Class.forName(LEANPLUM_PUSH_SERVICE_FCM).getDeclaredMethod("onStart")
+                .invoke(null);
       } catch (Throwable ignored) {
       }
     }

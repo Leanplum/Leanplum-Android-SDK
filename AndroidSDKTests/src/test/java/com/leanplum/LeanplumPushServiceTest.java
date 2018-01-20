@@ -74,6 +74,7 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.robolectric.Shadows.shadowOf;
@@ -194,6 +195,53 @@ public class LeanplumPushServiceTest {
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(2)).invoke("registerInBackground");
+  }
+
+  /**
+   * Test for {@link LeanplumPushService#onStart}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testOnStart() throws Exception {
+    LeanplumPushService pushService = new LeanplumPushService();
+    Method onStartMethod = LeanplumPushService.class.getDeclaredMethod("onStart");
+    onStartMethod.setAccessible(true);
+
+    LeanplumGcmProvider gcmProvider = new LeanplumGcmProvider();
+    LeanplumFcmProvider fcmProvider = new LeanplumFcmProvider();
+
+    // Tests if GCM will not start when FCM is enabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    LeanplumPushService.setCloudMessagingProvider(gcmProvider);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(0));
+    LeanplumPushServiceGcm.onStart();
+
+    // Tests if GCM will start when FCM is disabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+    LeanplumPushService.setCloudMessagingProvider(gcmProvider);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(1));
+    LeanplumPushServiceGcm.onStart();
+
+    // Tests if FCM will start when FCM is enabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    LeanplumPushService.setCloudMessagingProvider(fcmProvider);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(1));
+    LeanplumPushServiceFcm.onStart();
+
+    // Tests if FCM will not start when FCM is disabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+    LeanplumPushService.setCloudMessagingProvider(fcmProvider);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(1));
+    LeanplumPushServiceFcm.onStart();
   }
 
   /**
