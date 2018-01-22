@@ -98,7 +98,7 @@ import static org.robolectric.Shadows.shadowOf;
 })
 @PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class, LeanplumGcmProvider.class,
     SharedPreferencesUtil.class, Util.class, LeanplumPushServiceGcm.class,
-    LeanplumPushServiceFcm.class, Class.class})
+    LeanplumPushServiceFcm.class})
 public class LeanplumPushServiceTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
