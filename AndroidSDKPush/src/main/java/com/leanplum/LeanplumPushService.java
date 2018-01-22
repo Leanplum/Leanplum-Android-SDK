@@ -757,8 +757,8 @@ public class LeanplumPushService {
    * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
-    boolean callFcmOnStart = isFirebaseEnabled;
-    if (!isFirebaseEnabled) {
+    boolean callFcmOnStart = isFirebaseEnabled();
+    if (!callFcmOnStart) {
       try {
         Class.forName(LEANPLUM_PUSH_SERVICE_GCM).getDeclaredMethod("onStart")
                 .invoke(null);
