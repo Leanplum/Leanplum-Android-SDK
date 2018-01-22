@@ -74,6 +74,7 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.robolectric.Shadows.shadowOf;
@@ -96,7 +97,8 @@ import static org.robolectric.Shadows.shadowOf;
     "android.*"
 })
 @PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class, LeanplumGcmProvider.class,
-    SharedPreferencesUtil.class, Util.class})
+    SharedPreferencesUtil.class, Util.class, LeanplumPushServiceGcm.class,
+    LeanplumPushServiceFcm.class})
 public class LeanplumPushServiceTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
@@ -194,6 +196,37 @@ public class LeanplumPushServiceTest {
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(2)).invoke("registerInBackground");
+  }
+
+  /**
+   * Test for {@link LeanplumPushService#onStart}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testOnStart() throws Exception {
+    LeanplumPushService pushService = new LeanplumPushService();
+    Method onStartMethod = LeanplumPushService.class.getDeclaredMethod("onStart");
+    onStartMethod.setAccessible(true);
+
+    mockStatic(LeanplumPushServiceGcm.class);
+    mockStatic(LeanplumPushServiceFcm.class);
+
+    // Don't call GCM onStart when FCM is enabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(0));
+    LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
+    verifyStatic(times(1));
+    LeanplumPushServiceFcm.class.getDeclaredMethod("onStart");
+
+    // Call GCM onStart when FCM is not enabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(1));
+    LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
   }
 
   /**
