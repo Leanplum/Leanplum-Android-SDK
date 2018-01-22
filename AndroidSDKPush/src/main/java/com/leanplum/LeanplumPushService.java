@@ -165,7 +165,7 @@ public class LeanplumPushService {
   public static void enableFirebase() {
     LeanplumPushService.isFirebaseEnabled = true;
     Log.e("enableFirebase() is deprecated and FCM is not enabled! " +
-            "SDK has split up into modules and you need to modify your build.gradle. " +
+            "SDK has been split up into modules and you need to modify your build.gradle. " +
             "See the doc for more info.");
   }
 
