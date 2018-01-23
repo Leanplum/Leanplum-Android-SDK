@@ -5,7 +5,7 @@ ext {
     SUPPORT_LIBRARY_VERSION = '27.0.2'
 
     LEANPLUM_GROUP_ID = 'com.leanplum'
-    LEANPLUM_ARTIFACT_ID = 'Leanplum'
+    LEANPLUM_ARTIFACT_ID = 'leanplum'
     LEANPLUM_CORE_ARTIFACT_ID = 'leanplum-core'
     LEANPLUM_PUSH_ARTIFACT_ID = 'leanplum-push'
     LEANPLUM_FCM_ARTIFACT_ID = 'leanplum-fcm'
