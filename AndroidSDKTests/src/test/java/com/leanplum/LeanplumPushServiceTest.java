@@ -21,21 +21,26 @@
 package com.leanplum;
 
 import android.app.Application;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 
 import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum.__setup.TestClassUtil;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.FileManager;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.tests.MainActivity;
 import com.leanplum.utils.SharedPreferencesUtil;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,13 +53,17 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Queue;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -65,6 +74,7 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.robolectric.Shadows.shadowOf;
@@ -87,13 +97,18 @@ import static org.robolectric.Shadows.shadowOf;
     "android.*"
 })
 @PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class, LeanplumGcmProvider.class,
-    SharedPreferencesUtil.class, Util.class})
+    SharedPreferencesUtil.class, Util.class, LeanplumPushServiceGcm.class,
+    LeanplumPushServiceFcm.class})
 public class LeanplumPushServiceTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
 
   // The target context of the instrumentation.
   private Application context;
+
+  private boolean customizeCalled = false;
+  private boolean customizeNotificationBuilderCalled = false;
+  private boolean customizeNotificationBuilderCompatCalled = false;
 
   /**
    * Runs before every test case.
@@ -108,6 +123,9 @@ public class LeanplumPushServiceTest {
     this.context = RuntimeEnvironment.application;
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
+    customizeCalled = false;
+    customizeNotificationBuilderCalled = false;
+    customizeNotificationBuilderCompatCalled = false;
   }
 
   /**
@@ -132,11 +150,13 @@ public class LeanplumPushServiceTest {
     Method initPushServiceMethod = LeanplumPushService.class.
         getDeclaredMethod("initPushService");
     initPushServiceMethod.setAccessible(true);
-    when(LeanplumPushService.class, "enableFcmServices").thenReturn(true);
-    when(LeanplumPushService.class, "enableGcmServices").thenReturn(true);
+
+//    when(LeanplumPushService.class, "enableFcmServices").thenReturn(true);
+//    when(LeanplumPushService.class, "enableGcmServices").thenReturn(true);
 
     // Tests for Firebase.
     when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
     // Test if Manifest is not set up and provider is initialized.
     doReturn(false).when(fcmProviderMock).isManifestSetup();
@@ -154,6 +174,7 @@ public class LeanplumPushServiceTest {
 
     // Tests for GCM.
     when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+    LeanplumPushService.setCloudMessagingProvider(gcmProviderMock);
 
     // Test if Manifest is not set up and provider is initialized.
     doReturn(false).when(gcmProviderMock).isManifestSetup();
@@ -175,6 +196,37 @@ public class LeanplumPushServiceTest {
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(2)).invoke("registerInBackground");
+  }
+
+  /**
+   * Test for {@link LeanplumPushService#onStart}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testOnStart() throws Exception {
+    LeanplumPushService pushService = new LeanplumPushService();
+    Method onStartMethod = LeanplumPushService.class.getDeclaredMethod("onStart");
+    onStartMethod.setAccessible(true);
+
+    mockStatic(LeanplumPushServiceGcm.class);
+    mockStatic(LeanplumPushServiceFcm.class);
+
+    // Don't call GCM onStart when FCM is enabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(0));
+    LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
+    verifyStatic(times(1));
+    LeanplumPushServiceFcm.class.getDeclaredMethod("onStart");
+
+    // Call GCM onStart when FCM is not enabled.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+    onStartMethod.invoke(pushService);
+    assertNotNull(onStartMethod);
+    verifyStatic(times(1));
+    LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
   }
 
   /**
@@ -337,16 +389,14 @@ public class LeanplumPushServiceTest {
     Request.setAppId(null, null);
 
     PowerMockito.doReturn(true).when(Util.class, "hasPlayServices");
-    PowerMockito.doReturn(true).when(LeanplumPushService.class, "enableFcmServices");
-    PowerMockito.doReturn(true).when(LeanplumPushService.class, "enableGcmServices");
     PowerMockito.doReturn(false).when(LeanplumPushService.class, "hasAppIDChanged", any());
 
     LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
     whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);
     doReturn(true).when(gcmProviderMock).isManifestSetup();
     doReturn(true).when(gcmProviderMock).isInitialized();
-
-    LeanplumPushService.onStart();
+    LeanplumPushService.setCloudMessagingProvider(gcmProviderMock);
+    LeanplumPushService.initPushService();
 
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
@@ -354,8 +404,156 @@ public class LeanplumPushServiceTest {
     doReturn(true).when(fcmProviderMock).isInitialized();
 
     PowerMockito.doReturn(true).when(LeanplumPushService.class, "isFirebaseEnabled");
+    LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
-    LeanplumPushService.onStart();
+    LeanplumPushService.initPushService();
     verify(mock, times(2)).startService(any(Intent.class));
+  }
+
+  @Test
+  public void testSetCustomizer() throws NoSuchFieldException, IllegalAccessException {
+    CustomCustomizer customCustomizer = new CustomCustomizer();
+    CustomNotificationBuilderCustomizer customNotificationBuilderCustomizer =
+        new CustomNotificationBuilderCustomizer();
+    // Try to set LeanplumNotificationBuilderCustomizer after set
+    // LeanplumPushNotificationCustomizer. LeanplumNotificationBuilderCustomizer should be null.
+    LeanplumPushService.setCustomizer(customCustomizer);
+    LeanplumPushService.setCustomizer(customNotificationBuilderCustomizer);
+
+    Field customizer = LeanplumPushService.class.getDeclaredField("customizer");
+    Assert.assertNotNull(customizer);
+    customizer.setAccessible(true);
+    assertEquals(customizer.get(null), customCustomizer);
+
+    Field notificationBuilderCustomizer =
+        LeanplumPushService.class.getDeclaredField("notificationBuilderCustomizer");
+    Assert.assertNotNull(notificationBuilderCustomizer);
+    notificationBuilderCustomizer.setAccessible(true);
+    assertNull(notificationBuilderCustomizer.get(null));
+
+    // Sets LeanplumPushNotificationCustomizer back to null.
+    customizer.set(LeanplumPushService.class, null);
+
+    // Try to set LeanplumPushNotificationCustomizer after set
+    // LeanplumNotificationBuilderCustomizer. LeanplumPushNotificationCustomizer should be null.
+    LeanplumPushService.setCustomizer(customNotificationBuilderCustomizer);
+    LeanplumPushService.setCustomizer(customCustomizer);
+
+    assertNull(customizer.get(null));
+    assertEquals(notificationBuilderCustomizer.get(null), customNotificationBuilderCustomizer);
+    // Sets LeanplumNotificationBuilderCustomizer back to null.
+    notificationBuilderCustomizer.set(LeanplumPushService.class, null);
+  }
+
+  @Test
+  public void testShowNotification() throws Exception {
+    Bundle bundle = new Bundle();
+    bundle.putString("_lpm", "message_id");
+    bundle.putString("_lpx", "{ __Push Notification: \"message\" }");
+    bundle.putString("title", "title_string");
+    CustomCustomizer customCustomizer = new CustomCustomizer();
+    Method showNotification = LeanplumPushService.class.
+        getDeclaredMethod("showNotification", Context.class, Bundle.class);
+    showNotification.setAccessible(true);
+
+    // Test for Bundle without imageUrl and LeanplumPushNotificationCustomizer.
+    LeanplumPushService.setCustomizer(customCustomizer);
+    showNotification.invoke(LeanplumPushService.class, context, bundle);
+    assertTrue(customizeCalled);
+    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertFalse(customizeNotificationBuilderCalled);
+    customizeCalled = false;
+    Bundle bundleWithImage = new Bundle();
+    bundleWithImage.putString("_lpm", "message_id");
+    bundleWithImage.putString("_lpx", "{ __Push Notification: \"message\" }");
+    bundleWithImage.putString("title", "title_string");
+    bundleWithImage.putString(" lp_imageUrl",
+        FileManager.fileRelativeToDocuments("Mario.png"));
+
+    // Test for Bundle with imageUrl and LeanplumPushNotificationCustomizer.
+    showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
+    assertTrue(customizeCalled);
+    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertFalse(customizeNotificationBuilderCalled);
+
+
+    Field customizer = LeanplumPushService.class.getDeclaredField("customizer");
+    Assert.assertNotNull(customizer);
+    customizer.setAccessible(true);
+
+    // Sets LeanplumPushNotificationCustomizer back to null.
+    customizer.set(LeanplumPushService.class, null);
+    customizeCalled = false;
+
+    // Test for Bundle with imageUrl and Api 15.
+    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 15);
+    assertFalse(customizeCalled);
+    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertFalse(customizeNotificationBuilderCalled);
+
+    CustomNotificationBuilderCustomizer customNotificationBuilderCustomizer =
+        new CustomNotificationBuilderCustomizer();
+    LeanplumPushService.setCustomizer(customNotificationBuilderCustomizer);
+    Field notificationBuilderCustomizer =
+        LeanplumPushService.class.getDeclaredField("notificationBuilderCustomizer");
+    Assert.assertNotNull(notificationBuilderCustomizer);
+    notificationBuilderCustomizer.setAccessible(true);
+
+    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 16);
+
+    // Test for Bundle without imageUrl and LeanplumNotificationBuilderCustomizer.
+    showNotification.invoke(LeanplumPushService.class, context, bundle);
+    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertTrue(customizeNotificationBuilderCalled);
+    assertFalse(customizeCalled);
+
+    customizeNotificationBuilderCalled = false;
+
+    // Test for Bundle with imageUrl and LeanplumNotificationBuilderCustomizer.
+    showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
+    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertTrue(customizeNotificationBuilderCalled);
+    assertFalse(customizeCalled);
+
+    customizeNotificationBuilderCalled = false;
+    // Test for Bundle with imageUrl and LeanplumNotificationBuilderCustomizer and Api 15.
+    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 15);
+    showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
+    assertTrue(customizeNotificationBuilderCompatCalled);
+    assertFalse(customizeNotificationBuilderCalled);
+    assertFalse(customizeCalled);
+    // Sets LeanplumNotificationBuilderCustomizer back to null.
+    notificationBuilderCustomizer.set(LeanplumPushService.class, null);
+    customizeCalled = false;
+    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 16);
+  }
+
+  private static void setFinalStatic(Field field, Object newValue) throws Exception {
+    field.setAccessible(true);
+
+    Field modifiersField = Field.class.getDeclaredField("modifiers");
+    modifiersField.setAccessible(true);
+    modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+    field.set(null, newValue);
+  }
+
+  class CustomCustomizer implements LeanplumPushNotificationCustomizer {
+    @Override
+    public void customize(NotificationCompat.Builder builder, Bundle notificationPayload) {
+      customizeCalled = true;
+    }
+  }
+
+  class CustomNotificationBuilderCustomizer implements LeanplumNotificationBuilderCustomizer {
+    @Override
+    public void customize(Notification.Builder builder, Bundle notificationPayload) {
+      customizeNotificationBuilderCalled = true;
+    }
+
+    @Override
+    public void customize(NotificationCompat.Builder builder, Bundle notificationPayload) {
+      customizeNotificationBuilderCompatCalled = true;
+    }
   }
 }

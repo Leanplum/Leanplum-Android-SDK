@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2018, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,14 +18,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.leanplum.activities;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
+package com.leanplum;
+
+import android.annotation.TargetApi;
+import android.app.job.JobParameters;
+import android.app.job.JobService;
 
 /**
- * @author Milos Jakovljevic
+ * Leanplum GCM registration Job Service to start registration service.
+ *
+ * @author Anna Orlova
  */
-@SuppressLint("Registered")
-public class LeanplumTestActivity extends Activity {
+@TargetApi(21)
+public class LeanplumGcmRegistrationJobService extends JobService {
+  public static final int JOB_ID = -63722755;
+
+  @Override
+  public boolean onStartJob(JobParameters jobParameters) {
+    LeanplumNotificationHelper.startPushRegistrationService(this, "GCM");
+    return false;
+  }
+
+  @Override
+  public boolean onStopJob(JobParameters jobParameters) {
+    return false;
+  }
 }
