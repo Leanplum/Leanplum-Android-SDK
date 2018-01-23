@@ -1,0 +1,128 @@
+// Export methods by turning them into closures
+ext {
+    COMPILE_SDK_VERSION = 27
+    BUILD_TOOLS_VERSION = '27.0.2'
+    SUPPORT_LIBRARY_VERSION = '27.0.2'
+
+    LEANPLUM_GROUP_ID = 'com.leanplum'
+    LEANPLUM_ARTIFACT_ID = 'Leanplum'
+    LEANPLUM_CORE_ARTIFACT_ID = 'leanplum-core'
+    LEANPLUM_PUSH_ARTIFACT_ID = 'leanplum-push'
+    LEANPLUM_FCM_ARTIFACT_ID = 'leanplum-fcm'
+    LEANPLUM_GCM_ARTIFACT_ID = 'leanplum-gcm'
+    LEANPLUM_LOCATION_ARTIFACT_ID = 'leanplum-location'
+    LEANPLUM_SDK_VERSION = "$System.env.ANDROID_VERSION_STRING"
+
+    PROGUARD_FILES = 'proguard-rules.pro'
+    CONSUMER_PROGUARD_FILES = 'consumer-proguard-rules.pro'
+
+    pomWithXml = this.&pomWithXml
+    publishing_task = this.&publishing_task
+    pomConfig = this.&pomConfig
+}
+
+def publishing_task(libraryArtifactId, packageName) {
+
+    task makeJar(type: Copy) {
+        from('build/intermediates/bundles/release/')
+        into('build/outputs/jar/')
+        include('classes.jar')
+        rename('classes.jar', packageName + '-release.jar')
+    }
+
+    publishing {
+        publications {
+            aar(MavenPublication) {
+                groupId LEANPLUM_GROUP_ID
+                version LEANPLUM_SDK_VERSION
+                artifactId libraryArtifactId
+                artifact("$buildDir/outputs/aar/" + packageName + "-release.aar")
+
+                // The publication doesn't know about our dependencies,
+                // so we have to manually add them to the pom.
+
+                pomWithXml(pom, 'aar')
+            }
+            jar(MavenPublication) {
+                groupId LEANPLUM_GROUP_ID
+                version LEANPLUM_SDK_VERSION
+                artifactId libraryArtifactId
+
+                artifact("$buildDir/outputs/jar/" + packageName + "-release.jar")
+
+                // The publication doesn't know about our dependencies,
+                // so we have to manually add them to the pom.
+                pomWithXml(pom, 'jar')
+            }
+        }
+    }
+
+    if (project.hasProperty('artifactoryUsername') && project.hasProperty('artifactoryPassword')) {
+        artifactory {
+            contextUrl = 'http://artifactory-upload.leanplum.com'
+            publish {
+                repository {
+                    repoKey = 'libs-snapshot-local'
+
+                    username = artifactoryUsername
+                    password = artifactoryPassword
+                }
+                defaults {
+                    publications('aar', 'jar')
+                    publishArtifacts = true
+
+                    properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
+                    publishPom = true
+                }
+            }
+        }
+    }
+}
+
+def pomWithXml(pom, libraryType) {
+    pom.withXml {
+        if('jar'==libraryType){
+            asNode().appendNode('packaging', 'aar') // Default to aar packaging.
+        }
+        def dependenciesNode = asNode().appendNode('dependencies')
+        // Iterate over the compile dependencies (we don't want the test ones),
+        // adding a <dependency> node for each.
+        configurations.api.allDependencies.each {
+            pomConfig(it, dependenciesNode)
+        }
+        configurations.releaseApi.allDependencies.each {
+            pomConfig(it, dependenciesNode)
+        }
+    }
+}
+
+def pomConfig(itParam, dependenciesNode) {
+    if (itParam.group != null && itParam.name != null) {
+        def dependencyNode = dependenciesNode.appendNode('dependency')
+        if (itParam.name == 'AndroidSDKCore') {
+            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
+            dependencyNode.appendNode('artifactId', LEANPLUM_CORE_ARTIFACT_ID)
+            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
+        } else if (itParam.name == 'AndroidSDKLocation') {
+            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
+            dependencyNode.appendNode('artifactId', LEANPLUM_LOCATION_ARTIFACT_ID)
+            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
+        } else if (itParam.name == 'AndroidSDKPush') {
+            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
+            dependencyNode.appendNode('artifactId', LEANPLUM_PUSH_ARTIFACT_ID)
+            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
+        } else if (itParam.name == 'AndroidSDKGcm') {
+            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
+            dependencyNode.appendNode('artifactId', LEANPLUM_GCM_ARTIFACT_ID)
+            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
+        } else if (itParam.name == 'AndroidSDKFcm') {
+            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
+            dependencyNode.appendNode('artifactId', LEANPLUM_FCM_ARTIFACT_ID)
+            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
+        } else {
+            dependencyNode.appendNode('groupId', itParam.group)
+            dependencyNode.appendNode('artifactId', itParam.name)
+            dependencyNode.appendNode('version', itParam.version)
+        }
+    }
+}
