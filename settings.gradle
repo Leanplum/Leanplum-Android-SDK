@@ -1,1 +1,7 @@
-include ':AndroidSDK', ':AndroidSDKTests', ':AndroidSDKGcm',':AndroidSDKFcm',':AndroidSDKPush', ':AndroidSDKCore', ':AndroidSDKLocation'
+include ':AndroidSDKCore'
+include ':AndroidSDKLocation'
+include ':AndroidSDKPush'
+include ':AndroidSDKFcm'
+include ':AndroidSDKGcm'
+include ':AndroidSDK'
+include ':AndroidSDKTests'
