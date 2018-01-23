@@ -157,9 +157,9 @@ public class LeanplumPushService {
    *  with each module separately.
    *
    *  For example:
-   *    packagedReleaseCompile 'com.leanplum:Leanplum-core:'
-   *    packagedReleaseCompile 'com.leanplum:Leanplum-fcm:'
-   *    packagedReleaseCompile 'com.leanplum:Leanplum-location:'
+   *    packagedReleaseCompile 'com.leanplum:leanplum-core:'
+   *    packagedReleaseCompile 'com.leanplum:leanplum-fcm:'
+   *    packagedReleaseCompile 'com.leanplum:leanplum-location:'
    */
   @Deprecated
   public static void enableFirebase() {
