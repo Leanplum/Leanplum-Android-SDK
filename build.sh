@@ -20,10 +20,9 @@ for i in "$@"; do
   esac
 done
 
-configuration="Release"
 # Root release directoy.
 release_dir="./Release"
-sdk_dir=${sdk_dir:-"$(pwd)/."}
+sdk_dir=$(pwd)/.
 
 # Put 5 sub-modules into different dictories under Root release directory.
 sdk_release_dir="${release_dir}/AndroidSDK"
@@ -60,14 +59,13 @@ rm -rf "${sdk_location_dir}/javadoc"
 rm -rf "${sdk_push_dir}/build"
 rm -rf "${sdk_push_dir}/javadoc"
 
-if [[ -z ${upload+x} ]]; then
-  GRADLE_TASK="assemble${configuration} makeJar generateJavadoc"
-else
-  GRADLE_TASK="assemble${configuration} makeJar generateJavadoc artifactoryPublish"
+gradle clean
+gradle assembleRelease
+gradle makeJar
+gradle generateJavadoc
+if [[ ! -z ${upload+x} ]]; then
+  gradle artifactoryPublish
 fi
-
-# shellcheck disable=SC2086
-./gradlew $GRADLE_TASK
 
 # Copy Javadocs and jar files.
 cp "${sdk_dir}/AndroidSDK/build/intermediates/bundles/release/classes.jar" "${sdk_release_dir}/Leanplum.jar"
