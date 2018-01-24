@@ -153,13 +153,13 @@ public class LeanplumPushService {
    * Use Firebase Cloud Messaging, instead of the default Google Cloud Messaging.
    *
    * @deprecated FCM is no longer packaged in the SDK. Instead it is split up into modules.
-   *  Modify your build.gradle by replacing implementation 'com.leanplum:Leanplum:'
+   *  Modify your build.gradle by replacing implementation 'com.leanplum:Leanplum:+'
    *  with each module separately.
    *
    *  For example:
-   *    implementation 'com.leanplum:leanplum-core:'
-   *    implementation 'com.leanplum:leanplum-fcm:'
-   *    implementation 'com.leanplum:leanplum-location:'
+   *    implementation 'com.leanplum:leanplum-core:+'
+   *    implementation 'com.leanplum:leanplum-fcm:+'
+   *    implementation 'com.leanplum:leanplum-location:+'
    */
   @Deprecated
   public static void enableFirebase() {
