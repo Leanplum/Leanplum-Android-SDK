@@ -977,6 +977,7 @@ public class Leanplum {
   }
 
   /**
+   * 
    * Call this when your activity resumes. This is called from LeanplumActivityHelper.
    */
   static void resume() {
