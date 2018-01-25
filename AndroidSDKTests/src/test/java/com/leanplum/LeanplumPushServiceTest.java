@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
 import com.leanplum.__setup.LeanplumTestApp;
@@ -106,7 +107,6 @@ public class LeanplumPushServiceTest {
   // The target context of the instrumentation.
   private Application context;
 
-  private boolean customizeCalled = false;
   private boolean customizeNotificationBuilderCalled = false;
   private boolean customizeNotificationBuilderCompatCalled = false;
 
@@ -123,7 +123,7 @@ public class LeanplumPushServiceTest {
     this.context = RuntimeEnvironment.application;
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
-    customizeCalled = false;
+
     customizeNotificationBuilderCalled = false;
     customizeNotificationBuilderCompatCalled = false;
   }
@@ -413,36 +413,38 @@ public class LeanplumPushServiceTest {
   @Test
   public void testSetCustomizer() throws NoSuchFieldException, IllegalAccessException {
     CustomCustomizer customCustomizer = new CustomCustomizer();
-    CustomNotificationBuilderCustomizer customNotificationBuilderCustomizer =
-        new CustomNotificationBuilderCustomizer();
-    // Try to set LeanplumNotificationBuilderCustomizer after set
-    // LeanplumPushNotificationCustomizer. LeanplumNotificationBuilderCustomizer should be null.
-    LeanplumPushService.setCustomizer(customCustomizer);
-    LeanplumPushService.setCustomizer(customNotificationBuilderCustomizer);
+    LeanplumPushService.setCustomizer(customCustomizer, false);
 
     Field customizer = LeanplumPushService.class.getDeclaredField("customizer");
     Assert.assertNotNull(customizer);
+    Field useNotificationBuilderCustomizer =
+        LeanplumPushService.class.getDeclaredField("useNotificationBuilderCustomizer");
+    Assert.assertNotNull(useNotificationBuilderCustomizer);
+    Assert.assertNotNull(customizer);
     customizer.setAccessible(true);
+    useNotificationBuilderCustomizer.setAccessible(true);
+    Assert.assertFalse((boolean)useNotificationBuilderCustomizer.get(null));
     assertEquals(customizer.get(null), customCustomizer);
-
-    Field notificationBuilderCustomizer =
-        LeanplumPushService.class.getDeclaredField("notificationBuilderCustomizer");
-    Assert.assertNotNull(notificationBuilderCustomizer);
-    notificationBuilderCustomizer.setAccessible(true);
-    assertNull(notificationBuilderCustomizer.get(null));
 
     // Sets LeanplumPushNotificationCustomizer back to null.
     customizer.set(LeanplumPushService.class, null);
+    useNotificationBuilderCustomizer.set(LeanplumPushService.class, false);
 
-    // Try to set LeanplumPushNotificationCustomizer after set
-    // LeanplumNotificationBuilderCustomizer. LeanplumPushNotificationCustomizer should be null.
-    LeanplumPushService.setCustomizer(customNotificationBuilderCustomizer);
+    LeanplumPushService.setCustomizer(customCustomizer, true);
+    assertEquals(customizer.get(null), customCustomizer);
+    Assert.assertTrue((boolean)useNotificationBuilderCustomizer.get(null));
+
+    // Sets LeanplumPushNotificationCustomizer back to null.
+    customizer.set(LeanplumPushService.class, null);
+    useNotificationBuilderCustomizer.set(LeanplumPushService.class, false);
+
     LeanplumPushService.setCustomizer(customCustomizer);
+    assertEquals(customizer.get(null), customCustomizer);
+    Assert.assertFalse((boolean)useNotificationBuilderCustomizer.get(null));
 
-    assertNull(customizer.get(null));
-    assertEquals(notificationBuilderCustomizer.get(null), customNotificationBuilderCustomizer);
-    // Sets LeanplumNotificationBuilderCustomizer back to null.
-    notificationBuilderCustomizer.set(LeanplumPushService.class, null);
+    // Sets LeanplumPushNotificationCustomizer back to null.
+    customizer.set(LeanplumPushService.class, null);
+    useNotificationBuilderCustomizer.set(LeanplumPushService.class, false);
   }
 
   @Test
@@ -456,13 +458,13 @@ public class LeanplumPushServiceTest {
         getDeclaredMethod("showNotification", Context.class, Bundle.class);
     showNotification.setAccessible(true);
 
-    // Test for Bundle without imageUrl and LeanplumPushNotificationCustomizer.
+    // Test for Bundle without imageUrl with use useNotificationBuilderCustomizer false.
     LeanplumPushService.setCustomizer(customCustomizer);
     showNotification.invoke(LeanplumPushService.class, context, bundle);
-    assertTrue(customizeCalled);
-    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertTrue(customizeNotificationBuilderCompatCalled);
     assertFalse(customizeNotificationBuilderCalled);
-    customizeCalled = false;
+    customizeNotificationBuilderCompatCalled=false;
+
     Bundle bundleWithImage = new Bundle();
     bundleWithImage.putString("_lpm", "message_id");
     bundleWithImage.putString("_lpx", "{ __Push Notification: \"message\" }");
@@ -470,11 +472,12 @@ public class LeanplumPushServiceTest {
     bundleWithImage.putString(" lp_imageUrl",
         FileManager.fileRelativeToDocuments("Mario.png"));
 
-    // Test for Bundle with imageUrl and LeanplumPushNotificationCustomizer.
+    // Test for Bundle with imageUrl.
     showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
-    assertTrue(customizeCalled);
-    assertFalse(customizeNotificationBuilderCompatCalled);
+
+    assertTrue(customizeNotificationBuilderCompatCalled);
     assertFalse(customizeNotificationBuilderCalled);
+    customizeNotificationBuilderCompatCalled=false;
 
 
     Field customizer = LeanplumPushService.class.getDeclaredField("customizer");
@@ -483,48 +486,50 @@ public class LeanplumPushServiceTest {
 
     // Sets LeanplumPushNotificationCustomizer back to null.
     customizer.set(LeanplumPushService.class, null);
-    customizeCalled = false;
 
-    // Test for Bundle with imageUrl and Api 15.
-    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 15);
-    assertFalse(customizeCalled);
-    assertFalse(customizeNotificationBuilderCompatCalled);
+
+    // Test for Bundle without imageUrl.
+    LeanplumPushService.setCustomizer(customCustomizer,false);
+    showNotification.invoke(LeanplumPushService.class, context, bundle);
+    assertTrue(customizeNotificationBuilderCompatCalled);
     assertFalse(customizeNotificationBuilderCalled);
+    customizeNotificationBuilderCompatCalled=false;
 
-    CustomNotificationBuilderCustomizer customNotificationBuilderCustomizer =
-        new CustomNotificationBuilderCustomizer();
-    LeanplumPushService.setCustomizer(customNotificationBuilderCustomizer);
-    Field notificationBuilderCustomizer =
-        LeanplumPushService.class.getDeclaredField("notificationBuilderCustomizer");
-    Assert.assertNotNull(notificationBuilderCustomizer);
-    notificationBuilderCustomizer.setAccessible(true);
 
-    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 16);
+    // Test for Bundle with imageUrl.
+    showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
 
-    // Test for Bundle without imageUrl and LeanplumNotificationBuilderCustomizer.
+    assertTrue(customizeNotificationBuilderCompatCalled);
+    assertFalse(customizeNotificationBuilderCalled);
+    customizeNotificationBuilderCompatCalled=false;
+
+
+    // Sets LeanplumPushNotificationCustomizer back to null.
+    customizer.set(LeanplumPushService.class, null);
+
+    // Test for Bundle without imageUrl and useNotificationBuilderCustomizer.
+    LeanplumPushService.setCustomizer(customCustomizer, true);
+
     showNotification.invoke(LeanplumPushService.class, context, bundle);
     assertFalse(customizeNotificationBuilderCompatCalled);
     assertTrue(customizeNotificationBuilderCalled);
-    assertFalse(customizeCalled);
-
     customizeNotificationBuilderCalled = false;
 
-    // Test for Bundle with imageUrl and LeanplumNotificationBuilderCustomizer.
+    // Test for Bundle with imageUrl.
     showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
     assertFalse(customizeNotificationBuilderCompatCalled);
     assertTrue(customizeNotificationBuilderCalled);
-    assertFalse(customizeCalled);
-
     customizeNotificationBuilderCalled = false;
-    // Test for Bundle with imageUrl and LeanplumNotificationBuilderCustomizer and Api 15.
+
+
+    // Test for Bundle with imageUrl and Api 15.
     setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 15);
     showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
-    assertTrue(customizeNotificationBuilderCompatCalled);
-    assertFalse(customizeNotificationBuilderCalled);
-    assertFalse(customizeCalled);
-    // Sets LeanplumNotificationBuilderCustomizer back to null.
-    notificationBuilderCustomizer.set(LeanplumPushService.class, null);
-    customizeCalled = false;
+    assertFalse(customizeNotificationBuilderCompatCalled);
+    assertTrue(customizeNotificationBuilderCalled);
+    customizeNotificationBuilderCalled=false;
+    // Sets LeanplumBigPicturePushNotificationCustomizer back to null.
+    customizer.set(LeanplumPushService.class, null);
     setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 16);
   }
 
@@ -541,19 +546,12 @@ public class LeanplumPushServiceTest {
   class CustomCustomizer implements LeanplumPushNotificationCustomizer {
     @Override
     public void customize(NotificationCompat.Builder builder, Bundle notificationPayload) {
-      customizeCalled = true;
-    }
-  }
-
-  class CustomNotificationBuilderCustomizer implements LeanplumNotificationBuilderCustomizer {
-    @Override
-    public void customize(Notification.Builder builder, Bundle notificationPayload) {
-      customizeNotificationBuilderCalled = true;
-    }
-
-    @Override
-    public void customize(NotificationCompat.Builder builder, Bundle notificationPayload) {
       customizeNotificationBuilderCompatCalled = true;
+    }
+
+    @Override
+    public void customize(Notification.Builder builder, Bundle notificationPayload, @Nullable Notification.Style bigPictureStyle) {
+      customizeNotificationBuilderCalled = true;
     }
   }
 }

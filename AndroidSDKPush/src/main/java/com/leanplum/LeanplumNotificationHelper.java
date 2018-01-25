@@ -34,6 +34,7 @@ import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -42,6 +43,8 @@ import android.widget.RemoteViews;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.Util;
+import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.BuildUtil;
 
 import java.util.IllegalFormatCodePointException;
@@ -211,8 +214,13 @@ class LeanplumNotificationHelper {
   static NotificationCompat.Builder getNotificationCompatBuilder(Context context, Bundle message,
       PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture,
       int defaultNotificationIconResourceId) {
+    if (message == null) {
+      return null;
+    }
+
     NotificationCompat.Builder notificationCompatBuilder =
         getNotificationCompatBuilder(context, message);
+
     if (notificationCompatBuilder == null) {
       return null;
     }
@@ -246,72 +254,25 @@ class LeanplumNotificationHelper {
     notificationCompatBuilder.setContentIntent(contentIntent);
 
     return notificationCompatBuilder;
-
   }
 
   /**
-   * Gets Notification.Builder with 2 lines at BigPictureStyle notification text.
+   * Calls setStyle for notificationBuilder and it tries modify notification layout to support two
+   * lines.
    *
-   * @param context The application context.
-   * @param message Push notification Bundle.
-   * @param contentIntent PendingIntent.
-   * @param title String with title for push notification.
-   * @param messageText String with text for push notification.
-   * @param bigPicture Bitmap for BigPictureStyle notification.
-   * @param defaultNotificationIconResourceId int Resource id for default push notification icon.
-   * @return Notification.Builder or null.
+   * @param notificationBuilder current Notification.Builder.
+   * @param bigPictureStyle current Notification.BigPictureStyle.
    */
-  static Notification.Builder getNotificationBuilder(Context context, Bundle message,
-      PendingIntent contentIntent, String title, final String messageText, Bitmap bigPicture,
-      int defaultNotificationIconResourceId) {
-    if (Build.VERSION.SDK_INT < 16) {
-      return null;
+  static void setModifiedBigPictureStyle(Notification.Builder notificationBuilder,
+      Notification.Style bigPictureStyle) {
+    if (Build.VERSION.SDK_INT < 16 || notificationBuilder == null || bigPictureStyle == null) {
+      return;
     }
-    Notification.Builder notificationBuilder =
-        getNotificationBuilder(context, message);
-    if (notificationBuilder == null) {
-      return null;
-    }
-    if (defaultNotificationIconResourceId == 0) {
-      notificationBuilder.setSmallIcon(context.getApplicationInfo().icon);
-    } else {
-      notificationBuilder.setSmallIcon(defaultNotificationIconResourceId);
-    }
-    notificationBuilder.setContentTitle(title)
-        .setStyle(new Notification.BigTextStyle()
-            .bigText(messageText))
-        .setContentText(messageText);
-    if (bigPicture != null) {
-      Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
-        @Override
-        protected RemoteViews getStandardView(int layoutId) {
-          RemoteViews remoteViews = super.getStandardView(layoutId);
-          if (messageText != null && messageText.length() >= MAX_ONE_LINE_TEXT_LENGTH) {
-            // Modifications of standard push RemoteView.
-            try {
-              int id = Resources.getSystem().getIdentifier("text", "id", "android");
-              remoteViews.setBoolean(id, "setSingleLine", false);
-              remoteViews.setInt(id, "setLines", 2);
-              if (Build.VERSION.SDK_INT < 23) {
-                // Make text smaller.
-                remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PADDING, 0, 0);
-                remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, BIGPICTURE_TEXT_SIZE);
-              }
-            } catch (Throwable throwable) {
-              Log.e("Cannot modify push notification layout.");
-            }
-          }
-          return remoteViews;
-        }
-      };
-
-      bigPictureStyle.bigPicture(bigPicture)
-          .setBigContentTitle(title)
-          .setSummaryText(message.getString(Constants.Keys.PUSH_MESSAGE_TEXT));
+    try {
       notificationBuilder.setStyle(bigPictureStyle);
 
       if (Build.VERSION.SDK_INT >= 24) {
-        // By default we cannot reach getStandardView method on API>=24. I we call
+        // By default we cannot reach getStandardView method on API>=24. If we call
         // createBigContentView, Android will call getStandardView method and we can get
         // modified RemoteView.
         try {
@@ -324,13 +285,94 @@ class LeanplumNotificationHelper {
           Log.e("Cannot modify push notification layout.", t);
         }
       }
+    } catch (Throwable t) {
+      Log.e("Cannot set BigPicture style for push notification.", t);
+    }
+  }
+
+  /**
+   * Gets Notification.BigPictureStyle with 2 lines text.
+   *
+   * @param message Push notification Bundle.
+   * @param bigPicture Bitmap for BigPictureStyle notification.
+   * @param title String with title for push notification.
+   * @param messageText String with text for push notification.
+   * @return Notification.BigPictureStyle or null.
+   */
+  static Notification.BigPictureStyle getBigPictureStyle(Bundle message, Bitmap bigPicture,
+      String title, final String messageText) {
+    if (Build.VERSION.SDK_INT < 16 || message == null || bigPicture == null) {
+      return null;
+    }
+
+    Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
+      @Override
+      protected RemoteViews getStandardView(int layoutId) {
+        RemoteViews remoteViews = super.getStandardView(layoutId);
+        if (messageText != null && messageText.length() >= MAX_ONE_LINE_TEXT_LENGTH) {
+          // Modifications of standard push RemoteView.
+          try {
+            int id = Resources.getSystem().getIdentifier("text", "id", "android");
+            remoteViews.setBoolean(id, "setSingleLine", false);
+            remoteViews.setInt(id, "setLines", 2);
+            if (Build.VERSION.SDK_INT < 23) {
+              // Make text smaller.
+              remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PADDING, 0, 0);
+              remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, BIGPICTURE_TEXT_SIZE);
+            }
+          } catch (Throwable throwable) {
+            Log.e("Cannot modify push notification layout.");
+          }
+        }
+        return remoteViews;
+      }
+    };
+
+    bigPictureStyle.bigPicture(bigPicture)
+        .setBigContentTitle(title)
+        .setSummaryText(message.getString(Constants.Keys.PUSH_MESSAGE_TEXT));
+
+    return bigPictureStyle;
+  }
+
+  /**
+   * Gets Notification.Builder for provided parameters.
+   *
+   * @param context The application context.
+   * @param message Push notification Bundle.
+   * @param contentIntent PendingIntent.
+   * @param title String with title for push notification.
+   * @param messageText String with text for push notification.
+   * @param defaultNotificationIconResourceId int Resource id for default push notification icon.
+   * @return Notification.Builder or null.
+   */
+  static Notification.Builder getNotificationBuilder(Context context, Bundle message,
+      PendingIntent contentIntent, String title, final String messageText,
+      int defaultNotificationIconResourceId) {
+    Notification.Builder notificationBuilder = getNotificationBuilder(context, message);
+    if (notificationBuilder == null) {
+      return null;
+    }
+
+    if (defaultNotificationIconResourceId == 0) {
+      notificationBuilder.setSmallIcon(context.getApplicationInfo().icon);
+    } else {
+      notificationBuilder.setSmallIcon(defaultNotificationIconResourceId);
+    }
+
+    notificationBuilder.setContentTitle(title)
+        .setContentText(messageText);
+
+    if (Build.VERSION.SDK_INT > 16) {
+      notificationBuilder.setStyle(new Notification.BigTextStyle()
+          .bigText(messageText));
+      if (!BuildUtil.isNotificationChannelSupported(context)) {
+        //noinspection deprecation
+        notificationBuilder.setPriority(Notification.PRIORITY_MAX);
+      }
     }
     notificationBuilder.setAutoCancel(true);
     notificationBuilder.setContentIntent(contentIntent);
-    if (!BuildUtil.isNotificationChannelSupported(context)) {
-      //noinspection deprecation
-      notificationBuilder.setPriority(Notification.PRIORITY_MAX);
-    }
     return notificationBuilder;
   }
 
@@ -462,5 +504,26 @@ class LeanplumNotificationHelper {
     } catch (Throwable t) {
       Log.e("Couldn't update " + providerName + " InstanceId token.", t);
     }
+  }
+
+  /**
+   * Gets bitmap for BigPicture style push notification.
+   *
+   * @param context Current application context.
+   * @param imageUrl String with url to image.
+   * @return Scaled bitmap for push notification with big image or null.
+   */
+  @Nullable
+  static Bitmap getBigPictureBitmap(Context context, String imageUrl) {
+    Bitmap bigPicture = null;
+    // BigPictureStyle support requires API 16 and higher.
+    if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
+      bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
+      if (bigPicture == null) {
+        Log.w(String.format("Image download failed for push notification with big picture. " +
+            "No image will be included with the push notification. Image URL: %s.", imageUrl));
+      }
+    }
+    return bigPicture;
   }
 }
