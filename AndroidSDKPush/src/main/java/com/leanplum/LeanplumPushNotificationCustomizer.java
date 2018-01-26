@@ -32,8 +32,8 @@ import android.support.v4.app.NotificationCompat;
 public interface LeanplumPushNotificationCustomizer {
   /**
    * Implement this method to customize push notification. Please call {@link
-   * LeanplumPushService#setCustomizer(LeanplumPushNotificationCustomizer, boolean)}  with false
-   * value to activate this method. Leave this method empty if you want to support 2 lines of text
+   * LeanplumPushService#setCustomizer(LeanplumPushNotificationCustomizer)} to activate this method.
+   * Leave this method empty if you want to support 2 lines of text
    * in BigPicture style push notification and implement {@link
    * LeanplumPushNotificationCustomizer#customize(Notification.Builder, Bundle, Notification.Style)}
    *

@@ -33,10 +33,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.text.TextUtils;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -50,7 +48,6 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
-import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -201,14 +198,14 @@ public class LeanplumPushService {
   }
 
   /**
-   * Deprecated: please use{@link
-   * LeanplumPushService#setCustomizer(LeanplumPushNotificationCustomizer, boolean)}
+   * Sets an object used to customize the appearance of notifications. Call this from your
+   * Application class's onCreate method so that the customizer is set when your application starts
+   * in the background.
+   *
+   * @param customizer LeanplumPushNotificationCustomizer push notification customizer.
    */
-  @SuppressWarnings("deprecation")
-  @Deprecated
   public static void setCustomizer(LeanplumPushNotificationCustomizer customizer) {
     setCustomizer(customizer, false);
-
   }
 
   /**
@@ -224,7 +221,6 @@ public class LeanplumPushService {
       boolean useNotificationBuilderCustomizer) {
     LeanplumPushService.customizer = customizer;
     LeanplumPushService.useNotificationBuilderCustomizer = useNotificationBuilderCustomizer;
-
   }
 
 
