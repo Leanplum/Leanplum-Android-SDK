@@ -157,7 +157,6 @@ public class LeanplumPushService {
    *  with each module separately.
    *
    *  For example:
-   *    implementation 'com.leanplum:leanplum-core:+'
    *    implementation 'com.leanplum:leanplum-fcm:+'
    *    implementation 'com.leanplum:leanplum-location:+'
    */
@@ -757,21 +756,36 @@ public class LeanplumPushService {
    * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
-    boolean callFcmOnStart = isFirebaseEnabled();
-    if (!callFcmOnStart) {
-      try {
-        Class.forName(LEANPLUM_PUSH_SERVICE_GCM).getDeclaredMethod("onStart")
-                .invoke(null);
-      } catch (Throwable ignored) {
-        callFcmOnStart = true;
-      }
+    Class leanplumGcmPushServiceClass = null;
+    Class leanplumFcmPushServiceClass = null;
+
+    try {
+      leanplumGcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_GCM);
+    } catch (Throwable ignored) {
     }
 
-    // Try starting FCM if GCM module is not included.
-    if (callFcmOnStart) {
+    try {
+      leanplumFcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_FCM);
+    } catch (Throwable ignored) {
+    }
+
+    if (leanplumGcmPushServiceClass != null && leanplumFcmPushServiceClass != null) {
+      Log.e("Leanplum does not support leanplum-gcm and leanplum-fcm library at the " +
+          "same time. To support Leanplum GCM and Location services modify your build.gradle by " +
+          "including only implementation 'com.leanplum:leanplum:+' " +
+          "To support only GCM services, use implementation 'com.leanplum:leanplum-gcm:+' " +
+          "For FCM services include implementation 'com.leanplum:leanplum-fcm:+'" +
+          " If you wish to use Leanplum FCM and Location services you also need to include " +
+          "implementation 'com.leanplum:leanplum-location:+'.");
+
+    } else if (leanplumGcmPushServiceClass != null) {
       try {
-        Class.forName(LEANPLUM_PUSH_SERVICE_FCM).getDeclaredMethod("onStart")
-                .invoke(null);
+        leanplumGcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
+      } catch (Throwable ignored) {
+      }
+    } else if (leanplumFcmPushServiceClass != null) {
+      try {
+        leanplumFcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
       } catch (Throwable ignored) {
       }
     }
