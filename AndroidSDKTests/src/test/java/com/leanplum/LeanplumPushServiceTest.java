@@ -212,21 +212,13 @@ public class LeanplumPushServiceTest {
     mockStatic(LeanplumPushServiceGcm.class);
     mockStatic(LeanplumPushServiceFcm.class);
 
-    // Don't call GCM onStart when FCM is enabled.
-    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    // Don't call GCM onStart or FCM onStart if both FCM and GCM enabled.
     onStartMethod.invoke(pushService);
     assertNotNull(onStartMethod);
     verifyStatic(times(0));
     LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
-    verifyStatic(times(1));
+    verifyStatic(times(0));
     LeanplumPushServiceFcm.class.getDeclaredMethod("onStart");
-
-    // Call GCM onStart when FCM is not enabled.
-    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
-    onStartMethod.invoke(pushService);
-    assertNotNull(onStartMethod);
-    verifyStatic(times(1));
-    LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
   }
 
   /**
