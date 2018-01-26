@@ -33,10 +33,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.text.TextUtils;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -50,7 +48,6 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
-import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -106,7 +103,7 @@ public class LeanplumPushService {
   private static LeanplumCloudMessagingProvider provider;
   private static boolean isFirebaseEnabled = false;
   private static LeanplumPushNotificationCustomizer customizer;
-  private static LeanplumNotificationBuilderCustomizer notificationBuilderCustomizer;
+  private static boolean useNotificationBuilderCustomizer = false;
 
   /**
    * Sets the Google Cloud Messaging sender ID. Required for push GCM notifications to work.
@@ -203,16 +200,11 @@ public class LeanplumPushService {
    * Sets an object used to customize the appearance of notifications. Call this from your
    * Application class's onCreate method so that the customizer is set when your application starts
    * in the background.
+   *
+   * @param customizer LeanplumPushNotificationCustomizer push notification customizer.
    */
   public static void setCustomizer(LeanplumPushNotificationCustomizer customizer) {
-    if (LeanplumPushService.notificationBuilderCustomizer != null) {
-      Log.e("You can only use one customizer for push notifications. Please remove " +
-          "LeanplumPushService.setCustomizer(LeanplumNotificationBuilderCustomizer) from onCreate" +
-          "method in your Application class if you do not want to support 2 lines of text on " +
-          "BigPicture style push notification.");
-      return;
-    }
-    LeanplumPushService.customizer = customizer;
+    setCustomizer(customizer, false);
   }
 
   /**
@@ -220,18 +212,16 @@ public class LeanplumPushService {
    * Application class's onCreate method so that the customizer is set when your application starts
    * in the background.
    *
-   * @param customizer LeanplumNotificationBuilderCustomizer customizer.
+   * @param customizer LeanplumPushNotificationCustomizer push notification customizer.
+   * @param useNotificationBuilderCustomizer True if if you want to support 2 lines of text on
+   * BigPicture style push notification.
    */
-  public static void setCustomizer(LeanplumNotificationBuilderCustomizer customizer) {
-    if (LeanplumPushService.customizer != null) {
-      Log.e("You can only use one push notification customizer. Please remove " +
-          "LeanplumPushService.setCustomizer(LeanplumPushNotificationCustomizer) from onCreate" +
-          "method in your Application class if you want to support 2 lines of text on " +
-          "BigPicture style push notification.");
-      return;
-    }
-    LeanplumPushService.notificationBuilderCustomizer = customizer;
+  public static void setCustomizer(LeanplumPushNotificationCustomizer customizer,
+      boolean useNotificationBuilderCustomizer) {
+    LeanplumPushService.customizer = customizer;
+    LeanplumPushService.useNotificationBuilderCustomizer = useNotificationBuilderCustomizer;
   }
+
 
   private static Class<? extends Activity> getCallbackClass() {
     return callbackClass;
@@ -382,9 +372,8 @@ public class LeanplumPushService {
     Intent intent = new Intent(context, LeanplumPushReceiver.class);
     intent.addCategory("lpAction");
     intent.putExtras(message);
-    PendingIntent contentIntent = PendingIntent.getBroadcast(
-        context.getApplicationContext(), new Random().nextInt(),
-        intent, 0);
+    PendingIntent contentIntent = PendingIntent.getBroadcast(context.getApplicationContext(),
+        new Random().nextInt(), intent, 0);
 
     String title = Util.getApplicationName(context.getApplicationContext());
     if (message.getString("title") != null) {
@@ -394,46 +383,33 @@ public class LeanplumPushService {
     Notification.Builder notificationBuilder = null;
 
     final String messageText = message.getString(Keys.PUSH_MESSAGE_TEXT);
-    String imageUrl = message.getString(Keys.PUSH_MESSAGE_IMAGE_URL);
-    Bitmap bigPicture = null;
-    // BigPictureStyle support requires API 16 and higher.
-    if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
-      bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
-      if (bigPicture == null) {
-        Log.w(String.format("Image download failed for push notification with big picture. " +
-            "No image will be included with the push notification. Image URL: %s.", imageUrl));
-      }
-    }
+    Bitmap bigPicture = LeanplumNotificationHelper.getBigPictureBitmap(context,
+        message.getString(Keys.PUSH_MESSAGE_IMAGE_URL));
 
-    if (Build.VERSION.SDK_INT < 16 || (customizer != null
-        && notificationBuilderCustomizer == null)) {
+    if (customizer != null && !useNotificationBuilderCustomizer) {
       notificationCompatBuilder = LeanplumNotificationHelper.getNotificationCompatBuilder(context,
           message, contentIntent, title, messageText, bigPicture, defaultIconId);
     } else {
       notificationBuilder = LeanplumNotificationHelper.getNotificationBuilder(context, message,
-          contentIntent, title, messageText, bigPicture, defaultIconId);
+          contentIntent, title, messageText, defaultIconId);
     }
 
     if ((notificationCompatBuilder == null && notificationBuilder == null) ||
-        (customizer != null && notificationCompatBuilder == null)) {
+        (!useNotificationBuilderCustomizer && notificationCompatBuilder == null)) {
       return;
     }
 
-    if (LeanplumPushService.customizer != null) {
+    if (customizer != null) {
       try {
-        LeanplumPushService.customizer.customize(notificationCompatBuilder, message);
-      } catch (Throwable t) {
-        Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
-        return;
-      }
-    }
-    if (LeanplumPushService.notificationBuilderCustomizer != null) {
-      try {
-        if (Build.VERSION.SDK_INT < 16) {
-          LeanplumPushService.notificationBuilderCustomizer.customize(notificationCompatBuilder,
-              message);
+        if (useNotificationBuilderCustomizer) {
+          Notification.BigPictureStyle bigPictureStyle =
+              LeanplumNotificationHelper.getBigPictureStyle(message, bigPicture, title,
+                  messageText);
+          customizer.customize(notificationBuilder, message, bigPictureStyle);
+          LeanplumNotificationHelper.setModifiedBigPictureStyle(notificationBuilder,
+              bigPictureStyle);
         } else {
-          LeanplumPushService.notificationBuilderCustomizer.customize(notificationBuilder, message);
+          customizer.customize(notificationCompatBuilder, message);
         }
       } catch (Throwable t) {
         Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
