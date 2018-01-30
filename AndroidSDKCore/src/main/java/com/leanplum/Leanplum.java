@@ -77,7 +77,7 @@ public class Leanplum {
    * Default event name to use for Purchase events.
    */
   public static final String PURCHASE_EVENT_NAME = "Purchase";
-  public static final String LEANPLUM_PUSH_SERVICE = "com.leanplum.LeanplumPushService";
+  private static final String LEANPLUM_PUSH_SERVICE = "com.leanplum.LeanplumPushService";
 
   private static final ArrayList<StartCallback> startHandlers = new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> variablesChangedHandlers =

@@ -93,7 +93,6 @@ public class LeanplumPushService {
   private static final String LEANPLUM_PUSH_SERVICE_GCM = "com.leanplum.LeanplumPushServiceGcm";
   private static final String LEANPLUM_PUSH_SERVICE_FCM = "com.leanplum.LeanplumPushServiceFcm";
 
-  private static final String PREFERENCES_NAME = "__leanplum_messaging__";
   private static final int NOTIFICATION_ID = 1;
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
@@ -850,120 +849,6 @@ public class LeanplumPushService {
       mNotificationManager.notify(0, builder.build());
     } catch (Throwable t) {
       Log.i("Device is registered.");
-    }
-  }
-
-  /**
-   * Schedule local push notification. This method will call by reflection from AndroidSDKCore.
-   *
-   * @param actionContext Action Context.
-   * @param messageId String message id for local push notification.
-   * @param eta Eta for local push notification.
-   * @return True if notification was scheduled.
-   */
-  static boolean scheduleLocalPush(ActionContext actionContext, String messageId, long eta) {
-    try {
-      Context context = Leanplum.getContext();
-      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
-      AlarmManager alarmManager = (AlarmManager) context.getSystemService(
-          Context.ALARM_SERVICE);
-
-      // If there's already one scheduled before the eta, discard this.
-      // Otherwise, discard the scheduled one.
-      SharedPreferences preferences = context.getSharedPreferences(
-          PREFERENCES_NAME, Context.MODE_PRIVATE);
-      long existingEta = preferences.getLong(String.format(
-          Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), 0L);
-      if (existingEta > 0L && existingEta > System.currentTimeMillis()) {
-        if (existingEta < eta) {
-          return false;
-        } else if (existingEta >= eta) {
-          PendingIntent existingIntent = PendingIntent.getService(
-              context, messageId.hashCode(), intentAlarm,
-              PendingIntent.FLAG_UPDATE_CURRENT);
-          alarmManager.cancel(existingIntent);
-        }
-      }
-
-      // Specify custom data for the notification
-      Map<String, Serializable> data = actionContext.objectNamed("Advanced options.Data");
-      if (data != null) {
-        for (String key : data.keySet()) {
-          intentAlarm.putExtra(key, data.get(key));
-        }
-      }
-
-      // Specify open action
-      String openAction = actionContext.stringNamed(Constants.Values.DEFAULT_PUSH_ACTION);
-      boolean muteInsideApp = Boolean.TRUE.equals(actionContext.objectNamed(
-          "Advanced options.Mute inside app"));
-      if (openAction != null) {
-        if (muteInsideApp) {
-          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION, messageId);
-        } else {
-          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_NO_MUTE_WITH_ACTION, messageId);
-        }
-      } else {
-        if (muteInsideApp) {
-          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_MUTE, messageId);
-        } else {
-          intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-        }
-      }
-
-      // Message.
-      String message = actionContext.stringNamed("Message");
-      intentAlarm.putExtra(Constants.Keys.PUSH_MESSAGE_TEXT,
-          message != null ? message : Constants.Values.DEFAULT_PUSH_MESSAGE);
-
-      // Collapse key.
-      String collapseKey = actionContext.stringNamed("Android options.Collapse key");
-      if (collapseKey != null) {
-        intentAlarm.putExtra("collapseKey", collapseKey);
-      }
-
-      // Delay while idle.
-      boolean delayWhileIdle = Boolean.TRUE.equals(actionContext.objectNamed(
-          "Android options.Delay while idle"));
-      if (delayWhileIdle) {
-        intentAlarm.putExtra("delayWhileIdle", true);
-      }
-
-      // Schedule notification.
-      PendingIntent operation = PendingIntent.getService(
-          context, messageId.hashCode(), intentAlarm,
-          PendingIntent.FLAG_UPDATE_CURRENT);
-      alarmManager.set(AlarmManager.RTC_WAKEUP, eta, operation);
-
-      // Save notification so we can cancel it later.
-      SharedPreferences.Editor editor = preferences.edit();
-      editor.putLong(String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), eta);
-      SharedPreferencesUtil.commitChanges(editor);
-
-      Log.i("Scheduled notification.");
-      return true;
-    } catch (Throwable t) {
-      Util.handleException(t);
-      return false;
-    }
-  }
-
-  /**
-   * Cancel local push notification. This method will call by reflection from AndroidSDKCore.
-   *
-   * @param context The application context.
-   * @param messageId Message id of notification that should be canceled.
-   */
-  static void cancelLocalPush(Context context, String messageId) {
-    try {
-      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
-      AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-      PendingIntent existingIntent = PendingIntent.getService(
-          context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
-      if (alarmManager != null && existingIntent != null) {
-        alarmManager.cancel(existingIntent);
-      }
-    } catch (Throwable ignored) {
     }
   }
 }
