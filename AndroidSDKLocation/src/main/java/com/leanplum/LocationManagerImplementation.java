@@ -99,12 +99,25 @@ class LocationManagerImplementation implements
   private GoogleApiClient googleApiClient;
 
   private static LocationManagerImplementation instance;
+  private static boolean loggedLocationManagerFailure = false;
 
   public static synchronized LocationManager instance() {
-    if (instance == null) {
-      instance = new LocationManagerImplementation();
+    try {
+      if (LocationServices.API != null) {
+        if (instance == null) {
+          instance = new LocationManagerImplementation();
+        }
+        return instance;
+      }
+    } catch (Throwable throwable) {
+      if (!loggedLocationManagerFailure) {
+        Log.e("Geofencing support requires Google Play Services v8.1 and higher.\n" +
+            "Add this to your build.gradle file:\n" +
+            "compile ('com.google.android.gms:play-services-location:8.3.0+')");
+        loggedLocationManagerFailure = true;
+      }
     }
-    return instance;
+    return null;
   }
 
   private LocationManagerImplementation() {
@@ -287,11 +300,8 @@ class LocationManagerImplementation implements
     }
     trackedGeofenceIds = new ArrayList<>();
     if (toBeTrackedGeofences != null && toBeTrackedGeofences.size() > 0) {
-      GeofencingRequest request = new GeofencingRequest.Builder()
-          .addGeofences(toBeTrackedGeofences)
-          .build();
       LocationServices.GeofencingApi.addGeofences(googleApiClient,
-          request, getTransitionPendingIntent());
+          toBeTrackedGeofences, getTransitionPendingIntent());
       for (Geofence geofence : toBeTrackedGeofences) {
         if (geofence != null && geofence.getRequestId() != null) {
           trackedGeofenceIds.add(geofence.getRequestId());

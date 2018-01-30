@@ -68,31 +68,17 @@ public class ActionManager {
     return instance;
   }
 
-  private static boolean loggedLocationManagerFailure = false;
-
   public static LocationManager getLocationManager() {
     if (Util.hasPlayServices()) {
       try {
-        Class<?> googleApiClientClass =
-            Class.forName("com.google.android.gms.common.api.GoogleApiClient");
-        if (googleApiClientClass != null
-            && Modifier.isAbstract(googleApiClientClass.getModifiers())
-            && Modifier.isAbstract(
-            googleApiClientClass.getMethod("isConnected").getModifiers())
-            && Class.forName("com.google.android.gms.location.LocationServices") != null) {
           // Reflection here prevents linker errors
           // in Google Play Services is not used in the client app.
           return (LocationManager) Class
               .forName("com.leanplum.LocationManagerImplementation")
               .getMethod("instance").invoke(null);
-        }
       } catch (Throwable t) {
-        if (!loggedLocationManagerFailure) {
-          Log.e("Geofencing support requires Google Play Services v8.1 and higher.\n" +
-              "Add this to your build.gradle file:\n" +
-              "compile ('com.google.android.gms:play-services-location:8.3.0+')");
-          loggedLocationManagerFailure = true;
-        }
+         Log.w("Geofencing support requires leanplum-location module. Add this to your" +
+             "build.gradle file: implementation 'com.leanplum:leanplum-location:+'", t);
       }
     }
     return null;
