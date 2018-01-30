@@ -51,7 +51,8 @@ public class ActionManager {
 
   public static final String PUSH_NOTIFICATION_ACTION_NAME = "__Push Notification";
   public static final String HELD_BACK_ACTION_NAME = "__held_back";
-
+  private static final String LEANPLUM_LOCAL_PUSH_HELPER =
+      "com.leanplum.internal.LeanplumLocalPushHelper";
   private static final String PREFERENCES_NAME = "__leanplum_messaging__";
 
   public static class MessageMatchResult {
@@ -131,10 +132,11 @@ public class ActionManager {
           long eta = System.currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
           // Schedule notification.
           try {
-            return (boolean) Class.forName(Leanplum.LEANPLUM_PUSH_SERVICE)
-                .getDeclaredMethod("scheduleLocalPush", Context.class, String.class,
+            return (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
+                .getDeclaredMethod("scheduleLocalPush", ActionContext.class, String.class,
                     long.class).invoke(new Object(), actionContext, messageId, eta);
           } catch (Throwable throwable) {
+            Log.e("scheduleLocalPush problem",throwable);
             return false;
           }
         } catch (Throwable t) {
@@ -164,7 +166,7 @@ public class ActionManager {
 
           // Cancel notification.
           try {
-            Class.forName(Leanplum.LEANPLUM_PUSH_SERVICE)
+            Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
                 .getDeclaredMethod("cancelLocalPush", Context.class, String.class)
                 .invoke(new Object(), context, messageId);
             boolean didCancel = existingEta > System.currentTimeMillis();
