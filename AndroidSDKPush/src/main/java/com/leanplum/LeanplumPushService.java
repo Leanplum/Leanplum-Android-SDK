@@ -395,25 +395,38 @@ public class LeanplumPushService {
     }
 
     if ((notificationCompatBuilder == null && notificationBuilder == null) ||
-        (!useNotificationBuilderCustomizer && notificationCompatBuilder == null)) {
+        (customizer != null & !useNotificationBuilderCustomizer &&
+            notificationCompatBuilder == null) ||
+        (customizer != null && useNotificationBuilderCustomizer && notificationBuilder == null) ||
+        (customizer == null && notificationBuilder == null)) {
       return;
     }
 
     if (customizer != null) {
       try {
         if (useNotificationBuilderCustomizer) {
-          Notification.BigPictureStyle bigPictureStyle =
-              LeanplumNotificationHelper.getBigPictureStyle(message, bigPicture, title,
-                  messageText);
-          customizer.customize(notificationBuilder, message, bigPictureStyle);
-          LeanplumNotificationHelper.setModifiedBigPictureStyle(notificationBuilder,
-              bigPictureStyle);
+          if (bigPicture != null) {
+            Notification.BigPictureStyle bigPictureStyle =
+                LeanplumNotificationHelper.getBigPictureStyle(message, bigPicture, title,
+                    messageText);
+            customizer.customize(notificationBuilder, message, bigPictureStyle);
+            LeanplumNotificationHelper.setModifiedBigPictureStyle(notificationBuilder,
+                bigPictureStyle);
+          } else {
+            customizer.customize(notificationBuilder, message, null);
+          }
         } else {
           customizer.customize(notificationCompatBuilder, message);
         }
       } catch (Throwable t) {
         Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
         return;
+      }
+    } else {
+      if (bigPicture != null) {
+        Notification.BigPictureStyle bigPictureStyle =
+            LeanplumNotificationHelper.getBigPictureStyle(message, bigPicture, title, messageText);
+        LeanplumNotificationHelper.setModifiedBigPictureStyle(notificationBuilder, bigPictureStyle);
       }
     }
 
