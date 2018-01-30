@@ -16,7 +16,6 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true
             proguardFiles PROGUARD_FILES
         }
         buildTypes.each {
