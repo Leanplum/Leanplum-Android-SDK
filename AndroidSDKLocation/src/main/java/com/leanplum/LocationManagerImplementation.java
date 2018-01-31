@@ -99,7 +99,6 @@ class LocationManagerImplementation implements
   private GoogleApiClient googleApiClient;
 
   private static LocationManagerImplementation instance;
-  private static boolean loggedLocationManagerFailure = false;
 
   public static synchronized LocationManager instance() {
     try {
@@ -109,13 +108,7 @@ class LocationManagerImplementation implements
         }
         return instance;
       }
-    } catch (Throwable throwable) {
-      if (!loggedLocationManagerFailure) {
-        Log.e("Geofencing support requires Google Play Services v8.1 and higher.\n" +
-            "Add this to your build.gradle file:\n" +
-            "compile ('com.google.android.gms:play-services-location:8.3.0+')");
-        loggedLocationManagerFailure = true;
-      }
+    } catch (Throwable ignored) {
     }
     return null;
   }

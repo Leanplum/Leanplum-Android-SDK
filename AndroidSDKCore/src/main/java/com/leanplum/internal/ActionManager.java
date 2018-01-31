@@ -54,6 +54,7 @@ public class ActionManager {
   private static final String LEANPLUM_LOCAL_PUSH_HELPER =
       "com.leanplum.internal.LeanplumLocalPushHelper";
   private static final String PREFERENCES_NAME = "__leanplum_messaging__";
+  private static boolean loggedLocationManagerFailure = false;
 
   public static class MessageMatchResult {
     public boolean matchedTrigger;
@@ -71,14 +72,20 @@ public class ActionManager {
   public static LocationManager getLocationManager() {
     if (Util.hasPlayServices()) {
       try {
-          // Reflection here prevents linker errors
-          // in Google Play Services is not used in the client app.
-          return (LocationManager) Class
-              .forName("com.leanplum.LocationManagerImplementation")
-              .getMethod("instance").invoke(null);
+        // Reflection here prevents linker errors
+        // in Google Play Services is not used in the client app.
+        return (LocationManager) Class
+            .forName("com.leanplum.LocationManagerImplementation")
+            .getMethod("instance").invoke(null);
       } catch (Throwable t) {
-         Log.w("Geofencing support requires leanplum-location module. Add this to your" +
-             "build.gradle file: implementation 'com.leanplum:leanplum-location:+'", t);
+        if (!loggedLocationManagerFailure) {
+          Log.w("Geofencing support requires leanplum-location module and Google Play " +
+              "Services v8.1 and higher.\n" +
+              "Add this to your build.gradle file:\n" +
+              "implementation 'com.google.android.gms:play-services-location:8.3.0+'\n" +
+              "implementation 'com.leanplum:leanplum-location:+'");
+          loggedLocationManagerFailure = true;
+        }
       }
     }
     return null;
@@ -122,7 +129,6 @@ public class ActionManager {
                 .getDeclaredMethod("scheduleLocalPush", ActionContext.class, String.class,
                     long.class).invoke(new Object(), actionContext, messageId, eta);
           } catch (Throwable throwable) {
-            Log.e("scheduleLocalPush problem",throwable);
             return false;
           }
         } catch (Throwable t) {
