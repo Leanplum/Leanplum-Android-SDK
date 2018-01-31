@@ -101,10 +101,16 @@ class LocationManagerImplementation implements
   private static LocationManagerImplementation instance;
 
   public static synchronized LocationManager instance() {
-    if (instance == null) {
-      instance = new LocationManagerImplementation();
+    try {
+      if (LocationServices.API != null) {
+        if (instance == null) {
+          instance = new LocationManagerImplementation();
+        }
+        return instance;
+      }
+    } catch (Throwable ignored) {
     }
-    return instance;
+    return null;
   }
 
   private LocationManagerImplementation() {
@@ -287,11 +293,8 @@ class LocationManagerImplementation implements
     }
     trackedGeofenceIds = new ArrayList<>();
     if (toBeTrackedGeofences != null && toBeTrackedGeofences.size() > 0) {
-      GeofencingRequest request = new GeofencingRequest.Builder()
-          .addGeofences(toBeTrackedGeofences)
-          .build();
       LocationServices.GeofencingApi.addGeofences(googleApiClient,
-          request, getTransitionPendingIntent());
+          toBeTrackedGeofences, getTransitionPendingIntent());
       for (Geofence geofence : toBeTrackedGeofences) {
         if (geofence != null && geofence.getRequestId() != null) {
           trackedGeofenceIds.add(geofence.getRequestId());
