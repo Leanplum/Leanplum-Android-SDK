@@ -14,12 +14,6 @@ allprojects {
 dependencies {
     debugApi project(':AndroidSDKCore')
     releaseApi project(':AndroidSDKCore')
-    debugApi project(':AndroidSDKPush')
-    releaseApi project(':AndroidSDKPush')
-    debugApi project(':AndroidSDKGcm')
-    releaseApi project(':AndroidSDKGcm')
-    debugApi project(':AndroidSDKLocation')
-    releaseApi project(':AndroidSDKLocation')
 }
 
 android {
