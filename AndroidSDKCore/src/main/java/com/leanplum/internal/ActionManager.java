@@ -73,7 +73,7 @@ public class ActionManager {
     if (Util.hasPlayServices()) {
       try {
         // Reflection here prevents linker errors
-        // in Google Play Services is not used in the client app.
+        // if Google Play Services is not used in the client app.
         return (LocationManager) Class
             .forName("com.leanplum.LocationManagerImplementation")
             .getMethod("instance").invoke(null);
