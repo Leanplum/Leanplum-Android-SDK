@@ -26,7 +26,10 @@ android {
 }
 
 dependencies {
-    implementation project(':AndroidSDK')
+    implementation project(':AndroidSDKCore')
+    implementation project(':AndroidSDKPush')
+    implementation project(':AndroidSDKLocation')
+    implementation project(':AndroidSDKGcm')
     implementation project(':AndroidSDKFcm')
     implementation "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
     implementation 'com.google.android.gms:play-services-gcm:11.6.0'
