@@ -21,6 +21,7 @@
 
 package com.leanplum;
 
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.leanplum.callbacks.VariableCallback;
@@ -588,6 +589,63 @@ public class Var<T> {
         return null;
       }
       return FileManager.stream(isResource, isAsset, valueIsInAssets,
+          (String) defaultValue, (String) defaultValue, data);
+    } catch (Throwable t) {
+      Util.handleException(t);
+      return null;
+    }
+  }
+
+  /**
+   * Creates and returns StreamReference for overridden file/asset/resource variable.
+   *
+   * @return StreamReference for a file.
+   */
+  @Nullable
+  public StreamReference streamReference() {
+    return streamReference(true);
+  }
+
+  /**
+   * Creates and returns StreamReference for overridden file/asset/resource variable.
+   *
+   * @param fallbackToDefault Whether the default stream reference for the variable should be returned
+   * if the value is not overridden.
+   * <p>
+   * {@code fallbackToDefault=true} in {@link Var#streamReference()}.
+   * @return StreamReference for a file.
+   */
+  @Nullable
+  public StreamReference streamReference(boolean fallbackToDefault) {
+    try {
+      if (!Constants.Kinds.FILE.equals(kind)) {
+        return null;
+      }
+      warnIfNotStarted();
+      StreamReference reference = FileManager.streamReference(isResource, isAsset, valueIsInAssets,
+          fileValue(), (String) defaultValue, data);
+      if (reference == null && fallbackToDefault) {
+        return defaultStreamReference();
+      }
+      return reference;
+    } catch (Throwable t) {
+      Util.handleException(t);
+      return null;
+    }
+  }
+
+  /**
+   * Creates and returns StreamReference for default file/asset/resource variable.
+   *
+   * @return StreamReference for a file.
+   */
+  @Nullable
+  private StreamReference defaultStreamReference() {
+    try {
+      if (!Constants.Kinds.FILE.equals(kind)) {
+        return null;
+      }
+      return FileManager.streamReference(isResource, isAsset, valueIsInAssets,
           (String) defaultValue, (String) defaultValue, data);
     } catch (Throwable t) {
       Util.handleException(t);

@@ -21,19 +21,21 @@
 
 package com.leanplum.internal;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.res.Resources;
-import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
+import com.leanplum.StreamReference;
+import com.leanplum.StreamReference.AssetReference;
+import com.leanplum.StreamReference.FileReference;
+import com.leanplum.StreamReference.MemoryReference;
+import com.leanplum.StreamReference.ResourceReference;
 import com.leanplum.Var;
 
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -461,41 +463,68 @@ public class FileManager {
    */
   public static InputStream stream(boolean isResource, Boolean isAsset, Boolean valueIsInAssets,
       String value, String defaultValue, byte[] resourceData) {
-    if (TextUtils.isEmpty(value)) {
-      return null;
-    }
     try {
-      Context context = Leanplum.getContext();
-      if (isResource && value.equals(defaultValue) && resourceData != null) {
-        return new ByteArrayInputStream(resourceData);
-      } else if (isResource && value.equals(defaultValue) && resourceData == null) {
-        // Convert resource name into resource id.
-        int resourceId = Util.generateIdFromResourceName(value);
-        // Android only generates id's greater then 0.
-        if (resourceId != 0) {
-          Resources res = context.getResources();
-          // Based on resource Id, we can extract package it belongs, directory where it is stored
-          // and name of the file.
-          Uri resourceUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
-              "://" + res.getResourcePackageName(resourceId)
-              + '/' + res.getResourceTypeName(resourceId)
-              + '/' + res.getResourceEntryName(resourceId));
-          return context.getContentResolver().openInputStream(resourceUri);
-        }
+      StreamReference streamReference = streamReference(isResource, isAsset, valueIsInAssets,
+          value, defaultValue, resourceData);
+      if (streamReference == null) {
         return null;
       }
-      if (valueIsInAssets == null) {
-        try {
-          return context.getAssets().open(value);
-        } catch (IOException ignored) {
-        }
-      } else if (valueIsInAssets || (isAsset && value.equals(defaultValue))) {
-        return context.getAssets().open(value);
-      }
-      return new FileInputStream(new File(value));
+      return streamReference.stream(Leanplum.getContext());
     } catch (IOException e) {
       Log.w("Failed to load a stream." + e.getMessage());
       return null;
     }
+  }
+
+  /**
+   * Returns a StreamReference for a specified file/resource/asset variable. It will automatically find
+   * a proper file based on provided data. File can be located in either assets, res or in-memory.
+   *
+   * @param isResource Whether variable is resource.
+   * @param isAsset Whether variable is asset.
+   * @param valueIsInAssets Whether variable is located in assets directory.
+   * @param value Name of the file.
+   * @param defaultValue Default name of the file.
+   * @param resourceData Data if file is not located on internal storage.
+   * @return StreamReference for a given variable.
+   */
+  @Nullable
+  public static StreamReference streamReference(boolean isResource, @Nullable Boolean isAsset,
+      @Nullable Boolean valueIsInAssets, @Nullable String value, @Nullable String defaultValue,
+      byte[] resourceData) {
+    if (TextUtils.isEmpty(value)) {
+      return null;
+    }
+    if (isResource && value.equals(defaultValue) && resourceData != null) {
+      return new MemoryReference(resourceData);
+    } else if (isResource && value.equals(defaultValue) && resourceData == null) {
+      // Convert resource name into resource id.
+      int resourceId = Util.generateIdFromResourceName(value);
+      // Android only generates id's greater then 0.
+      if (resourceId != 0) {
+        return new ResourceReference(resourceId);
+      }
+      return null;
+    }
+    if (valueIsInAssets == null) {
+      InputStream inputStream = null;
+      try {
+        Context context = Leanplum.getContext();
+        inputStream = context.getAssets().open(value);
+        return new AssetReference(value);
+      } catch (IOException ignored) {
+      } finally {
+        if (inputStream != null) {
+          try {
+            inputStream.close();
+          } catch (Exception e) {
+            Log.w("Failed to close InputStream: " + e);
+          }
+        }
+      }
+    } else if (valueIsInAssets || ((isAsset != null && isAsset) && value.equals(defaultValue))) {
+      return new AssetReference(value);
+    }
+    return new FileReference(new File(value));
   }
 }
