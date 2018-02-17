@@ -1,0 +1,35 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+apply from: "../common-methods.gradle"
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion BUILD_TOOLS_VERSION
+    defaultConfig {
+        defaultConfig {
+            consumerProguardFiles 'consumer-proguard-rules.pro'
+        }
+    }
+
+    buildTypes {
+        release {
+            proguardFiles 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    debugApi project(':AndroidSDKCore')
+    releaseApi project(':AndroidSDKCore')
+}
+
+task generateJavadoc(type: Javadoc) {
+    exclude 'com/leanplum/internal'
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    destinationDir = file("./javadoc/")
+    failOnError false
+}
+
+publishing_task(LEANPLUM_PUSH_ARTIFACT_ID, 'AndroidSDKPush')

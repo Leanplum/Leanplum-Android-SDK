@@ -1,0 +1,43 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+apply from: "../common-methods.gradle"
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion BUILD_TOOLS_VERSION
+    defaultConfig {
+        defaultConfig {
+            consumerProguardFiles 'consumer-proguard-rules.pro'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    debugApi project(':AndroidSDKCore')
+    releaseApi project(':AndroidSDKCore')
+    debugApi project(':AndroidSDKPush')
+    releaseApi project(':AndroidSDKPush')
+
+    // Provided dependencies are optional dependencies and will not show up in pom file.
+    compileOnly('com.google.android.gms:play-services-gcm:[8.3.0,)') {
+        exclude module: 'support-v4'
+    }
+}
+
+task generateJavadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    destinationDir = file("./javadoc/")
+    failOnError false
+}
+
+publishing_task(LEANPLUM_GCM_ARTIFACT_ID, 'AndroidSDKGcm')
+

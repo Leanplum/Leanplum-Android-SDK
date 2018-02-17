@@ -1,10 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
-
-def COMPILE_SDK_VERSION=27
-def BUILD_TOOLS_VERSION='27.0.2'
-def SUPPORT_LIBRARY_VERSION='27.0.2'
+apply from: "../common-methods.gradle"
 
 allprojects {
     gradle.projectsEvaluated {
@@ -15,42 +12,23 @@ allprojects {
 }
 
 dependencies {
-    // Compile dependencies will be added as dependency in pom file.
-    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-
-    // Provided dependencies are optional dependencies and will not show up in pom file.
-    compileOnly('com.google.android.gms:play-services-gcm:[8.3.0,)') {
-        exclude module: 'support-v4'
-    }
-    compileOnly('com.google.firebase:firebase-messaging:[10.0.0,)') {
-        exclude module: 'support-v4'
-    }
-    compileOnly('com.google.android.gms:play-services-location:[10.0.0,)') {
-        exclude module: 'support-v4'
-    }
+    debugApi project(':AndroidSDKCore')
+    releaseApi project(':AndroidSDKCore')
 }
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
     buildToolsVersion BUILD_TOOLS_VERSION
-    useLibrary 'org.apache.http.legacy'
 //    publishNonDefault true
 
     defaultConfig {
-        consumerProguardFiles 'consumer-proguard-rules.pro'
+        consumerProguardFiles CONSUMER_PROGUARD_FILES
     }
 
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles 'proguard-rules.pro'
-
-        }
-        buildTypes.each {
-            def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
-                    '\"'
-            it.buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
+            proguardFiles PROGUARD_FILES
         }
     }
 
@@ -78,100 +56,4 @@ android {
         release.setRoot('build-types/release')
     }
 }
-
-task generateJavadoc(type: Javadoc) {
-    exclude 'com/leanplum/internal'
-    exclude 'com/leanplum/messagetemplates'
-    exclude 'com/leanplum/utils'
-    exclude 'com/leanplum/views'
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    destinationDir = file("./javadoc/")
-    failOnError false
-}
-
-def libraryGroupId = 'com.leanplum'
-def libraryArtifactId = 'Leanplum'
-def libraryVersion = "$System.env.ANDROID_VERSION_STRING"
-
-task makeJar(type: Copy) {
-    from('build/intermediates/bundles/release/')
-    into('build/outputs/jar/')
-    include('classes.jar')
-    rename('classes.jar', 'AndroidSDK-release.jar')
-}
-
-publishing {
-    publications {
-        aar(MavenPublication) {
-            groupId libraryGroupId
-            version libraryVersion
-            artifactId libraryArtifactId
-
-            artifact("$buildDir/outputs/aar/AndroidSDK-release.aar")
-
-            // The publication doesn't know about our dependencies,
-            // so we have to manually add them to the pom.
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                // Iterate over the compile dependencies (we don't want the test ones),
-                // adding a <dependency> node for each.
-                configurations.api.allDependencies.each {
-                    if (it.group != null && it.name != null) {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
-                    }
-                }
-            }
-        }
-        jar(MavenPublication) {
-            groupId libraryGroupId
-            version libraryVersion
-            artifactId libraryArtifactId
-
-            artifact("$buildDir/outputs/jar/AndroidSDK-release.jar")
-
-            // The publication doesn't know about our dependencies,
-            // so we have to manually add them to the pom.
-            pom.withXml {
-                asNode().appendNode('packaging', 'aar') // Default to aar packaging.
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                // Iterate over the compile dependencies (we don't want the test ones),
-                // adding a <dependency> node for each.
-                configurations.api.allDependencies.each {
-                    if (it.group != null && it.name != null) {
-                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                        dependencyNode.appendNode('groupId', it.group)
-                        dependencyNode.appendNode('artifactId', it.name)
-                        dependencyNode.appendNode('version', it.version)
-                    }
-                }
-            }
-        }
-    }
-}
-
-if (project.hasProperty('artifactoryUsername') && project.hasProperty('artifactoryPassword')) {
-    artifactory {
-        contextUrl = 'http://artifactory-upload.leanplum.com'
-        publish {
-            repository {
-                repoKey = 'libs-snapshot-local'
-
-                username = artifactoryUsername
-                password = artifactoryPassword
-            }
-            defaults {
-                publications('aar', 'jar')
-                publishArtifacts = true
-
-                properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
-                publishPom = true
-            }
-        }
-    }
-}
+publishing_task(LEANPLUM_ARTIFACT_ID, 'AndroidSDK')

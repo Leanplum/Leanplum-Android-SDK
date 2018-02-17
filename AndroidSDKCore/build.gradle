@@ -1,0 +1,46 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+apply from: "../common-methods.gradle"
+
+android {
+
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion BUILD_TOOLS_VERSION
+    useLibrary 'org.apache.http.legacy'
+
+    publishNonDefault true
+
+    defaultConfig {
+        consumerProguardFiles CONSUMER_PROGUARD_FILES
+    }
+    buildTypes {
+        release {
+            proguardFiles PROGUARD_FILES
+        }
+        buildTypes.each {
+            def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
+                    '\"'
+            it.buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
+        }
+    }
+}
+
+dependencies {
+    // Compile dependencies will be added as dependency in pom file.
+    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+}
+
+task generateJavadoc(type: Javadoc) {
+    exclude 'com/leanplum/internal'
+    exclude 'com/leanplum/messagetemplates'
+    exclude 'com/leanplum/utils'
+    exclude 'com/leanplum/views'
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    destinationDir = file("./javadoc/")
+    failOnError false
+}
+
+publishing_task(LEANPLUM_CORE_ARTIFACT_ID, 'AndroidSDKCore')

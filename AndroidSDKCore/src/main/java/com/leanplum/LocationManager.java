@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2014, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,14 +18,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.leanplum.activities;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
+package com.leanplum;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
- * @author Milos Jakovljevic
+ * Public interface to LocationManager. This is abstracted away so that the Google Play Services
+ * dependencies are constrained to LocationManagerImplementation in AndroidSDKLocation.
+ *
+ * @author Andrew First
  */
-@SuppressLint("Registered")
-public class LeanplumTestActivity extends Activity {
+public interface LocationManager {
+  void updateGeofencing();
+
+  void updateUserLocation();
+
+  void setRegionsData(Map<String, Object> regionData,
+      Set<String> foregroundRegionNames, Set<String> backgroundRegionNames);
 }
