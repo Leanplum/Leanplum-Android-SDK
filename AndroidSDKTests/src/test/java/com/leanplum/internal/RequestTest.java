@@ -24,6 +24,7 @@ import android.app.Application;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
+import com.leanplum._whitebox.utilities.SynchronousExecutor;
 
 import junit.framework.TestCase;
 
@@ -34,6 +35,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,6 +61,8 @@ public class RequestTest extends TestCase {
     Application context = RuntimeEnvironment.application;
     assertNotNull(context);
     Leanplum.setApplicationContext(context);
+    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "sqlLiteThreadExecutor",  new SynchronousExecutor());
+    LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
   /**
