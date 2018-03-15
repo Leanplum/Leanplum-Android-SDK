@@ -3,6 +3,9 @@
     "action": "Alert",
     "countdown": 86400,
     "vars": {
+      "Open action": {
+        "__name__": "Alert"
+      },
       "Dismiss action": "",
       "Message": "priority-10-a",
       "Title": "priority-10-a",

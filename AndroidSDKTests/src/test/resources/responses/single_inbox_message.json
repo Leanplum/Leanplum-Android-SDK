@@ -1,0 +1,37 @@
+{
+  "success": true,
+  "newsfeedMessages": {
+    "5231495977893888##1": {
+      "deliveryTimestamp": 1477487057651,
+      "isRead": false,
+      "messageData": {
+        "action": "__Newsfeed Message",
+        "whenLimits": {
+          "subject": null,
+          "objects": [
+          ],
+          "children": [
+          ]
+        },
+        "unlessTriggers": {
+          "subject": null,
+          "objects": [
+          ],
+          "children": [
+          ]
+        },
+        "priority": 1000,
+        "countdown": 86400,
+        "vars": {
+          "Subtitle": "This is a subtitle",
+          "imageUrl":"www.leanplum.com",
+          "Open action": {
+            "__name__": "Alert message"
+          },
+          "Title": "This is a test inbox message",
+          "__name__": "__Newsfeed Message"
+        }
+      }
+    }
+  }
+}

@@ -25,11 +25,17 @@ import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
+import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Util;
 
+import org.apache.maven.artifact.ant.shaded.IOUtil;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,141 +54,203 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
  * @author Milos Jakovljevic
  */
 public class LeanplumInboxTest extends AbstractTest {
-    @Test
-    public void testInbox() throws Exception {
-        setupSDK(mContext, "/responses/simple_start_response.json");
+  LeanplumInbox leanplumInbox;
+  @Before
+  public void setUp() {
+    leanplumInbox = LeanplumInbox.getInstance();
+  }
 
-        // Seed inbox response which contains messages.
-        ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+  @Test
+  public void testInbox() throws Exception {
+    setupSDK(mContext, "/responses/simple_start_response.json");
 
-        // Validate downloadMessages() request.
-        RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
-            @Override
-            public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-                assertEquals(Constants.Methods.GET_INBOX_MESSAGES, apiMethod);
-            }
-        });
+    // Seed inbox response which contains messages.
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
 
-        // Validate inbox synced callback when messages changes.
-        InboxSyncedCallback inboxSyncedCallback=new InboxSyncedCallback() {
-            @Override
-            public void onForceContentUpdate(boolean success) {
-                assertTrue(success);
-            }
-        };
+    // Validate downloadMessages() request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.GET_INBOX_MESSAGES, apiMethod);
+      }
+    });
 
-        // Add synced callback to be able to validate.
-        Leanplum.getInbox().addSyncedHandler(inboxSyncedCallback);
+    // Validate inbox synced callback when messages changes.
+    InboxSyncedCallback inboxSyncedCallback = new InboxSyncedCallback() {
+      @Override
+      public void onForceContentUpdate(boolean success) {
+        assertTrue(success);
+      }
+    };
 
-        // Download messages.
-        Leanplum.getInbox().downloadMessages();
+    // Add synced callback to be able to validate.
+    Leanplum.getInbox().addSyncedHandler(inboxSyncedCallback);
 
-        //  Remove synced callback afterwards so we don't get synced callbacks anymore.
-        Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallback);
+    // Download messages.
+    Leanplum.getInbox().downloadMessages();
+    assertEquals(2, Leanplum.getInbox().count());
 
-        // Validate inbox callback when messages changes.
-        InboxChangedCallback callback = new InboxChangedCallback() {
-            @Override
-            public void inboxChanged() {
-                assertEquals(2, Leanplum.getInbox().unreadCount());
-                assertEquals(2, Leanplum.getInbox().count());
+    //  Remove synced callback afterwards so we don't get synced callbacks anymore.
+    Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallback);
 
-                List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
+    // Validate inbox callback when messages changes.
+    InboxChangedCallback callback = new InboxChangedCallback() {
+      @Override
+      public void inboxChanged() {
+        assertEquals(2, Leanplum.getInbox().unreadCount());
+        assertEquals(2, Leanplum.getInbox().count());
 
-                LeanplumInboxMessage message1 = messageList.get(0);
-                LeanplumInboxMessage message2 = messageList.get(1);
-
-                assertEquals("5231495977893888##1", message1.getMessageId());
-                assertEquals("This is a test inbox message", message1.getTitle());
-                assertEquals("This is a subtitle", message1.getSubtitle());
-                assertNull(message1.getExpirationTimestamp());
-                assertFalse(message1.isRead());
-
-                assertEquals("4682943996362752##2", message2.getMessageId());
-                assertEquals("This is a second test message", message2.getTitle());
-                assertEquals("This is a second test message subtitle", message2.getSubtitle());
-                assertNull(message2.getExpirationTimestamp());
-                assertFalse(message2.isRead());
-            }
-        };
-
-        // Add callback to be able to validate.
-        Leanplum.getInbox().addChangedHandler(callback);
-
-        // Remove it afterwards so we don't get callbacks anymore.
-        Leanplum.getInbox().removeChangedHandler(callback);
-
-        // Validate message state.
         List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
 
         LeanplumInboxMessage message1 = messageList.get(0);
         LeanplumInboxMessage message2 = messageList.get(1);
 
-        message1.read();
-        assertTrue(message1.isRead());
-        assertEquals(1, Leanplum.getInbox().unreadCount());
+        assertEquals("5231495977893888##1", message1.getMessageId());
+        assertEquals("This is a test inbox message", message1.getTitle());
+        assertEquals("This is a subtitle", message1.getSubtitle());
+        assertNull(message1.getExpirationTimestamp());
+        assertFalse(message1.isRead());
 
-        message2.read();
-        assertTrue(message2.isRead());
-        assertEquals(0, Leanplum.getInbox().unreadCount());
+        assertEquals("4682943996362752##2", message2.getMessageId());
+        assertEquals("This is a second test message", message2.getTitle());
+        assertEquals("This is a second test message subtitle", message2.getSubtitle());
+        assertNull(message2.getExpirationTimestamp());
+        assertFalse(message2.isRead());
+      }
+    };
 
-        assertEquals(2, Leanplum.getInbox().count());
+    // Add callback to be able to validate.
+    Leanplum.getInbox().addChangedHandler(callback);
 
-        LeanplumInboxMessage messageById = Leanplum.getInbox().messageForId(message1.getMessageId());
-        assertNotNull(messageById);
-        assertEquals(message1, messageById);
+    // Remove it afterwards so we don't get callbacks anymore.
+    Leanplum.getInbox().removeChangedHandler(callback);
 
-        Leanplum.getInbox().removeMessage(messageById.getMessageId());
-        assertEquals(1, Leanplum.getInbox().allMessages().size());
+    // Validate message state.
+    List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
 
-        // Validate inbox synced callback with false when there is no internet .
-        InboxSyncedCallback inboxSyncedCallbackFalse=new InboxSyncedCallback() {
-            @Override
-            public void onForceContentUpdate(boolean success) {
-                assertFalse(success);
-            }
-        };
+    LeanplumInboxMessage message1 = messageList.get(0);
+    LeanplumInboxMessage message2 = messageList.get(1);
 
-        // Add synced callback  to be able to validate.
-        Leanplum.getInbox().addSyncedHandler(inboxSyncedCallbackFalse);
+    message1.read();
+    assertTrue(message1.isRead());
+    assertEquals(1, Leanplum.getInbox().unreadCount());
 
-        // Return false when checks for internet connection.
-        doReturn(false).when(Util.class, "isConnected");
+    message2.read();
+    assertTrue(message2.isRead());
+    assertEquals(0, Leanplum.getInbox().unreadCount());
 
-        // Download messages.
-        Leanplum.getInbox().downloadMessages();
+    assertEquals(2, Leanplum.getInbox().count());
 
-        //  Remove synced callback afterwards so we don't get synced callbacks anymore.
-        Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallbackFalse);
-    }
+    LeanplumInboxMessage messageById = Leanplum.getInbox().messageForId(message1.getMessageId());
+    assertNotNull(messageById);
+    assertEquals(message1, messageById);
 
-    @Test
-    public void testDisablePrefetching() {
-        LeanplumInbox.disableImagePrefetching();
-        assertFalse(LeanplumInbox.getInstance().isInboxImagePrefetchingEnabled());
-    }
+    Leanplum.getInbox().removeMessage(messageById.getMessageId());
+    assertEquals(1, Leanplum.getInbox().allMessages().size());
 
-    @Test
-    public void testMessageCreate() {
-        Date delivery = new Date(100);
-        Date expiration = new Date(200);
-        HashMap<String, Object> map = new HashMap<>();
-        map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-        map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-        map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-        map.put(Constants.Keys.IS_READ, true);
+    // Validate inbox synced callback with false when there is no internet .
+    InboxSyncedCallback inboxSyncedCallbackFalse = new InboxSyncedCallback() {
+      @Override
+      public void onForceContentUpdate(boolean success) {
+        assertFalse(success);
+      }
+    };
 
-        LeanplumInboxMessage message = LeanplumInboxMessage.createFromJsonMap("message##Id", map);
-        assertEquals("message##Id", message.getMessageId());
-        assertEquals(delivery, message.getDeliveryTimestamp());
-        assertEquals(expiration, message.getExpirationTimestamp());
-        assertTrue(message.isRead());
-        assertNull(message.getData());
+    // Add synced callback  to be able to validate.
+    Leanplum.getInbox().addSyncedHandler(inboxSyncedCallbackFalse);
 
-        assertNull(message.getImageFilePath());
-        assertNull(message.getImageUrl());
+    // Return false when checks for internet connection.
+    doReturn(false).when(Util.class, "isConnected");
 
-        LeanplumInboxMessage invalidMessage = LeanplumInboxMessage.createFromJsonMap("messageId", map);
-        assertNull(invalidMessage);
-    }
+    // Download messages.
+    Leanplum.getInbox().downloadMessages();
+
+    //  Remove synced callback afterwards so we don't get synced callbacks anymore.
+    Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallbackFalse);
+  }
+
+  @Test
+  public void testDisablePrefetching() {
+    LeanplumInbox.disableImagePrefetching();
+    assertFalse(leanplumInbox.isInboxImagePrefetchingEnabled());
+  }
+
+  @Test
+  public void testMessageCreate() {
+    Date delivery = new Date(100);
+    Date expiration = new Date(200);
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
+    map.put(Constants.Keys.IS_READ, true);
+
+    LeanplumInboxMessage message = LeanplumInboxMessage.createFromJsonMap("message##Id", map);
+    assertEquals("message##Id", message.getMessageId());
+    assertEquals(delivery, message.getDeliveryTimestamp());
+    assertEquals(expiration, message.getExpirationTimestamp());
+    assertTrue(message.isRead());
+    assertNull(message.getData());
+
+    assertNull(message.getImageFilePath());
+    assertNull(message.getImageUrl());
+  }
+
+  @Test
+  public void testInvalidMessageId() {
+    Date delivery = new Date(100);
+    Date expiration = new Date(200);
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
+    map.put(Constants.Keys.IS_READ, true);
+
+    LeanplumInboxMessage invalidMessage = LeanplumInboxMessage.createFromJsonMap("messageId", map);
+    assertNull(invalidMessage);
+  }
+
+  @Test
+  public void testRemoveMessage() {
+    Date delivery = new Date(100);
+    Date expiration = new Date(200);
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
+    map.put(Constants.Keys.IS_READ, true);
+
+    //first mock the response for download messsge
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    //verify its not null
+    leanplumInbox.downloadMessages();
+    assertEquals(1, leanplumInbox.count());
+    // call leanplum inbox
+    leanplumInbox.removeMessage("messageId##00");
+    assertEquals(0, leanplumInbox.count());
+  }
+
+  @Test
+  public void testImage() throws IOException {
+    InputStream inputStream = getClass().getResourceAsStream("/test_files/single_inbox_message.json");
+    String jsonMessages = IOUtil.toString(inputStream);
+    Map<String, Object> message = JsonConverter.fromJson(jsonMessages);
+    // now we have a message, i need to add it to inbox
+    ResponseHelper.seedResponse("/responses/single_inbox_message.json");
+  }
+
+  @Test
+  public void testSomething() {
+    Date delivery = new Date(100);
+    Date expiration = new Date(200);
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
+    map.put(Constants.Keys.IS_READ, true);
+    Map<String, Object> messageData = CollectionUtil.uncheckedCast(map.get(Constants.Keys
+        .MESSAGE_DATA));
+    ActionContext context = new ActionContext("message1", messageData, "##12");
+    context.runActionNamed("Interstital");
+  }
 }
