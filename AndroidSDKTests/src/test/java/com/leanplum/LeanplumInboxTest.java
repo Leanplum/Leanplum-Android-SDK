@@ -25,17 +25,12 @@ import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
-import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
-import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Util;
 
-import org.apache.maven.artifact.ant.shaded.IOUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 
@@ -57,12 +53,13 @@ public class LeanplumInboxTest extends AbstractTest {
   LeanplumInbox leanplumInbox;
   @Before
   public void setUp() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
     leanplumInbox = LeanplumInbox.getInstance();
   }
 
+  //TODO(sayaan):This test needs to be refactored.
   @Test
   public void testInbox() throws Exception {
-    setupSDK(mContext, "/responses/simple_start_response.json");
 
     // Seed inbox response which contains messages.
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
@@ -171,7 +168,7 @@ public class LeanplumInboxTest extends AbstractTest {
 
   @Test
   public void testDisablePrefetching() {
-    LeanplumInbox.disableImagePrefetching();
+    leanplumInbox.disableImagePrefetching();
     assertFalse(leanplumInbox.isInboxImagePrefetchingEnabled());
   }
 
@@ -231,16 +228,7 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testImage() throws IOException {
-    InputStream inputStream = getClass().getResourceAsStream("/test_files/single_inbox_message.json");
-    String jsonMessages = IOUtil.toString(inputStream);
-    Map<String, Object> message = JsonConverter.fromJson(jsonMessages);
-    // now we have a message, i need to add it to inbox
-    ResponseHelper.seedResponse("/responses/single_inbox_message.json");
-  }
-
-  @Test
-  public void testSomething() {
+  public void testInboxRemovesaCachedMessageAfterDownloading() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -248,9 +236,21 @@ public class LeanplumInboxTest extends AbstractTest {
     map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
     map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
     map.put(Constants.Keys.IS_READ, true);
-    Map<String, Object> messageData = CollectionUtil.uncheckedCast(map.get(Constants.Keys
-        .MESSAGE_DATA));
-    ActionContext context = new ActionContext("message1", messageData, "##12");
-    context.runActionNamed("Interstital");
+    LeanplumInboxMessage message1 = LeanplumInboxMessage.createFromJsonMap("messageId##1", map);
+    Map<String, LeanplumInboxMessage> messages = new HashMap<>();
+    messages.put("message##1", message1);
+    leanplumInbox.update(messages, 1, true);
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+
+    assertEquals(1, leanplumInbox.count());
+
+    leanplumInbox.downloadMessages();
+
+    assertEquals(2, leanplumInbox.count());
+  }
+
+  @Test
+  public void testNext() {
+    //pass
   }
 }

@@ -30,7 +30,8 @@
                 "__name__": ""
               },
               "Title": "This is a test inbox message",
-              "__name__": "__Newsfeed Message"
+              "__name__": "__Newsfeed Message",
+              "Image":"http://bit.ly/2GzJxxx"
             }
           }
         },

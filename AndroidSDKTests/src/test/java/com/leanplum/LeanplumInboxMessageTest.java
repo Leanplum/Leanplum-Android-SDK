@@ -1,7 +1,6 @@
 package com.leanplum;
 
 import com.leanplum.__setup.AbstractTest;
-import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.Constants;
 
@@ -11,23 +10,24 @@ import org.junit.Test;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.spy;
 
 /**
  * Created by sayaan on 3/15/18.
  */
 
 public class LeanplumInboxMessageTest extends AbstractTest {
+  LeanplumInbox leanplumInbox;
   @Before
   public void setUp() {
-    spy(LeanplumInbox.class);
+    leanplumInbox = Leanplum.getInbox();
     setupSDK(mContext, "/responses/simple_start_response.json");
+    //Needed, otherwise LeanplumInboxMessage.getImageUrl can return filepath instead of URL
+    leanplumInbox.disableImagePrefetching();
   }
 
   @Test
@@ -60,12 +60,13 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
     map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
     map.put(Constants.Keys.IS_READ, false);
-
     LeanplumInboxMessage message = LeanplumInboxMessage
         .createFromJsonMap("messageId##00", map);
 
     assertEquals(false, message.isRead());
+
     message.read();
+
     assertEquals(true, message.isRead());
   }
 
@@ -73,12 +74,29 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   public void testRemoveMessage() {
     // Need to load a message into inbox with seeding a response
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    Leanplum.getInbox().downloadMessages();
-    assertEquals(2, Leanplum.getInbox().count());
-    List<String> messageIds = Leanplum.getInbox().messagesIds();
-    assertNotNull(messageIds);
-    String idToBeRemoved = messageIds.get(1);
-    Leanplum.getInbox().removeMessage(idToBeRemoved);
-    assertEquals(1, Leanplum.getInbox().count());
+    leanplumInbox.downloadMessages();
+    List<String> messageIds = leanplumInbox.messagesIds();
+
+    leanplumInbox.removeMessage(messageIds.get(1));
+
+    assertEquals(1, leanplumInbox.count());
+  }
+
+  @Test
+  public void testImageURL() {
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    leanplumInbox.downloadMessages();
+    List<LeanplumInboxMessage> messagesList = leanplumInbox.allMessages();
+    LeanplumInboxMessage imageMessage = messagesList.get(0);
+
+    String actualUrl = imageMessage.getImageUrl().toString();
+
+    assertEquals("http://bit.ly/2GzJxxx",
+        actualUrl);
+  }
+
+  @Test
+  public void testGetData() {
+
   }
 }
