@@ -250,7 +250,16 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testNext() {
-    //pass
+  public void testGettingUnreadMessages() {
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    leanplumInbox.downloadMessages();
+    List<LeanplumInboxMessage> messages = leanplumInbox.allMessages();
+    messages.get(0).read();
+    messages.remove(0);
+
+    List<LeanplumInboxMessage> unreadMessages = leanplumInbox.unreadMessages();
+
+    //
+    assertEquals(messages, unreadMessages);
   }
 }
