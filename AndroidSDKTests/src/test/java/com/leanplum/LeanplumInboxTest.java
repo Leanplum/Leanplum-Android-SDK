@@ -29,7 +29,6 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.Util;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Date;
@@ -173,6 +172,17 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
+  public void testEnablePrefetching() {
+    leanplumInbox.disableImagePrefetching();
+    //check we are in the correct intial state
+    assertFalse(leanplumInbox.isInboxImagePrefetchingEnabled());
+
+    leanplumInbox.enableInboxImagePrefetching();
+    assertTrue(leanplumInbox.isInboxImagePrefetchingEnabled());
+
+  }
+
+  @Test
   public void testInvalidMessageIdIsRejected() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
@@ -195,15 +205,12 @@ public class LeanplumInboxTest extends AbstractTest {
     map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
     map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
     map.put(Constants.Keys.IS_READ, true);
-
-    //first mock the response for download messsge
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    //verify its not null
+
     leanplumInbox.downloadMessages();
+    leanplumInbox.removeMessage("5231495977893888##1");
+
     assertEquals(1, leanplumInbox.count());
-    // call leanplum inbox
-    leanplumInbox.removeMessage("messageId##00");
-    assertEquals(0, leanplumInbox.count());
   }
 
   @Test
