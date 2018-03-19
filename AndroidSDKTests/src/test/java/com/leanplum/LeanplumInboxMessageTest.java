@@ -97,7 +97,6 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertNotNull(imageFilePath);
   }
 
-  // need to read the message and verify
   @Test
   public void testOpenAction() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");

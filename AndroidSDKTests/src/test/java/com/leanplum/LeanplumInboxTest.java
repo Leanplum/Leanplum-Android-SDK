@@ -56,7 +56,7 @@ public class LeanplumInboxTest extends AbstractTest {
     leanplumInbox = LeanplumInbox.getInstance();
   }
 
-  //TODO(sayaan):This test needs to be refactored.
+  //TODO:This test needs to be refactored into smaller tests.
   @Test
   public void testInbox() throws Exception {
 
