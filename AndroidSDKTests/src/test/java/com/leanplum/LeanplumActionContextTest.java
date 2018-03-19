@@ -219,15 +219,6 @@ public class LeanplumActionContextTest extends AbstractTest {
     }
 
     @Test
-    public void testOpenAction() {
-        ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
-            put("1", true);
-            put("Open action", "Alert");
-        }}, "messageId");
-
-    }
-
-    @Test
     public void testMuteFutureMessages() {
         ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
             put("1", true);
