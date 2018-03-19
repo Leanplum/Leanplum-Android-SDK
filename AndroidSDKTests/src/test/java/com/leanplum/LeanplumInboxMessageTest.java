@@ -18,7 +18,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Created by sayaan on 3/15/18.
+ * Tests covering Inbox Messages.
+ * @author Sayaan Saha
  */
 
 public class LeanplumInboxMessageTest extends AbstractTest {
@@ -83,7 +84,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertEquals("http://bit.ly/2GzJxxx",
         actualUrl);
   }
-  
+
   @Test
   public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
@@ -104,7 +105,6 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     LeanplumInboxMessage imageMessage = leanplumInbox.allMessages().get(1);
     imageMessage.read();
 
-//    String actionName = imageMessage.getContext().actionName();
     HashMap actionName = imageMessage.getContext().objectNamed("Open action");
 
     assertEquals(true, actionName.containsValue("Alert"));
