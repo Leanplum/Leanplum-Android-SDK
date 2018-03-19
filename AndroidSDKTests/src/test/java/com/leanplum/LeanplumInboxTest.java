@@ -172,17 +172,6 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testEnablePrefetching() {
-    leanplumInbox.disableImagePrefetching();
-    //check we are in the correct intial state
-    assertFalse(leanplumInbox.isInboxImagePrefetchingEnabled());
-
-    leanplumInbox.enableInboxImagePrefetching();
-    assertTrue(leanplumInbox.isInboxImagePrefetchingEnabled());
-
-  }
-
-  @Test
   public void testInvalidMessageIdIsRejected() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);

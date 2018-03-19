@@ -28,8 +28,6 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   public void setUp() {
     leanplumInbox = Leanplum.getInbox();
     setupSDK(mContext, "/responses/simple_start_response.json");
-    //Needed, otherwise LeanplumInboxMessage.getImageUrl can return filepath instead of URL
-    leanplumInbox.disableImagePrefetching();
   }
 
   @Test
@@ -74,6 +72,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
 
   @Test
   public void testImageURL() {
+    leanplumInbox.disableImagePrefetching();
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
     leanplumInbox.downloadMessages();
     List<LeanplumInboxMessage> messagesList = leanplumInbox.allMessages();
@@ -88,7 +87,6 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   @Test
   public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    leanplumInbox.enableInboxImagePrefetching();
     leanplumInbox.downloadMessages();
     LeanplumInboxMessage imageMessage = leanplumInbox.allMessages().get(0);
 

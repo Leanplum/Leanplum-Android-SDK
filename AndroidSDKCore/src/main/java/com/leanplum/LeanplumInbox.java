@@ -86,13 +86,6 @@ public class LeanplumInbox {
   }
 
   /**
-   * Enable prefetching images.
-   */
-  public static void enableInboxImagePrefetching() {
-    isInboxImagePrefetchingEnabled = true;
-  }
-
-  /**
    * Returns the number of all inbox messages on the device.
    */
   public int count() {
