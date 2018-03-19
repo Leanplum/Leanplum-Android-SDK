@@ -1,7 +1,7 @@
 {
   "success": true,
   "newsfeedMessages": {
-    "5231495977893888##1": {
+    "5231491112334488##1": {
       "deliveryTimestamp": 1477487057651,
       "isRead": false,
       "messageData": {
@@ -24,7 +24,7 @@
         "countdown": 86400,
         "vars": {
           "Subtitle": "This is a subtitle",
-          "imageUrl":"www.leanplum.com",
+          "imageUrl":"http://bit.ly/2GzJxxx",
           "Open action": {
             "__name__": "Alert message"
           },
