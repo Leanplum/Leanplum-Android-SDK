@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import static org.junit.Assert.assertTrue;
@@ -71,18 +72,6 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   }
 
   @Test
-  public void testRemoveMessage() {
-    // Need to load a message into inbox with seeding a response
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    leanplumInbox.downloadMessages();
-    List<String> messageIds = leanplumInbox.messagesIds();
-
-    leanplumInbox.removeMessage(messageIds.get(1));
-
-    assertEquals(1, leanplumInbox.count());
-  }
-
-  @Test
   public void testImageURL() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
     leanplumInbox.downloadMessages();
@@ -94,9 +83,30 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertEquals("http://bit.ly/2GzJxxx",
         actualUrl);
   }
-
+  
   @Test
-  public void testGetData() {
+  public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    leanplumInbox.enableInboxImagePrefetching();
+    leanplumInbox.downloadMessages();
+    LeanplumInboxMessage imageMessage = leanplumInbox.allMessages().get(0);
 
+    String imageFilePath = imageMessage.getImageFilePath();
+
+    assertNotNull(imageFilePath);
+  }
+
+  // need to read the message and verify
+  @Test
+  public void testOpenAction() {
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    leanplumInbox.downloadMessages();
+    LeanplumInboxMessage imageMessage = leanplumInbox.allMessages().get(1);
+    imageMessage.read();
+
+//    String actionName = imageMessage.getContext().actionName();
+    HashMap actionName = imageMessage.getContext().objectNamed("Open action");
+
+    assertEquals(true, actionName.containsValue("Alert"));
   }
 }

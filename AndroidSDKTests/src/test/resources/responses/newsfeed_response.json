@@ -59,7 +59,7 @@
             "vars": {
               "Subtitle": "This is a second test message subtitle",
               "Open action": {
-                "__name__": ""
+                "__name__": "Alert"
               },
               "Title": "This is a second test message",
               "__name__": "__Newsfeed Message"

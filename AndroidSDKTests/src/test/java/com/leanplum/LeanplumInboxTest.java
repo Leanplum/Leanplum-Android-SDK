@@ -29,6 +29,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.Util;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Date;
@@ -40,7 +41,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 
@@ -173,28 +173,7 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testMessageCreate() {
-    Date delivery = new Date(100);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, true);
-
-    LeanplumInboxMessage message = LeanplumInboxMessage.createFromJsonMap("message##Id", map);
-    assertEquals("message##Id", message.getMessageId());
-    assertEquals(delivery, message.getDeliveryTimestamp());
-    assertEquals(expiration, message.getExpirationTimestamp());
-    assertTrue(message.isRead());
-    assertNull(message.getData());
-
-    assertNull(message.getImageFilePath());
-    assertNull(message.getImageUrl());
-  }
-
-  @Test
-  public void testInvalidMessageId() {
+  public void testInvalidMessageIdIsRejected() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -208,7 +187,7 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testRemoveMessage() {
+  public void testRemoveMessageFromInbox() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -228,7 +207,7 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testInboxRemovesaCachedMessageAfterDownloading() {
+  public void testInboxRemovesACachedMessageAfterDownloading() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -250,7 +229,7 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testGettingUnreadMessages() {
+  public void testGettingUnreadMessagesAfterARead() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
     leanplumInbox.downloadMessages();
     List<LeanplumInboxMessage> messages = leanplumInbox.allMessages();
@@ -259,7 +238,6 @@ public class LeanplumInboxTest extends AbstractTest {
 
     List<LeanplumInboxMessage> unreadMessages = leanplumInbox.unreadMessages();
 
-    //
     assertEquals(messages, unreadMessages);
   }
 }
