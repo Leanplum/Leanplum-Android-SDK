@@ -62,12 +62,14 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     map.put(Constants.Keys.IS_READ, false);
     LeanplumInboxMessage message = LeanplumInboxMessage
         .createFromJsonMap("messageId##00", map);
+    int intialUnreadCount = leanplumInbox.unreadCount();
 
     assertEquals(false, message.isRead());
 
     message.read();
 
     assertEquals(true, message.isRead());
+    assertEquals(intialUnreadCount-1, leanplumInbox.unreadCount());
   }
 
   @Test
