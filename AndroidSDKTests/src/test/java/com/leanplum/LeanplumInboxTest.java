@@ -49,17 +49,13 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
  * @author Milos Jakovljevic
  */
 public class LeanplumInboxTest extends AbstractTest {
-  LeanplumInbox leanplumInbox;
   @Before
   public void setUp() {
     setupSDK(mContext, "/responses/simple_start_response.json");
-    leanplumInbox = LeanplumInbox.getInstance();
   }
 
-  //TODO:This test needs to be refactored into smaller tests.
   @Test
   public void testInbox() throws Exception {
-
     // Seed inbox response which contains messages.
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
 
@@ -159,8 +155,8 @@ public class LeanplumInboxTest extends AbstractTest {
 
   @Test
   public void testDisablePrefetching() {
-    leanplumInbox.disableImagePrefetching();
-    assertFalse(leanplumInbox.isInboxImagePrefetchingEnabled());
+    LeanplumInbox.getInstance().disableImagePrefetching();
+    assertFalse(LeanplumInbox.getInstance().isInboxImagePrefetchingEnabled());
   }
 
   @Test
@@ -188,10 +184,10 @@ public class LeanplumInboxTest extends AbstractTest {
     map.put(Constants.Keys.IS_READ, true);
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
 
-    leanplumInbox.downloadMessages();
-    leanplumInbox.removeMessage("5231495977893888##1");
+    LeanplumInbox.getInstance().downloadMessages();
+    LeanplumInbox.getInstance().removeMessage("5231495977893888##1");
 
-    assertEquals(1, leanplumInbox.count());
+    assertEquals(1, LeanplumInbox.getInstance().count());
   }
 
   @Test
@@ -206,25 +202,25 @@ public class LeanplumInboxTest extends AbstractTest {
     LeanplumInboxMessage message1 = LeanplumInboxMessage.createFromJsonMap("messageId##1", map);
     Map<String, LeanplumInboxMessage> messages = new HashMap<>();
     messages.put("message##1", message1);
-    leanplumInbox.update(messages, 1, true);
+    LeanplumInbox.getInstance().update(messages, 1, true);
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
 
-    assertEquals(1, leanplumInbox.count());
+    assertEquals(1, LeanplumInbox.getInstance().count());
 
-    leanplumInbox.downloadMessages();
+    LeanplumInbox.getInstance().downloadMessages();
 
-    assertEquals(2, leanplumInbox.count());
+    assertEquals(2, LeanplumInbox.getInstance().count());
   }
 
   @Test
   public void testGettingUnreadMessagesAfterARead() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    leanplumInbox.downloadMessages();
-    List<LeanplumInboxMessage> messages = leanplumInbox.allMessages();
+    LeanplumInbox.getInstance().downloadMessages();
+    List<LeanplumInboxMessage> messages = LeanplumInbox.getInstance().allMessages();
     messages.get(0).read();
     messages.remove(0);
 
-    List<LeanplumInboxMessage> unreadMessages = leanplumInbox.unreadMessages();
+    List<LeanplumInboxMessage> unreadMessages = LeanplumInbox.getInstance().unreadMessages();
 
     assertEquals(messages, unreadMessages);
   }

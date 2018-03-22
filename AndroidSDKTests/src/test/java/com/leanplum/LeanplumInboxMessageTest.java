@@ -23,10 +23,8 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class LeanplumInboxMessageTest extends AbstractTest {
-  LeanplumInbox leanplumInbox;
   @Before
   public void setUp() {
-    leanplumInbox = Leanplum.getInbox();
     setupSDK(mContext, "/responses/simple_start_response.json");
   }
 
@@ -62,35 +60,34 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     map.put(Constants.Keys.IS_READ, false);
     LeanplumInboxMessage message = LeanplumInboxMessage
         .createFromJsonMap("messageId##00", map);
-    int intialUnreadCount = leanplumInbox.unreadCount();
+    int intialUnreadCount = LeanplumInbox.getInstance().unreadCount();
 
     assertEquals(false, message.isRead());
 
     message.read();
 
     assertEquals(true, message.isRead());
-    assertEquals(intialUnreadCount-1, leanplumInbox.unreadCount());
+    assertEquals(intialUnreadCount-1, LeanplumInbox.getInstance().unreadCount());
   }
 
   @Test
   public void testImageURL() {
-    leanplumInbox.disableImagePrefetching();
+    LeanplumInbox.getInstance().disableImagePrefetching();
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    leanplumInbox.downloadMessages();
-    List<LeanplumInboxMessage> messagesList = leanplumInbox.allMessages();
+    LeanplumInbox.getInstance().downloadMessages();
+    List<LeanplumInboxMessage> messagesList = LeanplumInbox.getInstance().allMessages();
     LeanplumInboxMessage imageMessage = messagesList.get(0);
 
     String actualUrl = imageMessage.getImageUrl().toString();
 
-    assertEquals("http://bit.ly/2GzJxxx",
-        actualUrl);
+    assertEquals("http://bit.ly/2GzJxxx", actualUrl);
   }
 
   @Test
   public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    leanplumInbox.downloadMessages();
-    LeanplumInboxMessage imageMessage = leanplumInbox.allMessages().get(0);
+    LeanplumInbox.getInstance().downloadMessages();
+    LeanplumInboxMessage imageMessage = LeanplumInbox.getInstance().allMessages().get(0);
 
     String imageFilePath = imageMessage.getImageFilePath();
 
@@ -100,8 +97,8 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   @Test
   public void testOpenAction() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    leanplumInbox.downloadMessages();
-    LeanplumInboxMessage imageMessage = leanplumInbox.allMessages().get(1);
+    LeanplumInbox.getInstance().downloadMessages();
+    LeanplumInboxMessage imageMessage = LeanplumInbox.getInstance().allMessages().get(1);
     imageMessage.read();
 
     HashMap actionName = imageMessage.getContext().objectNamed("Open action");
