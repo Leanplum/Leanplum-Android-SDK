@@ -160,37 +160,6 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   @Test
-  public void testInvalidMessageIdIsRejected() {
-    Date delivery = new Date(100);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, true);
-
-    LeanplumInboxMessage invalidMessage = LeanplumInboxMessage.createFromJsonMap("messageId", map);
-    assertNull(invalidMessage);
-  }
-
-  @Test
-  public void testRemoveMessageFromInbox() {
-    Date delivery = new Date(100);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, true);
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-
-    LeanplumInbox.getInstance().downloadMessages();
-    LeanplumInbox.getInstance().removeMessage("5231495977893888##1");
-
-    assertEquals(1, LeanplumInbox.getInstance().count());
-  }
-
-  @Test
   public void testInboxRemovesACachedMessageAfterDownloading() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
