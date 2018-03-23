@@ -122,6 +122,6 @@ public class LeanplumInboxMessageTest extends AbstractTest {
 
     HashMap actionName = imageMessage.getContext().objectNamed("Open action");
 
-    assertEquals(true, actionName.containsValue("Alert"));
+    assertEquals("Alert", actionName.get("__name__"));
   }
 }
