@@ -24,14 +24,17 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.Constants;
 
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -137,5 +140,27 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     HashMap actionName = imageMessage.getContext().objectNamed("Open action");
 
     assertEquals("Alert", actionName.get("__name__"));
+  }
+
+  @Test
+  public void testIsActive() {
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    LeanplumInbox.getInstance().downloadMessages();
+    LeanplumInboxMessage message = LeanplumInbox.getInstance().allMessages().get(1);
+
+    Boolean active = message.isActive();
+    assertTrue(active);
+  }
+
+  @Test
+  public void testRemove() {
+    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
+    LeanplumInbox.getInstance().downloadMessages();
+    LeanplumInboxMessage message = LeanplumInbox.getInstance().allMessages().get(1);
+    int intialCount = LeanplumInbox.getInstance().count();
+
+    message.remove();
+
+    assertEquals(intialCount-1, LeanplumInbox.getInstance().count());
   }
 }
