@@ -54,6 +54,7 @@ public class ActionManager {
   private static final String LEANPLUM_LOCAL_PUSH_HELPER =
       "com.leanplum.internal.LeanplumLocalPushHelper";
   private static final String PREFERENCES_NAME = "__leanplum_messaging__";
+  private static LocationManager locationManager;
   private static boolean loggedLocationManagerFailure = false;
 
   public static class MessageMatchResult {
@@ -69,14 +70,19 @@ public class ActionManager {
     return instance;
   }
 
-  public static LocationManager getLocationManager() {
+  public static synchronized LocationManager getLocationManager() {
+    if (locationManager != null) {
+      return locationManager;
+    }
+
     if (Util.hasPlayServices()) {
       try {
         // Reflection here prevents linker errors
         // if Google Play Services is not used in the client app.
-        return (LocationManager) Class
+        locationManager = (LocationManager) Class
             .forName("com.leanplum.LocationManagerImplementation")
             .getMethod("instance").invoke(null);
+        return locationManager;
       } catch (Throwable t) {
         if (!loggedLocationManagerFailure) {
           Log.w("Geofencing support requires leanplum-location module and Google Play " +
