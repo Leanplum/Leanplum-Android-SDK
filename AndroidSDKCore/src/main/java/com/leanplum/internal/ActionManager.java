@@ -40,9 +40,9 @@ import java.util.Set;
  * @author Andrew First
  */
 public class ActionManager {
-  private static Map<String, Map<String, Number>> messageImpressionOccurrences;
-  private static Map<String, Number> messageTriggerOccurrences;
-  private static Map<String, Number> sessionOccurrences;
+  private Map<String, Map<String, Number>> messageImpressionOccurrences;
+  private Map<String, Number> messageTriggerOccurrences;
+  private Map<String, Number> sessionOccurrences;
 
   private static ActionManager instance;
 
