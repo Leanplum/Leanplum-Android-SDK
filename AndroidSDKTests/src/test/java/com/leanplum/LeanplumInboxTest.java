@@ -154,7 +154,7 @@ public class LeanplumInboxTest extends AbstractTest {
   }
 
   /**
-   * Tests method disablePrefetching
+   * Tests method disablePrefetching.
    */
   @Test
   public void testDisablePrefetching() {
@@ -164,7 +164,7 @@ public class LeanplumInboxTest extends AbstractTest {
 
   /**
    * Tests that inbox clears all cached messages when downloading messages
-   * from serverside
+   * from serverside.
    */
   @Test
   public void testInboxRemovesACachedMessageAfterDownloading() {

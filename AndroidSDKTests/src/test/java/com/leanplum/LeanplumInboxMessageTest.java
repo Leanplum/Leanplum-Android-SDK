@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -72,7 +73,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   }
 
   /**
-   * Test that message without messageId is rejected
+   * Test that message without messageId is rejected.
    */
   @Test
   public void testInvalidMessageIdIsRejected() {
@@ -89,7 +90,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   }
 
   /**
-   * Test unread count is updated after reading a message
+   * Test unread count is updated after reading a message.
    */
   @Test
   public void testReadAndUpdateMessageCount() {
@@ -113,7 +114,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   }
 
   /**
-   * Tests getting image ur from Inbox message object
+   * Tests getting image ur from Inbox message object.
    */
   @Test
   public void testImageURL() {
@@ -129,7 +130,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   }
 
   /**
-   * Tests getting local file path for prefetched image assests
+   * Tests getting local file path for prefetched image assests.
    */
   @Test
   public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
@@ -159,7 +160,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
   }
 
   /**
-   * Tests method isActive
+   * Tests method isActive happy path.
    */
   @Test
   public void testIsActive() {
@@ -168,7 +169,47 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     LeanplumInboxMessage message = LeanplumInbox.getInstance().allMessages().get(1);
 
     Boolean active = message.isActive();
+
     assertTrue(active);
+  }
+
+  /**
+   * Test isActive method with a message
+   * after the expiration timestamp.
+   */
+  @Test
+  public void testIsActiveWithExpiredMessage() {
+    Date delivery = new Date(200);
+    Date expiration = new Date(200);
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
+    map.put(Constants.Keys.IS_READ, false);
+    LeanplumInboxMessage message = LeanplumInboxMessage
+        .createFromJsonMap("messageId##00", map);
+
+    Boolean isActive = message.isActive();
+
+    assertFalse(isActive);
+  }
+
+  /**
+   * Test isActive method with null expiration timestamp.
+   */
+  @Test
+  public void testIsActiveWithNullTimestamp() {
+    Date delivery = new Date(100);
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.IS_READ, false);
+    LeanplumInboxMessage message = LeanplumInboxMessage
+        .createFromJsonMap("messageId##00", map);
+
+    Boolean isActive = message.isActive();
+
+    assertTrue(isActive);
   }
 
   /**
