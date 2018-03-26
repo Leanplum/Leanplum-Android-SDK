@@ -23,15 +23,12 @@ package com.leanplum.internal;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
-
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +40,9 @@ import java.util.Set;
  * @author Andrew First
  */
 public class ActionManager {
-  private Map<String, Map<String, Number>> messageImpressionOccurrences;
-  private Map<String, Number> messageTriggerOccurrences;
-  private Map<String, Number> sessionOccurrences;
+  private static Map<String, Map<String, Number>> messageImpressionOccurrences;
+  private static Map<String, Number> messageTriggerOccurrences;
+  private static Map<String, Number> sessionOccurrences;
 
   private static ActionManager instance;
 
@@ -560,5 +557,14 @@ public class ActionManager {
         set.add((String) trigger.get("noun"));
       }
     }
+  }
+
+  /**
+   * Resets the ActionManager to stock state.
+   */
+  public void reset() {
+    sessionOccurrences.clear();
+    messageImpressionOccurrences.clear();
+    messageTriggerOccurrences.clear();
   }
 }
