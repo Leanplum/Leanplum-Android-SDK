@@ -153,12 +153,19 @@ public class LeanplumInboxTest extends AbstractTest {
     Leanplum.getInbox().removeSyncedHandler(inboxSyncedCallbackFalse);
   }
 
+  /**
+   * Tests method disablePrefetching
+   */
   @Test
   public void testDisablePrefetching() {
     LeanplumInbox.getInstance().disableImagePrefetching();
     assertFalse(LeanplumInbox.getInstance().isInboxImagePrefetchingEnabled());
   }
 
+  /**
+   * Tests that inbox clears all cached messages when downloading messages
+   * from serverside
+   */
   @Test
   public void testInboxRemovesACachedMessageAfterDownloading() {
     Date delivery = new Date(100);
@@ -181,6 +188,9 @@ public class LeanplumInboxTest extends AbstractTest {
     assertEquals(2, LeanplumInbox.getInstance().count());
   }
 
+  /**
+   * Tests method unreadMessages.
+   */
   @Test
   public void testGettingUnreadMessagesAfterARead() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");

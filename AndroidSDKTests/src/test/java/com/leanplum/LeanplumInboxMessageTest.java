@@ -24,17 +24,14 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.Constants;
 
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -50,6 +47,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
   }
 
+  /**
+   * Test creating a message from json.
+   */
   @Test
   public void testMessageCreate() {
     Date delivery = new Date(100);
@@ -71,6 +71,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertNull(message.getImageUrl());
   }
 
+  /**
+   * Test that message without messageId is rejected
+   */
   @Test
   public void testInvalidMessageIdIsRejected() {
     Date delivery = new Date(100);
@@ -85,6 +88,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertNull(invalidMessage);
   }
 
+  /**
+   * Test unread count is updated after reading a message
+   */
   @Test
   public void testReadAndUpdateMessageCount() {
     Date delivery = new Date(100);
@@ -106,6 +112,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertEquals(intialUnreadCount-1, LeanplumInbox.getInstance().unreadCount());
   }
 
+  /**
+   * Tests getting image ur from Inbox message object
+   */
   @Test
   public void testImageURL() {
     LeanplumInbox.getInstance().disableImagePrefetching();
@@ -119,6 +128,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertEquals("http://bit.ly/2GzJxxx", actualUrl);
   }
 
+  /**
+   * Tests getting local file path for prefetched image assests
+   */
   @Test
   public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
@@ -130,6 +142,10 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertNotNull(imageFilePath);
   }
 
+  /**
+   * Tests open action has been correctly handed off to ActionContext
+   * where it is then executed.
+   */
   @Test
   public void testOpenAction() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
@@ -142,6 +158,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertEquals("Alert", actionName.get("__name__"));
   }
 
+  /**
+   * Tests method isActive
+   */
   @Test
   public void testIsActive() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
@@ -152,6 +171,9 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     assertTrue(active);
   }
 
+  /**
+   * Tests method remove, to remove a message from inbox.
+   */
   @Test
   public void testRemove() {
     ResponseHelper.seedResponse("/responses/newsfeed_response.json");
