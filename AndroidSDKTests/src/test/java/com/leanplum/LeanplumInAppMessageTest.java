@@ -3,18 +3,14 @@ package com.leanplum;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.ActionManager;
-import com.leanplum.internal.LeanplumInternal;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-
-
 /**
- * Tests in-app messages.
+ * Tests in-app message triggers.
  */
 public class LeanplumInAppMessageTest extends AbstractTest {
   @Test

@@ -29,6 +29,7 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumInbox;
 import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestFactory;
@@ -160,6 +161,7 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(LeanplumInbox.class, newsfeed, "didLoad", false);
 
     VarCache.reset();
+    ActionManager.getInstance().reset();
   }
 
   /**
