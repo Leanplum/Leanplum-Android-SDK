@@ -3,6 +3,7 @@ package com.leanplum;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.ActionManager;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
