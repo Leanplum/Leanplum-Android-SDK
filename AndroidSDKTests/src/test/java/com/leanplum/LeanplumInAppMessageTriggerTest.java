@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests in-app message triggers.
  */
-public class LeanplumInAppMessageTest extends AbstractTest {
+public class LeanplumInAppMessageTriggerTest extends AbstractTest {
   @Test
   public void testTriggerOnStart() throws Exception {
     String messageId = "12345";
