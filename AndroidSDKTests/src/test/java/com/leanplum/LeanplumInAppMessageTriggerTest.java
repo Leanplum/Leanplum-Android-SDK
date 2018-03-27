@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import com.leanplum.__setup.AbstractTest;
+import com.leanplum.__setup.LeanplumTestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.ActionManager;
 
@@ -39,20 +40,26 @@ import static org.junit.Assert.assertTrue;
  * @author Yilong Chang
  */
 public class LeanplumInAppMessageTriggerTest extends AbstractTest {
+  /**
+   * Tests message triggers on start and impression is recorded.
+   */
   @Test
-  public void testTriggerOnStart() throws Exception {
+  public void testTriggerOnStart() {
+
     final String messageId = "12345";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
 
     setupSDK(mContext, "/responses/start_message_response.json");
-
     // Assert the trigger and message impression occurred.
     assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
     assertFalse(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
   }
 
+  /**
+   * Tests message triggers on start or resume, and impression is recorded. Starts in background.
+   */
   @Test
   public void testTriggerOnStartOrResumeBackground() throws Exception {
     final String messageId = "12345";
@@ -83,6 +90,9 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertEquals(1L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
   }
 
+  /**
+   * Tests message triggers on start or resume, and impression is recorded. Starts in foreground.
+   */
   @Test
   public void testTriggerOnStartOrResumeForeground() throws Exception {
     final String messageId = "12345";
@@ -114,6 +124,9 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertEquals(2L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
   }
 
+  /**
+   * Tests message triggers on advance to state, and impression is recorded.
+   */
   @Test
   public void testTriggerOnAdvance() throws Exception {
     final String messageId = "12346";
@@ -129,6 +142,9 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertFalse(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
   }
 
+  /**
+   * Tests message triggers on attribute changes, and impression is recorded.
+   */
   @Test
   public void testTriggerOnAttributeChange() throws Exception {
     final String messageId = "12347";
