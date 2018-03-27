@@ -30,7 +30,8 @@
                 "__name__": ""
               },
               "Title": "This is a test inbox message",
-              "__name__": "__Newsfeed Message"
+              "__name__": "__Newsfeed Message",
+              "Image":"http://bit.ly/2GzJxxx"
             }
           }
         },
@@ -58,7 +59,7 @@
             "vars": {
               "Subtitle": "This is a second test message subtitle",
               "Open action": {
-                "__name__": ""
+                "__name__": "Alert"
               },
               "Title": "This is a second test message",
               "__name__": "__Newsfeed Message"
