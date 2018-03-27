@@ -31,7 +31,6 @@ import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
 
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -252,8 +251,8 @@ public class ActionManager {
     // 2. Must match at least one trigger.
     result.matchedTrigger = matchedTriggers(messageConfig.get("whenTriggers"), when, eventName,
         contextualValues);
-    result.matchedUnlessTrigger = matchedTriggers(messageConfig.get("unlessTriggers"), when, eventName,
-        contextualValues);
+    result.matchedUnlessTrigger =
+        matchedTriggers(messageConfig.get("unlessTriggers"), when, eventName, contextualValues);
     if (!result.matchedTrigger && !result.matchedUnlessTrigger) {
       return result;
     }
