@@ -260,6 +260,70 @@
             ],
             "verb": "AND"
           }
+        },
+        "12346": {
+          "countdown": 86400,
+          "action": "Alert",
+          "whenTriggers": {
+            "children": [
+              {
+                "subject": "state",
+                "objects": [],
+                "verb": "triggers",
+                "noun": "Registered"
+              }
+            ],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "__name__": "Alert",
+            "Title": "LeanplumSample",
+            "Dismiss text": "OK"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          }
+        },
+        "12347": {
+          "countdown": 86400,
+          "action": "Alert",
+          "whenTriggers": {
+            "children": [
+              {
+                "subject": "userAttribute",
+                "objects": [],
+                "verb": "changes",
+                "noun": "Nickname"
+              }
+            ],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "__name__": "Alert",
+            "Title": "LeanplumSample",
+            "Dismiss text": "OK"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          }
         }
       },
       "varsFromCode": {
