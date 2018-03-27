@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -161,7 +162,10 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(LeanplumInbox.class, newsfeed, "didLoad", false);
 
     VarCache.reset();
-    ActionManager.getInstance().reset();
+    // Reset the map values in ActionManager.
+    TestClassUtil.setField(ActionManager.getInstance(), "messageImpressionOccurrences", new HashMap<>());
+    TestClassUtil.setField(ActionManager.getInstance(), "messageTriggerOccurrences", new HashMap<>());
+    TestClassUtil.setField(ActionManager.getInstance(), "sessionOccurrences", new HashMap<>());
   }
 
   /**

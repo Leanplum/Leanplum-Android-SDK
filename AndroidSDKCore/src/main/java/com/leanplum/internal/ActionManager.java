@@ -558,13 +558,4 @@ public class ActionManager {
       }
     }
   }
-
-  /**
-   * Resets the ActionManager to stock state.
-   */
-  public void reset() {
-    sessionOccurrences.clear();
-    messageImpressionOccurrences.clear();
-    messageTriggerOccurrences.clear();
-  }
 }
