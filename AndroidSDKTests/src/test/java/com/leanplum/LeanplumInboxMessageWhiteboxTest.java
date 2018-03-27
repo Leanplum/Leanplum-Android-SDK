@@ -21,46 +21,29 @@
 package com.leanplum;
 
 
-
-import android.content.Intent;
-
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.mockito.Mockito.mock;
-
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Whitebox tests covering Inbox Messages.
  *
  * @author Sayaan Saha
  */
-@PrepareForTest({ActionContext.class})
 public class LeanplumInboxMessageWhiteboxTest extends AbstractTest {
-  @Rule
-  public PowerMockRule rule = new PowerMockRule();
-
   @Before
   public void setUp() {
-    spy(ActionContext.class);
     setupSDK(mContext, "/responses/simple_start_response.json");
   }
 
@@ -110,13 +93,12 @@ public class LeanplumInboxMessageWhiteboxTest extends AbstractTest {
   }
 
   /**
-   * Tests open action has been correctly handed off to ActionContext
-   * where it is then executed.
+   * Tests leanplum inbox message calls runTrackedActionName to execute open action.
    */
   @Test
   public void testOpenAction() throws Exception {
     ActionContext mock = mock(ActionContext.class);
-    Constructor<LeanplumInboxMessage> constructor= (Constructor<LeanplumInboxMessage>) LeanplumInboxMessage.class.getDeclaredConstructors()[0];
+    Constructor<LeanplumInboxMessage> constructor = (Constructor<LeanplumInboxMessage>) LeanplumInboxMessage.class.getDeclaredConstructors()[0];
     constructor.setAccessible(true);
 
     LeanplumInboxMessage imageMessage = constructor.newInstance("mesageId##11", 100L,
