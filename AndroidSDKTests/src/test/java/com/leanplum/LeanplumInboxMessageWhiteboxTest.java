@@ -106,5 +106,9 @@ public class LeanplumInboxMessageWhiteboxTest extends AbstractTest {
     imageMessage.read();
 
     verify(mock, times(1)).runTrackedActionNamed("Open action");
+
+    //  Verify that runTrackedActionNamed was called if the message was read before.
+    imageMessage.read();
+    verify(mock, times(2)).runTrackedActionNamed("Open action");
   }
 }
