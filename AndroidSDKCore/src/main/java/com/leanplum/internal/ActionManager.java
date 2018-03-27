@@ -230,7 +230,7 @@ public class ActionManager {
   }
 
   public MessageMatchResult shouldShowMessage(String messageId, Map<String, Object> messageConfig,
-                                              String when, String eventName, ContextualValues contextualValues) {
+      String when, String eventName, ContextualValues contextualValues) {
     MessageMatchResult result = new MessageMatchResult();
 
     // 1. Must not be muted.
@@ -245,8 +245,8 @@ public class ActionManager {
     // 2. Must match at least one trigger.
     result.matchedTrigger = matchedTriggers(messageConfig.get("whenTriggers"), when, eventName,
         contextualValues);
-    result.matchedUnlessTrigger = matchedTriggers(messageConfig.get("unlessTriggers"), when, eventName,
-        contextualValues);
+    result.matchedUnlessTrigger =
+        matchedTriggers(messageConfig.get("unlessTriggers"), when, eventName, contextualValues);
     if (!result.matchedTrigger && !result.matchedUnlessTrigger) {
       return result;
     }
@@ -306,7 +306,7 @@ public class ActionManager {
   }
 
   private boolean matchesLimitTimes(int amount, int time, String units,
-                                    Map<String, Number> occurrences, String messageId) {
+      Map<String, Number> occurrences, String messageId) {
     Number existing = 0L;
     if (units.equals("limitSession")) {
       existing = sessionOccurrences.get(messageId);
@@ -359,7 +359,7 @@ public class ActionManager {
   }
 
   private boolean matchedTriggers(Object triggerConfigObj, String when, String eventName,
-                                  ContextualValues contextualValues) {
+      ContextualValues contextualValues) {
     if (triggerConfigObj instanceof Map<?, ?>) {
       Map<String, Object> triggerConfig = CollectionUtil.uncheckedCast(triggerConfigObj);
       List<Object> triggers = CollectionUtil.uncheckedCast(triggerConfig.get("children"));
@@ -374,7 +374,7 @@ public class ActionManager {
   }
 
   private boolean matchedTrigger(Map<String, Object> trigger, String when, String eventName,
-                                 ContextualValues contextualValues) {
+      ContextualValues contextualValues) {
     String subject = (String) trigger.get("subject");
     if (subject.equals(when)) {
       String noun = (String) trigger.get("noun");
@@ -435,7 +435,7 @@ public class ActionManager {
   /**
    * Tracks the "Held Back" event for a message and records the held back occurrences.
    *
-   * @param messageId         The spoofed ID of the message.
+   * @param messageId The spoofed ID of the message.
    * @param originalMessageId The original ID of the held back message.
    */
   public void recordHeldBackImpression(String messageId, String originalMessageId) {
@@ -454,9 +454,9 @@ public class ActionManager {
   /**
    * Records the occurrence of a message and tracks the correct impression event.
    *
-   * @param messageId         The ID of the message.
+   * @param messageId The ID of the message.
    * @param originalMessageId The original message ID of the held back message. Supply this only if
-   *                          the message is held back. Otherwise, use null.
+   * the message is held back. Otherwise, use null.
    */
   private void recordImpression(String messageId, String originalMessageId) {
     Map<String, String> requestArgs = new HashMap<>();
@@ -522,7 +522,7 @@ public class ActionManager {
 
 
   public static void getForegroundandBackgroundRegionNames(Set<String> foregroundRegionNames,
-                                                           Set<String> backgroundRegionNames) {
+      Set<String> backgroundRegionNames) {
     Map<String, Object> messages = VarCache.messages();
     for (String messageId : messages.keySet()) {
       Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(messageId));
