@@ -121,6 +121,15 @@ public class LeanplumInboxWhiteboxTest extends AbstractTest {
     List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
 
     LeanplumInboxMessage message1 = messageList.get(0);
+    LeanplumInboxMessage message2 = messageList.get(1);
+
+    message1.read();
+    assertTrue(message1.isRead());
+    assertEquals(1, Leanplum.getInbox().unreadCount());
+
+    message2.read();
+    assertTrue(message2.isRead());
+    assertEquals(0, Leanplum.getInbox().unreadCount());
 
     assertEquals(2, Leanplum.getInbox().count());
 
