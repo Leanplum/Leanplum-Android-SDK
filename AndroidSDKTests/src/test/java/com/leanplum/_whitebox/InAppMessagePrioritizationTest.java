@@ -91,7 +91,7 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
    * @param expectedMessageIds a set of expected message ids to be triggered
    */
   private void assertExpectedMessagesAreTriggered(String jsonMessages,
-                                                  Set<String> expectedMessageIds) throws Exception {
+      Set<String> expectedMessageIds) throws Exception {
     // Stub VarCache.message() to return testMessages.
     spy(VarCache.class);
     Map<String, Object> testMessages = JsonConverter.fromJson(jsonMessages);
