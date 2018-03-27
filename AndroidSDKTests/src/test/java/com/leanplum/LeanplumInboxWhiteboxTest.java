@@ -48,7 +48,7 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
  *
  * @author Milos Jakovljevic
  */
-public class LeanplumInboxTest extends AbstractTest {
+public class LeanplumInboxWhiteboxTest extends AbstractTest {
   @Before
   public void setUp() {
     setupSDK(mContext, "/responses/simple_start_response.json");
@@ -121,7 +121,6 @@ public class LeanplumInboxTest extends AbstractTest {
     List<LeanplumInboxMessage> messageList = Leanplum.getInbox().unreadMessages();
 
     LeanplumInboxMessage message1 = messageList.get(0);
-    LeanplumInboxMessage message2 = messageList.get(1);
 
     assertEquals(2, Leanplum.getInbox().count());
 

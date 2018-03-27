@@ -20,39 +20,33 @@
  */
 package com.leanplum;
 
-import com.leanplum.__setup.AbstractTest;
-import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.Constants;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
 import static org.junit.Assert.assertTrue;
 
 /**
  * Tests covering Inbox Messages.
+ *
  * @author Sayaan Saha
  */
-public class LeanplumInboxMessageTest extends AbstractTest {
-  @Before
-  public void setUp() {
-    setupSDK(mContext, "/responses/simple_start_response.json");
-  }
-
+@RunWith(RobolectricTestRunner.class)
+public class LeanplumInboxMessageTest {
   /**
    * Test creating a message from json.
    */
   @Test
-  public void testMessageCreate() {
+  public void testCreateFromJsonMap() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -76,7 +70,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
    * Test that message without messageId is rejected.
    */
   @Test
-  public void testInvalidMessageIdIsRejected() {
+  public void testCreateFromJsonMapInvalidMessageIdIsRejected() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -93,7 +87,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
    * Test unread count is updated after reading a message.
    */
   @Test
-  public void testReadAndUpdateMessageCount() {
+  public void testReadAndUnreadCount() {
     Date delivery = new Date(100);
     Date expiration = new Date(200);
     HashMap<String, Object> map = new HashMap<>();
@@ -110,53 +104,7 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     message.read();
 
     assertEquals(true, message.isRead());
-    assertEquals(intialUnreadCount-1, LeanplumInbox.getInstance().unreadCount());
-  }
-
-  /**
-   * Tests getting image ur from Inbox message object.
-   */
-  @Test
-  public void testImageURL() {
-    LeanplumInbox.getInstance().disableImagePrefetching();
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    LeanplumInbox.getInstance().downloadMessages();
-    List<LeanplumInboxMessage> messagesList = LeanplumInbox.getInstance().allMessages();
-    LeanplumInboxMessage imageMessage = messagesList.get(0);
-
-    String actualUrl = imageMessage.getImageUrl().toString();
-
-    assertEquals("http://bit.ly/2GzJxxx", actualUrl);
-  }
-
-  /**
-   * Tests getting local file path for prefetched image assests.
-   */
-  @Test
-  public void testImageFilepathIsReturnedIfPrefetchingEnabled() {
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    LeanplumInbox.getInstance().downloadMessages();
-    LeanplumInboxMessage imageMessage = LeanplumInbox.getInstance().allMessages().get(0);
-
-    String imageFilePath = imageMessage.getImageFilePath();
-
-    assertNotNull(imageFilePath);
-  }
-
-  /**
-   * Tests open action has been correctly handed off to ActionContext
-   * where it is then executed.
-   */
-  @Test
-  public void testOpenAction() {
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    LeanplumInbox.getInstance().downloadMessages();
-    LeanplumInboxMessage imageMessage = LeanplumInbox.getInstance().allMessages().get(1);
-    imageMessage.read();
-
-    HashMap actionName = imageMessage.getContext().objectNamed("Open action");
-
-    assertEquals("Alert", actionName.get("__name__"));
+    assertEquals(intialUnreadCount - 1, LeanplumInbox.getInstance().unreadCount());
   }
 
   /**
@@ -164,9 +112,17 @@ public class LeanplumInboxMessageTest extends AbstractTest {
    */
   @Test
   public void testIsActive() {
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    LeanplumInbox.getInstance().downloadMessages();
-    LeanplumInboxMessage message = LeanplumInbox.getInstance().allMessages().get(1);
+    Date delivery = new Date(100);
+    Calendar date = Calendar.getInstance();
+    Date expiration = new Date(date.getTimeInMillis() + 100000);
+
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
+    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
+    map.put(Constants.Keys.IS_READ, false);
+    LeanplumInboxMessage message = LeanplumInboxMessage
+        .createFromJsonMap("messageId##00", map);
 
     Boolean active = message.isActive();
 
@@ -210,20 +166,5 @@ public class LeanplumInboxMessageTest extends AbstractTest {
     Boolean isActive = message.isActive();
 
     assertTrue(isActive);
-  }
-
-  /**
-   * Tests method remove, to remove a message from inbox.
-   */
-  @Test
-  public void testRemove() {
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    LeanplumInbox.getInstance().downloadMessages();
-    LeanplumInboxMessage message = LeanplumInbox.getInstance().allMessages().get(1);
-    int intialCount = LeanplumInbox.getInstance().count();
-
-    message.remove();
-
-    assertEquals(intialCount-1, LeanplumInbox.getInstance().count());
   }
 }
