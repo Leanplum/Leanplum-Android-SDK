@@ -22,7 +22,6 @@
 package com.leanplum;
 
 import com.leanplum.__setup.AbstractTest;
-import com.leanplum.__setup.LeanplumTestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.ActionManager;
 
@@ -45,8 +44,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
    */
   @Test
   public void testTriggerOnStart() {
-
-    final String messageId = "12345";
+    final String messageId = "Trigger on start";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
@@ -62,7 +60,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
    */
   @Test
   public void testTriggerOnStartOrResumeBackground() throws Exception {
-    final String messageId = "12345";
+    final String messageId = "Trigger on start or resume";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
@@ -95,7 +93,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
    */
   @Test
   public void testTriggerOnStartOrResumeForeground() throws Exception {
-    final String messageId = "12345";
+    final String messageId = "Trigger on start or resume";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
@@ -129,7 +127,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
    */
   @Test
   public void testTriggerOnAdvance() throws Exception {
-    final String messageId = "12346";
+    final String messageId = "Trigger on advance";
     final String state = "Registered";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
@@ -146,8 +144,8 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
    * Tests message triggers on attribute changes, and impression is recorded.
    */
   @Test
-  public void testTriggerOnAttributeChange() throws Exception {
-    final String messageId = "12347";
+  public void testTriggerOnAttributeChanges() throws Exception {
+    final String messageId = "Trigger on Attribute changes";
     final String attribute = "Nickname";
     final  String attributeValue = "Android";
     ActionManager actionManager = ActionManager.getInstance();
