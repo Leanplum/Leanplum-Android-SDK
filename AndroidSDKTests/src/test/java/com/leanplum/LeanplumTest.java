@@ -359,6 +359,297 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Request.userId().equals(userId));
   }
 
+  @Test
+  public void testStartBuilderWithCallback() throws Exception {
+    final Semaphore semaphore = new Semaphore(1);
+    semaphore.acquire();
+
+    // Seed response from the file.
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    Leanplum.LeanplumStartParamsBuilder builder =
+            new Leanplum.LeanplumStartParamsBuilder(mContext)
+            .setStartCallback(new StartCallback() {
+              @Override
+              public void onResponse(boolean success) {
+                assertTrue(success);
+                semaphore.release();
+              }
+            });
+
+    Leanplum.start(builder);
+    assertTrue(Leanplum.hasStarted());
+  }
+
+  public void testStartBuilderWithUserAttributes() {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    // Setup user attributes.
+    final HashMap<String, Object> userAttributes = CollectionUtil.newHashMap(
+            "name", "John Smith",
+            "age", 42,
+            "address", "New York"
+    );
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+
+        String requestUserAttributes = (String) params.get("userAttributes");
+
+        assertTrue(userAttributes.keySet()
+                .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
+        assertTrue(userAttributes.values()
+                .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
+      }
+    });
+
+    Leanplum.start(new Leanplum.LeanplumStartParamsBuilder(mContext)
+            .setAttributes(userAttributes));
+    assertTrue(Leanplum.hasStarted());
+  }
+
+  public void testStartBuilderWithUserId() {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    String userId = "user_id";
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    Leanplum.start(new Leanplum.LeanplumStartParamsBuilder(mContext)
+            .setUserId(userId));
+    assertTrue(Leanplum.hasStarted());
+    assertTrue(Request.userId().equals(userId));
+  }
+
+  @Test
+  public void testStartBuilderWithUserIdAndAttributes() {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    // Setup user attributes.
+    final HashMap<String, Object> userAttributes = CollectionUtil.newHashMap(
+            "name", "John Smith",
+            "age", 42,
+            "address", "New York"
+    );
+
+    String userId = "user_id";
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+
+        String requestUserAttributes = (String) params.get("userAttributes");
+
+        assertTrue(userAttributes.keySet()
+                .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
+        assertTrue(userAttributes.values()
+                .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
+      }
+    });
+
+    Leanplum.start(new Leanplum.LeanplumStartParamsBuilder(mContext)
+            .setUserId(userId)
+            .setAttributes(userAttributes));
+    assertTrue(Leanplum.hasStarted());
+    assertTrue(Request.userId().equals(userId));
+  }
+
+  @Test
+  public void testStartBuilderWithUserIdAndCallback() {
+    // Seed response from the file.
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    String userId = "user_id";
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    Leanplum.start(new Leanplum.LeanplumStartParamsBuilder(mContext)
+            .setUserId(userId)
+            .setStartCallback(new StartCallback() {
+              @Override
+              public void onResponse(boolean success) {
+                assertTrue(success);
+              }
+            }));
+    assertTrue(Leanplum.hasStarted());
+    assertTrue(Request.userId().equals(userId));
+  }
+
+  @Test
+  public void testStartBuilderWithUserIdAttributesAndCallback() throws Exception {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    // Setup user attributes.
+    final HashMap<String, Object> userAttributes = CollectionUtil.newHashMap(
+            "name", "John Smith",
+            "age", 42,
+            "address", "New York"
+    );
+
+    String userId = "user_id";
+
+    final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+
+        String requestUserAttributes = (String) params.get("userAttributes");
+
+        assertTrue(userAttributes.keySet()
+                .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
+        assertTrue(userAttributes.values()
+                .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
+      }
+    });
+
+    Leanplum.start(new Leanplum.LeanplumStartParamsBuilder(RuntimeEnvironment.application)
+            .setUserId(userId)
+            .setAttributes(userAttributes)
+            .setStartCallback(new StartCallback() {
+              @Override
+              public void onResponse(boolean success) {
+                assertTrue(success);
+                countDownLatch.countDown();
+              }
+            }));
+    countDownLatch.await(10, TimeUnit.SECONDS);
+    assertTrue(Leanplum.hasStarted());
+    assertTrue(Request.userId().equals(userId));
+  }
+
+  @Test
+  public void testStartBuilderLocale() throws Exception {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "nl_NL"
+    );
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        // Validate request.
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    Leanplum.LeanplumStartParamsBuilder builder =
+            (new Leanplum.LeanplumStartParamsBuilder(mContext))
+                    .setLocale("nl_NL");
+
+    Leanplum.start(builder);
+    assertTrue(Leanplum.hasStarted());
+
+  }
+
   /**
    * Tests Metadata.
    */
@@ -970,6 +1261,26 @@ public class LeanplumTest extends AbstractTest {
     });
     // Register for push notification.
     Leanplum.setRegistrationId(LeanplumPushService.LEANPLUM_SENDER_ID);
+  }
+
+  /**
+   * Test custom locale update
+   */
+  @Test
+  public void testLocalUpdate() throws Exception {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    // Verify request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+        assertNotNull(params);
+        assertEquals("nl_NL", params.get(Constants.Keys.LOCALE));
+      }
+    });
+    // Register for push notification.
+    Leanplum.setLocale("nl_NL");
   }
 
   /**

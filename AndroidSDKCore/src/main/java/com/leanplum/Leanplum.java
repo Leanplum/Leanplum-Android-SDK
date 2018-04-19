@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
@@ -102,6 +103,80 @@ public class Leanplum {
   private static Runnable pushStartCallback;
 
   private Leanplum() {
+  }
+
+  /**
+   * Custom builder to support multiple start parameters
+   */
+  public static class LeanplumStartParamsBuilder {
+
+    // initialization according existing start methods
+    private Context context;
+    private String userId = null;
+    private Map<String, ?> attributes = null;
+    private StartCallback response = null;
+    private Boolean isBackground = null;
+    private String locale = null;
+
+    /**
+     * Constructor with the minimum information for the start process
+     * @param _context for initialization
+     */
+    public LeanplumStartParamsBuilder(final Context _context) {
+      this.context = _context;
+    }
+
+    /**
+     * Set the custom user identifier for the Leanplum initialization
+     * @param _userId custom user identifier
+     * @return builder
+     */
+    public LeanplumStartParamsBuilder setUserId(final String _userId) {
+      this.userId = _userId;
+      return this;
+    }
+
+    /**
+     * Set the custom attributes for the Leanplum initialization
+     * @param _attributes custom attributes
+     * @return builder
+     */
+    public LeanplumStartParamsBuilder setAttributes(final Map<String, ?> _attributes) {
+      this.attributes = _attributes;
+      return this;
+    }
+
+    /**
+     * Set a custom start callback for the Leanplum initialization
+     * @param _response custom callback
+     * @return builder
+     */
+    public LeanplumStartParamsBuilder setStartCallback(final StartCallback _response) {
+      this.response = _response;
+      return this;
+    }
+
+    /**
+     * Set a custom background execution for the Leanplum initialization
+     * @param _isBackground custom background exectuion
+     * @return builder
+     */
+    public LeanplumStartParamsBuilder setBackground(final Boolean _isBackground) {
+      this.isBackground = _isBackground;
+      return this;
+    }
+
+    /**
+     * Set the custom locale information for the Leanplum initialization
+     * @param _locale custom locale
+     * @return builder
+     */
+    public LeanplumStartParamsBuilder setLocale(final String _locale) {
+      this.locale = _locale;
+      return this;
+    }
+
+
   }
 
   /**
@@ -417,7 +492,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context) {
-    start(context, null, null, null, null);
+    start(context, null, null, null, null, null);
   }
 
   /**
@@ -425,7 +500,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, StartCallback callback) {
-    start(context, null, null, callback, null);
+    start(context, null, null, callback, null, null);
   }
 
   /**
@@ -433,7 +508,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, Map<String, ?> userAttributes) {
-    start(context, null, userAttributes, null, null);
+    start(context, null, userAttributes, null, null, null);
   }
 
   /**
@@ -441,7 +516,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, String userId) {
-    start(context, userId, null, null, null);
+    start(context, userId, null, null, null, null);
   }
 
   /**
@@ -449,7 +524,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, String userId, StartCallback callback) {
-    start(context, userId, null, callback, null);
+    start(context, userId, null, callback, null, null);
   }
 
   /**
@@ -457,7 +532,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, String userId, Map<String, ?> userAttributes) {
-    start(context, userId, userAttributes, null, null);
+    start(context, userId, userAttributes, null, null, null);
   }
 
   /**
@@ -466,11 +541,38 @@ public class Leanplum {
    */
   public static synchronized void start(final Context context, String userId,
       Map<String, ?> attributes, StartCallback response) {
-    start(context, userId, attributes, response, null);
+    start(context, userId, attributes, response, null, null);
   }
 
-  static synchronized void start(final Context context, final String userId,
-      final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
+  /**
+   * Call this when your application starts. This will initiate a call to Leamplum's servers to get
+   * the values of the variables used in yout app.
+   * @param builder custom configuration for the initialization
+   */
+  public static void start(final LeanplumStartParamsBuilder builder) {
+    start(builder.context,
+            builder.userId,
+            builder.attributes,
+            builder.response,
+            builder.isBackground,
+            builder.locale);
+  }
+
+  static synchronized void start(final Context context,
+                                 final String userId,
+                                 final Map<String, ?> attributes,
+                                 StartCallback response,
+                                 final Boolean isBackground) {
+    start(context, userId, attributes, response, isBackground, null);
+
+  }
+
+  static synchronized void start(final Context context,
+                                 final String userId,
+                                 final Map<String, ?> attributes,
+                                 StartCallback response,
+                                 final Boolean isBackground,
+                                 @Nullable final String locale) {
     try {
       OsHandler.getInstance();
 
@@ -564,7 +666,7 @@ public class Leanplum {
         @Override
         protected Void doInBackground(Void... params) {
           try {
-            startHelper(userId, validAttributes, actuallyInBackground);
+            startHelper(userId, validAttributes, actuallyInBackground, locale);
           } catch (Throwable t) {
             Util.handleException(t);
           }
@@ -592,7 +694,10 @@ public class Leanplum {
   }
 
   private static void startHelper(
-      String userId, final Map<String, ?> attributes, final boolean isBackground) {
+      String userId,
+      final Map<String, ?> attributes,
+      final boolean isBackground,
+      @Nullable final String locale) {
     LeanplumEventDataManager.init(context);
     checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
@@ -646,7 +751,7 @@ public class Leanplum {
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
-    params.put(Constants.Keys.LOCALE, Util.getLocale());
+    params.put(Constants.Keys.LOCALE, (locale != null) ? locale : Util.getLocale());
     params.put(Constants.Keys.COUNTRY, Constants.Values.DETECT);
     params.put(Constants.Keys.REGION, Constants.Values.DETECT);
     params.put(Constants.Keys.CITY, Constants.Values.DETECT);
@@ -1438,6 +1543,37 @@ public class Leanplum {
     }
 
     setUserAttributes(null, userAttributes);
+  }
+
+  /**
+   * Update the locale information for the current user
+   * @param locale new locale information
+   */
+  public static void setLocale(final String locale) {
+    if (TextUtils.isEmpty(locale)) {
+      Log.e("setLocale - Invalid locale parameter provided.");
+      return;
+    }
+
+    if (Constants.isNoop()) {
+      return;
+    }
+    pushStartCallback = new Runnable() {
+      @Override
+      public void run() {
+        if (Constants.isNoop()) {
+          return;
+        }
+        try {
+          HashMap<String, Object> params = new HashMap<>();
+          params.put(Constants.Keys.LOCALE, locale);
+          Request.post(Constants.Methods.START, params).send();
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
+      }
+    };
+    LeanplumInternal.addStartIssuedHandler(pushStartCallback);
   }
 
   /**
