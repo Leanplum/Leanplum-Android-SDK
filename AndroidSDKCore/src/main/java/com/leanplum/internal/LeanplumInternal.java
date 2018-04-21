@@ -183,6 +183,7 @@ public class LeanplumInternal {
         result.matchedTrigger |= conditionResult.matchedTrigger;
         result.matchedUnlessTrigger |= conditionResult.matchedUnlessTrigger;
         result.matchedLimit |= conditionResult.matchedLimit;
+        result.matchedActivePeriod |= conditionResult.matchedActivePeriod;
       }
 
       // Make sure we cancel before matching in case the criteria overlap.
@@ -203,6 +204,11 @@ public class LeanplumInternal {
                 }
               }
             });
+      }
+
+      // Make sure message is within the active period.
+      if(!result.matchedActivePeriod){
+        continue;
       }
 
       if (result.matchedTrigger) {
