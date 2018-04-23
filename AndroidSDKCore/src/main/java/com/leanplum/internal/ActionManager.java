@@ -31,6 +31,7 @@ import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,7 @@ public class ActionManager {
     public boolean matchedTrigger;
     public boolean matchedUnlessTrigger;
     public boolean matchedLimit;
+    public boolean matchedActivePeriod;
   }
 
   public static synchronized ActionManager getInstance() {
@@ -264,6 +266,18 @@ public class ActionManager {
       limitConfig = CollectionUtil.uncheckedCast(limitConfigObj);
     }
     result.matchedLimit = matchesLimits(messageId, limitConfig);
+
+    // 4. Must be within active period.
+    Object messageStartTime = messageConfig.get("startTime");
+    Object messageEndTime = messageConfig.get("endTime");
+    if (messageStartTime == null || messageEndTime == null) {
+      result.matchedActivePeriod = true;
+    } else {
+      long currentTime = new Date().getTime();
+      result.matchedActivePeriod = currentTime >= (long) messageStartTime &&
+          currentTime <= (long) messageEndTime;
+    }
+
     return result;
   }
 
