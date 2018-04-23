@@ -68,7 +68,9 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
     mMessageMatchResult = new ActionManager.MessageMatchResult();
     Whitebox.setInternalState(mMessageMatchResult, "matchedTrigger", true);
     Whitebox.setInternalState(mMessageMatchResult, "matchedLimit", true);
+    Whitebox.setInternalState(mMessageMatchResult, "matchedActivePeriod", true);
     assertTrue(mMessageMatchResult.matchedTrigger);
+    assertTrue(mMessageMatchResult.matchedActivePeriod);
     assertTrue(mMessageMatchResult.matchedLimit);
 
 

@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class LeanplumInAppMessageTriggerTest extends AbstractTest {
   /**
-   * Tests message triggers on start and impression is recorded.
+   * Tests message triggers on start and impression is recorded. No active period provided.
    */
   @Test
   public void testTriggerOnStart() {
@@ -53,6 +53,40 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     // Assert the trigger and message impression occurred.
     assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
     assertFalse(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
+  }
+
+
+  /**
+   * Tests message triggers on start and impression is recorded. Message within active period.
+   */
+  @Test
+  public void testTriggerOnStartInActivePeriod() {
+    final String messageId = "Trigger on start";
+    ActionManager actionManager = ActionManager.getInstance();
+    assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
+    assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
+
+    setupSDK(mContext, "/responses/start_message_response_in_active_period.json");
+    // Assert the trigger and message impression occurred.
+    assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
+    assertFalse(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
+  }
+
+
+  /**
+   * Tests outdated message does not trigger on start.
+   */
+  @Test
+  public void testTriggerOnStartOutActivePeriod() {
+    final String messageId = "Trigger on start";
+    ActionManager actionManager = ActionManager.getInstance();
+    assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
+    assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
+
+    setupSDK(mContext, "/responses/start_message_response_out_active_period.json");
+    // Assert the trigger and message impression occurred.
+    assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
+    assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
   }
 
   /**
