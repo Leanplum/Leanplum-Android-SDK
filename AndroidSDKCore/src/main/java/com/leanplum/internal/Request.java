@@ -24,7 +24,6 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -59,7 +58,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  static final int MAX_EVENTS_PER_API_CALL;
+  static final int MAX_EVENTS_PER_API_CALL = 1000;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
 
@@ -94,14 +93,6 @@ public class Request {
   private static ApiResponseCallback apiResponse;
 
   private static List<Map<String, Object>> localErrors = new ArrayList<>();
-
-  static {
-    if (Build.VERSION.SDK_INT <= 17) {
-      MAX_EVENTS_PER_API_CALL = 5000;
-    } else {
-      MAX_EVENTS_PER_API_CALL = 10000;
-    }
-  }
 
   public static void setAppId(String appId, String accessKey) {
     if (!TextUtils.isEmpty(appId)) {
@@ -230,7 +221,7 @@ public class Request {
     return args;
   }
 
-  private void saveRequestForLater(final Map<String, Object> args) {
+  private void saveRequestForLater(final Map<String, Object> args, final boolean sendNow) {
     final Request currentRequest = this;
     LeanplumEventDataManager.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
       @Override
@@ -243,6 +234,18 @@ public class Request {
           long count = LeanplumEventDataManager.getEventsCount();
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
           if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+            if (uuid != null && count != 0 && !sendNow) {
+              // Sends a request to the server if there already MAX_EVENTS_PER_API_CALL events in
+              // the database.
+              Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                  sendRequests(false);
+                  return null;
+                }
+              });
+            }
+
             uuid = UUID.randomUUID().toString();
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
             SharedPreferencesUtil.commitChanges(editor);
@@ -461,18 +464,18 @@ public class Request {
       return;
     }
 
-    this.sendEventually();
+    this.sendEventually(true);
 
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        sendRequests();
+        sendRequests(true);
         return null;
       }
     });
   }
 
-  private void sendRequests() {
+  private void sendRequests(boolean allowMoreThanOneNetworkRequest) {
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
     // Check if we have localErrors, if yes then we will send only errors to the server.
@@ -538,8 +541,8 @@ public class Request {
           deleteSentRequests(unsentRequests.size());
 
           // Send another request if the last request had maximum events per api call.
-          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
-            sendRequests();
+          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL && allowMoreThanOneNetworkRequest) {
+            sendRequests(true);
           }
         } else {
           errorException = new Exception("HTTP error " + statusCode);
@@ -565,6 +568,10 @@ public class Request {
   }
 
   public void sendEventually() {
+    sendEventually(false);
+  }
+
+  public void sendEventually(boolean sendNow) {
     if (Constants.isTestMode) {
       return;
     }
@@ -576,7 +583,7 @@ public class Request {
     if (!sent) {
       sent = true;
       Map<String, Object> args = createArgsDictionary();
-      saveRequestForLater(args);
+      saveRequestForLater(args, sendNow);
     }
   }
 
