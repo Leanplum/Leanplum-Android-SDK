@@ -221,29 +221,21 @@ public class Request {
     return args;
   }
 
-  private void saveRequestForLater(final Map<String, Object> args, final boolean sendNow) {
+  private void saveRequestForLater(final Map<String, Object> args,
+      final OnNextBatchCallback nextBatchCallback) {
     final Request currentRequest = this;
     LeanplumEventDataManager.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
         synchronized (Request.class) {
           Context context = Leanplum.getContext();
-          SharedPreferences preferences = context.getSharedPreferences(
-              LEANPLUM, Context.MODE_PRIVATE);
+          SharedPreferences preferences = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
           SharedPreferences.Editor editor = preferences.edit();
           long count = LeanplumEventDataManager.getEventsCount();
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
           if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-            if (uuid != null && count != 0 && !sendNow) {
-              // Sends a request to the server if there already MAX_EVENTS_PER_API_CALL events in
-              // the database.
-              Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                  sendRequests(false);
-                  return null;
-                }
-              });
+            if (uuid != null && count > 0 && nextBatchCallback != null) {
+              nextBatchCallback.onNextBatch();
             }
 
             uuid = UUID.randomUUID().toString();
@@ -455,6 +447,7 @@ public class Request {
     if (Constants.isTestMode) {
       return;
     }
+
     if (appId == null) {
       Log.e("Cannot send request. appId is not set.");
       return;
@@ -464,18 +457,30 @@ public class Request {
       return;
     }
 
-    this.sendEventually(true);
+    if (!sent && !LeanplumEventDataManager.willSendErrorLog) {
+      sent = true;
+      Map<String, Object> args = createArgsDictionary();
+      saveRequestForLater(args, null);
+    }
 
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        sendRequests(true);
+        sendRequests(false);
         return null;
       }
     });
   }
 
-  private void sendRequests(boolean allowMoreThanOneNetworkRequest) {
+  /**
+   * Because saveRequestForLater() can send some requests now, we want to send only completed
+   * batches with 1000 events, not incomplete batches with few events.
+   * Due to lack of sendRequests(int limit) method, we use flag to simulate such behavior.
+   *
+   * @param onlyFirstBatch - by default is false. If true - we send only first batch of events and
+   * stop there.
+   */
+  private void sendRequests(boolean onlyFirstBatch) {
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
     // Check if we have localErrors, if yes then we will send only errors to the server.
@@ -541,8 +546,8 @@ public class Request {
           deleteSentRequests(unsentRequests.size());
 
           // Send another request if the last request had maximum events per api call.
-          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL && allowMoreThanOneNetworkRequest) {
-            sendRequests(true);
+          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL && !onlyFirstBatch) {
+            sendRequests(false);
           }
         } else {
           errorException = new Exception("HTTP error " + statusCode);
@@ -568,10 +573,6 @@ public class Request {
   }
 
   public void sendEventually() {
-    sendEventually(false);
-  }
-
-  public void sendEventually(boolean sendNow) {
     if (Constants.isTestMode) {
       return;
     }
@@ -583,7 +584,18 @@ public class Request {
     if (!sent) {
       sent = true;
       Map<String, Object> args = createArgsDictionary();
-      saveRequestForLater(args, sendNow);
+      saveRequestForLater(args, new OnNextBatchCallback() {
+        @Override
+        public void onNextBatch() {
+          Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+              sendRequests(true);
+              return null;
+            }
+          });
+        }
+      });
     }
   }
 
@@ -965,5 +977,9 @@ public class Request {
       Log.e("Could not parse JSON response.", e);
       return null;
     }
+  }
+
+  private interface OnNextBatchCallback {
+    void onNextBatch();
   }
 }

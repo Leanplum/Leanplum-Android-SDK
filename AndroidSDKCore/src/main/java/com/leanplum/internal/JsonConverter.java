@@ -45,8 +45,11 @@ public class JsonConverter {
     }
     try {
       return mapToJsonObject(map).toString();
-    } catch (Throwable e) {
+    } catch (JSONException e) {
       Log.e("Error converting " + map + " to JSON", e);
+      return null;
+    } catch (OutOfMemoryError error) {
+      Log.e("OutOfMemoryError when converting " + map + " to JSON", error);
       return null;
     }
   }
@@ -57,8 +60,11 @@ public class JsonConverter {
     }
     try {
       return mapFromJson(new JSONObject(json));
-    } catch (Throwable e) {
+    } catch (JSONException e) {
       Log.e("Error converting " + json + " from JSON", e);
+      return null;
+    } catch (OutOfMemoryError error) {
+      Log.e("OutOfMemoryError when converting " + json + " from JSON", error);
       return null;
     }
   }
@@ -141,26 +147,21 @@ public class JsonConverter {
     if (json == null) {
       return null;
     }
-    try {
-      List<Object> result = new ArrayList<>(json.length());
-      for (int i = 0; i < json.length(); i++) {
-        Object value = json.opt(i);
-        if (value == null || value == JSONObject.NULL) {
-          value = null;
-        } else if (value instanceof JSONObject) {
-          value = mapFromJson((JSONObject) value);
-        } else if (value instanceof JSONArray) {
-          value = listFromJson((JSONArray) value);
-        } else if (JSONObject.NULL.equals(value)) {
-          value = null;
-        }
-        result.add(value);
+    List<Object> result = new ArrayList<>(json.length());
+    for (int i = 0; i < json.length(); i++) {
+      Object value = json.opt(i);
+      if (value == null || value == JSONObject.NULL) {
+        value = null;
+      } else if (value instanceof JSONObject) {
+        value = mapFromJson((JSONObject) value);
+      } else if (value instanceof JSONArray) {
+        value = listFromJson((JSONArray) value);
+      } else if (JSONObject.NULL.equals(value)) {
+        value = null;
       }
-      return CollectionUtil.uncheckedCast(result);
-    } catch (Throwable t) {
-      Log.e("Error converting list " + json + " from JSON.", t);
-      return null;
+      result.add(value);
     }
+    return CollectionUtil.uncheckedCast(result);
   }
 
   public static <T> List<T> listFromJsonOrDefault(JSONArray json) {
