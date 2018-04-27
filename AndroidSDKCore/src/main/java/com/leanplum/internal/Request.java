@@ -24,7 +24,6 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -59,7 +58,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  static final int MAX_EVENTS_PER_API_CALL;
+  static final int MAX_EVENTS_PER_API_CALL = 1000;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
 
@@ -94,14 +93,6 @@ public class Request {
   private static ApiResponseCallback apiResponse;
 
   private static List<Map<String, Object>> localErrors = new ArrayList<>();
-
-  static {
-    if (Build.VERSION.SDK_INT <= 17) {
-      MAX_EVENTS_PER_API_CALL = 5000;
-    } else {
-      MAX_EVENTS_PER_API_CALL = 10000;
-    }
-  }
 
   public static void setAppId(String appId, String accessKey) {
     if (!TextUtils.isEmpty(appId)) {
@@ -230,19 +221,23 @@ public class Request {
     return args;
   }
 
-  private void saveRequestForLater(final Map<String, Object> args) {
+  private void saveRequestForLater(final Map<String, Object> args,
+      final OnNextBatchCallback nextBatchCallback) {
     final Request currentRequest = this;
     LeanplumEventDataManager.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
         synchronized (Request.class) {
           Context context = Leanplum.getContext();
-          SharedPreferences preferences = context.getSharedPreferences(
-              LEANPLUM, Context.MODE_PRIVATE);
+          SharedPreferences preferences = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
           SharedPreferences.Editor editor = preferences.edit();
           long count = LeanplumEventDataManager.getEventsCount();
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
           if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+            if (uuid != null && count > 0 && nextBatchCallback != null) {
+              nextBatchCallback.onNextBatch();
+            }
+
             uuid = UUID.randomUUID().toString();
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
             SharedPreferencesUtil.commitChanges(editor);
@@ -452,6 +447,7 @@ public class Request {
     if (Constants.isTestMode) {
       return;
     }
+
     if (appId == null) {
       Log.e("Cannot send request. appId is not set.");
       return;
@@ -461,18 +457,30 @@ public class Request {
       return;
     }
 
-    this.sendEventually();
+    if (!sent && !LeanplumEventDataManager.willSendErrorLog) {
+      sent = true;
+      Map<String, Object> args = createArgsDictionary();
+      saveRequestForLater(args, null);
+    }
 
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        sendRequests();
+        sendRequests(false);
         return null;
       }
     });
   }
 
-  private void sendRequests() {
+  /**
+   * Because saveRequestForLater() can send some requests now, we want to send only completed
+   * batches with 1000 events, not incomplete batches with few events.
+   * Due to lack of sendRequests(int limit) method, we use flag to simulate such behavior.
+   *
+   * @param onlyFirstBatch - by default is false. If true - we send only first batch of events and
+   * stop there.
+   */
+  private void sendRequests(boolean onlyFirstBatch) {
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
     // Check if we have localErrors, if yes then we will send only errors to the server.
@@ -538,8 +546,8 @@ public class Request {
           deleteSentRequests(unsentRequests.size());
 
           // Send another request if the last request had maximum events per api call.
-          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
-            sendRequests();
+          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL && !onlyFirstBatch) {
+            sendRequests(false);
           }
         } else {
           errorException = new Exception("HTTP error " + statusCode);
@@ -576,7 +584,18 @@ public class Request {
     if (!sent) {
       sent = true;
       Map<String, Object> args = createArgsDictionary();
-      saveRequestForLater(args);
+      saveRequestForLater(args, new OnNextBatchCallback() {
+        @Override
+        public void onNextBatch() {
+          Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+              sendRequests(true);
+              return null;
+            }
+          });
+        }
+      });
     }
   }
 
@@ -958,5 +977,9 @@ public class Request {
       Log.e("Could not parse JSON response.", e);
       return null;
     }
+  }
+
+  private interface OnNextBatchCallback {
+    void onNextBatch();
   }
 }

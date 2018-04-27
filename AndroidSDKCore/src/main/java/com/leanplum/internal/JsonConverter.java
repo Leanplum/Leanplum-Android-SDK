@@ -48,6 +48,9 @@ public class JsonConverter {
     } catch (JSONException e) {
       Log.e("Error converting " + map + " to JSON", e);
       return null;
+    } catch (OutOfMemoryError error) {
+      Log.e("OutOfMemoryError when converting " + map + " to JSON", error);
+      return null;
     }
   }
 
@@ -59,6 +62,9 @@ public class JsonConverter {
       return mapFromJson(new JSONObject(json));
     } catch (JSONException e) {
       Log.e("Error converting " + json + " from JSON", e);
+      return null;
+    } catch (OutOfMemoryError error) {
+      Log.e("OutOfMemoryError when converting " + json + " from JSON", error);
       return null;
     }
   }
