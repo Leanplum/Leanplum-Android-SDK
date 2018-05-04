@@ -56,7 +56,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
  *
  * @author Kyu Hyun Chang
  */
-public class MessagesTest extends AbstractTest {
+public class InAppMessagePrioritizationTest extends AbstractTest {
   private ActionManager.MessageMatchResult mMessageMatchResult;
   private ActionContext.ContextualValues mContextualValues;
   private ActionManager mMockActionManager;
@@ -68,7 +68,9 @@ public class MessagesTest extends AbstractTest {
     mMessageMatchResult = new ActionManager.MessageMatchResult();
     Whitebox.setInternalState(mMessageMatchResult, "matchedTrigger", true);
     Whitebox.setInternalState(mMessageMatchResult, "matchedLimit", true);
+    Whitebox.setInternalState(mMessageMatchResult, "matchedActivePeriod", true);
     assertTrue(mMessageMatchResult.matchedTrigger);
+    assertTrue(mMessageMatchResult.matchedActivePeriod);
     assertTrue(mMessageMatchResult.matchedLimit);
 
 
@@ -89,7 +91,6 @@ public class MessagesTest extends AbstractTest {
    *
    * @param jsonMessages message configuration in JSON format
    * @param expectedMessageIds a set of expected message ids to be triggered
-   * @throws Exception
    */
   private void assertExpectedMessagesAreTriggered(String jsonMessages,
       Set<String> expectedMessageIds) throws Exception {
@@ -127,8 +128,6 @@ public class MessagesTest extends AbstractTest {
 
   /**
    * Testing a single message with priority 1.
-   *
-   * @throws Exception
    */
   @Test
   public void testSingleMessage() throws Exception {
@@ -143,8 +142,6 @@ public class MessagesTest extends AbstractTest {
 
   /**
    * Testing three messages with no priorities. Only one should be called.
-   *
-   * @throws Exception
    */
   @Test
   public void testNoPriorities() throws Exception {
@@ -156,8 +153,6 @@ public class MessagesTest extends AbstractTest {
 
   /**
    * Testing messages with different priorities.
-   *
-   * @throws Exception
    */
   @Test
   public void testDifferentPriorities() throws Exception {
@@ -179,8 +174,6 @@ public class MessagesTest extends AbstractTest {
 
   /**
    * Testing messages with tied priorities.
-   *
-   * @throws Exception
    */
   @Test
   public void testTiedPriorities() throws Exception {
@@ -201,8 +194,6 @@ public class MessagesTest extends AbstractTest {
   /**
    * Testing messages with different priorities along with no priority (10, 30, no value). Only the
    * one with priority value of 10 should be called.
-   *
-   * @throws Exception
    */
   @Test
   public void testDifferentPrioritiesWithMissingValues() throws Exception {

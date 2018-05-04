@@ -2,12 +2,13 @@
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-sdk android:minSdkVersion="14"/>
-    <!-- Permissions for GCM -->
+    <!-- Permissions for GCM. -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <permission
         android:name="${applicationId}.permission.C2D_MESSAGE"
         android:protectionLevel="signature"/>
     <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE"/>
+
     <application>
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
@@ -22,7 +23,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Leanplum Push Notification Receiver for GCM -->
+        <!-- Leanplum Push Notification Receiver for GCM. -->
         <receiver
             android:name="com.leanplum.LeanplumPushReceiver"
             android:enabled="true"
@@ -32,7 +33,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Leanplum GCM Message Handling Service -->
+        <!-- Leanplum GCM Message Handling Service. -->
         <service
             android:name="com.leanplum.LeanplumPushListenerService"
             android:enabled="true"
@@ -42,12 +43,12 @@
             </intent-filter>
         </service>
 
-        <!-- Leanplum GCM Registration Job Service -->
+        <!-- Leanplum GCM Registration Job Service. -->
         <service
             android:name="com.leanplum.LeanplumGcmRegistrationJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
-        <!-- Leanplum GCM Instance ID Service -->
+        <!-- Leanplum GCM Instance ID Service. -->
         <service
             android:name="com.leanplum.LeanplumPushInstanceIDService"
             android:enabled="true"

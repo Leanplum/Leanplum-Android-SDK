@@ -31,7 +31,7 @@ import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
 
-import java.lang.reflect.Modifier;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,12 +54,14 @@ public class ActionManager {
   private static final String LEANPLUM_LOCAL_PUSH_HELPER =
       "com.leanplum.internal.LeanplumLocalPushHelper";
   private static final String PREFERENCES_NAME = "__leanplum_messaging__";
+  private static LocationManager locationManager;
   private static boolean loggedLocationManagerFailure = false;
 
   public static class MessageMatchResult {
     public boolean matchedTrigger;
     public boolean matchedUnlessTrigger;
     public boolean matchedLimit;
+    public boolean matchedActivePeriod;
   }
 
   public static synchronized ActionManager getInstance() {
@@ -69,14 +71,19 @@ public class ActionManager {
     return instance;
   }
 
-  public static LocationManager getLocationManager() {
+  public static synchronized LocationManager getLocationManager() {
+    if (locationManager != null) {
+      return locationManager;
+    }
+
     if (Util.hasPlayServices()) {
       try {
         // Reflection here prevents linker errors
         // if Google Play Services is not used in the client app.
-        return (LocationManager) Class
+        locationManager = (LocationManager) Class
             .forName("com.leanplum.LocationManagerImplementation")
             .getMethod("instance").invoke(null);
+        return locationManager;
       } catch (Throwable t) {
         if (!loggedLocationManagerFailure) {
           Log.w("Geofencing support requires leanplum-location module and Google Play " +
@@ -246,8 +253,8 @@ public class ActionManager {
     // 2. Must match at least one trigger.
     result.matchedTrigger = matchedTriggers(messageConfig.get("whenTriggers"), when, eventName,
         contextualValues);
-    result.matchedUnlessTrigger = matchedTriggers(messageConfig.get("unlessTriggers"), when, eventName,
-        contextualValues);
+    result.matchedUnlessTrigger =
+        matchedTriggers(messageConfig.get("unlessTriggers"), when, eventName, contextualValues);
     if (!result.matchedTrigger && !result.matchedUnlessTrigger) {
       return result;
     }
@@ -259,6 +266,18 @@ public class ActionManager {
       limitConfig = CollectionUtil.uncheckedCast(limitConfigObj);
     }
     result.matchedLimit = matchesLimits(messageId, limitConfig);
+
+    // 4. Must be within active period.
+    Object messageStartTime = messageConfig.get("startTime");
+    Object messageEndTime = messageConfig.get("endTime");
+    if (messageStartTime == null || messageEndTime == null) {
+      result.matchedActivePeriod = true;
+    } else {
+      long currentTime = new Date().getTime();
+      result.matchedActivePeriod = currentTime >= (long) messageStartTime &&
+          currentTime <= (long) messageEndTime;
+    }
+
     return result;
   }
 

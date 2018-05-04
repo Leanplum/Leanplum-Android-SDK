@@ -1,0 +1,171 @@
+{
+  "response": [
+    {
+      "actionDefinitions": {
+        "Alert": {
+          "values": {
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "Dismiss text": "OK",
+            "Title": "LeanplumSample"
+          },
+          "kinds": {
+            "Dismiss action": "ACTION",
+            "Message": "TEXT",
+            "Dismiss text": "TEXT",
+            "Title": "TEXT"
+          },
+          "kind": 3,
+          "options": null
+        }
+      },
+      "isRegistered": false,
+      "regions": {
+      },
+      "messages": {
+        "Trigger on start": {
+          "countdown": 86400,
+          "action": "Alert",
+          "whenTriggers": {
+            "children": [
+              {
+                "subject": "start",
+                "objects": [],
+                "verb": ""
+              }
+            ],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "__name__": "Alert",
+            "Title": "Push",
+            "Dismiss text": "OK"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [
+              {
+                "subject": "times",
+                "objects": [],
+                "verb": "limitUser",
+                "noun": 1
+              }
+            ],
+            "verb": "AND"
+          }
+        },
+        "Trigger on advance": {
+          "countdown": 86400,
+          "action": "Alert",
+          "whenTriggers": {
+            "children": [
+              {
+                "subject": "state",
+                "objects": [],
+                "verb": "triggers",
+                "noun": "Registered"
+              }
+            ],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "__name__": "Alert",
+            "Title": "LeanplumSample",
+            "Dismiss text": "OK"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          }
+        },
+        "Trigger on Attribute changes": {
+          "countdown": 86400,
+          "action": "Alert",
+          "whenTriggers": {
+            "children": [
+              {
+                "subject": "userAttribute",
+                "objects": [],
+                "verb": "changes",
+                "noun": "Nickname"
+              }
+            ],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Dismiss action": {
+              "__name__": ""
+            },
+            "Message": "Alert message goes here.",
+            "__name__": "Alert",
+            "Title": "LeanplumSample",
+            "Dismiss text": "OK"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          }
+        }
+      },
+      "varsFromCode": {
+        "emptyDictionary": {
+          "integerValue": 50
+        },
+        "dictionaryVariable": {
+          "unicode": "?.!s\u0153\u2211\u03c0\u00f8\u02c6\u02dc\u00a8&\/\/.sd",
+          "test_number": 535,
+          "test_string": "string"
+        },
+        "arrayVariable": {
+          "[0]": 1,
+          "[2]": 3,
+          "[1]": 2,
+          "[3]": 4,
+          "[4]": 5
+        },
+        "intVariable": 100,
+        "boolVariable": false,
+        "floatVariable": 5,
+        "integerVariable": 1,
+        "fileVariable": "leanplum_watermark.jpg",
+        "stringVariable": "test_string"
+      },
+      "latestVersion": "1.4.0.2",
+      "vars": {
+      },
+      "fileAttributes": {
+        "PlugIns\/Leanplum-SDK_Tests.xctest\/test.file": {
+          "_empty_": {
+            "hash": "754e4eaae3c92be6e5d45c92b385c8fd",
+            "size": 25
+          }
+        }
+      },
+      "token": "jRSv9YRFQ9yVPN80JP0quwHmN9rKk0Crm7awgTwZgCs",
+      "variants": [
+      ],
+      "syncNewsfeed": false,
+      "success": true
+    }
+  ]
+}

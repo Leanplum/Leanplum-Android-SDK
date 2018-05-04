@@ -29,6 +29,7 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumInbox;
 import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestFactory;
@@ -43,6 +44,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -160,6 +162,10 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(LeanplumInbox.class, newsfeed, "didLoad", false);
 
     VarCache.reset();
+    // Reset the map values in ActionManager.
+    TestClassUtil.setField(ActionManager.getInstance(), "messageImpressionOccurrences", new HashMap<>());
+    TestClassUtil.setField(ActionManager.getInstance(), "messageTriggerOccurrences", new HashMap<>());
+    TestClassUtil.setField(ActionManager.getInstance(), "sessionOccurrences", new HashMap<>());
   }
 
   /**
