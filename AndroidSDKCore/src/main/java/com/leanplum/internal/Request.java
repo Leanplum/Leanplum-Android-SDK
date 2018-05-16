@@ -487,28 +487,55 @@ public class Request {
     String jsonEncodedString;
   }
 
-  private RequestsWithEncoding getRequestsWithEncodedString() {
+  private RequestsWithEncoding getRequestsWithEncodedStringForErrors() {
+
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
-    // Check if we have localErrors, if yes then we will send only errors to the server.
-    if (localErrors.size() != 0) {
-      String uuid = UUID.randomUUID().toString();
-      for (Map<String, Object> error : localErrors) {
-        error.put(UUID_KEY, uuid);
-        unsentRequests.add(error);
-      }
-      requestsToSend = unsentRequests;
-    } else {
-      unsentRequests = getUnsentRequests();
-      requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
-    }
+    String jsonEncodedRequestsToSend;
 
-    String jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+
+    String uuid = UUID.randomUUID().toString();
+    for (Map<String, Object> error : localErrors) {
+      error.put(UUID_KEY, uuid);
+      unsentRequests.add(error);
+    }
+    requestsToSend = unsentRequests;
+    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
 
     RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
     requestsWithEncoding.unsentRequests = unsentRequests;
-    requestsWithEncoding.requestsToSend= requestsToSend;
+    requestsWithEncoding.requestsToSend = requestsToSend;
     requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+
+    return requestsWithEncoding;
+  }
+
+  private RequestsWithEncoding getRequestsWithEncodedStringStoredRequests() {
+    List<Map<String, Object>> unsentRequests;
+    List<Map<String, Object>> requestsToSend;
+    String jsonEncodedRequestsToSend;
+
+    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
+    unsentRequests = getUnsentRequests();
+    requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+
+
+    requestsWithEncoding.unsentRequests = unsentRequests;
+    requestsWithEncoding.requestsToSend = requestsToSend;
+    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+
+    return requestsWithEncoding;
+  }
+
+  private RequestsWithEncoding getRequestsWithEncodedString() {
+    RequestsWithEncoding requestsWithEncoding;
+    // Check if we have localErrors, if yes then we will send only errors to the server.
+    if (localErrors.size() != 0) {
+      requestsWithEncoding = getRequestsWithEncodedStringForErrors();
+    } else {
+      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests()
+    }
 
     return requestsWithEncoding;
   }
