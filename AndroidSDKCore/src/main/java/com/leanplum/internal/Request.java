@@ -527,7 +527,7 @@ public class Request {
 
       return requestsWithEncoding;
     } catch (OutOfMemoryError E) {
-      return getRequestsWithEncodedStringStoredRequests(0.1 * fraction);
+      return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
     }
   }
 
