@@ -510,22 +510,25 @@ public class Request {
     return requestsWithEncoding;
   }
 
-  private RequestsWithEncoding getRequestsWithEncodedStringStoredRequests() {
-    List<Map<String, Object>> unsentRequests;
-    List<Map<String, Object>> requestsToSend;
-    String jsonEncodedRequestsToSend;
+  private RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
+    try {
+      List<Map<String, Object>> unsentRequests;
+      List<Map<String, Object>> requestsToSend;
+      String jsonEncodedRequestsToSend;
+      RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
 
-    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
-    unsentRequests = getUnsentRequests();
-    requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
-    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+      unsentRequests = getUnsentRequests(fraction);
+      requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+      jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
 
+      requestsWithEncoding.unsentRequests = unsentRequests;
+      requestsWithEncoding.requestsToSend = requestsToSend;
+      requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
 
-    requestsWithEncoding.unsentRequests = unsentRequests;
-    requestsWithEncoding.requestsToSend = requestsToSend;
-    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
-
-    return requestsWithEncoding;
+      return requestsWithEncoding;
+    } catch (OutOfMemoryError E) {
+      return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
+    }
   }
 
   private RequestsWithEncoding getRequestsWithEncodedString() {
@@ -534,7 +537,7 @@ public class Request {
     if (localErrors.size() != 0) {
       requestsWithEncoding = getRequestsWithEncodedStringForErrors();
     } else {
-      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests();
+      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests(1.0);
     }
 
     return requestsWithEncoding;
@@ -649,6 +652,10 @@ public class Request {
   }
 
   private static List<Map<String, Object>> getUnsentRequests() {
+    return getUnsentRequests(1.0);
+  }
+
+  private static List<Map<String, Object>> getUnsentRequests(double fraction) {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {
@@ -657,8 +664,8 @@ public class Request {
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
-
-      requestData = LeanplumEventDataManager.getEvents(MAX_EVENTS_PER_API_CALL);
+      int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
+      requestData = LeanplumEventDataManager.getEvents(count);
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
