@@ -534,7 +534,7 @@ public class Request {
     if (localErrors.size() != 0) {
       requestsWithEncoding = getRequestsWithEncodedStringForErrors();
     } else {
-      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests()
+      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests();
     }
 
     return requestsWithEncoding;
