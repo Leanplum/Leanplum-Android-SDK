@@ -398,14 +398,14 @@ public class LeanplumTest extends AbstractTest {
     LeanplumEventDataManager.init(Leanplum.getContext());
 
     // Add two events to database.
-    new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null).sendEventually();
-    new Request("POST", Constants.Methods.LOG, null).sendEventually();
+    Request request1 = new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
+    Request request2 = new Request("POST", Constants.Methods.LOG, null);
 
+    request1.sendEventually();
+    request2.sendEventually();
     // Get a number of events in the database.
     // Expectation: 2 events.
-    Method getUnsentRequests = Request.class.getDeclaredMethod("getUnsentRequests");
-    getUnsentRequests.setAccessible(true);
-    List unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    List unsentRequests = request1.getUnsentRequests();
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -427,7 +427,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Checks if ours two events still here.
     // Expectation: 2 events.
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request1.getUnsentRequests();
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -444,7 +444,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Make sure we sent all events.
     // Expectation: 0 events.
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request1.getUnsentRequests();
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 

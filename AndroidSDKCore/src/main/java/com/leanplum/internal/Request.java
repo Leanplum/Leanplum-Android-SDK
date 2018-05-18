@@ -480,21 +480,70 @@ public class Request {
     });
   }
 
-  private void sendRequests() {
+
+  static class RequestsWithEncoding {
+    List<Map<String, Object>> unsentRequests;
+    List<Map<String, Object>> requestsToSend;
+    String jsonEncodedString;
+  }
+
+  private RequestsWithEncoding getRequestsWithEncodedStringForErrors() {
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
+    String jsonEncodedRequestsToSend;
+
+    String uuid = UUID.randomUUID().toString();
+    for (Map<String, Object> error : localErrors) {
+      error.put(UUID_KEY, uuid);
+      unsentRequests.add(error);
+    }
+    requestsToSend = unsentRequests;
+    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+
+    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
+    // for errors, we send all unsent requests so they are identical
+    requestsWithEncoding.unsentRequests = unsentRequests;
+    requestsWithEncoding.requestsToSend = requestsToSend;
+    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+
+    return requestsWithEncoding;
+  }
+
+  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests() {
+    List<Map<String, Object>> unsentRequests;
+    List<Map<String, Object>> requestsToSend;
+    String jsonEncodedRequestsToSend;
+
+    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
+    unsentRequests = getUnsentRequests();
+    requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+
+    requestsWithEncoding.unsentRequests = unsentRequests;
+    requestsWithEncoding.requestsToSend = requestsToSend;
+    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+
+    return requestsWithEncoding;
+  }
+
+  private RequestsWithEncoding getRequestsWithEncodedString() {
+    RequestsWithEncoding requestsWithEncoding;
     // Check if we have localErrors, if yes then we will send only errors to the server.
     if (localErrors.size() != 0) {
-      String uuid = UUID.randomUUID().toString();
-      for (Map<String, Object> error : localErrors) {
-        error.put(UUID_KEY, uuid);
-        unsentRequests.add(error);
-      }
-      requestsToSend = unsentRequests;
+      requestsWithEncoding = getRequestsWithEncodedStringForErrors();
     } else {
-      unsentRequests = getUnsentRequests();
-      requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests();
     }
+
+    return requestsWithEncoding;
+  }
+
+  private void sendRequests() {
+    RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
+
+    List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
+    List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
+    String jsonEncodedString = requestsWithEncoding.jsonEncodedString;
 
     if (requestsToSend.isEmpty()) {
       return;
@@ -504,7 +553,7 @@ public class Request {
     if (!Request.attachApiKeys(multiRequestArgs)) {
       return;
     }
-    multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
+    multiRequestArgs.put(Constants.Params.DATA, jsonEncodedString);
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
@@ -597,7 +646,7 @@ public class Request {
     }
   }
 
-  private static List<Map<String, Object>> getUnsentRequests() {
+  public List<Map<String, Object>> getUnsentRequests() {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {
@@ -654,7 +703,7 @@ public class Request {
     return relevantRequests;
   }
 
-  private static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
+  protected static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);
