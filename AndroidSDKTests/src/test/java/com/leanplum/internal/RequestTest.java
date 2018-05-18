@@ -211,9 +211,9 @@ public class RequestTest extends TestCase {
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
-  // Given a list of unsent requests
-  // we want to get the list of strings to send
-  // We should get back the correct list of requests to send
+  // Given a list of 5000 that generate OOM exceptions
+  // we want to generate the requests to send
+  // The list should try and get a smaller fraction of the available requests
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws NoSuchMethodException,
           InvocationTargetException, IllegalAccessException {
@@ -221,8 +221,8 @@ public class RequestTest extends TestCase {
     Request.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     Request request = spy(new Request("POST", Constants.Methods.START, null));
-    request.sendEventually();
-    for (int i = 0;i < 4999; i++) {
+    request.sendEventually(); // first request added
+    for (int i = 0;i < 4999; i++) { // remaining requests to make up 5000
       new Request("POST", Constants.Methods.START, null).sendEventually();
     }
     // Expectation: 5000 requests returned.
@@ -264,6 +264,9 @@ public class RequestTest extends TestCase {
 
   }
 
+  // Given a list of unsent requests that generate an OOM exception
+  // we want to generate the requests to send
+  // The list should try and get a smaller fraction of the available requests
   @Test
   public void testJsonEncodeUnsentRequestsWithException() {
     List<Map<String, Object>> requests = mockRequests(4);
@@ -282,9 +285,10 @@ public class RequestTest extends TestCase {
     assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
   }
 
-  // Given a list of requests
-  // we want to encode to a JSON String
-  // The String should have the expected format
+  // Given a list of unsent requests
+  // we want to generate the requests to send
+  // The String should have the expected format, and the request count should be equal to the
+  // number of unsent requests
   @Test
   public void testJsonEncodeUnsentRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
@@ -294,9 +298,16 @@ public class RequestTest extends TestCase {
     when(request.getUnsentRequests(1.0)).thenReturn(requests);
 
     Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertEquals(4, requestsWithEncoding .unsentRequests.size());
+    assertEquals(4, requestsWithEncoding .requestsToSend.size());
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
   }
+
+  // Given a list of requests
+  // we want to encode to a JSON String
+  // The String should have the expected format
   @Test
   public void testGetRequestsWithEncodedStringStoredRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
