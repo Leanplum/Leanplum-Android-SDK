@@ -481,7 +481,7 @@ public class Request {
   }
 
 
-  private static class RequestsWithEncoding {
+  static class RequestsWithEncoding {
     List<Map<String, Object>> unsentRequests;
     List<Map<String, Object>> requestsToSend;
     String jsonEncodedString;
@@ -510,7 +510,8 @@ public class Request {
     return requestsWithEncoding;
   }
 
-  private RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
+
+  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
     try {
       List<Map<String, Object>> unsentRequests;
       List<Map<String, Object>> requestsToSend;
@@ -651,11 +652,7 @@ public class Request {
     }
   }
 
-  private static List<Map<String, Object>> getUnsentRequests() {
-    return getUnsentRequests(1.0);
-  }
-
-  private static List<Map<String, Object>> getUnsentRequests(double fraction) {
+  public List<Map<String, Object>> getUnsentRequests() {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {
@@ -712,7 +709,7 @@ public class Request {
     return relevantRequests;
   }
 
-  private static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
+  protected static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);
