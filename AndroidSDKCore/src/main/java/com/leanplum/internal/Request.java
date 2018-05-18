@@ -705,7 +705,7 @@ public class Request {
     return relevantRequests;
   }
 
-  private static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
+  protected static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);

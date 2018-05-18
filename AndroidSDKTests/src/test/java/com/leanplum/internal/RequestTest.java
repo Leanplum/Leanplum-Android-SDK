@@ -39,6 +39,7 @@ import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,4 +207,27 @@ public class RequestTest extends TestCase {
     Request.deleteSentRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
+
+  @Test
+  public void testGetRequestsWithEncodedStringStoredRequests() {
+    List<Map<String, Object>> requests = mockRequests(2, 2);
+    String json = Request.jsonEncodeUnsentRequests(requests);
+    String expectedJson =  "{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}";
+    assertEquals(json, expectedJson);
+  }
+
+  private List<Map<String, Object>> mockRequests(int listSize, int requestSize) {
+    List<Map<String, Object>> requests = new ArrayList<>();
+
+    for (int i=0; i < listSize; i++) {
+
+      for (int j=0; j < requestSize; j++) {
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put(Integer.toString(i), Integer.toString(j));
+        requests.add(request);
+      }
+    }
+    return requests;
+  }
+
 }
