@@ -209,9 +209,12 @@ public class RequestTest extends TestCase {
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
+  // Given a list of unsent requests
+  // we want to get the list of strings to send
+  // We should get back the correct list of requests to send
   @Test
   public void testJsonEncodeUnsentRequests() {
-    List<Map<String, Object>> requests = mockRequests(2, 2);
+    List<Map<String, Object>> requests = mockRequests(4);
 
     Request realRequest = new Request("POST", Constants.Methods.START, null);
     Request request = spy(realRequest);
@@ -219,27 +222,31 @@ public class RequestTest extends TestCase {
 
     Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests();
 
-    assertEquals("{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}", requestsWithEncoding.jsonEncodedString);
+    assertEquals(4, requestsWithEncoding .unsentRequests.size());
+    assertEquals(4, requestsWithEncoding .requestsToSend.size());
+    final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
+    assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
   }
 
+  // Given a list of requests
+  // we want to encode to a JSON String
+  // The String should have the expected format
   @Test
   public void testGetRequestsWithEncodedStringStoredRequests() {
-    List<Map<String, Object>> requests = mockRequests(2, 2);
+    List<Map<String, Object>> requests = mockRequests(4);
     String json = Request.jsonEncodeUnsentRequests(requests);
-    String expectedJson =  "{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}";
+
+    final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(json, expectedJson);
   }
 
-  private List<Map<String, Object>> mockRequests(int listSize, int requestSize) {
+  private List<Map<String, Object>> mockRequests(int requestSize) {
     List<Map<String, Object>> requests = new ArrayList<>();
 
-    for (int i=0; i < listSize; i++) {
-
-      for (int j=0; j < requestSize; j++) {
-        Map<String, Object> request = new HashMap<String, Object>();
-        request.put(Integer.toString(i), Integer.toString(j));
-        requests.add(request);
-      }
+    for (int i=0; i < requestSize; i++) {
+      Map<String, Object> request = new HashMap<String, Object>();
+      request.put(Integer.toString(i), "testData");
+      requests.add(request);
     }
     return requests;
   }
