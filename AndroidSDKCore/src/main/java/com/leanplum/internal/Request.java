@@ -488,11 +488,9 @@ public class Request {
   }
 
   private RequestsWithEncoding getRequestsWithEncodedStringForErrors() {
-
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
     String jsonEncodedRequestsToSend;
-
 
     String uuid = UUID.randomUUID().toString();
     for (Map<String, Object> error : localErrors) {
@@ -503,6 +501,7 @@ public class Request {
     jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
 
     RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
+    // for errors, we send all unsent requests so they are identical
     requestsWithEncoding.unsentRequests = unsentRequests;
     requestsWithEncoding.requestsToSend = requestsToSend;
     requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
@@ -527,7 +526,6 @@ public class Request {
       }
 
       jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
-
       requestsWithEncoding.unsentRequests = unsentRequests;
       requestsWithEncoding.requestsToSend = requestsToSend;
       requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
