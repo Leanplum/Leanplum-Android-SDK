@@ -518,8 +518,14 @@ public class Request {
       String jsonEncodedRequestsToSend;
       RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
 
-      unsentRequests = getUnsentRequests(fraction);
-      requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+      if (fraction < 0.01) {
+        unsentRequests = new ArrayList<>(0);
+        requestsToSend = new ArrayList<>(0);
+      } else {
+        unsentRequests = getUnsentRequests(fraction);
+        requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+      }
+
       jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
 
       requestsWithEncoding.unsentRequests = unsentRequests;

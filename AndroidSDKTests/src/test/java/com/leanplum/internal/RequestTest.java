@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -208,7 +210,7 @@ public class RequestTest extends TestCase {
     Request.deleteSentRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
-  
+
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws NoSuchMethodException,
           InvocationTargetException, IllegalAccessException {
@@ -224,6 +226,8 @@ public class RequestTest extends TestCase {
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
     assertEquals(5000, requestsWithEncoding.unsentRequests.size());
 
     // Throw OOM on 5000 requests
@@ -232,6 +236,8 @@ public class RequestTest extends TestCase {
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
     assertEquals(2500, requestsWithEncoding.unsentRequests.size());
 
     // Throw OOM on 2500, 5000 requests
@@ -239,8 +245,18 @@ public class RequestTest extends TestCase {
     when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
+    // Throw OOM on >0 requests
+    // Expectation: 0 requests returned but no crash
+
+    when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
     assertNotNull(requestsWithEncoding.unsentRequests);
-    assertEquals(1250, requestsWithEncoding.unsentRequests.size());
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
+    assertEquals(0, requestsWithEncoding.unsentRequests.size());
+    assertEquals(0, requestsWithEncoding.requestsToSend.size());
+    assertEquals("{\"data\":[]}", requestsWithEncoding.jsonEncodedString);
 
   }
 
