@@ -481,7 +481,7 @@ public class Request {
   }
 
 
-  private static class RequestsWithEncoding {
+  static class RequestsWithEncoding {
     List<Map<String, Object>> unsentRequests;
     List<Map<String, Object>> requestsToSend;
     String jsonEncodedString;
@@ -510,7 +510,7 @@ public class Request {
     return requestsWithEncoding;
   }
 
-  private RequestsWithEncoding getRequestsWithEncodedStringStoredRequests() {
+  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests() {
     List<Map<String, Object>> unsentRequests;
     List<Map<String, Object>> requestsToSend;
     String jsonEncodedRequestsToSend;
@@ -648,7 +648,7 @@ public class Request {
     }
   }
 
-  private static List<Map<String, Object>> getUnsentRequests() {
+  protected List<Map<String, Object>> getUnsentRequests() {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {
