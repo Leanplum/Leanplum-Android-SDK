@@ -39,9 +39,13 @@ import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Ben Marten
@@ -89,19 +93,17 @@ public class RequestTest extends TestCase {
     Method removeIrrelevantBackgroundStartRequests =
         Request.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
     removeIrrelevantBackgroundStartRequests.setAccessible(true);
-    Method getUnsentRequests = Request.class.getDeclaredMethod("getUnsentRequests");
-    getUnsentRequests.setAccessible(true);
 
     // Invoke method with specific test data.
     // Expectation: No request returned.
-    List unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    List unsentRequests = request.getUnsentRequests();
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
     // Regular start request.
     // Expectation: One request returned.
     request.sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests();
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
     Request.deleteSentRequests(unsentRequests.size());
@@ -116,7 +118,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "2");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests();
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
     Request.deleteSentRequests(unsentRequests.size());
@@ -131,7 +133,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests();
     List unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
@@ -153,7 +155,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests();
 
     assertNotNull(unsentRequests);
     unsentRequestsData =
@@ -176,7 +178,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests();
     assertNotNull(unsentRequests);
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
@@ -198,7 +200,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests();
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
@@ -206,4 +208,40 @@ public class RequestTest extends TestCase {
     Request.deleteSentRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
+
+  @Test
+  public void testJsonEncodeUnsentRequests() {
+    List<Map<String, Object>> requests = mockRequests(2, 2);
+
+    Request realRequest = new Request("POST", Constants.Methods.START, null);
+    Request request = spy(realRequest);
+    when(request.getUnsentRequests()).thenReturn(requests);
+
+    Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests();
+
+    assertEquals("{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}", requestsWithEncoding.jsonEncodedString);
+  }
+
+  @Test
+  public void testGetRequestsWithEncodedStringStoredRequests() {
+    List<Map<String, Object>> requests = mockRequests(2, 2);
+    String json = Request.jsonEncodeUnsentRequests(requests);
+    String expectedJson =  "{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}";
+    assertEquals(json, expectedJson);
+  }
+
+  private List<Map<String, Object>> mockRequests(int listSize, int requestSize) {
+    List<Map<String, Object>> requests = new ArrayList<>();
+
+    for (int i=0; i < listSize; i++) {
+
+      for (int j=0; j < requestSize; j++) {
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put(Integer.toString(i), Integer.toString(j));
+        requests.add(request);
+      }
+    }
+    return requests;
+  }
+
 }
