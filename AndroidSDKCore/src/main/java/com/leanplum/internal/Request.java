@@ -481,6 +481,12 @@ public class Request {
   }
 
 
+  /**
+   * This class wraps the unsent requests, requests that we need to send
+   * and the JSON encoded string. Wrapping it in the class allows us to
+   * retain consistency in the requests we are sending and the actual
+   * JSON string.
+   */
   static class RequestsWithEncoding {
     List<Map<String, Object>> unsentRequests;
     List<Map<String, Object>> requestsToSend;
@@ -517,7 +523,7 @@ public class Request {
       String jsonEncodedRequestsToSend;
       RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
 
-      if (fraction < 0.01) {
+      if (fraction < 0.01) { //base case
         unsentRequests = new ArrayList<>(0);
         requestsToSend = new ArrayList<>(0);
       } else {
@@ -532,6 +538,7 @@ public class Request {
 
       return requestsWithEncoding;
     } catch (OutOfMemoryError E) {
+      // half the requests will need less memory, recursively
       return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
     }
   }

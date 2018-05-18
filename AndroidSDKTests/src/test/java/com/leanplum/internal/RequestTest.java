@@ -249,9 +249,8 @@ public class RequestTest extends TestCase {
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
     assertEquals(1250, requestsWithEncoding.unsentRequests.size());
 
-    // Throw OOM on > 0 requests
-    // Expectation: 0 requests returned but no crash
-
+    // Throw OOM on serializing any finite number of requests (extreme condition)
+    // Expectation: Determine only 0 requests to be sent
     when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
