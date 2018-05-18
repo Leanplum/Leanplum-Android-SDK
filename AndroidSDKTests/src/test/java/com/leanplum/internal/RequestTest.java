@@ -222,7 +222,7 @@ public class RequestTest extends TestCase {
     for (int i = 0;i < 4999; i++) {
       new Request("POST", Constants.Methods.START, null).sendEventually();
     }
-    // Expectation: 10000 requests returned.
+    // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertNotNull(requestsWithEncoding.unsentRequests);
@@ -244,8 +244,9 @@ public class RequestTest extends TestCase {
     // Expectation: 1250 requests returned.
     when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    assertEquals(1200, requestsWithEncoding.unsentRequests.size());
 
-    // Throw OOM on >0 requests
+    // Throw OOM on > 0 requests
     // Expectation: 0 requests returned but no crash
 
     when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
