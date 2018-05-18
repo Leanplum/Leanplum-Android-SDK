@@ -96,14 +96,14 @@ public class RequestTest extends TestCase {
 
     // Invoke method with specific test data.
     // Expectation: No request returned.
-    List unsentRequests = request.getUnsentRequests();
+    List unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
     // Regular start request.
     // Expectation: One request returned.
     request.sendEventually();
-    unsentRequests = request.getUnsentRequests();
+    unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
     Request.deleteSentRequests(unsentRequests.size());
@@ -118,7 +118,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "2");
     }}).sendEventually();
-    unsentRequests = request.getUnsentRequests();
+    unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
     Request.deleteSentRequests(unsentRequests.size());
@@ -133,7 +133,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }}).sendEventually();
-    unsentRequests = request.getUnsentRequests();
+    unsentRequests = request.getUnsentRequests(1.0);
     List unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
@@ -155,7 +155,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }}).sendEventually();
-    unsentRequests = request.getUnsentRequests();
+    unsentRequests = request.getUnsentRequests(1.0);
 
     assertNotNull(unsentRequests);
     unsentRequestsData =
@@ -178,7 +178,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }}).sendEventually();
-    unsentRequests = request.getUnsentRequests();
+    unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
@@ -200,13 +200,63 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }}).sendEventually();
-    unsentRequests = request.getUnsentRequests();
+    unsentRequests = request.getUnsentRequests(1.0);
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
     assertEquals(3, unsentRequestsData.size());
     Request.deleteSentRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
+  }
+  
+  @Test
+  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws NoSuchMethodException,
+          InvocationTargetException, IllegalAccessException {
+    LeanplumEventDataManager.init(Leanplum.getContext());
+    Request.RequestsWithEncoding requestsWithEncoding;
+    // Prepare testable objects and method.
+    Request request = spy(new Request("POST", Constants.Methods.START, null));
+    request.sendEventually();
+    for (int i = 0;i < 4999; i++) {
+      new Request("POST", Constants.Methods.START, null).sendEventually();
+    }
+    // Expectation: 10000 requests returned.
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertEquals(5000, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on 5000 requests
+    // Expectation: 2500 requests returned.
+    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertEquals(2500, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on 2500, 5000 requests
+    // Expectation: 1250 requests returned.
+    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertEquals(1250, requestsWithEncoding.unsentRequests.size());
+
+  }
+
+  @Test
+  public void testJsonEncodeUnsentRequestsWithException() {
+    List<Map<String, Object>> requests = mockRequests(2, 2);
+
+    Request realRequest = new Request("POST", Constants.Methods.START, null);
+    Request request = spy(realRequest);
+    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    when(request.getUnsentRequests(0.25)).thenReturn(requests);
+
+    Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertEquals("{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}", requestsWithEncoding.jsonEncodedString);
   }
 
   @Test
@@ -215,13 +265,12 @@ public class RequestTest extends TestCase {
 
     Request realRequest = new Request("POST", Constants.Methods.START, null);
     Request request = spy(realRequest);
-    when(request.getUnsentRequests()).thenReturn(requests);
+    when(request.getUnsentRequests(1.0)).thenReturn(requests);
 
-    Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests();
+    Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertEquals("{\"data\":[{\"0\":\"0\"},{\"0\":\"1\"},{\"1\":\"0\"},{\"1\":\"1\"}]}", requestsWithEncoding.jsonEncodedString);
   }
-
   @Test
   public void testGetRequestsWithEncodedStringStoredRequests() {
     List<Map<String, Object>> requests = mockRequests(2, 2);

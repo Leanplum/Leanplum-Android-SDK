@@ -337,7 +337,7 @@ public class Request {
       error.error(e);
     }
     if (apiResponse != null) {
-      List<Map<String, Object>> requests = getUnsentRequests();
+      List<Map<String, Object>> requests = getUnsentRequests(1.0);
       List<Map<String, Object>> requestsToSend = removeIrrelevantBackgroundStartRequests(requests);
       apiResponse.response(requestsToSend, null, requests.size());
     }
@@ -652,7 +652,7 @@ public class Request {
     }
   }
 
-  public List<Map<String, Object>> getUnsentRequests() {
+  public List<Map<String, Object>> getUnsentRequests(double fraction) {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {

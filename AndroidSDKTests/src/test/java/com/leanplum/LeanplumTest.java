@@ -405,7 +405,7 @@ public class LeanplumTest extends AbstractTest {
     request2.sendEventually();
     // Get a number of events in the database.
     // Expectation: 2 events.
-    List unsentRequests = request1.getUnsentRequests();
+    List unsentRequests = request1.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -427,7 +427,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Checks if ours two events still here.
     // Expectation: 2 events.
-    unsentRequests = request1.getUnsentRequests();
+    unsentRequests = request1.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -444,7 +444,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Make sure we sent all events.
     // Expectation: 0 events.
-    unsentRequests = request1.getUnsentRequests();
+    unsentRequests = request1.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
