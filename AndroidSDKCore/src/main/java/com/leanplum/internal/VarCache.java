@@ -87,6 +87,7 @@ public class VarCache {
   private static boolean silent;
   private static int contentVersion;
   private static Map<String, Object> userAttributes;
+  private static Map<String, Object> contentAssignments;
 
   private static final String NAME_COMPONENT_REGEX = "(?:[^\\.\\[.(\\\\]+|\\\\.)+";
   private static final Pattern NAME_COMPONENT_PATTERN = Pattern.compile(NAME_COMPONENT_REGEX);
@@ -320,6 +321,14 @@ public class VarCache {
 
   public static boolean hasReceivedDiffs() {
     return hasReceivedDiffs;
+  }
+
+  public static Map<String, Object> getContentAssignments() {
+    return contentAssignments;
+  }
+
+  public static void setContentAssignments(Map<String, Object> _contentAssignments) {
+    contentAssignments = _contentAssignments;
   }
 
   public static void loadDiffs() {
@@ -878,6 +887,7 @@ public class VarCache {
    */
   public static void reset() {
     vars.clear();
+    contentAssignments.clear();
     fileAttributes.clear();
     fileStreams.clear();
     valuesFromClient.clear();
