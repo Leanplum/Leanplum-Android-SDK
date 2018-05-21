@@ -23,7 +23,6 @@ package com.leanplum;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -51,7 +50,6 @@ import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
-import com.sun.tools.internal.jxc.ap.Const;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
