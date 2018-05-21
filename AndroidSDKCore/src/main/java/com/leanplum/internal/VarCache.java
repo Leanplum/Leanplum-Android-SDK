@@ -887,7 +887,7 @@ public class VarCache {
    */
   public static void reset() {
     vars.clear();
-    contentAssignments.clear();
+    contentAssignments = null;
     fileAttributes.clear();
     fileStreams.clear();
     valuesFromClient.clear();
