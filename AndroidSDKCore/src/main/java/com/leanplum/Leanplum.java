@@ -23,6 +23,7 @@ package com.leanplum;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
@@ -50,6 +51,7 @@ import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
+import com.sun.tools.internal.jxc.ap.Const;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -248,6 +250,13 @@ public class Leanplum {
    */
   public static void trackAllAppScreens() {
     LeanplumInternal.enableAutomaticScreenTracking();
+  }
+
+  /**
+   * Set content assignments to be obtained from the server.
+   */
+  public static void setContentAssignmentsEnabled(boolean contentAssignmentsEnabled) {
+    LeanplumInternal.setIsContentAssignmentsEnabled(contentAssignmentsEnabled);
   }
 
   /**
@@ -664,6 +673,10 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
+    if (LeanplumInternal.getIsContentAssignmentsEnabled()) {
+      params.put(Constants.Params.INCLUDE_CONTENT_ASSIGNMENTS, true);
+    }
+
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
@@ -798,6 +811,12 @@ public class Leanplum {
 
             if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
               Constants.loggingEnabled = true;
+            }
+
+            Map<String, Object> contentAssignments = JsonConverter.mapFromJsonOrDefault(
+                    response.optJSONObject(Constants.Keys.CONTENT_ASSIGNMENTS));
+            if (contentAssignments.size() > 0) {
+              VarCache.setContentAssignments(contentAssignments);
             }
 
             // Allow bidirectional realtime variable updates.
@@ -1924,6 +1943,9 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
+      if (LeanplumInternal.getIsContentAssignmentsEnabled()) {
+        params.put(Constants.Params.INCLUDE_CONTENT_ASSIGNMENTS, true);
+      }
       Request req = Request.post(Constants.Methods.GET_VARS, params);
       req.onResponse(new Request.ResponseCallback() {
         @Override
@@ -1940,6 +1962,12 @@ public class Leanplum {
               }
               if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
+              }
+
+              Map<String, Object> contentAssignments = JsonConverter.mapFromJsonOrDefault(
+                      response.optJSONObject(Constants.Keys.CONTENT_ASSIGNMENTS));
+              if (contentAssignments.size() > 0) {
+                VarCache.setContentAssignments(contentAssignments);
               }
             }
             if (callback != null) {
@@ -2041,6 +2069,19 @@ public class Leanplum {
       return new HashMap<>();
     }
     return messages;
+  }
+
+  /**
+   * Set this to true if you want details about the variable assignments
+   * on the server.
+   * Default is NO.
+   */
+  public static Map<String, Object> contentAssignments() {
+    Map<String, Object> contentAssignments = VarCache.getContentAssignments();
+    if (contentAssignments == null) {
+      return new HashMap<>();
+    }
+    return contentAssignments;
   }
 
   /**
