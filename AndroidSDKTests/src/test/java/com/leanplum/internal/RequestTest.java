@@ -39,9 +39,15 @@ import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Ben Marten
@@ -89,19 +95,17 @@ public class RequestTest extends TestCase {
     Method removeIrrelevantBackgroundStartRequests =
         Request.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
     removeIrrelevantBackgroundStartRequests.setAccessible(true);
-    Method getUnsentRequests = Request.class.getDeclaredMethod("getUnsentRequests");
-    getUnsentRequests.setAccessible(true);
 
     // Invoke method with specific test data.
     // Expectation: No request returned.
-    List unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    List unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
     // Regular start request.
     // Expectation: One request returned.
     request.sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
     Request.deleteSentRequests(unsentRequests.size());
@@ -116,7 +120,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "2");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
     Request.deleteSentRequests(unsentRequests.size());
@@ -131,7 +135,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests(1.0);
     List unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
@@ -153,7 +157,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests(1.0);
 
     assertNotNull(unsentRequests);
     unsentRequestsData =
@@ -176,7 +180,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
@@ -198,7 +202,7 @@ public class RequestTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }}).sendEventually();
-    unsentRequests = (List) getUnsentRequests.invoke(Request.class);
+    unsentRequests = request.getUnsentRequests(1.0);
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
@@ -206,4 +210,121 @@ public class RequestTest extends TestCase {
     Request.deleteSentRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
+
+  // Given a list of 5000 that generate OOM exceptions
+  // we want to generate the requests to send
+  // The list should try and get a smaller fraction of the available requests
+  @Test
+  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws NoSuchMethodException,
+          InvocationTargetException, IllegalAccessException {
+    LeanplumEventDataManager.init(Leanplum.getContext());
+    Request.RequestsWithEncoding requestsWithEncoding;
+    // Prepare testable objects and method.
+    Request request = spy(new Request("POST", Constants.Methods.START, null));
+    request.sendEventually(); // first request added
+    for (int i = 0;i < 4999; i++) { // remaining requests to make up 5000
+      new Request("POST", Constants.Methods.START, null).sendEventually();
+    }
+    // Expectation: 5000 requests returned.
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
+    assertEquals(5000, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on 5000 requests
+    // Expectation: 2500 requests returned.
+    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
+    assertEquals(2500, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on 2500, 5000 requests
+    // Expectation: 1250 requests returned.
+    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    assertEquals(1250, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on serializing any finite number of requests (extreme condition)
+    // Expectation: Determine only 0 requests to be sent
+    when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
+    assertEquals(0, requestsWithEncoding.unsentRequests.size());
+    assertEquals(0, requestsWithEncoding.requestsToSend.size());
+    assertEquals("{\"data\":[]}", requestsWithEncoding.jsonEncodedString);
+
+  }
+
+  // Given a list of unsent requests that generate an OOM exception
+  // we want to generate the requests to send
+  // The list should try and get a smaller fraction of the available requests
+  @Test
+  public void testJsonEncodeUnsentRequestsWithException() {
+    List<Map<String, Object>> requests = mockRequests(4);
+
+    Request realRequest = new Request("POST", Constants.Methods.START, null);
+    Request request = spy(realRequest);
+    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    when(request.getUnsentRequests(0.25)).thenReturn(requests);
+
+    Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertEquals(4, requestsWithEncoding .unsentRequests.size());
+    assertEquals(4, requestsWithEncoding .requestsToSend.size());
+    final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
+    assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
+  }
+
+  // Given a list of unsent requests
+  // we want to generate the requests to send
+  // The String should have the expected format, and the request count should be equal to the
+  // number of unsent requests
+  @Test
+  public void testJsonEncodeUnsentRequests() {
+    List<Map<String, Object>> requests = mockRequests(4);
+
+    Request realRequest = new Request("POST", Constants.Methods.START, null);
+    Request request = spy(realRequest);
+    when(request.getUnsentRequests(1.0)).thenReturn(requests);
+
+    Request.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertEquals(4, requestsWithEncoding .unsentRequests.size());
+    assertEquals(4, requestsWithEncoding .requestsToSend.size());
+    final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
+    assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
+  }
+
+  // Given a list of requests
+  // we want to encode to a JSON String
+  // The String should have the expected format
+  @Test
+  public void testGetRequestsWithEncodedStringStoredRequests() {
+    List<Map<String, Object>> requests = mockRequests(4);
+    String json = Request.jsonEncodeUnsentRequests(requests);
+
+    final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
+    assertEquals(json, expectedJson);
+  }
+
+  private List<Map<String, Object>> mockRequests(int requestSize) {
+    List<Map<String, Object>> requests = new ArrayList<>();
+
+    for (int i=0; i < requestSize; i++) {
+      Map<String, Object> request = new HashMap<String, Object>();
+      request.put(Integer.toString(i), "testData");
+      requests.add(request);
+    }
+    return requests;
+  }
+
 }

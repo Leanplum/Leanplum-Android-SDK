@@ -235,30 +235,34 @@ public class Request {
     LeanplumEventDataManager.executeAsyncTask(new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        synchronized (Request.class) {
-          Context context = Leanplum.getContext();
-          SharedPreferences preferences = context.getSharedPreferences(
-              LEANPLUM, Context.MODE_PRIVATE);
-          SharedPreferences.Editor editor = preferences.edit();
-          long count = LeanplumEventDataManager.getEventsCount();
-          String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-            uuid = UUID.randomUUID().toString();
-            editor.putString(Constants.Defaults.UUID_KEY, uuid);
-            SharedPreferencesUtil.commitChanges(editor);
-          }
-          args.put(UUID_KEY, uuid);
-          LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
+        try {
+          synchronized (Request.class) {
+            Context context = Leanplum.getContext();
+            SharedPreferences preferences = context.getSharedPreferences(
+                    LEANPLUM, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            long count = LeanplumEventDataManager.getEventsCount();
+            String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+            if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+              uuid = UUID.randomUUID().toString();
+              editor.putString(Constants.Defaults.UUID_KEY, uuid);
+              SharedPreferencesUtil.commitChanges(editor);
+            }
+            args.put(UUID_KEY, uuid);
+            LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
 
-          dataBaseIndex = count;
-          // Checks if here response and/or error callback for this request. We need to add callbacks to
-          // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
-          // will handle error callback for this event.
-          if (response != null || error != null && !Util.isConnected()) {
-            eventCallbackManager.addCallbacks(currentRequest, response, error);
+            dataBaseIndex = count;
+            // Checks if here response and/or error callback for this request. We need to add callbacks to
+            // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
+            // will handle error callback for this event.
+            if (response != null || error != null && !Util.isConnected()) {
+              eventCallbackManager.addCallbacks(currentRequest, response, error);
+            }
           }
-          return null;
+        } catch (Throwable t) {
+          Util.handleException(t);
         }
+        return null;
       }
     });
   }
@@ -333,7 +337,7 @@ public class Request {
       error.error(e);
     }
     if (apiResponse != null) {
-      List<Map<String, Object>> requests = getUnsentRequests();
+      List<Map<String, Object>> requests = getUnsentRequests(1.0);
       List<Map<String, Object>> requestsToSend = removeIrrelevantBackgroundStartRequests(requests);
       apiResponse.response(requestsToSend, null, requests.size());
     }
@@ -466,27 +470,97 @@ public class Request {
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
-        sendRequests();
+        try {
+          sendRequests();
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
         return null;
       }
     });
   }
 
-  private void sendRequests() {
+
+  /**
+   * This class wraps the unsent requests, requests that we need to send
+   * and the JSON encoded string. Wrapping it in the class allows us to
+   * retain consistency in the requests we are sending and the actual
+   * JSON string.
+   */
+  static class RequestsWithEncoding {
+    List<Map<String, Object>> unsentRequests;
+    List<Map<String, Object>> requestsToSend;
+    String jsonEncodedString;
+  }
+
+  private RequestsWithEncoding getRequestsWithEncodedStringForErrors() {
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
+    String jsonEncodedRequestsToSend;
+
+    String uuid = UUID.randomUUID().toString();
+    for (Map<String, Object> error : localErrors) {
+      error.put(UUID_KEY, uuid);
+      unsentRequests.add(error);
+    }
+    requestsToSend = unsentRequests;
+    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+
+    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
+    // for errors, we send all unsent requests so they are identical
+    requestsWithEncoding.unsentRequests = unsentRequests;
+    requestsWithEncoding.requestsToSend = requestsToSend;
+    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+
+    return requestsWithEncoding;
+  }
+
+
+  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
+    try {
+      List<Map<String, Object>> unsentRequests;
+      List<Map<String, Object>> requestsToSend;
+      String jsonEncodedRequestsToSend;
+      RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
+
+      if (fraction < 0.01) { //base case
+        unsentRequests = new ArrayList<>(0);
+        requestsToSend = new ArrayList<>(0);
+      } else {
+        unsentRequests = getUnsentRequests(fraction);
+        requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+      }
+
+      jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+      requestsWithEncoding.unsentRequests = unsentRequests;
+      requestsWithEncoding.requestsToSend = requestsToSend;
+      requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+
+      return requestsWithEncoding;
+    } catch (OutOfMemoryError E) {
+      // half the requests will need less memory, recursively
+      return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
+    }
+  }
+
+  private RequestsWithEncoding getRequestsWithEncodedString() {
+    RequestsWithEncoding requestsWithEncoding;
     // Check if we have localErrors, if yes then we will send only errors to the server.
     if (localErrors.size() != 0) {
-      String uuid = UUID.randomUUID().toString();
-      for (Map<String, Object> error : localErrors) {
-        error.put(UUID_KEY, uuid);
-        unsentRequests.add(error);
-      }
-      requestsToSend = unsentRequests;
+      requestsWithEncoding = getRequestsWithEncodedStringForErrors();
     } else {
-      unsentRequests = getUnsentRequests();
-      requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests(1.0);
     }
+
+    return requestsWithEncoding;
+  }
+
+  private void sendRequests() {
+    RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
+
+    List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
+    List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
+    String jsonEncodedString = requestsWithEncoding.jsonEncodedString;
 
     if (requestsToSend.isEmpty()) {
       return;
@@ -496,7 +570,7 @@ public class Request {
     if (!Request.attachApiKeys(multiRequestArgs)) {
       return;
     }
-    multiRequestArgs.put(Constants.Params.DATA, jsonEncodeUnsentRequests(requestsToSend));
+    multiRequestArgs.put(Constants.Params.DATA, jsonEncodedString);
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
@@ -589,7 +663,7 @@ public class Request {
     }
   }
 
-  private static List<Map<String, Object>> getUnsentRequests() {
+  public List<Map<String, Object>> getUnsentRequests(double fraction) {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {
@@ -598,8 +672,8 @@ public class Request {
       SharedPreferences preferences = context.getSharedPreferences(
           LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
-
-      requestData = LeanplumEventDataManager.getEvents(MAX_EVENTS_PER_API_CALL);
+      int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
+      requestData = LeanplumEventDataManager.getEvents(count);
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
@@ -646,7 +720,7 @@ public class Request {
     return relevantRequests;
   }
 
-  private static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
+  protected static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);
