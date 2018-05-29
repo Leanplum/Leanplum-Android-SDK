@@ -383,7 +383,7 @@ public class LeanplumTest extends AbstractTest {
       }});
     }};
 
-    VarCache.applyVariableDiffs(null, messages, null, null, null, variants);
+    VarCache.applyVariableDiffs(null, messages, null, null, null, variants, null);
     assertEquals(variants, Leanplum.variants());
     assertEquals(messages, Leanplum.messageMetadata());
   }
