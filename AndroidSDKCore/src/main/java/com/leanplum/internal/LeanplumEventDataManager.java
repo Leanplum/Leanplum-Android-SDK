@@ -29,7 +29,6 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 
 import com.leanplum.Leanplum;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -42,8 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * LeanplumEventDataManager class to work with SQLite.
@@ -60,7 +57,6 @@ public class LeanplumEventDataManager {
   private static SQLiteDatabase database;
   private static LeanplumDataBaseManager databaseManager;
   private static ContentValues contentValues = new ContentValues();
-  private static final Executor sqlLiteThreadExecutor = Executors.newSingleThreadExecutor();
 
   static boolean willSendErrorLog = false;
 
@@ -69,7 +65,7 @@ public class LeanplumEventDataManager {
    *
    * @param context Current context.
    */
-  public static synchronized void init(Context context) {
+  public static void init(Context context) {
     if (database != null) {
       Log.e("Database is already initialized.");
       return;
@@ -183,17 +179,6 @@ public class LeanplumEventDataManager {
       willSendErrorLog = true;
       Util.handleException(t);
     }
-  }
-
-  /**
-   * Execute async task on single thread Executer.
-   *
-   * @param task Async task to execute.
-   * @param params Params.
-   */
-  static <T> void executeAsyncTask(AsyncTask<T, ?, ?> task,
-      T... params) {
-    task.executeOnExecutor(sqlLiteThreadExecutor, params);
   }
 
   private static class LeanplumDataBaseManager extends SQLiteOpenHelper {
