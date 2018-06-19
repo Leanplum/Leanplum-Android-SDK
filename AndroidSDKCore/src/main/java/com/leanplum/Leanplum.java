@@ -251,10 +251,10 @@ public class Leanplum {
   }
 
   /**
-   * Set content assignments to be obtained from the server.
+   * Set variant debig info to be obtained from the server.
    */
-  public static void setContentAssignmentsEnabled(boolean contentAssignmentsEnabled) {
-    LeanplumInternal.setIsContentAssignmentsEnabled(contentAssignmentsEnabled);
+  public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
+    LeanplumInternal.setVariantDebugInfoEnabled(variantDebugInfoEnabled);
   }
 
   /**
@@ -671,8 +671,8 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
-    if (LeanplumInternal.getIsContentAssignmentsEnabled()) {
-      params.put(Constants.Params.INCLUDE_CONTENT_ASSIGNMENTS, true);
+    if (LeanplumInternal.getIsVariantDebugInfoEnabled()) {
+      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, true);
     }
 
     Util.initializePreLeanplumInstall(params);
@@ -811,10 +811,10 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            Map<String, Object> contentAssignments = JsonConverter.mapFromJsonOrDefault(
-                    response.optJSONObject(Constants.Keys.CONTENT_ASSIGNMENTS));
-            if (contentAssignments.size() > 0) {
-              VarCache.setContentAssignments(contentAssignments);
+            Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+                    response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+            if (variantDebugInfo.size() > 0) {
+              VarCache.setVariantDebugInfo(variantDebugInfo);
             }
 
             // Allow bidirectional realtime variable updates.
@@ -1941,8 +1941,8 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
-      if (LeanplumInternal.getIsContentAssignmentsEnabled()) {
-        params.put(Constants.Params.INCLUDE_CONTENT_ASSIGNMENTS, true);
+      if (LeanplumInternal.getIsVariantDebugInfoEnabled()) {
+        params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, true);
       }
       Request req = Request.post(Constants.Methods.GET_VARS, params);
       req.onResponse(new Request.ResponseCallback() {
@@ -1962,10 +1962,10 @@ public class Leanplum {
                 Constants.loggingEnabled = true;
               }
 
-              Map<String, Object> contentAssignments = JsonConverter.mapFromJsonOrDefault(
-                      response.optJSONObject(Constants.Keys.CONTENT_ASSIGNMENTS));
-              if (contentAssignments.size() > 0) {
-                VarCache.setContentAssignments(contentAssignments);
+              Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+                      response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+              if (variantDebugInfo.size() > 0) {
+                VarCache.setVariantDebugInfo(variantDebugInfo);
               }
             }
             if (callback != null) {
@@ -2074,12 +2074,12 @@ public class Leanplum {
    * on the server.
    * Default is NO.
    */
-  public static Map<String, Object> contentAssignments() {
-    Map<String, Object> contentAssignments = VarCache.getContentAssignments();
-    if (contentAssignments == null) {
+  public static Map<String, Object> variantDebugInfo() {
+    Map<String, Object> variantDebugInfo = VarCache.getVariantDebugInfo();
+    if (variantDebugInfo == null) {
       return new HashMap<>();
     }
-    return contentAssignments;
+    return variantDebugInfo;
   }
 
   /**
