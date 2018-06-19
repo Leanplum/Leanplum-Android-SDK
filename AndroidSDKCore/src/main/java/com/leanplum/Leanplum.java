@@ -254,7 +254,7 @@ public class Leanplum {
    * Set variant debig info to be obtained from the server.
    */
   public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
-    LeanplumInternal.setVariantDebugInfoEnabled(variantDebugInfoEnabled);
+    LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
   }
 
   /**
