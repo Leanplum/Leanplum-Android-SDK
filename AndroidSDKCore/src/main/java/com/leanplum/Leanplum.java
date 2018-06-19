@@ -251,6 +251,13 @@ public class Leanplum {
   }
 
   /**
+   * Set variant debig info to be obtained from the server.
+   */
+  public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
+    LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
+  }
+
+  /**
    * Whether screen tracking is enabled or not.
    *
    * @return Boolean - true if enabled
@@ -664,6 +671,10 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
+    if (LeanplumInternal.getIsVariantDebugInfoEnabled()) {
+      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, true);
+    }
+
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
@@ -798,6 +809,12 @@ public class Leanplum {
 
             if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
               Constants.loggingEnabled = true;
+            }
+
+            Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+                    response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+            if (variantDebugInfo.size() > 0) {
+              VarCache.setVariantDebugInfo(variantDebugInfo);
             }
 
             // Allow bidirectional realtime variable updates.
@@ -1924,6 +1941,9 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
+      if (LeanplumInternal.getIsVariantDebugInfoEnabled()) {
+        params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, true);
+      }
       Request req = Request.post(Constants.Methods.GET_VARS, params);
       req.onResponse(new Request.ResponseCallback() {
         @Override
@@ -1940,6 +1960,12 @@ public class Leanplum {
               }
               if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
+              }
+
+              Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+                      response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+              if (variantDebugInfo.size() > 0) {
+                VarCache.setVariantDebugInfo(variantDebugInfo);
               }
             }
             if (callback != null) {
@@ -2041,6 +2067,19 @@ public class Leanplum {
       return new HashMap<>();
     }
     return messages;
+  }
+
+  /**
+   * Set this to true if you want details about the variable assignments
+   * on the server.
+   * Default is NO.
+   */
+  public static Map<String, Object> variantDebugInfo() {
+    Map<String, Object> variantDebugInfo = VarCache.getVariantDebugInfo();
+    if (variantDebugInfo == null) {
+      return new HashMap<>();
+    }
+    return variantDebugInfo;
   }
 
   /**
