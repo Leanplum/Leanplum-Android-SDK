@@ -339,13 +339,12 @@ public class VarCache {
     SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
     if (Request.token() == null) {
       applyVariableDiffs(
-              new HashMap<String, Object>(),
-              new HashMap<String, Object>(),
-              new ArrayList<Map<String, Object>>(),
-              new ArrayList<Map<String, Object>>(),
-              new HashMap<String, Object>(),
-              new ArrayList<Map<String, Object>>(),
-              new HashMap<String, Object>());
+          new HashMap<String, Object>(),
+          new HashMap<String, Object>(),
+          new ArrayList<Map<String, Object>>(),
+          new ArrayList<Map<String, Object>>(),
+          new HashMap<String, Object>(),
+          new ArrayList<Map<String, Object>>());
       return;
     }
     try {
@@ -361,15 +360,13 @@ public class VarCache {
           defaults, Constants.Defaults.EVENT_RULES_KEY, "[]");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
-      String contentAssignments = aesContext.decodePreference(defaults, Constants.Keys.CONTENT_ASSIGNMENTS, "{}");
       applyVariableDiffs(
-              JsonConverter.fromJson(variables),
-              JsonConverter.fromJson(messages),
-              JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(updateRules)),
-              JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(eventRules)),
-              JsonConverter.fromJson(regions),
-              JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
-              JsonConverter.fromJson(contentAssignments));
+          JsonConverter.fromJson(variables),
+          JsonConverter.fromJson(messages),
+          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(updateRules)),
+          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(eventRules)),
+          JsonConverter.fromJson(regions),
+          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)));
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
         if (Util.isValidDeviceId(deviceId)) {
@@ -447,16 +444,6 @@ public class VarCache {
     } catch (JSONException e1) {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
     }
-
-    try {
-      if (contentAssignments != null) {
-        String contentAssignmentsJson = aesContext.encrypt(JsonConverter.toJson(contentAssignments));
-        editor.putString(Constants.Keys.CONTENT_ASSIGNMENTS, contentAssignmentsJson);
-      }
-    } catch (Throwable e) {
-      Util.handleException(e);
-    }
-
     editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(Request.deviceId()));
     editor.putString(Constants.Params.USER_ID, aesContext.encrypt(Request.userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
@@ -512,8 +499,7 @@ public class VarCache {
       List<Map<String, Object>> updateRules,
       List<Map<String, Object>> eventRules,
       Map<String, Object> regions,
-      List<Map<String, Object>> variants,
-      Map<String, Object> contentAssignments) {
+      List<Map<String, Object>> variants) {
     if (diffs != null) {
       VarCache.diffs = diffs;
       computeMergedDictionary();
@@ -590,9 +576,6 @@ public class VarCache {
       VarCache.variants = variants;
     }
 
-    if (contentAssignments != null) {
-      VarCache.contentAssignments = contentAssignments;
-    }
     contentVersion++;
 
     if (!silent) {

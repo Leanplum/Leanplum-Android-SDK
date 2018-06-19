@@ -251,6 +251,13 @@ public class Leanplum {
   }
 
   /**
+   * Set content assignments to be obtained from the server.
+   */
+  public static void setContentAssignmentsEnabled(boolean contentAssignmentsEnabled) {
+    LeanplumInternal.setIsContentAssignmentsEnabled(contentAssignmentsEnabled);
+  }
+
+  /**
    * Whether screen tracking is enabled or not.
    *
    * @return Boolean - true if enabled
@@ -470,12 +477,7 @@ public class Leanplum {
   }
 
   static synchronized void start(final Context context, final String userId,
-                                 final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
-    Leanplum.start(context, userId, attributes, response, isBackground, false);
-  }
-
-    static synchronized void start(final Context context, final String userId,
-                                   final Map<String, ?> attributes, StartCallback response, final Boolean isBackground, final boolean includeContentAssignments) {
+      final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
     try {
       OsHandler.getInstance();
 
@@ -504,8 +506,7 @@ public class Leanplum {
             VarCache.getUpdateRuleDiffs(),
             VarCache.getEventRuleDiffs(),
             new HashMap<String, Object>(),
-            new ArrayList<Map<String, Object>>(),
-                new HashMap<String, Object>());
+            new ArrayList<Map<String, Object>>());
         LeanplumInbox.getInstance().update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
         return;
       }
@@ -570,7 +571,7 @@ public class Leanplum {
         @Override
         protected Void doInBackground(Void... params) {
           try {
-            startHelper(userId, validAttributes, actuallyInBackground, includeContentAssignments);
+            startHelper(userId, validAttributes, actuallyInBackground);
           } catch (Throwable t) {
             Util.handleException(t);
           }
@@ -598,7 +599,7 @@ public class Leanplum {
   }
 
   private static void startHelper(
-      String userId, final Map<String, ?> attributes, final boolean isBackground, boolean includeContentAssignments) {
+      String userId, final Map<String, ?> attributes, final boolean isBackground) {
     LeanplumEventDataManager.init(context);
     checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
@@ -670,7 +671,7 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
-    if (includeContentAssignments) {
+    if (LeanplumInternal.getIsContentAssignmentsEnabled()) {
       params.put(Constants.Params.INCLUDE_CONTENT_ASSIGNMENTS, true);
     }
 
@@ -937,8 +938,6 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
-    Map<String, Object> contentAssignments = JsonConverter.mapFromJsonOrDefault(
-            response.optJSONObject(Constants.Keys.CONTENT_ASSIGNMENTS));
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
@@ -947,7 +946,7 @@ public class Leanplum {
         || !eventRules.equals(VarCache.getEventRuleDiffs())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(values, messages, updateRules,
-          eventRules, regions, variants, contentAssignments);
+          eventRules, regions, variants);
     }
   }
 
@@ -1932,20 +1931,6 @@ public class Leanplum {
    */
   @SuppressWarnings("SameParameterValue")
   public static void forceContentUpdate(final VariablesChangedCallback callback) {
-    forceContentUpdate(callback, false);
-  }
-
-  /**
-   * Forces content to update from the server. If variables have changed, the appropriate callbacks
-   * will fire. Use sparingly as if the app is updated, you'll have to deal with potentially
-   * inconsistent state or user experience.
-   *
-   * @param callback The callback to invoke when the call completes from the server. The callback
-   * will fire regardless of whether the variables have changed.
-   * @param includeContentAssignments Boolean to decide whether or not the response should include
-   *                                  details about the A/B tests running for this user.
-   */
-  public static void forceContentUpdate(final VariablesChangedCallback callback, boolean includeContentAssignments) {
     if (Constants.isNoop()) {
       if (callback != null) {
         OsHandler.getInstance().post(callback);
@@ -1956,7 +1941,7 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
-      if (includeContentAssignments) {
+      if (LeanplumInternal.getIsContentAssignmentsEnabled()) {
         params.put(Constants.Params.INCLUDE_CONTENT_ASSIGNMENTS, true);
       }
       Request req = Request.post(Constants.Methods.GET_VARS, params);
