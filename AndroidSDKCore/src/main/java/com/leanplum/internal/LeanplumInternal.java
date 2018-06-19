@@ -73,7 +73,7 @@ public class LeanplumInternal {
   private static final Queue<Map<String, ?>> userAttributeChanges = new ConcurrentLinkedQueue<>();
   private static final ArrayList<Runnable> startIssuedHandlers = new ArrayList<>();
   private static boolean isScreenTrackingEnabled = false;
-  private static boolean isContentAssignmentsEnabled = false;
+  private static boolean isVariantDebugInfoEnabled = false;
 
   private static void onHasStartedAndRegisteredAsDeveloperAndFinishedSyncing() {
     if (!hasStartedAndRegisteredAsDeveloper) {
@@ -674,12 +674,12 @@ public class LeanplumInternal {
     return isScreenTrackingEnabled;
   }
 
-  public static boolean getIsContentAssignmentsEnabled() {
-    return isContentAssignmentsEnabled;
+  public static boolean getIsVariantDebugInfoEnabled() {
+    return isVariantDebugInfoEnabled;
   }
 
-  public static void setIsContentAssignmentsEnabled(boolean _isContentAssignmentsEnabled) {
-    isContentAssignmentsEnabled = _isContentAssignmentsEnabled;
+  public static void setIsVariantDebugInfoEnabled(boolean _isVariantDebugInfoEnabled) {
+    isVariantDebugInfoEnabled= _isVariantDebugInfoEnabled;
   }
 
   public static void enableAutomaticScreenTracking() {

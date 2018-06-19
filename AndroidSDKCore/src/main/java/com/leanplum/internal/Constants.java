@@ -144,7 +144,7 @@ public class Constants {
     public static final String IAP_CURRENCY_CODE = "currencyCode";
     public static final String IAP_ITEM = "item";
     public static final String INCLUDE_DEFAULTS = "includeDefaults";
-    public static final String INCLUDE_CONTENT_ASSIGNMENTS = "includeContentAssignments";
+    public static final String INCLUDE_VARIANT_DEBUG_INFO = "includeVariantDebugInfo";
     public static final String INCLUDE_MESSAGE_ID = "includeMessageId";
     public static final String INFO = "info";
     public static final String INSTALL_DATE = "installDate";
@@ -201,7 +201,7 @@ public class Constants {
     public static final String REGION = "region";
     public static final String REGION_STATE = "regionState";
     public static final String REGIONS = "regions";
-    public static final String CONTENT_ASSIGNMENTS = "contentAssignments";
+    public static final String VARIANT_DEBUG_INFO = "variantDebugInfo";
     public static final String SIZE = "size";
     public static final String SUBTITLE = "Subtitle";
     public static final String SYNC_INBOX = "syncNewsfeed";
