@@ -27,6 +27,8 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
+
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
@@ -48,6 +50,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.models.VariantDebugInfo;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -809,11 +812,7 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
-                    response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
-            if (variantDebugInfo.size() > 0) {
-              VarCache.setVariantDebugInfo(variantDebugInfo);
-            }
+            parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
             if (Constants.isDevelopmentModeEnabled) {
@@ -1959,11 +1958,7 @@ public class Leanplum {
                 Constants.loggingEnabled = true;
               }
 
-              Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
-                      response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
-              if (variantDebugInfo.size() > 0) {
-                VarCache.setVariantDebugInfo(variantDebugInfo);
-              }
+              parseVariantDebugInfo(response);
             }
             if (callback != null) {
               OsHandler.getInstance().post(callback);
@@ -2069,12 +2064,8 @@ public class Leanplum {
   /**
    * Details about the variable assignments on the server.
    */
-  public static Map<String, Object> variantDebugInfo() {
-    Map<String, Object> variantDebugInfo = VarCache.getVariantDebugInfo();
-    if (variantDebugInfo == null) {
-      return new HashMap<>();
-    }
-    return variantDebugInfo;
+  public static VariantDebugInfo variantDebugInfo() {
+    return VarCache.getVariantDebugInfo();
   }
 
   /**
@@ -2125,5 +2116,18 @@ public class Leanplum {
    */
   public static boolean isLocationCollectionEnabled() {
     return locationCollectionEnabled;
+  }
+
+  private static void parseVariantDebugInfo(JSONObject response) {
+    try {
+      String variantDebugInfoString = response.optString(Constants.Keys.VARIANT_DEBUG_INFO);
+      if (variantDebugInfoString != null) {
+        Gson gson = new Gson();
+        VariantDebugInfo variantDebugInfo = gson.fromJson(variantDebugInfoString, VariantDebugInfo.class);
+        VarCache.setVariantDebugInfo(variantDebugInfo);
+      }
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
   }
 }

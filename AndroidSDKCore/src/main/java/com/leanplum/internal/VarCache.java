@@ -30,6 +30,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
 import com.leanplum.internal.FileManager.HashResults;
+import com.leanplum.models.VariantDebugInfo;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
@@ -87,7 +88,7 @@ public class VarCache {
   private static boolean silent;
   private static int contentVersion;
   private static Map<String, Object> userAttributes;
-  private static Map<String, Object> variantDebugInfo;
+  private static VariantDebugInfo variantDebugInfo;
 
   private static final String NAME_COMPONENT_REGEX = "(?:[^\\.\\[.(\\\\]+|\\\\.)+";
   private static final Pattern NAME_COMPONENT_PATTERN = Pattern.compile(NAME_COMPONENT_REGEX);
@@ -323,11 +324,11 @@ public class VarCache {
     return hasReceivedDiffs;
   }
 
-  public static Map<String, Object> getVariantDebugInfo() {
+  public static VariantDebugInfo getVariantDebugInfo() {
     return variantDebugInfo;
   }
 
-  public static void setVariantDebugInfo(Map<String, Object> _variantDebugInfo) {
+  public static void setVariantDebugInfo(VariantDebugInfo _variantDebugInfo) {
     variantDebugInfo = _variantDebugInfo;
   }
 
