@@ -671,9 +671,7 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
-    if (LeanplumInternal.getIsVariantDebugInfoEnabled()) {
-      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, true);
-    }
+    params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
 
     Util.initializePreLeanplumInstall(params);
 
@@ -1941,9 +1939,8 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
-      if (LeanplumInternal.getIsVariantDebugInfoEnabled()) {
-        params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, true);
-      }
+      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
+
       Request req = Request.post(Constants.Methods.GET_VARS, params);
       req.onResponse(new Request.ResponseCallback() {
         @Override
@@ -2070,9 +2067,7 @@ public class Leanplum {
   }
 
   /**
-   * Set this to true if you want details about the variable assignments
-   * on the server.
-   * Default is NO.
+   * Details about the variable assignments on the server.
    */
   public static Map<String, Object> variantDebugInfo() {
     Map<String, Object> variantDebugInfo = VarCache.getVariantDebugInfo();

@@ -328,7 +328,7 @@ public class VarCache {
   }
 
   public static void setVariantDebugInfo(Map<String, Object> _variantDebugInfo) {
-    variantDebugInfo= _variantDebugInfo;
+    variantDebugInfo = _variantDebugInfo;
   }
 
   public static void loadDiffs() {
