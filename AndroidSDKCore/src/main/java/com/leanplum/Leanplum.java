@@ -251,7 +251,9 @@ public class Leanplum {
   }
 
   /**
-   * Set variant debig info to be obtained from the server.
+   * Set this to true if you want details about the variable assignments
+   * on the server.
+   * Default is NO.
    */
   public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
     LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
