@@ -511,7 +511,8 @@ public class Leanplum {
             VarCache.getUpdateRuleDiffs(),
             VarCache.getEventRuleDiffs(),
             new HashMap<String, Object>(),
-            new ArrayList<Map<String, Object>>());
+            new ArrayList<Map<String, Object>>(),
+                null);
         LeanplumInbox.getInstance().update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
         return;
       }
@@ -937,6 +938,16 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
+    VariantDebugInfo variantDebugInfo = null;
+    try {
+      String variantDebugInfoString = response.optString(Constants.Keys.VARIANT_DEBUG_INFO);
+      if (variantDebugInfoString != null) {
+        Gson gson = new Gson();
+        variantDebugInfo = gson.fromJson(variantDebugInfoString, VariantDebugInfo.class);
+      }
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
@@ -945,7 +956,7 @@ public class Leanplum {
         || !eventRules.equals(VarCache.getEventRuleDiffs())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(values, messages, updateRules,
-          eventRules, regions, variants);
+          eventRules, regions, variants, variantDebugInfo);
     }
   }
 
