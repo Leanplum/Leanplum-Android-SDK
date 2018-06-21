@@ -36,7 +36,7 @@ public class Constants {
   public static int SOCKET_PORT = 80;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
-  public static String LEANPLUM_VERSION = "4.0.3";
+  public static String LEANPLUM_VERSION = "4.0.4";
   public static String CLIENT = "android";
 
   static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
