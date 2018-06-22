@@ -12,7 +12,7 @@ public class VariantDebugInfo {
         this.abTests = abTests;
     }
 
-    public List<ABTest> GetAbTests() {
+    public List<ABTest> getAbTests() {
         return abTests;
     }
 

@@ -40,6 +40,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
@@ -357,6 +358,36 @@ public class LeanplumTest extends AbstractTest {
     countDownLatch.await(10, TimeUnit.SECONDS);
     assertTrue(Leanplum.hasStarted());
     assertTrue(Request.userId().equals(userId));
+  }
+
+  @Test
+  public void testStartWithVariantDebugInfo() {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US",
+            "includeVariantDebugInfo", true
+    );
+
+    Leanplum.setVariantDebugInfoEnabled(true);
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        // Validate request.
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+    Leanplum.start(mContext);
+    assertTrue(Leanplum.hasStarted());
   }
 
   /**
@@ -771,6 +802,13 @@ public class LeanplumTest extends AbstractTest {
     // Validate components.
     assertArrayEquals(groupStringVariable.nameComponents(), new String[] {"groups", "strings"});
     assertArrayEquals(groupIntegerVariable.nameComponents(), new String[] {"groups", "integers"});
+  }
+
+  @Test
+  public void testVariantDebugInfo() throws Exception {
+    setupSDK(mContext, "/responses/start_with_variant_debug_info_response.json");
+    assertNotNull(Leanplum.variantDebugInfo());
+    assertEquals(Leanplum.variantDebugInfo().getAbTests().size(), 2);
   }
 
   @Test
