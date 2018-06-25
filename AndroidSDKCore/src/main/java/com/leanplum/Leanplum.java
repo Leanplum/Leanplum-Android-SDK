@@ -27,8 +27,6 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 
-import com.google.gson.Gson;
-
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
@@ -938,16 +936,8 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
-    VariantDebugInfo variantDebugInfo = null;
-    try {
-      String variantDebugInfoString = response.optString(Constants.Keys.VARIANT_DEBUG_INFO);
-      if (variantDebugInfoString != null) {
-        Gson gson = new Gson();
-        variantDebugInfo = gson.fromJson(variantDebugInfoString, VariantDebugInfo.class);
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
-    }
+    Map<String, Object> variantDebugInfoDictionary = (Map<String, Object>)response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
+    VariantDebugInfo variantDebugInfo = new VariantDebugInfo(variantDebugInfoDictionary);
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
@@ -2131,16 +2121,14 @@ public class Leanplum {
     return locationCollectionEnabled;
   }
 
-  private static void parseVariantDebugInfo(JSONObject response) {
-    try {
-      String variantDebugInfoString = response.optString(Constants.Keys.VARIANT_DEBUG_INFO);
-      if (variantDebugInfoString != null) {
-        Gson gson = new Gson();
-        VariantDebugInfo variantDebugInfo = gson.fromJson(variantDebugInfoString, VariantDebugInfo.class);
-        VarCache.setVariantDebugInfo(variantDebugInfo);
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
+    private static void parseVariantDebugInfo(JSONObject response) {
+        try {
+            Map<String, Object> variantDebugInfoDictionary = (Map<String, Object>)  response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
+            VariantDebugInfo variantDebugInfo = new VariantDebugInfo(variantDebugInfoDictionary);
+            VarCache.setVariantDebugInfo(variantDebugInfo);
+        } catch (Throwable t) {
+            Util.handleException(t);
+        }
     }
-  }
+
 }

@@ -24,7 +24,6 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.google.gson.Gson;
 import com.leanplum.ActionContext;
 import com.leanplum.CacheUpdateBlock;
 import com.leanplum.Leanplum;
@@ -363,15 +362,8 @@ public class VarCache {
           defaults, Constants.Defaults.EVENT_RULES_KEY, "[]");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
-      VariantDebugInfo debugInfo = null;
-
-      try {
-        Gson gson = new Gson();
-        String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
-        debugInfo = gson.fromJson(variantDebugInfo, VariantDebugInfo.class);
-      } catch (Throwable t) {
-        Util.handleException(t);
-      }
+      String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
+      VariantDebugInfo debugInfo = new VariantDebugInfo(JsonConverter.fromJson(variantDebugInfo));
 
       applyVariableDiffs(
           JsonConverter.fromJson(variables),
@@ -459,14 +451,9 @@ public class VarCache {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
     }
 
-    try {
-      if (variantDebugInfo != null) {
-        Gson gson = new Gson();
-        String variantDebugInfoJson = gson.toJson(variantDebugInfo);
-        editor.putString(Constants.Keys.VARIANT_DEBUG_INFO, aesContext.encrypt(variantDebugInfoJson));
-      }
-    } catch (Throwable t) {
-      Log.e("Error converting variantDebugInfo to JSON.\n" + Log.getStackTraceString(t));
+    if (variantDebugInfo != null) {
+      String variantDebugInfoJson = JsonConverter.toJson(variantDebugInfo.asDictionary());
+      editor.putString(Constants.Keys.VARIANT_DEBUG_INFO, aesContext.encrypt(variantDebugInfoJson));
     }
 
     editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(Request.deviceId()));
