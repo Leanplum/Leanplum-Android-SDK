@@ -231,28 +231,32 @@ public class Request {
   }
 
   private void saveRequestForLater(Map<String, Object> args) {
-    synchronized (Request.class) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      long count = LeanplumEventDataManager.getEventsCount();
-      String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-      if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-        uuid = UUID.randomUUID().toString();
-        editor.putString(Constants.Defaults.UUID_KEY, uuid);
-        SharedPreferencesUtil.commitChanges(editor);
-      }
-      args.put(UUID_KEY, uuid);
-      LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
+    try {
+      synchronized (Request.class) {
+        Context context = Leanplum.getContext();
+        SharedPreferences preferences = context.getSharedPreferences(
+            LEANPLUM, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        long count = LeanplumEventDataManager.getEventsCount();
+        String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+        if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+          uuid = UUID.randomUUID().toString();
+          editor.putString(Constants.Defaults.UUID_KEY, uuid);
+          SharedPreferencesUtil.commitChanges(editor);
+        }
+        args.put(UUID_KEY, uuid);
+        LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
 
-      dataBaseIndex = count;
-      // Checks if here response and/or error callback for this request. We need to add callbacks to
-      // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
-      // will handle error callback for this event.
-      if (response != null || error != null && !Util.isConnected()) {
-        eventCallbackManager.addCallbacks(this, response, error);
+        dataBaseIndex = count;
+        // Checks if here response and/or error callback for this request. We need to add callbacks to
+        // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
+        // will handle error callback for this event.
+        if (response != null || error != null && !Util.isConnected()) {
+          eventCallbackManager.addCallbacks(this, response, error);
+        }
       }
+    } catch (Throwable t) {
+      Util.handleException(t);
     }
   }
 
