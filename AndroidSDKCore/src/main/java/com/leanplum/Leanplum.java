@@ -779,6 +779,7 @@ public class Leanplum {
               Log.d("No variants received from the server.");
             }
 
+            parseVariantDebugInfo(response);
             if (BuildUtil.isNotificationChannelSupported(context)) {
               // Get notification channels and groups.
               JSONArray notificationChannels = response.optJSONArray(
@@ -812,8 +813,6 @@ public class Leanplum {
             if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
               Constants.loggingEnabled = true;
             }
-
-            parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
             if (Constants.isDevelopmentModeEnabled) {
@@ -2123,11 +2122,14 @@ public class Leanplum {
 
     private static void parseVariantDebugInfo(JSONObject response) {
         try {
-            Map<String, Object> variantDebugInfoDictionary = (Map<String, Object>)  response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
-            VariantDebugInfo variantDebugInfo = new VariantDebugInfo(variantDebugInfoDictionary);
-            VarCache.setVariantDebugInfo(variantDebugInfo);
+          JSONObject variantDebugInfoDictionary = response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
+          VariantDebugInfo variantDebugInfo = new VariantDebugInfo(JsonConverter.mapFromJson(variantDebugInfoDictionary));
+          VarCache.setVariantDebugInfo(variantDebugInfo);
+//          VarCache.saveDiffs();
+          VarCache.loadDiffs();
         } catch (Throwable t) {
-            Util.handleException(t);
+          Log.e(t);
+          Util.handleException(t);
         }
     }
 

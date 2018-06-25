@@ -4,14 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ABTest {
-    private String id;
-    private String variantId;
+    private Long id;
+    private Long variantId;
     private Map<String, Object> vars;
 
     public ABTest() {
     }
 
-    public ABTest(String id, String variantId, Map<String, Object> vars) {
+    public ABTest(Long id, Long variantId, Map<String, Object> vars) {
         this.id = id;
         this.variantId = variantId;
         this.vars = vars;
@@ -20,24 +20,24 @@ public class ABTest {
     //todo: move to framework
     public ABTest(Map<String, Object> dict) {
         Map<String, Object> vars = (Map<String, Object>) dict.get("vars");
-        this.id = (String) dict.get("id");
-        this.variantId = (String) dict.get("variantId");
+        this.id = (Long) dict.get("id");
+        this.variantId = (Long) dict.get("variantId");
         this.vars = vars;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getVariantId() {
+    public Long getVariantId() {
         return id;
     }
 
-    public void setVariantId(String variantId) {
+    public void setVariantId(Long variantId) {
         this.variantId = variantId;
     }
 

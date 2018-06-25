@@ -17,7 +17,11 @@ public class VariantDebugInfo {
 
     //todo: move to framework
     public VariantDebugInfo(Map<String, Object> dict) {
-        List<ABTest> abTests = (List<ABTest>) dict.get("abTests");
+        List<Map<String, Object>> abTestDicts = (List<Map<String, Object>>) dict.get("abTests");
+        List<ABTest> abTests = new ArrayList<>();
+        for (Map<String, Object> abTestDict : abTestDicts) {
+            abTests.add(new ABTest(abTestDict));
+        }
         this.abTests = abTests;
     }
 
