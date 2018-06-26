@@ -508,7 +508,8 @@ public class Leanplum {
             VarCache.getUpdateRuleDiffs(),
             VarCache.getEventRuleDiffs(),
             new HashMap<String, Object>(),
-            new ArrayList<Map<String, Object>>());
+            new ArrayList<Map<String, Object>>(),
+            new HashMap<String, Object>());
         LeanplumInbox.getInstance().update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
         return;
       }
@@ -811,11 +812,7 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
-                    response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
-            if (variantDebugInfo.size() > 0) {
-              VarCache.setVariantDebugInfo(variantDebugInfo);
-            }
+            parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
             if (Constants.isDevelopmentModeEnabled) {
@@ -938,6 +935,8 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
+    Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+            response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
@@ -946,7 +945,7 @@ public class Leanplum {
         || !eventRules.equals(VarCache.getEventRuleDiffs())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(values, messages, updateRules,
-          eventRules, regions, variants);
+          eventRules, regions, variants, variantDebugInfo);
     }
   }
 
@@ -1961,11 +1960,7 @@ public class Leanplum {
                 Constants.loggingEnabled = true;
               }
 
-              Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
-                      response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
-              if (variantDebugInfo.size() > 0) {
-                VarCache.setVariantDebugInfo(variantDebugInfo);
-              }
+              parseVariantDebugInfo(response);
             }
             if (callback != null) {
               OsHandler.getInstance().post(callback);
@@ -2127,5 +2122,13 @@ public class Leanplum {
    */
   public static boolean isLocationCollectionEnabled() {
     return locationCollectionEnabled;
+  }
+
+  private static void parseVariantDebugInfo(JSONObject response) {
+    Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+            response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+    if (variantDebugInfo.size() > 0) {
+      VarCache.setVariantDebugInfo(variantDebugInfo);
+    }
   }
 }
