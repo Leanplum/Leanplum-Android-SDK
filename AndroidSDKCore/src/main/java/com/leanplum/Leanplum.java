@@ -2125,8 +2125,6 @@ public class Leanplum {
           JSONObject variantDebugInfoDictionary = response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
           VariantDebugInfo variantDebugInfo = new VariantDebugInfo(JsonConverter.mapFromJson(variantDebugInfoDictionary));
           VarCache.setVariantDebugInfo(variantDebugInfo);
-          VarCache.saveDiffs();
-          VarCache.loadDiffs();
         } catch (Throwable t) {
           Log.e(t);
           Util.handleException(t);
