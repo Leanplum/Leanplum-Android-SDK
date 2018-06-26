@@ -48,6 +48,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.models.VariantDebugInfo;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -248,6 +249,15 @@ public class Leanplum {
    */
   public static void trackAllAppScreens() {
     LeanplumInternal.enableAutomaticScreenTracking();
+  }
+
+  /**
+   * Set this to true if you want details about the variable assignments
+   * on the server.
+   * Default is NO.
+   */
+  public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
+    LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
   }
 
   /**
@@ -499,7 +509,8 @@ public class Leanplum {
             VarCache.getUpdateRuleDiffs(),
             VarCache.getEventRuleDiffs(),
             new HashMap<String, Object>(),
-            new ArrayList<Map<String, Object>>());
+            new ArrayList<Map<String, Object>>(),
+                null);
         LeanplumInbox.getInstance().update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
         return;
       }
@@ -664,6 +675,8 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
+    params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
+
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
@@ -766,6 +779,7 @@ public class Leanplum {
               Log.d("No variants received from the server.");
             }
 
+            parseVariantDebugInfo(response);
             if (BuildUtil.isNotificationChannelSupported(context)) {
               // Get notification channels and groups.
               JSONArray notificationChannels = response.optJSONArray(
@@ -921,6 +935,8 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
+    Map<String, Object> variantDebugInfoDictionary = (Map<String, Object>)response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
+    VariantDebugInfo variantDebugInfo = new VariantDebugInfo(variantDebugInfoDictionary);
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
@@ -929,7 +945,7 @@ public class Leanplum {
         || !eventRules.equals(VarCache.getEventRuleDiffs())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(values, messages, updateRules,
-          eventRules, regions, variants);
+          eventRules, regions, variants, variantDebugInfo);
     }
   }
 
@@ -1924,6 +1940,8 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
+      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
+
       Request req = Request.post(Constants.Methods.GET_VARS, params);
       req.onResponse(new Request.ResponseCallback() {
         @Override
@@ -1941,6 +1959,8 @@ public class Leanplum {
               if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
               }
+
+              parseVariantDebugInfo(response);
             }
             if (callback != null) {
               OsHandler.getInstance().post(callback);
@@ -2044,6 +2064,13 @@ public class Leanplum {
   }
 
   /**
+   * Details about the variable assignments on the server.
+   */
+  public static VariantDebugInfo variantDebugInfo() {
+    return VarCache.getVariantDebugInfo();
+  }
+
+  /**
    * Set location manually. Calls setDeviceLocation with cell type. Best if used in after calling
    * disableLocationCollection.
    *
@@ -2092,4 +2119,16 @@ public class Leanplum {
   public static boolean isLocationCollectionEnabled() {
     return locationCollectionEnabled;
   }
+
+    private static void parseVariantDebugInfo(JSONObject response) {
+        try {
+          JSONObject variantDebugInfoDictionary = response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO);
+          VariantDebugInfo variantDebugInfo = new VariantDebugInfo(JsonConverter.mapFromJson(variantDebugInfoDictionary));
+          VarCache.setVariantDebugInfo(variantDebugInfo);
+        } catch (Throwable t) {
+          Log.e(t);
+          Util.handleException(t);
+        }
+    }
+
 }
