@@ -87,7 +87,7 @@ public class VarCache {
   private static boolean silent;
   private static int contentVersion;
   private static Map<String, Object> userAttributes;
-  private static Map<String, Object> variantDebugInfo;
+  private static Map<String, Object> variantDebugInfo = new HashMap<>();
 
   private static final String NAME_COMPONENT_REGEX = "(?:[^\\.\\[.(\\\\]+|\\\\.)+";
   private static final Pattern NAME_COMPONENT_PATTERN = Pattern.compile(NAME_COMPONENT_REGEX);
