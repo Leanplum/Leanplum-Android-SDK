@@ -20,6 +20,7 @@
  */
 package com.leanplum;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
@@ -37,6 +38,8 @@ import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
+import com.leanplum.internal.LeanplumEventDataManager;
+import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
@@ -53,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -63,11 +67,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
@@ -82,11 +91,11 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     // Validate request.
@@ -114,11 +123,11 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     // Validate request.
@@ -147,18 +156,18 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     // Setup user attributes.
     final HashMap<String, Object> userAttributes = CollectionUtil.newHashMap(
-            "name", "John Smith",
-            "age", 42,
-            "address", "New York"
+        "name", "John Smith",
+        "age", 42,
+        "address", "New York"
     );
 
     // Validate request.
@@ -173,9 +182,9 @@ public class LeanplumTest extends AbstractTest {
         String requestUserAttributes = (String) params.get("userAttributes");
 
         assertTrue(userAttributes.keySet()
-                .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
+            .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
         assertTrue(userAttributes.values()
-                .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
+            .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
       }
     });
 
@@ -189,11 +198,11 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     String userId = "user_id";
@@ -221,11 +230,11 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     String userId = "user_id";
@@ -257,18 +266,18 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     // Setup user attributes.
     final HashMap<String, Object> userAttributes = CollectionUtil.newHashMap(
-            "name", "John Smith",
-            "age", 42,
-            "address", "New York"
+        "name", "John Smith",
+        "age", 42,
+        "address", "New York"
     );
 
     String userId = "user_id";
@@ -285,9 +294,9 @@ public class LeanplumTest extends AbstractTest {
         String requestUserAttributes = (String) params.get("userAttributes");
 
         assertTrue(userAttributes.keySet()
-                .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
+            .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
         assertTrue(userAttributes.values()
-                .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
+            .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
       }
     });
 
@@ -302,18 +311,18 @@ public class LeanplumTest extends AbstractTest {
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-            "city", "(detect)",
-            "country", "(detect)",
-            "location", "(detect)",
-            "region", "(detect)",
-            "locale", "en_US"
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
     );
 
     // Setup user attributes.
     final HashMap<String, Object> userAttributes = CollectionUtil.newHashMap(
-            "name", "John Smith",
-            "age", 42,
-            "address", "New York"
+        "name", "John Smith",
+        "age", 42,
+        "address", "New York"
     );
 
     String userId = "user_id";
@@ -332,9 +341,9 @@ public class LeanplumTest extends AbstractTest {
         String requestUserAttributes = (String) params.get("userAttributes");
 
         assertTrue(userAttributes.keySet()
-                .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
+            .containsAll(JsonConverter.fromJson(requestUserAttributes).keySet()));
         assertTrue(userAttributes.values()
-                .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
+            .containsAll(JsonConverter.fromJson(requestUserAttributes).values()));
       }
     });
 
@@ -380,6 +389,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Leanplum.hasStarted());
   }
 
+
   /**
    * Tests Metadata.
    */
@@ -410,6 +420,71 @@ public class LeanplumTest extends AbstractTest {
   }
 
   @Test
+  public void testCrashes() throws Exception {
+    // Setup sdk first.
+    setupSDK(mContext, "/responses/start_variables_response.json");
+
+    Context currentCotext = Leanplum.getContext();
+    assertNotNull(currentCotext);
+    LeanplumEventDataManager.init(Leanplum.getContext());
+
+    // Add two events to database.
+    Request request1 = new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
+    Request request2 = new Request("POST", Constants.Methods.LOG, null);
+
+    request1.sendEventually();
+    request2.sendEventually();
+
+    final double fraction = 1.0;
+    // Get a number of events in the database.
+    // Expectation: 2 events.
+    List unsentRequests = request1.getUnsentRequests(fraction);
+    assertNotNull(unsentRequests);
+    assertEquals(2, unsentRequests.size());
+
+    // Verify handleException method is never called.
+    verifyStatic(never());
+    Util.handleException(any(Throwable.class));
+
+    doNothing().when(Util.class, "handleException", any(Throwable.class));
+
+    // Crash SDK.
+    ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
+      put("1", "aaa");
+    }}, "messageId");
+    actionContext.numberNamed("1");
+
+    // Verify handleException method is called 1 time.
+    verifyStatic(times(1));
+    Util.handleException(any(Throwable.class));
+
+    // Get a number of events in the database. Checks if ours two events still here.
+    // Expectation: 2 events.
+    unsentRequests = request1.getUnsentRequests(fraction);
+    assertNotNull(unsentRequests);
+    assertEquals(2, unsentRequests.size());
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.PAUSE_STATE, apiMethod);
+      }
+    });
+
+    // Call pause method.
+    Leanplum.pauseState();
+
+    // Get a number of events in the database. Make sure we sent all events.
+    // Expectation: 0 events.
+    unsentRequests = request1.getUnsentRequests(fraction);
+    assertNotNull(unsentRequests);
+    assertEquals(0, unsentRequests.size());
+
+    LeanplumEventDataManagerTest.setDatabaseToNull();
+  }
+
+  @Test
   public void testTrack() throws Exception {
     // Setup sdk first.
     setupSDK(mContext, "/responses/simple_start_response.json");
@@ -419,8 +494,8 @@ public class LeanplumTest extends AbstractTest {
     final double eventValue = 10.0;
     final String eventInfo = "test_event_info";
     final HashMap<String, Object> eventParams = CollectionUtil.newHashMap(
-            "test_param_string", "string",
-            "test_param_int", 42
+        "test_param_string", "string",
+        "test_param_int", 42
     );
 
     // Validate request for track with event name.
@@ -481,9 +556,9 @@ public class LeanplumTest extends AbstractTest {
         assertEquals(eventName, requestEventName);
         assertEquals(String.valueOf(eventValue), requestEventValue);
         assertTrue(eventParams.keySet()
-                .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
+            .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
         assertTrue(eventParams.values()
-                .containsAll(JsonConverter.fromJson(requestEventParams).values()));
+            .containsAll(JsonConverter.fromJson(requestEventParams).values()));
       }
     });
     Leanplum.track(eventName, eventValue, eventParams);
@@ -499,9 +574,9 @@ public class LeanplumTest extends AbstractTest {
 
         assertEquals(eventName, requestEventName);
         assertTrue(eventParams.keySet()
-                .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
+            .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
         assertTrue(eventParams.values()
-                .containsAll(JsonConverter.fromJson(requestEventParams).values()));
+            .containsAll(JsonConverter.fromJson(requestEventParams).values()));
       }
     });
     Leanplum.track(eventName, eventParams);
@@ -536,9 +611,9 @@ public class LeanplumTest extends AbstractTest {
         assertEquals(String.valueOf(eventValue), requestEventValue);
         assertEquals(eventInfo, requestEventInfo);
         assertTrue(eventParams.keySet()
-                .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
+            .containsAll(JsonConverter.fromJson(requestEventParams).keySet()));
         assertTrue(eventParams.values()
-                .containsAll(JsonConverter.fromJson(requestEventParams).values()));
+            .containsAll(JsonConverter.fromJson(requestEventParams).values()));
       }
     });
     Leanplum.track(eventName, eventValue, eventInfo, eventParams);
@@ -562,7 +637,7 @@ public class LeanplumTest extends AbstractTest {
     });
     Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature");
 
-    // Validate request for purchae.
+    // Validate request for purchase.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
@@ -580,6 +655,23 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     Leanplum.trackGooglePlayPurchase(eventName, 10, "USD", "data", "signature", new HashMap<String, Object>());
+
+    // Validate request for manual purchase.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.TRACK, apiMethod);
+
+        String requestEventName = (String) params.get("event");
+        String requestEventValue = (String) params.get("value");
+        String requestCurrencyCode = (String) params.get("currencyCode");
+
+        assertEquals(eventName, requestEventName);
+        assertEquals("1.99", requestEventValue);
+        assertEquals("USD", requestCurrencyCode);
+      }
+    });
+    Leanplum.trackPurchase(eventName, 1.99, "USD", new HashMap<String, Objects>());
   }
 
   @Test
@@ -590,8 +682,8 @@ public class LeanplumTest extends AbstractTest {
     final String stateName = "test_state_name";
     final String stateInfo = "test_state_info";
     final HashMap<String, Object> stateParams = CollectionUtil.newHashMap(
-            "test_param_string", "string",
-            "test_param_int", 42
+        "test_param_string", "string",
+        "test_param_int", 42
     );
 
     // Validate request for advance with name.
@@ -633,9 +725,9 @@ public class LeanplumTest extends AbstractTest {
 
         assertEquals(stateName, requestStateName);
         assertTrue(stateParams.keySet()
-                .containsAll(JsonConverter.fromJson(requestStateParams).keySet()));
+            .containsAll(JsonConverter.fromJson(requestStateParams).keySet()));
         assertTrue(stateParams.values()
-                .containsAll(JsonConverter.fromJson(requestStateParams).values()));
+            .containsAll(JsonConverter.fromJson(requestStateParams).values()));
       }
     });
 
@@ -654,9 +746,9 @@ public class LeanplumTest extends AbstractTest {
         assertEquals(stateName, requestStateName);
         assertEquals(stateInfo, requestStateInfo);
         assertTrue(stateParams.keySet()
-                .containsAll(JsonConverter.fromJson(requestStateParams).keySet()));
+            .containsAll(JsonConverter.fromJson(requestStateParams).keySet()));
         assertTrue(stateParams.values()
-                .containsAll(JsonConverter.fromJson(requestStateParams).values()));
+            .containsAll(JsonConverter.fromJson(requestStateParams).values()));
       }
     });
     Leanplum.advanceTo(stateName, stateInfo, stateParams);
@@ -670,10 +762,10 @@ public class LeanplumTest extends AbstractTest {
     Var<Float> floatVariable = Var.define("test_float", 10.0f);
     Var<List<Integer>> listVariable = Var.define("test_list", Arrays.asList(0, 1, 2, 3, 4, 5));
     Var<HashMap<Object, Object>> dictionaryVariable = Var.define("test_dictionary",
-            CollectionUtil.newHashMap(
-                    "dictionary_test_string", "test_string",
-                    "dictionary_test_integer", 5
-            ));
+        CollectionUtil.newHashMap(
+            "dictionary_test_string", "test_string",
+            "dictionary_test_integer", 5
+        ));
     Var<Integer> colorVariable = Var.defineColor("test_color", 12345);
     Var<String> groupStringVariable = Var.define("groups.strings", "groups_string_test");
     Var<Integer> groupIntegerVariable = Var.define("groups.integers", 5);
@@ -691,7 +783,7 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(floatVariable.defaultValue(), VarCache.getVariable("test_float").value());
     assertEquals(listVariable.defaultValue(), VarCache.getVariable("test_list").value());
     assertEquals(dictionaryVariable.defaultValue(), VarCache.getVariable("test_dictionary")
-            .value());
+        .value());
 
     // Validate values.
     assertEquals(colorVariable.value(), VarCache.getVariable("test_color").value());
@@ -731,10 +823,10 @@ public class LeanplumTest extends AbstractTest {
     boolean booleanVariable = (boolean) VarCache.getVariable("Boolean Variable").value();
     float floatVariable = (float) VarCache.getVariable("numbers.floatVariable").value();
     double doubleVariable = (double) VarCache.getVariable("VariablesTestClass.doubleVariable")
-            .value();
+        .value();
     List<?> listVariable = (List<?>) VarCache.getVariable("listVariable").value();
     HashMap<?, ?> dictionaryVariable = (HashMap<?, ?>) VarCache.getVariable("dictionaryVariable")
-            .value();
+        .value();
 
     // Check if parsing is correct.
     assertEquals(VariablesTestClass.stringVariable, stringVariable);
@@ -770,7 +862,7 @@ public class LeanplumTest extends AbstractTest {
 
   @Test
   public void testActions() throws Exception {
-    setupSDK(mContext, "");
+    setupSDK(mContext, "/responses/simple_start_response.json");
 
     final String actionName = "test_action";
 
@@ -788,9 +880,9 @@ public class LeanplumTest extends AbstractTest {
     args.with(integerArgumentName, 5);
     args.with(stringArgumentName, "test_string");
     args.with(boolArgumentName, true);
-    args.withAsset(fileArgumentName, "Mario.png");
+    args.withAsset(fileArgumentName, "leanplum_watermark.jpg");
     args.with(dictionaryArgumentName, CollectionUtil.newHashMap(
-            "test_value", "test"
+        "test_value", "test"
     ));
     args.with(arrayArgumentName, CollectionUtil.newArrayList(1, 2, 3, 4));
     args.withAction(actionArgumentName, "action_test");
@@ -810,13 +902,13 @@ public class LeanplumTest extends AbstractTest {
         Map<?, ?> definedActions = (HashMap<?, ?>) actionDefinitions.get(actionName);
 
         Map<String, Object> kinds = CollectionUtil.newHashMap(
-                "number_argument", "integer",
-                "string_argument", "string",
-                "color_argument", "color",
-                "dictionary_argument", "group",
-                "array_argument", "list",
-                "action_argument", "action",
-                "bool_argument", "bool"
+            "number_argument", "integer",
+            "string_argument", "string",
+            "color_argument", "color",
+            "dictionary_argument", "group",
+            "array_argument", "list",
+            "action_argument", "action",
+            "bool_argument", "bool"
         );
         Map<?, ?> requestedKinds = (HashMap<?, ?>) definedActions.get("kinds");
 
@@ -834,7 +926,7 @@ public class LeanplumTest extends AbstractTest {
         assertNotNull(values.get(arrayArgumentName));
         assertEquals("action_test", values.get(actionArgumentName));
         assertEquals(Color.BLUE, values.get(colorArgumentName));
-        assertEquals("Mario.png", values.get(fileArgumentName));
+        assertEquals("leanplum_watermark.jpg", values.get(fileArgumentName));
       }
     });
     // Define action.
@@ -875,11 +967,11 @@ public class LeanplumTest extends AbstractTest {
   @Test
   public void testVariablesCallbacksTimeout() throws Exception {
     URLConnection urlConnection = Util.createHttpUrlConnection("www.leanplum.com", "api", "POST",
-            true, 1);
+        true, 1);
     urlConnection.setConnectTimeout(1);
 
     doReturn(urlConnection).when(Util.class, "createHttpUrlConnection", anyString(), anyString(),
-            anyBoolean(), anyInt());
+        anyBoolean(), anyInt());
 
     final CountDownLatch countDownLatch = new CountDownLatch(2);
 
@@ -948,7 +1040,7 @@ public class LeanplumTest extends AbstractTest {
     Geocoder geocoder = Mockito.mock(Geocoder.class);
     whenNew(Geocoder.class).withAnyArguments().thenReturn(geocoder);
     Mockito.when(geocoder.getFromLocation(anyDouble(), anyDouble(), anyInt()))
-            .thenReturn(addresses);
+        .thenReturn(addresses);
 
     // Validate set location request shorthand.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
@@ -1160,5 +1252,18 @@ public class LeanplumTest extends AbstractTest {
     Leanplum.removeOnceVariablesChangedAndNoDownloadsPendingHandler(variablesChangedCallback);
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
     assertEquals(0, handlers.size());
+  }
+
+  /**
+   * Test for {@link Leanplum#getDeviceId()}.
+   */
+  @Test
+  public void testGetDeviceId() {
+    String deviceId = Leanplum.getDeviceId();
+    assertNull(deviceId);
+    Leanplum.start(mContext);
+    assertTrue(Leanplum.hasStarted());
+    deviceId = Leanplum.getDeviceId();
+    assertNotNull(deviceId);
   }
 }
