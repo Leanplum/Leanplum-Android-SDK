@@ -251,6 +251,15 @@ public class Leanplum {
   }
 
   /**
+   * Set this to true if you want details about the variable assignments
+   * on the server.
+   * Default is NO.
+   */
+  public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
+    LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
+  }
+
+  /**
    * Whether screen tracking is enabled or not.
    *
    * @return Boolean - true if enabled
@@ -499,7 +508,8 @@ public class Leanplum {
             VarCache.getUpdateRuleDiffs(),
             VarCache.getEventRuleDiffs(),
             new HashMap<String, Object>(),
-            new ArrayList<Map<String, Object>>());
+            new ArrayList<Map<String, Object>>(),
+            new HashMap<String, Object>());
         LeanplumInbox.getInstance().update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
         return;
       }
@@ -664,6 +674,8 @@ public class Leanplum {
     // Get the current inbox messages on the device.
     params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
 
+    params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
+
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
@@ -800,6 +812,8 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
+            parseVariantDebugInfo(response);
+
             // Allow bidirectional realtime variable updates.
             if (Constants.isDevelopmentModeEnabled) {
 
@@ -921,6 +935,8 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
+    Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+            response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
@@ -929,7 +945,7 @@ public class Leanplum {
         || !eventRules.equals(VarCache.getEventRuleDiffs())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(values, messages, updateRules,
-          eventRules, regions, variants);
+          eventRules, regions, variants, variantDebugInfo);
     }
   }
 
@@ -1924,6 +1940,8 @@ public class Leanplum {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
       params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
+      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
+
       Request req = Request.post(Constants.Methods.GET_VARS, params);
       req.onResponse(new Request.ResponseCallback() {
         @Override
@@ -1941,6 +1959,8 @@ public class Leanplum {
               if (response.optBoolean(Constants.Keys.LOGGING_ENABLED, false)) {
                 Constants.loggingEnabled = true;
               }
+
+              parseVariantDebugInfo(response);
             }
             if (callback != null) {
               OsHandler.getInstance().post(callback);
@@ -2044,6 +2064,17 @@ public class Leanplum {
   }
 
   /**
+   * Details about the variable assignments on the server.
+   */
+  public static Map<String, Object> variantDebugInfo() {
+    Map<String, Object> variantDebugInfo = VarCache.getVariantDebugInfo();
+    if (variantDebugInfo == null) {
+      return new HashMap<>();
+    }
+    return variantDebugInfo;
+  }
+
+  /**
    * Set location manually. Calls setDeviceLocation with cell type. Best if used in after calling
    * disableLocationCollection.
    *
@@ -2091,5 +2122,13 @@ public class Leanplum {
    */
   public static boolean isLocationCollectionEnabled() {
     return locationCollectionEnabled;
+  }
+
+  private static void parseVariantDebugInfo(JSONObject response) {
+    Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
+            response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+    if (variantDebugInfo.size() > 0) {
+      VarCache.setVariantDebugInfo(variantDebugInfo);
+    }
   }
 }

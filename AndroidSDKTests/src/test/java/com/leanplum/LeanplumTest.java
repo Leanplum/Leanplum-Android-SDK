@@ -359,6 +359,37 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Request.userId().equals(userId));
   }
 
+  @Test
+  public void shouldStartWithParamToIncludeVariantDebugInfo() {
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    Leanplum.setVariantDebugInfoEnabled(true);
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        // Expected request params.
+        final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+                "city", "(detect)",
+                "country", "(detect)",
+                "location", "(detect)",
+                "region", "(detect)",
+                "locale", "en_US",
+                "includeVariantDebugInfo", true
+        );
+
+        assertEquals(Constants.Methods.START, apiMethod);
+
+        // Validate request.
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+    Leanplum.start(mContext);
+    assertTrue(Leanplum.hasStarted());
+  }
+
+
   /**
    * Tests Metadata.
    */
@@ -383,7 +414,7 @@ public class LeanplumTest extends AbstractTest {
       }});
     }};
 
-    VarCache.applyVariableDiffs(null, messages, null, null, null, variants);
+    VarCache.applyVariableDiffs(null, messages, null, null, null, variants, null);
     assertEquals(variants, Leanplum.variants());
     assertEquals(messages, Leanplum.messageMetadata());
   }
@@ -771,6 +802,13 @@ public class LeanplumTest extends AbstractTest {
     // Validate components.
     assertArrayEquals(groupStringVariable.nameComponents(), new String[] {"groups", "strings"});
     assertArrayEquals(groupIntegerVariable.nameComponents(), new String[] {"groups", "integers"});
+  }
+
+  @Test
+  public void shouldGetResponseAndReturnVariantDebugInfo() throws Exception {
+    setupSDK(mContext, "/responses/start_with_variant_debug_info_response.json");
+    assertEquals(Leanplum.variantDebugInfo().size(), 1);
+    assertNotNull(Leanplum.variantDebugInfo().get("abTests"));
   }
 
   @Test
