@@ -330,8 +330,9 @@ public class VarCache {
   public static void setVariantDebugInfo(Map<String, Object> variantDebugInfo) {
     if (variantDebugInfo != null) {
       VarCache.variantDebugInfo = variantDebugInfo;
+    } else {
+      VarCache.variantDebugInfo = new HashMap<>();
     }
-    VarCache.variantDebugInfo = new HashMap<>();
   }
 
   public static void loadDiffs() {
