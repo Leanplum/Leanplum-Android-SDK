@@ -327,8 +327,8 @@ public class VarCache {
     return variantDebugInfo;
   }
 
-  public static void setVariantDebugInfo(Map<String, Object> _variantDebugInfo) {
-    variantDebugInfo = _variantDebugInfo;
+  public static void setVariantDebugInfo(Map<String, Object> variantDebugInfo) {
+    VarCache.variantDebugInfo = variantDebugInfo;
   }
 
   public static void loadDiffs() {
@@ -345,7 +345,7 @@ public class VarCache {
           new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>(),
           new ArrayList<Map<String, Object>>(),
-              new HashMap<String, Object>());
+          new HashMap<String, Object>());
       return;
     }
     try {
@@ -369,7 +369,7 @@ public class VarCache {
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(eventRules)),
           JsonConverter.fromJson(regions),
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
-              JsonConverter.fromJson(variantDebugInfo));
+          JsonConverter.fromJson(variantDebugInfo));
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
         if (Util.isValidDeviceId(deviceId)) {
@@ -449,7 +449,8 @@ public class VarCache {
     }
 
     if (variantDebugInfo != null) {
-      String variantDebugInfoCipher = aesContext.encrypt(JsonConverter.toJson(variantDebugInfo));
+      String a = JsonConverter.toJson(variantDebugInfo);
+      String variantDebugInfoCipher = aesContext.encrypt(a);
       editor.putString(Constants.Keys.VARIANT_DEBUG_INFO, variantDebugInfoCipher);
     }
 
@@ -901,7 +902,7 @@ public class VarCache {
    */
   public static void reset() {
     vars.clear();
-    variantDebugInfo = null;
+    variantDebugInfo.clear();
     fileAttributes.clear();
     fileStreams.clear();
     valuesFromClient.clear();
