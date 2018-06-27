@@ -87,6 +87,7 @@ public class VarCache {
   private static boolean silent;
   private static int contentVersion;
   private static Map<String, Object> userAttributes;
+  private static Map<String, Object> variantDebugInfo = new HashMap<>();
 
   private static final String NAME_COMPONENT_REGEX = "(?:[^\\.\\[.(\\\\]+|\\\\.)+";
   private static final Pattern NAME_COMPONENT_PATTERN = Pattern.compile(NAME_COMPONENT_REGEX);
@@ -322,6 +323,14 @@ public class VarCache {
     return hasReceivedDiffs;
   }
 
+  public static Map<String, Object> getVariantDebugInfo() {
+    return variantDebugInfo;
+  }
+
+  public static void setVariantDebugInfo(Map<String, Object> variantDebugInfo) {
+    VarCache.variantDebugInfo = variantDebugInfo;
+  }
+
   public static void loadDiffs() {
     if (Constants.isNoop()) {
       return;
@@ -335,7 +344,8 @@ public class VarCache {
           new ArrayList<Map<String, Object>>(),
           new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>(),
-          new ArrayList<Map<String, Object>>());
+          new ArrayList<Map<String, Object>>(),
+          new HashMap<String, Object>());
       return;
     }
     try {
@@ -351,13 +361,15 @@ public class VarCache {
           defaults, Constants.Defaults.EVENT_RULES_KEY, "[]");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
+      String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
       applyVariableDiffs(
           JsonConverter.fromJson(variables),
           JsonConverter.fromJson(messages),
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(updateRules)),
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(eventRules)),
           JsonConverter.fromJson(regions),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)));
+          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
+          JsonConverter.fromJson(variantDebugInfo));
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
         if (Util.isValidDeviceId(deviceId)) {
@@ -435,6 +447,13 @@ public class VarCache {
     } catch (JSONException e1) {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
     }
+
+    if (variantDebugInfo != null) {
+      String a = JsonConverter.toJson(variantDebugInfo);
+      String variantDebugInfoCipher = aesContext.encrypt(a);
+      editor.putString(Constants.Keys.VARIANT_DEBUG_INFO, variantDebugInfoCipher);
+    }
+
     editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(Request.deviceId()));
     editor.putString(Constants.Params.USER_ID, aesContext.encrypt(Request.userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
@@ -490,7 +509,8 @@ public class VarCache {
       List<Map<String, Object>> updateRules,
       List<Map<String, Object>> eventRules,
       Map<String, Object> regions,
-      List<Map<String, Object>> variants) {
+      List<Map<String, Object>> variants,
+      Map<String, Object> variantDebugInfo) {
     if (diffs != null) {
       VarCache.diffs = diffs;
       computeMergedDictionary();
@@ -565,6 +585,10 @@ public class VarCache {
 
     if (variants != null) {
       VarCache.variants = variants;
+    }
+
+    if (variantDebugInfo != null) {
+      VarCache.setVariantDebugInfo(variantDebugInfo);
     }
 
     contentVersion++;
@@ -878,6 +902,7 @@ public class VarCache {
    */
   public static void reset() {
     vars.clear();
+    variantDebugInfo.clear();
     fileAttributes.clear();
     fileStreams.clear();
     valuesFromClient.clear();
