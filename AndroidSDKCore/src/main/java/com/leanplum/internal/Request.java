@@ -45,6 +45,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -59,6 +60,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
+  private Waiter waiter;
   static final int MAX_EVENTS_PER_API_CALL;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
@@ -164,6 +166,28 @@ public class Request {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
+  private static class NoWaiter implements Waiter {
+    @Override
+    public void beforeRead() {
+      // No op.
+    }
+
+    @Override
+    public void afterRead() {
+      // No op.
+    }
+
+    @Override
+    public void beforeWrite() {
+      // No op.
+    }
+
+    @Override
+    public void afterWrite() {
+      // No op.
+    }
+  }
+
   public static String appId() {
     return appId;
   }
@@ -177,6 +201,10 @@ public class Request {
   }
 
   public Request(String httpMethod, String apiMethod, Map<String, Object> params) {
+    this(httpMethod, apiMethod, params, new NoWaiter());
+  }
+
+  Request(String httpMethod, String apiMethod, Map<String, Object> params, Waiter waiter) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
@@ -187,6 +215,7 @@ public class Request {
     // Make sure the Handler is initialized on the main thread.
     OsHandler.getInstance();
     dataBaseIndex = -1;
+    this.waiter = waiter;
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
@@ -231,28 +260,34 @@ public class Request {
   }
 
   private void saveRequestForLater(Map<String, Object> args) {
-    synchronized (Request.class) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      long count = LeanplumEventDataManager.getEventsCount();
-      String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-      if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-        uuid = UUID.randomUUID().toString();
-        editor.putString(Constants.Defaults.UUID_KEY, uuid);
-        SharedPreferencesUtil.commitChanges(editor);
-      }
-      args.put(UUID_KEY, uuid);
-      LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
+    try {
+      waiter.beforeWrite();
+      synchronized (Request.class) {
+        Context context = Leanplum.getContext();
+        SharedPreferences preferences = context.getSharedPreferences(
+            LEANPLUM, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        long count = LeanplumEventDataManager.getEventsCount();
+        String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+        if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+          uuid = UUID.randomUUID().toString();
+          editor.putString(Constants.Defaults.UUID_KEY, uuid);
+          SharedPreferencesUtil.commitChanges(editor);
+        }
+        args.put(UUID_KEY, uuid);
+        LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
 
-      dataBaseIndex = count;
-      // Checks if here response and/or error callback for this request. We need to add callbacks to
-      // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
-      // will handle error callback for this event.
-      if (response != null || error != null && !Util.isConnected()) {
-        eventCallbackManager.addCallbacks(this, response, error);
+        dataBaseIndex = count;
+        // Checks if here response and/or error callback for this request. We need to add callbacks to
+        // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
+        // will handle error callback for this event.
+        if (response != null || error != null && !Util.isConnected()) {
+          eventCallbackManager.addCallbacks(this, response, error);
+        }
+        waiter.afterWrite();
       }
+    } catch (Throwable t) {
+      Util.handleException(t);
     }
   }
 
@@ -454,13 +489,14 @@ public class Request {
       return;
     }
 
-    this.sendEventually();
+    //use something like a callback interface and pass it through here
+    this.sendEventually(); //write
 
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
         try {
-          sendRequests();
+          sendRequests(); // read
         } catch (Throwable t) {
           Util.handleException(t);
         }
@@ -545,6 +581,7 @@ public class Request {
   }
 
   private void sendRequests() {
+    waiter.beforeRead();
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
 
     List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
@@ -611,6 +648,7 @@ public class Request {
             parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
           }
         }
+        waiter.afterRead();
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
         deleteSentRequests(unsentRequests.size());

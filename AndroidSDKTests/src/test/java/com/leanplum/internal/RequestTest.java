@@ -37,10 +37,14 @@ import org.robolectric.annotation.Config;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Time;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Matchers.eq;
@@ -67,6 +71,42 @@ public class RequestTest extends TestCase {
     Leanplum.setApplicationContext(context);
   }
 
+  /**
+   * Test that read writes happened sequentially when calling sendNow().
+   */
+  @Test
+  public void testMultiThreaded() {
+    Map<String, Object> params = new HashMap<>();
+    params.put("data1", "value1");
+    params.put("data2", "value2");
+    Waiter waiter = new Waiter() {
+      public Instant t1, t2, t3, t4;
+      @Override
+      public void beforeRead() {
+        t1 = Instant.now();
+      }
+
+      @Override
+      public void afterRead() {
+        t2 = Instant.now();
+      }
+
+      @Override
+      public void beforeWrite() {
+        t3 = Instant.now();
+      }
+
+      @Override
+      public void afterWrite() {
+        t4 = Instant.now();
+      }
+    };
+    Request request = new Request("POST", Constants.Methods.START, params, waiter);
+    request.setAppId("fskadfshdbfa", "weew22323");
+    request.sendIfConnected();
+
+
+  }
   /**
    * Tests the testRemoveIrrelevantBackgroundStartRequests method.
    * <p>
