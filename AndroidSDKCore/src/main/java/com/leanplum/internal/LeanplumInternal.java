@@ -678,8 +678,8 @@ public class LeanplumInternal {
     return isVariantDebugInfoEnabled;
   }
 
-  public static void setIsVariantDebugInfoEnabled(boolean _isVariantDebugInfoEnabled) {
-    isVariantDebugInfoEnabled= _isVariantDebugInfoEnabled;
+  public static void setIsVariantDebugInfoEnabled(boolean isVariantDebugInfoEnabled) {
+    LeanplumInternal.isVariantDebugInfoEnabled = isVariantDebugInfoEnabled;
   }
 
   public static void enableAutomaticScreenTracking() {

@@ -453,9 +453,9 @@ public class VarCache {
     }
 
     if (variantDebugInfo != null) {
-      String a = JsonConverter.toJson(variantDebugInfo);
-      String variantDebugInfoCipher = aesContext.encrypt(a);
-      editor.putString(Constants.Keys.VARIANT_DEBUG_INFO, variantDebugInfoCipher);
+      editor.putString(
+          Constants.Keys.VARIANT_DEBUG_INFO,
+          aesContext.encrypt(JsonConverter.toJson(variantDebugInfo)));
     }
 
     editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(Request.deviceId()));
