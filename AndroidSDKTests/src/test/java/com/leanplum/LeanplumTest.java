@@ -807,9 +807,9 @@ public class LeanplumTest extends AbstractTest {
   @Test
   public void shouldGetResponseAndReturnVariantDebugInfo() throws Exception {
     setupSDK(mContext, "/responses/start_with_variant_debug_info_response.json");
-    Map<String, ?> v = Leanplum.variantDebugInfo();
-    assertEquals(Leanplum.variantDebugInfo().size(), 1);
-    assertNotNull(Leanplum.variantDebugInfo().get("abTests"));
+    Map<String, ?> v = Leanplum.getVariantDebugInfo();
+    assertEquals(Leanplum.getVariantDebugInfo().size(), 1);
+    assertNotNull(Leanplum.getVariantDebugInfo().get("abTests"));
   }
 
   @Test

@@ -2066,7 +2066,7 @@ public class Leanplum {
   /**
    * Details about the variable assignments on the server.
    */
-  public static Map<String, Object> variantDebugInfo() {
+  public static Map<String, Object> getVariantDebugInfo() {
     return VarCache.getVariantDebugInfo();
   }
 
