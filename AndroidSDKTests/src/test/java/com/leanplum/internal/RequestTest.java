@@ -81,7 +81,6 @@ public class RequestTest extends TestCase {
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
     request.sendIfConnected();
     waiter.assertCallSequence();
-
   }
   /**
    * Tests the testRemoveIrrelevantBackgroundStartRequests method.
@@ -339,7 +338,7 @@ public class RequestTest extends TestCase {
     return requests;
   }
 
-  private static class ThreadWaiter implements Waiter{
+  private static class ThreadWaiter implements Waiter {
     Instant t1, t2, t3, t4;
     @Override
     public void beforeRead() {
