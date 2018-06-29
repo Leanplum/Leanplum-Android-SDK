@@ -6,16 +6,16 @@ import com.leanplum.internal.Log;
 
 import java.lang.reflect.Constructor;
 
-public class CrashHandler {
+public class ExceptionHandler {
   private static final String RAYGUN_CRASH_REPORTER_CLASS =
           "com.leanplum.monitoring.internal.RaygunCrashReporter";
-  private static final CrashHandler instance = new CrashHandler();
+  private static final ExceptionHandler instance = new ExceptionHandler();
 
   private ExceptionReporting exceptionReporting;
 
   private CrashHandler() {}
 
-  public static CrashHandler getInstance() {
+  public static ExceptionHandler getInstance() {
     return instance;
   }
 

@@ -47,7 +47,7 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumException;
 import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
-import com.leanplum.monitoring.LeanplumCrashHandler;
+import com.leanplum.monitoring.CrashHandler;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
@@ -842,14 +842,14 @@ public class Util {
    * Initialize exception handling in the SDK.
    */
   public static void initExceptionHandling(Context context) {
-    LeanplumCrashHandler.getInstance().setContext(context);
+    ExceptionHandler.getInstance().setContext(context);
   }
 
   /**
    * Handles uncaught exceptions in the SDK.
    */
   public static void handleException(Throwable t) {
-    LeanplumCrashHandler.getInstance().reportException(t);
+    ExceptionHandler.getInstance().reportException(t);
 
     if (t instanceof OutOfMemoryError) {
       if (Constants.isDevelopmentModeEnabled) {
