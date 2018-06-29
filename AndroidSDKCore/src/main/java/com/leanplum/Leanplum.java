@@ -581,6 +581,8 @@ public class Leanplum {
           return null;
         }
       });
+
+      Util.initExceptionHandling(context);
     } catch (Throwable t) {
       Util.handleException(t);
     }
