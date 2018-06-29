@@ -13,7 +13,7 @@ public class ExceptionHandler {
 
   private ExceptionReporting exceptionReporting;
 
-  private CrashHandler() {}
+  private ExceptionHandler() {}
 
   public static ExceptionHandler getInstance() {
     return instance;
