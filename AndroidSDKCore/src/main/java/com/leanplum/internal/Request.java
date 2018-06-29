@@ -489,14 +489,13 @@ public class Request {
       return;
     }
 
-    //use something like a callback interface and pass it through here
-    this.sendEventually(); //write
+    this.sendEventually();
 
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
         try {
-          sendRequests(); // read
+          sendRequests();
         } catch (Throwable t) {
           Util.handleException(t);
         }

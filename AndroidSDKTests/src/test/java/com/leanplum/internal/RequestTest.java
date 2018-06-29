@@ -72,12 +72,12 @@ public class RequestTest extends TestCase {
    * Test that read writes happened sequentially when calling sendNow().
    */
   @Test
-  public void testMultiThreaded() {
+  public void testSequenceOfDatabaseOperations() {
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
     ThreadWaiter waiter = new ThreadWaiter();
-    Request request = new Request("POST", Constants.Methods.START, params);
+    Request request = new Request("POST", Constants.Methods.START, params, waiter);
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
     request.sendIfConnected();
     waiter.assertCallSequence();
@@ -361,7 +361,7 @@ public class RequestTest extends TestCase {
     }
 
     public void assertCallSequence() {
-      assert(t4.isBefore(t1));
+      assertTrue(t4.isBefore(t1));
     }
   }
 }
