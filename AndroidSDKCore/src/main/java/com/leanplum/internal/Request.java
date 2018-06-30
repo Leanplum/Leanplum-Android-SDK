@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -92,6 +93,9 @@ public class Request {
   private long dataBaseIndex;
 
   private static ApiResponseCallback apiResponse;
+
+  private Handler uiTimeoutHandler;
+  private boolean uiDidTimeout;
 
   private static List<Map<String, Object>> localErrors = new ArrayList<>();
 
@@ -570,6 +574,22 @@ public class Request {
 
     JSONObject responseBody;
     HttpURLConnection op = null;
+
+    int uiTimeout = Constants.NETWORK_TIMEOUT_SECONDS;
+    uiDidTimeout = false;
+    uiTimeoutHandler = new Handler();
+    Runnable runnableCode = new Runnable() {
+      @Override
+      public void run() {
+        // invalidate success callback
+        uiDidTimeout = true;
+        // call error condition
+        Exception errorException = new Exception("UI Timeout" + "-1001");
+        parseResponseBody(null, null, errorException, 0);
+      }
+    };
+    uiTimeoutHandler.postDelayed(runnableCode, uiTimeout);
+
     try {
       try {
         op = Util.operation(
@@ -578,17 +598,20 @@ public class Request {
             multiRequestArgs,
             httpMethod,
             Constants.API_SSL,
-            Constants.NETWORK_TIMEOUT_SECONDS);
+            Constants.NETWORK_TIMEOUT_SECONDS * 5);
 
         responseBody = Util.getJsonResponse(op);
         int statusCode = op.getResponseCode();
+        uiTimeoutHandler.removeCallbacksAndMessages(null);
 
         Exception errorException;
         if (statusCode >= 200 && statusCode <= 299) {
           if (responseBody == null) {
             errorException = new Exception("Response JSON is null.");
             deleteSentRequests(unsentRequests.size());
-            parseResponseBody(null, requestsToSend, errorException, unsentRequests.size());
+            if (uiDidTimeout == false) {
+              parseResponseBody(null, requestsToSend, errorException, unsentRequests.size());
+            }
             return;
           }
 
@@ -599,7 +622,9 @@ public class Request {
             Log.w("Sent " + requestsToSend.size() + " requests but only" +
                 " received " + numResponses);
           }
-          parseResponseBody(responseBody, requestsToSend, null, unsentRequests.size());
+          if (uiDidTimeout == false) {
+            parseResponseBody(responseBody, requestsToSend, null, unsentRequests.size());
+          }
           // Clear localErrors list.
           localErrors.clear();
           deleteSentRequests(unsentRequests.size());
@@ -612,13 +637,17 @@ public class Request {
           errorException = new Exception("HTTP error " + statusCode);
           if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
             deleteSentRequests(unsentRequests.size());
-            parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
+            if (uiDidTimeout == false) {
+              parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
+            }
           }
         }
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
         deleteSentRequests(unsentRequests.size());
-        parseResponseBody(null, requestsToSend, e, unsentRequests.size());
+        if (uiDidTimeout == false) {
+          parseResponseBody(null, requestsToSend, e, unsentRequests.size());
+        }
       } catch (Exception e) {
         Log.e("Unable to send request: " + e.toString() + "\n" + Log.getStackTraceString(e));
       } finally {
