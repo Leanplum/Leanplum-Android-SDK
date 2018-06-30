@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 
 public class ExceptionHandler {
   private static final String RAYGUN_CRASH_REPORTER_CLASS =
-          "com.leanplum.monitoring.internal.RaygunCrashReporter";
+          "com.leanplum.monitoring.internal.RaygunExceptionReporter";
   private static final ExceptionHandler instance = new ExceptionHandler();
 
   private ExceptionReporting exceptionReporting;
