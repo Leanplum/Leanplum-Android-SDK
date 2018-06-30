@@ -464,6 +464,8 @@ public class Request {
 
     this.sendEventually();
 
+    uiTimeoutHandler = new Handler();
+
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
@@ -575,9 +577,8 @@ public class Request {
     JSONObject responseBody;
     HttpURLConnection op = null;
 
-    int uiTimeout = Constants.NETWORK_TIMEOUT_SECONDS;
+    int uiTimeoutMillis = Constants.NETWORK_TIMEOUT_SECONDS * 1000;
     uiDidTimeout = false;
-    uiTimeoutHandler = new Handler();
     Runnable runnableCode = new Runnable() {
       @Override
       public void run() {
@@ -588,7 +589,7 @@ public class Request {
         parseResponseBody(null, null, errorException, 0);
       }
     };
-    uiTimeoutHandler.postDelayed(runnableCode, uiTimeout);
+    uiTimeoutHandler.postDelayed(runnableCode, uiTimeoutMillis);
 
     try {
       try {
