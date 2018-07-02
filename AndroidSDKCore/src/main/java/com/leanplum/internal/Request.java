@@ -284,8 +284,9 @@ public class Request {
         if (response != null || error != null && !Util.isConnected()) {
           eventCallbackManager.addCallbacks(this, response, error);
         }
-        requestSequence.afterWrite();
       }
+
+      requestSequence.afterWrite();
     } catch (Throwable t) {
       Util.handleException(t);
     }
@@ -581,7 +582,10 @@ public class Request {
 
   private void sendRequests() {
     requestSequence.beforeRead();
+
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
+
+    requestSequence.afterRead();
 
     List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
     List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
@@ -647,7 +651,6 @@ public class Request {
             parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
           }
         }
-        requestSequence.afterRead();
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
         deleteSentRequests(unsentRequests.size());

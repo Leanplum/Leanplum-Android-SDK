@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Matchers.eq;
@@ -74,23 +75,34 @@ public class RequestTest extends TestCase {
    * Test that read writes happened sequentially when calling sendNow().
    */
   @Test
-  public void shouldWriteRequestAndSendInSequence() {
+  public void shouldWriteRequestAndSendInSequence() throws InterruptedException {
     // Given a request.
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    ThreadRequestSequence waiter = new ThreadRequestSequence();
-    Request request = new Request(POST, Constants.Methods.START, params, waiter);
+    final ThreadRequestSequence threadRequestSequence = new ThreadRequestSequence();
+    Request request = new Request(POST, Constants.Methods.START, params, threadRequestSequence);
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
 
-    //block the write
-    waiter.setBlockWrite(true);
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        threadRequestSequence.writeSemaphore.release(1);
+      }
+    }).start();
 
     // When the request is sent.
     request.sendIfConnected();
 
+    threadRequestSequence.testThreadSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
+
     // When the request is sent.
-    waiter.assertCallSequence();
+    threadRequestSequence.assertCallSequence();
   }
   /**
    * Tests the testRemoveIrrelevantBackgroundStartRequests method.
@@ -350,36 +362,36 @@ public class RequestTest extends TestCase {
 
   private static class ThreadRequestSequence implements RequestSequence {
     Instant beforeReadTime, afterReadTime, beforeWriteTime, afterWriteTime;
-    final Semaphore semaphore = new Semaphore(1);
-    private boolean blockWrite = false;
+    final Semaphore writeSemaphore = new Semaphore(0);
+    final Semaphore readSemaphore = new Semaphore(1);
+    final Semaphore testThreadSemaphore = new Semaphore(0);
 
     @Override
     public void beforeRead() {
       try {
-        semaphore.tryAcquire();
+        readSemaphore.tryAcquire();
         beforeReadTime = Instant.now();
       } finally {
-        semaphore.release();
+        readSemaphore.release();
       }
     }
 
     @Override
     public void afterRead() {
       afterReadTime = Instant.now();
+      testThreadSemaphore.release(1);
     }
 
     @Override
     public void beforeWrite() {
       // since we are blocking on main thread
-      if (blockWrite) {
-        try {
-          semaphore.tryAcquire();
-          Thread.sleep(2000);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } finally {
-          semaphore.release();
-        }
+      try {
+        writeSemaphore.tryAcquire();
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      } finally {
+        writeSemaphore.release();
       }
       beforeWriteTime = Instant.now();
     }
@@ -389,12 +401,11 @@ public class RequestTest extends TestCase {
       afterWriteTime = Instant.now();
     }
 
-    public void setBlockWrite(boolean value) {
-      this.blockWrite = value;
-    }
-
-    public void assertCallSequence() {
-      assertTrue(afterWriteTime.isBefore(beforeReadTime));
+    void assertCallSequence() {
+      assertTrue(
+          beforeWriteTime.isBefore(afterWriteTime)
+              && beforeReadTime.isBefore(afterReadTime)
+              && beforeReadTime.isAfter(afterWriteTime));
     }
   }
 }
