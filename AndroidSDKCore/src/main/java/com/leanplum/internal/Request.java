@@ -45,7 +45,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -60,7 +59,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  private Waiter waiter;
+  private RequestSequence requestSequence;
   static final int MAX_EVENTS_PER_API_CALL;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
@@ -166,7 +165,7 @@ public class Request {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
-  private static class NoWaiter implements Waiter {
+  private static class NoRequestSequence implements RequestSequence {
     @Override
     public void beforeRead() {
       // No op.
@@ -201,10 +200,10 @@ public class Request {
   }
 
   public Request(String httpMethod, String apiMethod, Map<String, Object> params) {
-    this(httpMethod, apiMethod, params, new NoWaiter());
+    this(httpMethod, apiMethod, params, new NoRequestSequence());
   }
 
-  Request(String httpMethod, String apiMethod, Map<String, Object> params, Waiter waiter) {
+  Request(String httpMethod, String apiMethod, Map<String, Object> params, RequestSequence requestSequence) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
@@ -215,7 +214,7 @@ public class Request {
     // Make sure the Handler is initialized on the main thread.
     OsHandler.getInstance();
     dataBaseIndex = -1;
-    this.waiter = waiter;
+    this.requestSequence = requestSequence;
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
@@ -261,7 +260,8 @@ public class Request {
 
   private void saveRequestForLater(Map<String, Object> args) {
     try {
-      waiter.beforeWrite();
+      requestSequence.beforeWrite();
+
       synchronized (Request.class) {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
@@ -284,7 +284,7 @@ public class Request {
         if (response != null || error != null && !Util.isConnected()) {
           eventCallbackManager.addCallbacks(this, response, error);
         }
-        waiter.afterWrite();
+        requestSequence.afterWrite();
       }
     } catch (Throwable t) {
       Util.handleException(t);
@@ -580,7 +580,7 @@ public class Request {
   }
 
   private void sendRequests() {
-    waiter.beforeRead();
+    requestSequence.beforeRead();
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
 
     List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
@@ -647,7 +647,7 @@ public class Request {
             parseResponseBody(responseBody, requestsToSend, errorException, unsentRequests.size());
           }
         }
-        waiter.afterRead();
+        requestSequence.afterRead();
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
         deleteSentRequests(unsentRequests.size());

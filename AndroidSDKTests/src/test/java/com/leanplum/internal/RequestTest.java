@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Matchers.eq;
@@ -58,6 +59,7 @@ import static org.mockito.Mockito.when;
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
 public class RequestTest extends TestCase {
+  public final String POST = "POST";
   /**
    * Runs before every test case.
    */
@@ -72,14 +74,22 @@ public class RequestTest extends TestCase {
    * Test that read writes happened sequentially when calling sendNow().
    */
   @Test
-  public void testSequenceOfDatabaseOperations() {
+  public void shouldWriteRequestAndSendInSequence() {
+    // Given a request.
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    ThreadWaiter waiter = new ThreadWaiter();
-    Request request = new Request("POST", Constants.Methods.START, params, waiter);
+    ThreadRequestSequence waiter = new ThreadRequestSequence();
+    Request request = new Request(POST, Constants.Methods.START, params, waiter);
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
+
+    //block the write
+    waiter.setBlockWrite(true);
+
+    // When the request is sent.
     request.sendIfConnected();
+
+    // When the request is sent.
     waiter.assertCallSequence();
   }
   /**
@@ -338,30 +348,53 @@ public class RequestTest extends TestCase {
     return requests;
   }
 
-  private static class ThreadWaiter implements Waiter {
-    Instant t1, t2, t3, t4;
+  private static class ThreadRequestSequence implements RequestSequence {
+    Instant beforeReadTime, afterReadTime, beforeWriteTime, afterWriteTime;
+    final Semaphore semaphore = new Semaphore(1);
+    private boolean blockWrite = false;
+
     @Override
     public void beforeRead() {
-      t1 = Instant.now();
+      try {
+        semaphore.tryAcquire();
+        beforeReadTime = Instant.now();
+      } finally {
+        semaphore.release();
+      }
     }
 
     @Override
     public void afterRead() {
-      t2 = Instant.now();
+      afterReadTime = Instant.now();
     }
 
     @Override
     public void beforeWrite() {
-      t3 = Instant.now();
+      // since we are blocking on main thread
+      if (blockWrite) {
+        try {
+          semaphore.tryAcquire();
+          Thread.sleep(2000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } finally {
+          semaphore.release();
+        }
+      }
+      beforeWriteTime = Instant.now();
     }
 
     @Override
     public void afterWrite() {
-      t4 = Instant.now();
+      afterWriteTime = Instant.now();
+    }
+
+    public void setBlockWrite(boolean value) {
+      this.blockWrite = value;
     }
 
     public void assertCallSequence() {
-      assertTrue(t4.isBefore(t1));
+      assertTrue(afterWriteTime.isBefore(beforeReadTime));
     }
   }
 }
