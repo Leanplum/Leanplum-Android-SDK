@@ -80,8 +80,8 @@ public class RequestTest extends TestCase {
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    final ThreadRequestSequence threadRequestSequence = new ThreadRequestSequence();
-    Request request = new Request(POST, Constants.Methods.START, params, threadRequestSequence);
+    final ThreadRequestSequenceRecorder threadRequestSequenceRecorder = new ThreadRequestSequenceRecorder();
+    Request request = new Request(POST, Constants.Methods.START, params, threadRequestSequenceRecorder);
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
 
     new Thread(new Runnable() {
@@ -92,17 +92,17 @@ public class RequestTest extends TestCase {
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
-        threadRequestSequence.writeSemaphore.release(1);
+        threadRequestSequenceRecorder.writeSemaphore.release(1);
       }
     }).start();
 
-    // When the request is sent.
+    // Then the request is written to the local db first, and then read and sent.
     request.sendIfConnected();
 
-    threadRequestSequence.testThreadSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
+    threadRequestSequenceRecorder.testThreadSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
 
     // When the request is sent.
-    threadRequestSequence.assertCallSequence();
+    threadRequestSequenceRecorder.assertCallSequence();
   }
   /**
    * Tests the testRemoveIrrelevantBackgroundStartRequests method.
@@ -360,7 +360,7 @@ public class RequestTest extends TestCase {
     return requests;
   }
 
-  private static class ThreadRequestSequence implements RequestSequence {
+  private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
     Instant beforeReadTime, afterReadTime, beforeWriteTime, afterWriteTime;
     final Semaphore writeSemaphore = new Semaphore(0);
     final Semaphore readSemaphore = new Semaphore(1);
@@ -369,8 +369,10 @@ public class RequestTest extends TestCase {
     @Override
     public void beforeRead() {
       try {
-        readSemaphore.tryAcquire();
+        readSemaphore.tryAcquire(10, TimeUnit.SECONDS);
         beforeReadTime = Instant.now();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
       } finally {
         readSemaphore.release();
       }
@@ -386,7 +388,7 @@ public class RequestTest extends TestCase {
     public void beforeWrite() {
       // since we are blocking on main thread
       try {
-        writeSemaphore.tryAcquire();
+        writeSemaphore.tryAcquire(10, TimeUnit.SECONDS);
         Thread.sleep(2000);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
