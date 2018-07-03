@@ -570,7 +570,6 @@ public class Request {
 
     JSONObject responseBody;
     HttpURLConnection op = null;
-
     try {
       try {
         op = Util.operation(
