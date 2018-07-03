@@ -4,14 +4,11 @@ import android.content.Context;
 
 import com.leanplum.internal.Log;
 
-import java.lang.reflect.Constructor;
-
 public class ExceptionHandler {
-  private static final String RAYGUN_CRASH_REPORTER_CLASS =
-          "com.leanplum.monitoring.internal.RaygunExceptionReporter";
+  private static final String LEANPLUM_CRASH_REPORTER_CLASS =
+          "com.leanplum.monitoring.internal.LeanplumExceptionReporter";
   private static final ExceptionHandler instance = new ExceptionHandler();
-
-  private ExceptionReporting exceptionReporting;
+  public ExceptionReporting exceptionReporter = null;
 
   private ExceptionHandler() {}
 
@@ -21,18 +18,25 @@ public class ExceptionHandler {
 
   public void setContext(Context context) {
     try {
-      Class<?> clazz = Class.forName(RAYGUN_CRASH_REPORTER_CLASS);
-      Constructor<?> constructor = clazz.getConstructor(Context.class);
-      exceptionReporting = (ExceptionReporting) constructor.newInstance(context);
+      // Class.forName runs the static initializer in LeanplumExceptionReporter
+      // which sets the exceptionReporter on the singleton
+      Class.forName(LEANPLUM_CRASH_REPORTER_CLASS);
+      if (exceptionReporter != null) {
+        try {
+          exceptionReporter.setContext(context);
+        } catch (Throwable t) {
+          Log.e("LeanplumCrashHandler", t);
+        }
+      }
     } catch (Throwable t) {
       Log.e("LeanplumCrashHandler", t);
     }
   }
 
   public void reportException(Throwable exception) {
-    if (exceptionReporting != null) {
+    if (exceptionReporter != null) {
       try {
-        exceptionReporting.reportException(exception);
+        exceptionReporter.reportException(exception);
       } catch (Throwable t) {
         Log.e("LeanplumCrashHandler", t);
       }
