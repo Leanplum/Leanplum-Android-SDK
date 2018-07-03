@@ -59,6 +59,7 @@ public class Request {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
+  private RequestSequenceRecorder requestSequenceRecorder;
   static final int MAX_EVENTS_PER_API_CALL;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
@@ -164,6 +165,28 @@ public class Request {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
+  private static class NoRequestSequenceRecorder implements RequestSequenceRecorder {
+    @Override
+    public void beforeRead() {
+      // No op.
+    }
+
+    @Override
+    public void afterRead() {
+      // No op.
+    }
+
+    @Override
+    public void beforeWrite() {
+      // No op.
+    }
+
+    @Override
+    public void afterWrite() {
+      // No op.
+    }
+  }
+
   public static String appId() {
     return appId;
   }
@@ -177,6 +200,10 @@ public class Request {
   }
 
   public Request(String httpMethod, String apiMethod, Map<String, Object> params) {
+    this(httpMethod, apiMethod, params, new NoRequestSequenceRecorder());
+  }
+
+  Request(String httpMethod, String apiMethod, Map<String, Object> params, RequestSequenceRecorder requestSequenceRecorder) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
@@ -187,6 +214,7 @@ public class Request {
     // Make sure the Handler is initialized on the main thread.
     OsHandler.getInstance();
     dataBaseIndex = -1;
+    this.requestSequenceRecorder = requestSequenceRecorder;
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
@@ -232,6 +260,8 @@ public class Request {
 
   private void saveRequestForLater(Map<String, Object> args) {
     try {
+      requestSequenceRecorder.beforeWrite();
+
       synchronized (Request.class) {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
@@ -255,6 +285,8 @@ public class Request {
           eventCallbackManager.addCallbacks(this, response, error);
         }
       }
+
+      requestSequenceRecorder.afterWrite();
     } catch (Throwable t) {
       Util.handleException(t);
     }
@@ -549,7 +581,11 @@ public class Request {
   }
 
   private void sendRequests() {
+    requestSequenceRecorder.beforeRead();
+
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
+
+    requestSequenceRecorder.afterRead();
 
     List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
     List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
