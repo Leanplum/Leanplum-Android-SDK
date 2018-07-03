@@ -71,39 +71,42 @@ public class RequestTest extends TestCase {
     Leanplum.setApplicationContext(context);
   }
 
-  /**
-   * Test that read writes happened sequentially when calling sendNow().
-   */
+  /** Test that read writes happened sequentially when calling sendNow(). */
   @Test
   public void shouldWriteRequestAndSendInSequence() throws InterruptedException {
     // Given a request.
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    final ThreadRequestSequenceRecorder threadRequestSequenceRecorder = new ThreadRequestSequenceRecorder();
-    Request request = new Request(POST, Constants.Methods.START, params, threadRequestSequenceRecorder);
+    final ThreadRequestSequenceRecorder threadRequestSequenceRecorder =
+        new ThreadRequestSequenceRecorder();
+    Request request =
+        new Request(POST, Constants.Methods.START, params, threadRequestSequenceRecorder);
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
 
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-        threadRequestSequenceRecorder.writeSemaphore.release(1);
-      }
-    }).start();
+    new Thread(
+            new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  Thread.sleep(100);
+                } catch (InterruptedException e) {
+                  throw new RuntimeException(e);
+                }
+                threadRequestSequenceRecorder.writeSemaphore.release(1);
+              }
+            })
+        .start();
 
-    // Then the request is written to the local db first, and then read and sent.
+    // When the request is sent.
     request.sendIfConnected();
 
     threadRequestSequenceRecorder.testThreadSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
 
-    // When the request is sent.
+    // Then the request is written to the local db first, and then read and sent.
     threadRequestSequenceRecorder.assertCallSequence();
   }
+
   /**
    * Tests the testRemoveIrrelevantBackgroundStartRequests method.
    * <p>
