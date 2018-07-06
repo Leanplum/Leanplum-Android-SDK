@@ -1107,6 +1107,19 @@ public class Leanplum {
   }
 
   /**
+   * Returns the userId in the current Leanplum session. This should only be called after
+   * Leanplum.start().
+   */
+  public static String getUserId() {
+    if (hasStarted()) {
+      return Request.userId();
+    } else {
+      Log.e("Leanplum.start() must be called before calling getUserId()");
+    }
+    return null;
+  }
+
+  /**
    * Returns an instance to the singleton LeanplumInbox object.
    */
   public static LeanplumInbox getInbox() {
