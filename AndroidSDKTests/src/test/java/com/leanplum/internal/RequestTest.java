@@ -392,7 +392,6 @@ public class RequestTest extends TestCase {
       // since we are blocking on main thread
       try {
         writeSemaphore.tryAcquire(10, TimeUnit.SECONDS);
-        Thread.sleep(2000);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       } finally {
