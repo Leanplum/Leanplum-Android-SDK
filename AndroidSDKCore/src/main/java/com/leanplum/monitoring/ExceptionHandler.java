@@ -25,11 +25,14 @@ public class ExceptionHandler {
         try {
           exceptionReporter.setContext(context);
         } catch (Throwable t) {
-          Log.e("LeanplumCrashHandler", t);
+          Log.e("LeanplumExceptionHandler", t);
         }
       }
+    } catch (ClassNotFoundException t) {
+      Log.i("LeanplumExceptionHandler could not initialize Exception Reporting." +
+              "This is expected if you have not included the leanplum-monitoring module");
     } catch (Throwable t) {
-      Log.e("LeanplumCrashHandler", t);
+      Log.e("LeanplumExceptionHandler", t);
     }
   }
 
@@ -38,7 +41,7 @@ public class ExceptionHandler {
       try {
         exceptionReporter.reportException(exception);
       } catch (Throwable t) {
-        Log.e("LeanplumCrashHandler", t);
+        Log.e("LeanplumExceptionHandler", t);
       }
     }
   }
