@@ -37,10 +37,13 @@ import org.robolectric.annotation.Config;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Matchers.eq;
@@ -57,6 +60,7 @@ import static org.mockito.Mockito.when;
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
 public class RequestTest extends TestCase {
+  public final String POST = "POST";
   /**
    * Runs before every test case.
    */
@@ -65,6 +69,42 @@ public class RequestTest extends TestCase {
     Application context = RuntimeEnvironment.application;
     assertNotNull(context);
     Leanplum.setApplicationContext(context);
+  }
+
+  /** Test that read writes happened sequentially when calling sendNow(). */
+  @Test
+  public void shouldWriteRequestAndSendInSequence() throws InterruptedException {
+    // Given a request.
+    Map<String, Object> params = new HashMap<>();
+    params.put("data1", "value1");
+    params.put("data2", "value2");
+    final ThreadRequestSequenceRecorder threadRequestSequenceRecorder =
+        new ThreadRequestSequenceRecorder();
+    Request request =
+        new Request(POST, Constants.Methods.START, params, threadRequestSequenceRecorder);
+    request.setAppId("fskadfshdbfa", "wee5w4waer422323");
+
+    new Thread(
+            new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  Thread.sleep(100);
+                } catch (InterruptedException e) {
+                  throw new RuntimeException(e);
+                }
+                threadRequestSequenceRecorder.writeSemaphore.release(1);
+              }
+            })
+        .start();
+
+    // When the request is sent.
+    request.sendIfConnected();
+
+    threadRequestSequenceRecorder.testThreadSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
+
+    // Then the request is written to the local db first, and then read and sent.
+    threadRequestSequenceRecorder.assertCallSequence();
   }
 
   /**
@@ -323,4 +363,53 @@ public class RequestTest extends TestCase {
     return requests;
   }
 
+  private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
+    Instant beforeReadTime, afterReadTime, beforeWriteTime, afterWriteTime;
+    final Semaphore writeSemaphore = new Semaphore(0);
+    final Semaphore readSemaphore = new Semaphore(1);
+    final Semaphore testThreadSemaphore = new Semaphore(0);
+
+    @Override
+    public void beforeRead() {
+      try {
+        readSemaphore.tryAcquire(10, TimeUnit.SECONDS);
+        beforeReadTime = Instant.now();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      } finally {
+        readSemaphore.release();
+      }
+    }
+
+    @Override
+    public void afterRead() {
+      afterReadTime = Instant.now();
+      testThreadSemaphore.release(1);
+    }
+
+    @Override
+    public void beforeWrite() {
+      // since we are blocking on main thread
+      try {
+        writeSemaphore.tryAcquire(10, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      } finally {
+        writeSemaphore.release();
+      }
+      beforeWriteTime = Instant.now();
+    }
+
+    @Override
+    public void afterWrite() {
+      afterWriteTime = Instant.now();
+    }
+
+    void assertCallSequence() {
+      assertTrue(
+          beforeWriteTime.isBefore(afterWriteTime)
+              && beforeReadTime.isBefore(afterReadTime)
+              && beforeReadTime.isAfter(afterWriteTime));
+    }
+  }
 }
