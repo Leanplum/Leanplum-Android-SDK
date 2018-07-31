@@ -19,5 +19,5 @@ jobs:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
       - run:
           name: Run Tests
-          command: gradle test --stacktrace
+          command: ./gradlew test --stacktrace
  
