@@ -16,5 +16,5 @@ jobs:
           command: ./gradlew clean assembleDebug
       - run:
           name: Run Tests
-          command: ./gradlew :AndroidSDKTests:testDebugUnitTest --tests com.leanplum.LeanplumTest --debug
+          command: ./gradlew :AndroidSDKTests:testDebugUnitTest --tests com.leanplum.LeanplumTest --info
  
