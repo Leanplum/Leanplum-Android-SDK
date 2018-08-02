@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/code
     docker:
-      - image: circleci/android:api-25-alpha
+      - image: circleci/android:api-25
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
@@ -16,5 +16,5 @@ jobs:
           command: ./gradlew clean assembleDebug
       - run:
           name: Run Tests
-          command: ./gradlew :AndroidSDKTests:testDebugUnitTest --tests com.leanplum.LeanplumTest --info
+          command: ./gradlew :AndroidSDKTests:testDebugUnitTest
  
