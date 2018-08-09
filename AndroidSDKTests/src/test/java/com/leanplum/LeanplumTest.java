@@ -44,6 +44,7 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
@@ -85,6 +86,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  * @author Kiril Kafadarov, Aleksandar Gyorev, Ben Marten
  */
 public class LeanplumTest extends AbstractTest {
+  @Ignore
   @Test
   public void testStart() {
     ResponseHelper.seedResponse("/responses/simple_start_response.json");
@@ -113,6 +115,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Leanplum.hasStarted());
   }
 
+  @Ignore
   @Test
   public void testStartWithCallback() throws Exception {
     final Semaphore semaphore = new Semaphore(1);
@@ -150,6 +153,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Leanplum.hasStarted());
   }
 
+  @Ignore
   @Test
   public void testStartWithUserAttributes() {
     ResponseHelper.seedResponse("/responses/simple_start_response.json");
@@ -192,6 +196,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Leanplum.hasStarted());
   }
 
+  @Ignore
   @Test
   public void testStartWithUserId() {
     ResponseHelper.seedResponse("/responses/simple_start_response.json");
@@ -223,6 +228,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Request.userId().equals(userId));
   }
 
+  @Ignore
   @Test
   public void testStartWithUserIdAndCallback() {
     // Seed response from the file.
@@ -260,6 +266,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Request.userId().equals(userId));
   }
 
+  @Ignore
   @Test
   public void testStartWithUserIdAndAttributes() {
     ResponseHelper.seedResponse("/responses/simple_start_response.json");
@@ -305,6 +312,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Request.userId().equals(userId));
   }
 
+  @Ignore
   @Test
   public void testStartWithUserIdAttributesAndCallback() throws Exception {
     ResponseHelper.seedResponse("/responses/simple_start_response.json");
@@ -359,6 +367,7 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Request.userId().equals(userId));
   }
 
+  @Ignore
   @Test
   public void shouldStartWithParamToIncludeVariantDebugInfo() {
     ResponseHelper.seedResponse("/responses/simple_start_response.json");
