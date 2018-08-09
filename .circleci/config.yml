@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/code
+    working_directory: ~/AndroidSDKTests
     docker:
       - image: circleci/android:api-26-alpha
     environment:
@@ -16,5 +16,5 @@ jobs:
           command: ./gradlew clean assembleDebug
       - run:
           name: Run Tests
-          command: ./gradlew :AndroidSDKTests:testDebugUnitTest
+          command: ./gradlew :AndroidSDKTests:testDebugUnitTest --no-daemon --max-workers 2
  
