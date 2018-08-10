@@ -1,6 +1,10 @@
-IMAGE:=jangrewe/gitlab-ci-android
 
+IMAGE:=jangrewe/gitlab-ci-android
+DOCKER_RUN:=docker run --volume `pwd`:/leanplum --workdir /leanplum --tty --interactive ${IMAGE}
 build:
-	docker run --volume `pwd`:/sdk --workdir /sdk ${IMAGE} ./gradlew clean assembleDebug testDebugUnitTest
+	${DOCKER_RUN} ./gradlew clean assembleDebug testDebugUnitTest
+
+shell:
+	${DOCKER_RUN} bash
 
 .PHONY: build
