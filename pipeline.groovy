@@ -4,14 +4,6 @@
 
 pipeline {
     agent { label 'base-lp-agent'}
-    parameters {
-        string(name:'NAME', defaultValue: 'test')
-        string(name: 'BRANCH', defaultValue: 'develop',
-                description: 'Branch to use.')
-    }
-    environment {
-        NAME = "${parameters.NAME}"
-    }
     stages {
         stage("Build and Test the SDK") {
             steps {
