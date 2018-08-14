@@ -2,6 +2,7 @@ FROM jangrewe/gitlab-ci-android
 
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
+  nodejs \
   build-essential \
   && rm -rf /var/lib/apt/lists/*
 
@@ -25,3 +26,4 @@ RUN echo no | avdmanager create avd -n "x86" --package "system-images;android-26
 
 # Needed for adb to work
 EXPOSE 5037 5554 5555
+
