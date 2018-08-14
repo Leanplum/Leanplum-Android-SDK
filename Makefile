@@ -14,11 +14,11 @@ DOCKER_RUN:=docker run \
 clean-local-properties:
 	rm -f local.properties
 
-sdk-local: clean-local-properties
+sdk: clean-local-properties
 	./gradlew clean assembleDebug testDebugUnitTest --info
 
-sdk-in-container: clean-local-properties
-	${DOCKER_RUN} make sdk-local
+sdk-in-container:
+	${DOCKER_RUN} make sdk
 
 shell:
 	${DOCKER_RUN} bash

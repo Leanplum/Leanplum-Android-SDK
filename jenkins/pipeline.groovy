@@ -19,6 +19,6 @@ pipeline {
 
 def buildAndTest() {
     withDockerContainer(args: "", image: "leanplum/android-sdk-build") {
-        sh 'make sdk-local'
+        sh 'make sdk'
     }
 }
