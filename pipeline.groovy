@@ -18,8 +18,7 @@ pipeline {
 }
 
 def buildAndTest() {
-    withDockerContainer(args: "", image: "jangrewe/gitlab-ci-android") {
-        sh 'rm -f local.properties'
-        sh './gradlew clean assembleDebug testDebugUnitTest --info'
+    withDockerContainer(args: "", image: "leanplum/android-sdk-build") {
+        sh 'make sdk-local'
     }
 }
