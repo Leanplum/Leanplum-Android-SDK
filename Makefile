@@ -1,3 +1,8 @@
+####################################################################
+#
+# Rules used to build and release the SDK.
+#
+####################################################################
 
 SDK_BUILD_IMAGE:=leanplum/android-sdk-build:latest
 DOCKER_RUN:=docker run \
