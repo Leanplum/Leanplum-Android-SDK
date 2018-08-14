@@ -1,10 +1,10 @@
 
 SDK_BUILD_IMAGE:=leanplum/android-sdk-build:latest
 DOCKER_RUN:=docker run \
-						--tty --interactive --rm \
-						--volume `pwd`:/leanplum \
-						--workdir /leanplum \
-						${SDK_BUILD_IMAGE}
+			--tty --interactive --rm \
+			--volume `pwd`:/leanplum \
+			--workdir /leanplum \
+			${SDK_BUILD_IMAGE}
 
 clean-local-properties:
 	rm -f local.properties
