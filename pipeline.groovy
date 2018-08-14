@@ -1,5 +1,5 @@
 /**
- * Jenkins pipeline for Android SDK.
+ * Jenkins pipeline for Build and Test of Android SDK.
  */
 
 pipeline {
@@ -19,6 +19,7 @@ pipeline {
 
 def buildAndTest() {
     withDockerContainer(args: "", image: "jangrewe/gitlab-ci-android") {
-        sh './gradlew clean assembleDebug testDebugUnitTest'
+        sh 'rm -f local.properties'
+        sh './gradlew clean assembleDebug testDebugUnitTest --info'
     }
 }
