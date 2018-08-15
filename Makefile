@@ -15,6 +15,8 @@ clean-local-properties:
 	rm -f local.properties
 
 sdk: clean-local-properties
+	emulator -verbose -avd device1 -no-skin -no-audio -no-window&
+	sleep 30
 	./gradlew clean assembleDebug testDebugUnitTest --info
 
 sdk-in-container:
