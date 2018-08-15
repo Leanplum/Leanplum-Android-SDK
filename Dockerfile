@@ -12,8 +12,8 @@ RUN apt-get update && \
 
 ENV PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin"
 
-RUN sdkmanager --no_https --licenses && \
-  sdkmanager --no_https emulator tools platform-tools \
+RUN sdkmanager --licenses && \
+  sdkmanager  emulator tools platform-tools \
   "platforms;${emulator_platform}" ${system_image} --verbose && \
   echo no | avdmanager create avd -n "device1" --package ${system_image} --tag google_apis
 
