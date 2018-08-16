@@ -5,7 +5,6 @@
 ####################################################################
 
 SDK_BUILD_IMAGE:=leanplum/android-sdk-build:latest
-EMULATOR=$ANDROID_HOME/tools/emulator
 DOCKER_RUN:=docker run \
 			--tty --interactive --rm \
 			--volume `pwd`:/leanplum \
@@ -16,7 +15,6 @@ clean-local-properties:
 	rm -f local.properties
 
 sdk: clean-local-properties
-	${EMULATOR} -no-accel -verbose -avd device1 -no-skin -no-audio -no-window&
 	./gradlew clean assembleDebug testDebugUnitTest --info
 
 sdk-in-container:
