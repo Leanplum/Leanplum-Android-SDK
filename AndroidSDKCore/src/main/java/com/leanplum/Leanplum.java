@@ -814,6 +814,15 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
+            JSONArray enabledCounters = response.optJSONArray(
+                    Constants.Keys.ENABLED_COUNTERS);
+            if (enabledCounters != null) {
+              for (int i=0; i < enabledCounters.length(); i++) {
+                String name = enabledCounters.getString(i);
+                Log.enableCounter(name);
+              }
+            }
+
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.

@@ -206,6 +206,7 @@ public class Constants {
     public static final String SUBTITLE = "Subtitle";
     public static final String SYNC_INBOX = "syncNewsfeed";
     public static final String LOGGING_ENABLED = "loggingEnabled";
+    public static final String ENABLED_COUNTERS = "enabledCounters";
     public static final String TIMEZONE = "timezone";
     public static final String TIMEZONE_OFFSET_SECONDS = "timezoneOffsetSeconds";
     public static final String TITLE = "Title";
@@ -250,6 +251,7 @@ public class Constants {
     public static final String DEFAULT_PUSH_MESSAGE = "Push message goes here.";
     public static final String SDK_LOG = "sdkLog";
     public static final String SDK_ERROR = "sdkError";
+    public static final String SDK_COUNT = "sdkCount";
     public static final String FILE_PREFIX = "__file__";
   }
 
