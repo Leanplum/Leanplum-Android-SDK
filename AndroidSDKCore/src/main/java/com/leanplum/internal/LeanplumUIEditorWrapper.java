@@ -63,6 +63,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
           interfaceEditorSingleton = (LeanplumUIEditor) method.invoke(null);
           if (interfaceEditorSingleton != null) {
             interfaceEditorSingleton.allowInterfaceEditing(Constants.isDevelopmentModeEnabled);
+            Log.count("sdkCounterUiEditor");
           }
         } catch (IllegalAccessException e) {
           Util.handleException(e);
