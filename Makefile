@@ -1,6 +1,6 @@
 ####################################################################
 #
-# Rules used to build and release the SDK.
+# Rules used to build and release the SDK. Test again
 #
 ####################################################################
 
