@@ -2142,4 +2142,13 @@ public class Leanplum {
       VarCache.setVariantDebugInfo(variantDebugInfo);
     }
   }
+
+  /**
+   * Clear all local variables and messages.
+   * This should be typically called when a user logs out of your app. Variables will
+   * start sending default values until the server sends updated content.
+   */
+  public static void clearUserContent() {
+    VarCache.clearUserContent();
+  }
 }
