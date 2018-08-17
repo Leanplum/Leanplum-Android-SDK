@@ -910,6 +910,7 @@ public class VarCache {
     messageDiffs.clear();
     messages = null;
     userAttributes = null;
+    merged = null;
 
     devModeValuesFromServer = null;
     devModeFileAttributesFromServer = null;
