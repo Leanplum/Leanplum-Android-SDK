@@ -901,6 +901,22 @@ public class VarCache {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
+  public static void clearUserContent() {
+    vars.clear();
+    variants.clear();
+    variantDebugInfo.clear();
+
+    diffs.clear();
+    messageDiffs.clear();
+    messages = null;
+    userAttributes = null;
+    merged = null;
+
+    devModeValuesFromServer = null;
+    devModeFileAttributesFromServer = null;
+    devModeActionDefinitionsFromServer = null;
+  }
+
   /**
    * Resets the VarCache to stock state.
    */
