@@ -1,6 +1,6 @@
 ####################################################################
 #
-# Rules used to build and release the SDK. Test commit
+# Rules used to build and release the SDK. Test cool
 #
 ####################################################################
 
