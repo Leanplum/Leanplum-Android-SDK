@@ -7,6 +7,7 @@ ARG platform_image="platforms;${emulator_platform}"
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
   nodejs=6.11.4~dfsg-1ubuntu1 \
+  npm \
   build-essential \
   && rm -rf /var/lib/apt/lists/*
 
