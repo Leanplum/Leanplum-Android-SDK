@@ -11,7 +11,7 @@ DOCKER_RUN:=docker run \
 			--workdir /leanplum \
 			${SDK_BUILD_IMAGE}
 DOCKER_JENKINS:=docker run \
-			--interactive -rm --volume `pwd`:/leanplum \
+			--interactive --rm --volume `pwd`:/leanplum \
 			--workdir /leanplum \
 			${SDK_BUILD_IMAGE}
 
