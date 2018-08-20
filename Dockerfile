@@ -13,7 +13,7 @@ RUN apt-get update && \
 
 ENV PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin"
 
-RUN npm install -g yarn@1.9.4
+RUN npm install -g yarn
 
 RUN sdkmanager emulator tools platform-tools ${platform_image} ${system_image} --verbose && \
   echo no | avdmanager create avd -n "device1" --package ${system_image} --tag google_apis
