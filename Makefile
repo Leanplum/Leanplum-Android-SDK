@@ -1,6 +1,6 @@
 ####################################################################
 #
-# Rules used to build and release the SDK. Test again
+# Rules used to build and release the SDK.
 #
 ####################################################################
 
@@ -8,6 +8,10 @@ SDK_BUILD_IMAGE:=leanplum/android-sdk-build:latest
 DOCKER_RUN:=docker run \
 			--tty --interactive --rm \
 			--volume `pwd`:/leanplum \
+			--workdir /leanplum \
+			${SDK_BUILD_IMAGE}
+DOCKER_JENKINS:=docker run \
+			--rm --volume `pwd`:/leanplum \
 			--workdir /leanplum \
 			${SDK_BUILD_IMAGE}
 
@@ -19,6 +23,9 @@ sdk: clean-local-properties
 
 sdk-in-container:
 	${DOCKER_RUN} make sdk
+
+jenkins-test:
+	${DOCKER_JENKINS} make sdk
 
 shell:
 	${DOCKER_RUN} bash
