@@ -5,7 +5,7 @@
 -keepparameternames
 -keepattributes EnclosingMethod
 
-# Keep - Library. Keep all public and protected classes, fields, and methods.
+# Keep - Library. Keep all public and protected classes, fields & methods.
 -keep public class com.leanplum.*,
     com.leanplum.activities.*,
     com.leanplum.annotations.*,
