@@ -10,10 +10,6 @@ DOCKER_RUN:=docker run \
 			--volume `pwd`:/leanplum \
 			--workdir /leanplum \
 			${SDK_BUILD_IMAGE}
-DOCKER_JENKINS:=docker run \
-			--rm --volume `pwd`:/leanplum \
-			--workdir /leanplum \
-			${SDK_BUILD_IMAGE}
 
 clean-local-properties:
 	rm -f local.properties
