@@ -10,6 +10,10 @@ DOCKER_RUN:=docker run \
 			--volume `pwd`:/leanplum \
 			--workdir /leanplum \
 			${SDK_BUILD_IMAGE}
+DOCKER_JENKINS:=docker run \
+			--rm --volume `pwd`:/leanplum \
+			--workdir /leanplum \
+			${SDK_BUILD_IMAGE}
 
 clean-local-properties:
 	rm -f local.properties
@@ -21,6 +25,9 @@ sdk: clean-local-properties
 
 sdk-in-container:
 	${DOCKER_RUN} make sdk
+
+jenkins-test:
+	${DOCKER_JENKINS} make sdk
 
 shell:
 	${DOCKER_RUN} bash

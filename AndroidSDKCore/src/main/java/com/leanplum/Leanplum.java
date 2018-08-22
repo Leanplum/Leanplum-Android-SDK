@@ -2142,4 +2142,13 @@ public class Leanplum {
       VarCache.setVariantDebugInfo(variantDebugInfo);
     }
   }
+
+  /**
+   * Clears cached values for messages, variables and test assignments.
+   * Use sparingly as if the app is updated, you'll have to deal with potentially
+   * inconsistent state or user experience.
+   */
+  public static void clearUserContent() {
+    VarCache.clearUserContent();
+  }
 }
