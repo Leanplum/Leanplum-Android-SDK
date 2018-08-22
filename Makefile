@@ -10,11 +10,17 @@ DOCKER_RUN:=docker run \
 			--volume `pwd`:/leanplum \
 			--workdir /leanplum \
 			${SDK_BUILD_IMAGE}
+DOCKER_JENKINS:=docker run \
+			--rm --volume `pwd`:/leanplum \
+			--workdir /leanplum \
+			${SDK_BUILD_IMAGE}
 
 clean-local-properties:
 	rm -f local.properties
 
 sdk: clean-local-properties
+	emulator -verbose -avd device1 -no-skin -no-audio -no-window&
+	sleep 30
 	./gradlew clean assembleDebug testDebugUnitTest --info
 
 sdk-in-container:
@@ -24,7 +30,7 @@ shell:
 	${DOCKER_RUN} bash
 
 build-image:
-	docker build -t ${SDK_BUILD_IMAGE} .
+	docker build -t ${SDK_BUILD_IMAGE} . -f jenkins/build.dockerfile
 	docker push ${SDK_BUILD_IMAGE}
 
 .PHONY: build
