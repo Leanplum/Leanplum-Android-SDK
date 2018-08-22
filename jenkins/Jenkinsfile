@@ -21,6 +21,7 @@ def buildAndTest() {
     def buildImage = docker.build("leanplum/android-sdk-build", "./jenkins/build.dockerfile")
 
     buildImage.inside {
+        sh 'pwd && ls -laht'
         sh 'make sdk'
     }
 }
