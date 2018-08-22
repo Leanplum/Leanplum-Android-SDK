@@ -18,7 +18,7 @@ pipeline {
 }
 
 def buildAndTest() {
-    def buildImage = docker.build("leanplum/android-sdk-build", "./jenkins/build.dockerfile")
+    def buildImage = docker.build("leanplum/android-sdk-build", "-f ./jenkins/build.dockerfile .")
 
     buildImage.inside {
         sh 'pwd && ls -laht'
