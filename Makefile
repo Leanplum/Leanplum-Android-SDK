@@ -26,14 +26,11 @@ sdk: clean-local-properties
 sdk-in-container:
 	${DOCKER_RUN} make sdk
 
-jenkins-test:
-	${DOCKER_JENKINS} make sdk
-
 shell:
 	${DOCKER_RUN} bash
 
 build-image:
-	docker build -t ${SDK_BUILD_IMAGE} .
+	docker build -t ${SDK_BUILD_IMAGE} . -f jenkins/build.dockerfile
 	docker push ${SDK_BUILD_IMAGE}
 
 .PHONY: build
