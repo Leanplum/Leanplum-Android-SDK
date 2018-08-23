@@ -7,10 +7,13 @@ ARG platform_image="platforms;${emulator_platform}"
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
   nodejs=6.11.4~dfsg-1ubuntu1 \
+  npm \
   build-essential \
   && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin"
+
+RUN npm install -g yarn
 
 RUN sdkmanager emulator tools platform-tools ${platform_image} ${system_image} --verbose && \
   echo no | avdmanager create avd -n "device1" --package ${system_image} --tag google_apis
