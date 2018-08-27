@@ -21,28 +21,19 @@ def update_version(root, xml, version):
     sdk_version.set('updated', 'yes')
     xml.write("AndroidSDK/res/values/strings.xml")
 
-def patch_increment(current_version):
-  return semver.bump_patch(current_version)
-
-def minor_increment(current_version):
-  return semver.bump_minor(current_version)
-
-def major_increment(current_version):
-  return semver.bump_major(current_version)
-
 def main():
   type = sys.argv[1]
   xml = ET.parse("AndroidSDK/res/values/strings.xml")
   root = xml.getroot()
 
   current_version = get_current_version(root)
-  
+
   if type == "patch":
-    release_version = patch_increment(current_version)
+    release_version = semver.bump_patch(current_version)
   elif type == "minor":
-    release_version = minor_increment(current_version)
+    release_version = semver.bump_patch(current_version)
   elif type == "major":
-    release_version = major_increment(current_version)
+    release_version = semver.bump_patch(current_version)
   else:
     release_version = current_version
   
