@@ -8,8 +8,6 @@ set -o errexit
 #######################################
 # Create a new release branch
 #######################################
-
-# Needs to know what type of release we will be
 main() {
   for i in "$@"; do
     case $i in
@@ -21,13 +19,10 @@ main() {
       shift;;
     esac
   done
-  
-  local releaseType="patch"
-  local branch="develop"
 
   releaseVer=$( python release.py patch)
   echo $releaseVer
-  #First we need to git checkout develop and fetch and pull
+
   git checkout "${branch}"
   git pull
 
@@ -36,4 +31,4 @@ main() {
   git push
 }
 
-main
+main "$@"
