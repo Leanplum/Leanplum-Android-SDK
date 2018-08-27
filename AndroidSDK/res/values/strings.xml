@@ -1,6 +1,6 @@
 <resources>
 
     <string name="app_name">Android SDK</string>
-    <sdk_version updated="yes">4.1.1</sdk_version>
+    <string name="sdk_version">4.1.1</string>
 
 </resources>
