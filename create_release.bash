@@ -20,10 +20,7 @@ main() {
     esac
   done
 
-  releaseVer=$(python release.py patch)
-
-  git checkout "${branch}"
-  git pull
+  release_version=$(./release.py ${releaseType})
 
   # create a branch, push on success
   git checkout -b "release/${release_version}"
