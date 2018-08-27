@@ -1,6 +1,5 @@
 #!/usr/bin/python
-import os
-import datetime
+
 import semver
 import xml.etree.ElementTree as ET
 import sys 
@@ -41,17 +40,15 @@ def main(argv):
   if type == "patch":
     release_ver = patch_release(current_version)
     update_version(root, xml, release_ver)
-    return release_ver
+    sys.stdout.write(release_ver)
   elif type == "minor":
     release_ver = minor_release(current_version)
     update_version(root, xml, release_ver)
-    return release_ver
+    sys.stdout.write(release_ver)
   elif type == "major":
     release_ver = major_release(current_version)
     update_version(root, xml, release_ver)
-    return release_ver
-  
-  
+    sys.stdout.write(release_ver)
 
 if __name__ == "__main__":
   main(sys.argv[1:])
