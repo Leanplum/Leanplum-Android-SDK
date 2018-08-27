@@ -31,9 +31,9 @@ def main():
   if type == "patch":
     release_version = semver.bump_patch(current_version)
   elif type == "minor":
-    release_version = semver.bump_patch(current_version)
+    release_version = semver.bump_minor(current_version)
   elif type == "major":
-    release_version = semver.bump_patch(current_version)
+    release_version = semver.bump_major(current_version)
   else:
     release_version = current_version
   

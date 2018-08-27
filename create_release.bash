@@ -9,18 +9,9 @@ set -o errexit
 # Create a new release branch
 #######################################
 main() {
-  for i in "$@"; do
-    case $i in
-      --releaseType=*)
-      releaseType="${i#*=}"
-      shift;;
-      --branch=*)
-      branch="${i#*=}"
-      shift;;
-    esac
-  done
+  TYPE=$1
 
-  release_version=$(./release.py ${releaseType})
+  release_version=$(./release.py ${TYPE})
 
   # create a branch, push on success
   git checkout -b "release/${release_version}"
