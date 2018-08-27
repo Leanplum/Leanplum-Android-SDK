@@ -20,15 +20,14 @@ main() {
     esac
   done
 
-  releaseVer=$( python release.py patch)
-  echo $releaseVer
+  releaseVer=$(python release.py patch)
 
   git checkout "${branch}"
   git pull
 
   # create a branch, push on success
-  git checkout -b "${release_version}"
-  git push
+  git checkout -b "release/${release_version}"
+  git push --set-upstream origin "release/${release_version}"
 }
 
 main "$@"
