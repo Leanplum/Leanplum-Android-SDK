@@ -168,15 +168,29 @@ public class Log {
   }
 
   /**
-   * Create request for sending all counters.
+   * Create request to send all the counts and clear.
    */
-  public static void sendAllCounts() {
+  public static void sendAndClearCounts() {
+    sendAllCounts();
+    clearCounts();
+  }
+
+  /**
+   * Create request to send all the counts.
+   */
+  private static void sendAllCounts() {
     for(Map.Entry<String, Integer> entry : counts.entrySet()) {
       String name = entry.getKey();
       Integer count = entry.getValue();
         sendCount(name, count);
     }
+  }
 
+  /**
+   * Clear all counts
+   */
+  private static void clearCounts() {
+    counts.clear();
   }
 
   private static void sendCount(String name, Integer count) {
@@ -185,7 +199,6 @@ public class Log {
       params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
       params.put(Constants.Params.MESSAGE, name);
       params.put(Constants.Params.COUNT, count);
-      // TODO: figure this out
       Request.post(Constants.Methods.LOG, params).sendEventually();
     } catch (Throwable t) {
       android.util.Log.e("Leanplum", "Unable to send count.", t);
