@@ -15,18 +15,18 @@ android_strings_xml = "AndroidSDK/res/values/strings.xml"
 
 def get_current_version(root):
   for element in root.iter("string"):
-    if element.attrib.get('name') == "sdk_version":
+    if element.attrib.get("name") == "sdk_version":
       return element.text
 
 def update_version(root, xml, version):
   for element in root.iter("string"):
-    if element.attrib.get('name') == "sdk_version":
+    if element.attrib.get("name") == "sdk_version":
       element.text = str(version)
       xml.write(android_strings_xml)
 
 def main():
   release_type = sys.argv[1]
-  xml = ET.parse(values_xml)
+  xml = ET.parse(android_strings_xml)
   root = xml.getroot()
 
   current_version = get_current_version(root)
