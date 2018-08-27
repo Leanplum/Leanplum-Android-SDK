@@ -26,6 +26,7 @@ import com.leanplum.core.BuildConfig;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -82,6 +83,7 @@ public class Log {
   };
 
   private static Set<String> enabledCounters = new HashSet<>();
+  private static Map<String, Integer> counts = new HashMap<>();
 
   public static void e(Object... objects) {
     log(LeanplumLogType.ERROR, CollectionUtil.concatenateArray(objects, ", "));
@@ -149,7 +151,7 @@ public class Log {
         maybeSendLog(tag + prefix + message);
         return;
       case COUNT:
-        maybeSendCount(message);
+        incrementCount(message);
         return;
       default: // DEBUG
         if (BuildConfig.DEBUG) {
@@ -165,6 +167,31 @@ public class Log {
     Log.enabledCounters = enabledCounters;
   }
 
+  /**
+   * Create request for sending all counters.
+   */
+  public static void sendAllCounts() {
+    for(Map.Entry<String, Integer> entry : counts.entrySet()) {
+      String name = entry.getKey();
+      Integer count = entry.getValue();
+        sendCount(name, count);
+    }
+
+  }
+
+  private static void sendCount(String name, Integer count) {
+    try {
+      HashMap<String, Object> params = new HashMap<>();
+      params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
+      params.put(Constants.Params.MESSAGE, name);
+      params.put(Constants.Params.COUNT, count);
+      // TODO: figure this out
+      Request.post(Constants.Methods.LOG, params).sendEventually();
+    } catch (Throwable t) {
+      android.util.Log.e("Leanplum", "Unable to send count.", t);
+    }
+
+  }
   /**
    * Generates tag for logging purpose in format [LogType][Leanplum]
    *
@@ -220,17 +247,14 @@ public class Log {
     }
   }
 
-  private static void maybeSendCount(String name) {
+  private static void incrementCount(String name) {
     if (enabledCounters.contains(name)) {
-      try {
-        HashMap<String, Object> params = new HashMap<>();
-        params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
-        params.put(Constants.Params.MESSAGE, name);
-        Request.post(Constants.Methods.LOG, params).sendEventually();
-      } catch (Throwable t) {
-        android.util.Log.e("Leanplum", "Unable to send count.", t);
+      Integer count = 0;
+      if (counts.containsKey(name)) {
+        count = counts.get(name);
       }
-
+      count = count + 1;
+      counts.put(name, count);
     }
   }
 

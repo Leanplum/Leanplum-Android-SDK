@@ -151,6 +151,7 @@ public class Constants {
     public static final String KINDS = "kinds";
     public static final String LIMIT_TRACKING = "limitTracking";
     public static final String MESSAGE = "message";
+    public static final String COUNT = "count";
     public static final String MESSAGE_ID = "messageId";
     public static final String NEW_USER_ID = "newUserId";
     public static final String INBOX_MESSAGE_ID = "newsfeedMessageId";
