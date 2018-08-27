@@ -21,13 +21,13 @@ def update_version(root, xml, version):
     sdk_version.set('updated', 'yes')
     xml.write("values.xml")
 
-def patch_release(current_version):
+def patch_increment(current_version):
   return semver.bump_patch(current_version)
 
-def minor_release(current_version):
+def minor_increment(current_version):
   return semver.bump_minor(current_version)
 
-def major_release(current_version):
+def major_increment(current_version):
   return semver.bump_major(current_version)
 
 def main(argv):
@@ -38,26 +38,17 @@ def main(argv):
   current_version = get_current_version(root)
   
   if type == "patch":
-    release_ver = patch_release(current_version)
+    release_ver = patch_increment(current_version)
     update_version(root, xml, release_ver)
     sys.stdout.write(release_ver)
   elif type == "minor":
-    release_ver = minor_release(current_version)
+    release_ver = minor_increment(current_version)
     update_version(root, xml, release_ver)
     sys.stdout.write(release_ver)
   elif type == "major":
-    release_ver = major_release(current_version)
+    release_ver = major_increment(current_version)
     update_version(root, xml, release_ver)
     sys.stdout.write(release_ver)
 
 if __name__ == "__main__":
   main(sys.argv[1:])
-
-  """we also have semver.prerelease which does --> rc """
-
-
-
-
-
-
-
