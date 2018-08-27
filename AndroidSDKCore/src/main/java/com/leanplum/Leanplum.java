@@ -55,10 +55,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -814,15 +817,7 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            JSONArray enabledCounters = response.optJSONArray(
-                    Constants.Keys.ENABLED_COUNTERS);
-            if (enabledCounters != null) {
-              for (int i=0; i < enabledCounters.length(); i++) {
-                String name = enabledCounters.getString(i);
-                Log.enableCounter(name);
-              }
-            }
-
+            parseSdkCounters(response);
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
@@ -2159,5 +2154,15 @@ public class Leanplum {
    */
   public static void clearUserContent() {
     VarCache.clearUserContent();
+  }
+
+  private static void parseSdkCounters(JSONObject response) {
+
+    JSONArray enabledCounters = response.optJSONArray(
+            Constants.Keys.ENABLED_COUNTERS);
+    if (enabledCounters != null) {
+      Set counterSet = new HashSet<>(Arrays.asList(enabledCounters));
+      Log.setEnabledCounters(counterSet);
+    }
   }
 }

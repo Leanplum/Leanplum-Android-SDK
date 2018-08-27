@@ -81,7 +81,7 @@ public class Log {
     }
   };
 
-  private static final Set<String> enabledCounters = new HashSet<>();
+  private static Set<String> enabledCounters = new HashSet<>();
 
   public static void e(Object... objects) {
     log(LeanplumLogType.ERROR, CollectionUtil.concatenateArray(objects, ", "));
@@ -160,11 +160,9 @@ public class Log {
 
   /**
    * Enables certain counters to send metrics to server.
-   *
-   * @param name Name of counter to enable
    */
-  public static void enableCounter(String name) {
-    enabledCounters.add(name);
+  public static void setEnabledCounters(Set enabledCounters) {
+    Log.enabledCounters = enabledCounters;
   }
 
   /**
