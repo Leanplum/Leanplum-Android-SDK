@@ -24,7 +24,7 @@ shell:
 	${DOCKER_RUN} bash
 
 build-image:
-	docker build -t ${SDK_BUILD_IMAGE} . -f jenkins/build.dockerfile
+	docker build -t ${SDK_BUILD_IMAGE} . -f Tools/jenkins/build.dockerfile
 	docker push ${SDK_BUILD_IMAGE}
 
 .PHONY: build
