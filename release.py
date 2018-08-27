@@ -35,7 +35,7 @@ def main():
   elif type == "major":
     release_version = semver.bump_major(current_version)
   else:
-    release_version = current_version
+    raise Exception("Please pick one patch/minor/major")
   
   update_version(root, xml, release_version)
   sys.stdout.write(release_version)
