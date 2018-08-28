@@ -22,7 +22,7 @@ def update_version(root, xml, version):
   for element in root.iter("string"):
     if element.attrib.get("name") == "sdk_version":
       element.text = str(version)
-      xml.write(android_strings_xml)
+      xml.write(android_strings_xml, encoding='utf-8', xml_declaration=True)
 
 def main():
   release_type = sys.argv[1]
