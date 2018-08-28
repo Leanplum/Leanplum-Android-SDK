@@ -11,7 +11,7 @@ set -o errexit
 main() {
   TYPE=$1
 
-  release_version=$(./release.py ${TYPE})
+  release_version=$(./Tools/create-release.py ${TYPE})
 
   # create a branch, push on success
   git checkout -b "release/${release_version}"
