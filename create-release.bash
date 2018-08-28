@@ -15,6 +15,3 @@ release_version=$(./Tools/create-release.py ${TYPE})
 # create a branch, push on success
 git checkout -b "release/${release_version}"
 git push --set-upstream origin "release/${release_version}"
-
-
-
