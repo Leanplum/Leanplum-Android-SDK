@@ -4,14 +4,7 @@ import semver
 import xml.etree.ElementTree as ET
 import sys 
 
-"""Type: Major/Minor/Patch"""
-
-"""
-1. Read in values.xml
-2. Increment the SDK version value based on correct semVers
-3. Return: new version number
-"""
-android_strings_xml = "AndroidSDK/res/values/strings.xml"
+ANDROID_STRINGS_XML = "AndroidSDK/res/values/strings.xml"
 
 def get_current_version(root):
   for element in root.iter("string"):
@@ -22,11 +15,18 @@ def update_version(root, xml, version):
   for element in root.iter("string"):
     if element.attrib.get("name") == "sdk_version":
       element.text = str(version)
-      xml.write(android_strings_xml, encoding='utf-8', xml_declaration=True)
+      xml.write(ANDROID_STRINGS_XML, encoding='utf-8', xml_declaration=True)
 
+"""Type: Major/Minor/Patch"""
+
+"""
+1. Read in values.xml
+2. Increment the SDK version value based on correct semVers
+3. Return: new version number
+"""
 def main():
   release_type = sys.argv[1]
-  xml = ET.parse(android_strings_xml)
+  xml = ET.parse(ANDROID_STRINGS_XML)
   root = xml.getroot()
 
   current_version = get_current_version(root)
