@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
 
     <string name="app_name">Android SDK</string>
+    <string name="sdk_version">4.1.1</string>
 
 </resources>
