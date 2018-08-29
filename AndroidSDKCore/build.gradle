@@ -13,15 +13,17 @@ android {
 
     defaultConfig {
         consumerProguardFiles CONSUMER_PROGUARD_FILES
+
+        def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
+                '\"'
+        buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
+
+        def sdkVersion = file('sdk-version.txt').text
+        buildConfigField 'String', 'SDK_VERSION', '\"' + sdkVersion + '\"'
     }
     buildTypes {
         release {
             proguardFiles PROGUARD_FILES
-        }
-        buildTypes.each {
-            def packageIdentifier = '\"' + (System.getenv("LEANPLUM_PACKAGE_IDENTIFIER") ?: "s") +
-                    '\"'
-            it.buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', packageIdentifier
         }
     }
 }
