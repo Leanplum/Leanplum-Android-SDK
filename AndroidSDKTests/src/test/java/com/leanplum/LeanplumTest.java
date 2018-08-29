@@ -1124,6 +1124,25 @@ public class LeanplumTest extends AbstractTest {
   }
 
   /**
+   * Test that we have a valid version.
+   */
+  @Test
+  public void testVersion() {
+    String[] parts = Constants.LEANPLUM_VERSION.split("\\.");
+
+    assertEquals(3, parts.length);
+    // Ensure we can parse and do not go down in major version.
+    int major = Integer.parseInt(parts[0]);
+    assert(major >= 4);
+
+    // Ensure minor and patch versions are parseable.
+    int minor = Integer.parseInt(parts[1]);
+    assert(minor >= 0);
+    int patch = Integer.parseInt(parts[2]);
+    assert(patch >= 0);
+  }
+
+  /**
    * Test client configuration
    */
   @Test
