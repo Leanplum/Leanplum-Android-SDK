@@ -1,4 +1,4 @@
-FROM runmymind/docker-android-sdk:alpine-standalone
+FROM jangrewe/gitlab-ci-android
 
 ################################ Tools Installation ################################
 RUN apt-get update && \
