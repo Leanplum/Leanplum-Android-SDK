@@ -20,7 +20,7 @@ Please refer to: https://www.leanplum.com/docs/android/setup
 ## Build the SDK
 To build the sdk run:
 ```bash
-./build.sh
+make sdk-in-container
 ```
 ## Contributing
 Please follow the Conventional Changelog Commit Style and send a pull request to `develop` branch.
