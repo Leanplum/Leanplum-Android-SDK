@@ -1124,13 +1124,13 @@ public class LeanplumTest extends AbstractTest {
   }
 
   /**
-   * Test that we have a valid version.
+   * Test that a valid version is checked in.
    */
   @Test
   public void testVersion() {
     String[] parts = Constants.LEANPLUM_VERSION.split("\\.");
 
-    assertEquals(3, parts.length);
+    assertEquals(4, parts.length);
     // Ensure we can parse and do not go down in major version.
     int major = Integer.parseInt(parts[0]);
     assert(major >= 4);
@@ -1140,6 +1140,10 @@ public class LeanplumTest extends AbstractTest {
     assert(minor >= 0);
     int patch = Integer.parseInt(parts[2]);
     assert(patch >= 0);
+
+    // Ensure build number propagates.
+    int build = Integer.parseInt(parts[3]);
+    assert(build >= 0);
   }
 
   /**
