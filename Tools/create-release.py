@@ -38,7 +38,7 @@ def main():
   elif alpha_build == "release":
     pass
   else:
-    raise Exception("Please use pass alpha as 2nd argument"
+    raise Exception("Please use alpha as 2nd argument"
      + " for pre release build")
   
   update_version(release_version)
