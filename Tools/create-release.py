@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 import semver
-import sys
+import sys 
 
 SDK_VERSION_FILE = "AndroidSDKCore/sdk-version.txt"
 
