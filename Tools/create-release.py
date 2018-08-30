@@ -1,21 +1,17 @@
 #!/usr/bin/env python2.7
 
 import semver
-import xml.etree.ElementTree as ET
-import sys 
+import sys
 
-ANDROID_STRINGS_XML = "AndroidSDK/res/values/strings.xml"
+SDK_VERSION_FILE = "AndroidSDKCore/sdk-version.txt"
 
-def get_current_version(root):
-  for element in root.iter("string"):
-    if element.attrib.get("name") == "sdk_version":
-      return element.text
+def get_current_version():
+    with open(SDK_VERSION_FILE, 'r') as f:
+        return f.read()
 
-def update_version(root, xml, version):
-  for element in root.iter("string"):
-    if element.attrib.get("name") == "sdk_version":
-      element.text = str(version)
-      xml.write(ANDROID_STRINGS_XML, encoding='utf-8', xml_declaration=True)
+def update_version(version):
+    with open(SDK_VERSION_FILE, 'w') as f:
+        f.write(version)
 
 """
 1. Read in values.xml
@@ -25,10 +21,8 @@ def update_version(root, xml, version):
 def main():
   release_type = sys.argv[1]
   alpha_build = sys.argv[2]
-  xml = ET.parse(ANDROID_STRINGS_XML)
-  root = xml.getroot()
 
-  current_version = get_current_version(root)
+  current_version = get_current_version()
 
   if release_type == "patch":
     release_version = semver.bump_patch(current_version)
@@ -44,11 +38,10 @@ def main():
   elif alpha_build == "release":
     pass
   else:
-    raise Exception("Please use alpha opt for pre release build")
+    raise Exception("Please use pass alpha as 2nd argument"
+     + " for pre release build")
   
-  
-  
-  update_version(root, xml, release_version)
+  update_version(release_version)
   sys.stdout.write(release_version)
 
 if __name__ == "__main__":
