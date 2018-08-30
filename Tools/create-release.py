@@ -13,7 +13,6 @@ def update_version(version):
     with open(SDK_VERSION_FILE, 'w') as f:
         f.write(version)
 
-
 """
 1. Read in values.xml
 2. Increment the SDK version value based on correct semVers
@@ -21,6 +20,7 @@ def update_version(version):
 """
 def main():
   release_type = sys.argv[1]
+  alpha_build = sys.argv[2]
 
   current_version = get_current_version()
 
@@ -32,6 +32,14 @@ def main():
     release_version = semver.bump_major(current_version)
   else:
     raise Exception("Please pick one patch/minor/major")
+
+  if alpha_build == "alpha":
+    release_version = semver.bump_prerelease(current_version, "alpha")
+  elif alpha_build == "release":
+    pass
+  else:
+    raise Exception("Please use alpha as 2nd argument"
+     + " for pre release build")
   
   update_version(release_version)
   sys.stdout.write(release_version)

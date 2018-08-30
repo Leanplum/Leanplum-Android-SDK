@@ -9,8 +9,9 @@ set -o errexit
 # Create a new release branch
 #######################################
 TYPE=$1
+ALPHA="${2:-release}"
 
-release_version=$(./Tools/create-release.py ${TYPE})
+release_version=$(./Tools/create-release.py ${TYPE} ${ALPHA})
 
 # create a branch, push on success
 git checkout -b "release/${release_version}"
