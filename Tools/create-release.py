@@ -17,8 +17,6 @@ def update_version(root, xml, version):
       element.text = str(version)
       xml.write(ANDROID_STRINGS_XML, encoding='utf-8', xml_declaration=True)
 
-"""Type: Major/Minor/Patch"""
-
 """
 1. Read in values.xml
 2. Increment the SDK version value based on correct semVers
@@ -26,6 +24,7 @@ def update_version(root, xml, version):
 """
 def main():
   release_type = sys.argv[1]
+  alpha_build = sys.argv[2]
   xml = ET.parse(ANDROID_STRINGS_XML)
   root = xml.getroot()
 
@@ -39,6 +38,15 @@ def main():
     release_version = semver.bump_major(current_version)
   else:
     raise Exception("Please pick one patch/minor/major")
+
+  if alpha_build == "alpha":
+    release_version = semver.bump_prerelease(current_version, "alpha")
+  elif alpha_build == "release":
+    pass
+  else:
+    raise Exception("Please use alpha opt for pre release build")
+  
+  
   
   update_version(root, xml, release_version)
   sys.stdout.write(release_version)
