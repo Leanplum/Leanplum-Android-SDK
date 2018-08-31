@@ -6,6 +6,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <application>
-        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+        <uses-library android:name="org.apache.http.legacy"/>
     </application>
 </manifest>
