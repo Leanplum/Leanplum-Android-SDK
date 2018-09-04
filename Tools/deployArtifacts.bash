@@ -23,9 +23,9 @@ jfrog rt u "{sdk_dir}/build/outputs/aar/AndroidSDK-release.aar" \
   "libs-release-local/com/leanplum/leanplum/${sdk_version}/leanplum-${sdk_version}.aar"
 jfrog rt u "${sdk_dir}/build/intermediates/packaged-classes/release/classes.jar" \
   "libs-release-local/com/leanplum/leanplum/${sdk_version}/leanplum-${sdk_version}.jar"
-
-jfrog rt u "leanplum-${old_tag}.pom" \
-  "libs-release-local/com/leanplum/leanplum/${new_tag}/leanplum-${new_tag}.pom"
+./artifact-poms/template-pom.py module.pom "${sdk_version}" leanplum
+jfrog rt u "leanplum-${sdk_version}.pom" \
+  "libs-release-local/com/leanplum/leanplum/${new_tag}/leanplum-${sdk_version}.pom"
 
 # leanplum-core
 jfrog rt u "{sdk_core_dir}/build/outputs/aar/AndroidSDKCore-release.aar" \
@@ -41,10 +41,6 @@ jfrog rt u "{sdk_gcm_dir}/build/outputs/aar/AndroidSDKGcm-release.aar" \
   "libs-release-local/com/leanplum/leanplum-gcm/${sdk_version}/leanplum-gcm-${sdk_version}.aar"
 jfrog rt u "${sdk_gcm_dir}/build/intermediates/packaged-classes/release/classes.jar" \
   "libs-release-local/com/leanplum/leanplum-gcm/${sdk_version}/leanplum-gcm-${sdk_version}.jar"
-
-##############################################################################
-# this is updating the pom part, we can perhaps do this auto/template
-sed -e "s|sdk_version|${sdk_version}|g;s|sdk_module|leanplum-gcm|g" "Tools/artifact-poms/module.pom" > "leanplum-gcm-${sdk_version}.pom"
 ./artifact-poms/template-pom.py module.pom "${sdk_version}" leanplum-gcm
 jfrog rt u "leanplum-gcm-${sdk_version}.pom" \
   "libs-release-local/com/leanplum/leanplum-gcm/${sdk_version}/leanplum-gcm-${sdk-version}.pom"
@@ -54,27 +50,21 @@ jfrog rt u "{sdk_fcm_dir}/build/outputs/aar/AndroidSDKFcm-release.aar" \
   "libs-release-local/com/leanplum/leanplum-fcm/${sdk_version}/leanplum-fcm-${sdk_version}.aar"
 jfrog rt u "${sdk_fcm_dir}/build/intermediates/packaged-classes/release/classes.jar" \
   "libs-release-local/com/leanplum/leanplum-fcm/${sdk_version}/leanplum-fcm-${sdk_version}.jar"
-##############################################################################
-# this is updating the pom part, we can perhaps do this auto
-
 ./artifact-poms/template-pom.py module.pom "${sdk_version}" leanplum-fcm
 jfrog rt u "leanplum-fcm-${sdk_version}.pom" \
   "libs-release-local/com/leanplum/leanplum-fcm/${sdk_version}/leanplum-fcm-${sdk-version}.pom"
 
 # leanplum-location
-# shellcheck disable=SC2140
 jfrog rt u "{sdk_location_dir}/build/outputs/aar/AndroidSDKLocation-release.aar" \
   "libs-release-local/com/leanplum/leanplum-location/${sdk_version}/"\
 "leanplum-location-${sdk_version}.aar"
-# shellcheck disable=SC2140
 jfrog rt u "{sdk_location_dir}/build/intermediates/packaged-classes/release/classes.jar" \
   "libs-release-local/com/leanplum/leanplum-location/${sdk_version}/"\
 "leanplum-location-${sdk_version}.jar"
 ./artifact-poms/template-pom.py module.pom "${sdk_version}" leanplum-location
-# shellcheck disable=SC2140
-jfrog rt u "leanplum-location-${old_tag}.pom" \
-  "libs-release-local/com/leanplum/leanplum-location/${new_tag}/"\
-"leanplum-location-${new_tag}.pom"
+jfrog rt u "leanplum-location-${sdk_version}.pom" \
+  "libs-release-local/com/leanplum/leanplum-location/${sdk_version}/"\
+"leanplum-location-${sdk_version}.pom"
 
 # leanplum-push
 jfrog rt u "{sdk_push_dir}/build/outputs/aar/AndroidSDKPush-release.aar" \
@@ -83,4 +73,4 @@ jfrog rt u "${sdk_push_dir}/build/intermediates/packaged-classes/release/classes
   "libs-release-local/com/leanplum/leanplum-push/${sdk_version}/leanplum-push-${sdk_version}.jar"
 ./artifact-poms/template-pom.py module.pom "${sdk_version}" leanplum-push
 jfrog rt u "leanplum-push-${old_tag}.pom" \
-  "libs-release-local/com/leanplum/leanplum-push/${new_tag}/leanplum-push-${new_tag}.pom"
+  "libs-release-local/com/leanplum/leanplum-push/${sdk_version}/leanplum-push-${sdk_version}.pom"

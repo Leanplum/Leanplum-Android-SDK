@@ -14,7 +14,7 @@ def main():
 
   # Save the new pom in path 
   with open("{0}-{1}.pom".format(sdk_module, sdk_version), "wb") as fh:
-      fh.write(output_from_parsed_template)
+    fh.write(output_from_parsed_template)
 
 if __name__ == "__main__":
   main()
