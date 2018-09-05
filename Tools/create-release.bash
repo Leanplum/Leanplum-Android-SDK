@@ -13,7 +13,7 @@ TYPE=$1
 release_version=$(./Tools/create-release.py ${TYPE})
 cat AndroidSDKCore/sdk-version.txt
 
-git reset HEAD .
+git reset HEAD --
 RELEASE_BRANCH=release/${release_version}
 git checkout -b ${RELEASE_BRANCH}
 
