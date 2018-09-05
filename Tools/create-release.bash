@@ -18,5 +18,5 @@ RELEASE_BRANCH=release/${release_version}
 git checkout -b ${RELEASE_BRANCH}
 
 git add AndroidSDKCore/sdk-version.txt
-git commit -m "Created release ${release_version}"
+git commit -m "Created ${TYPE} release ${release_version}"
 git push --set-upstream origin ${RELEASE_BRANCH}
