@@ -1042,16 +1042,7 @@ public class Leanplum {
   private static void startHeartbeat() {
     synchronized (heartbeatLock) {
       if (heartbeatExecutor == null) {
-        heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
-        heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
-          public void run() {
-            try {
-              Request.post(Constants.Methods.HEARTBEAT, null).sendIfDelayed();
-            } catch (Throwable t) {
-              Util.handleException(t);
-            }
-          }
-        }, 15, 15, TimeUnit.MINUTES);
+        createHeartbeatExecutor();
       }
     }
   }
@@ -1067,6 +1058,19 @@ public class Leanplum {
 
   private static void resumeHeartbeat() {
     startHeartbeat();
+  }
+
+  private static void createHeartbeatExecutor() {
+    heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
+    heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
+      public void run() {
+        try {
+          Request.post(Constants.Methods.HEARTBEAT, null).sendIfDelayed();
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
+      }
+    }, 15, 15, TimeUnit.MINUTES);
   }
 
   /**
