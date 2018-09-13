@@ -33,11 +33,11 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Grace Gu
  */
-public class LPCountAggregatorTest extends AbstractTest {
+public class CountAggregatorTest extends AbstractTest {
 
   @Test
   public void testIncrementDisabledCount() {
-    LPCountAggregator countAggregator = new LPCountAggregator();
+    CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
 
     countAggregator.incrementCount(testString);
@@ -54,7 +54,7 @@ public class LPCountAggregatorTest extends AbstractTest {
 
   @Test
   public void testIncrementCount() {
-    LPCountAggregator countAggregator = new LPCountAggregator();
+    CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
     HashSet<String> testSet = new HashSet<String>(Arrays.asList(testString));
     countAggregator.setEnabledCounters(testSet);
@@ -73,7 +73,7 @@ public class LPCountAggregatorTest extends AbstractTest {
 
   @Test
   public void testIncrementDisabledCountMultiple() {
-    LPCountAggregator countAggregator = new LPCountAggregator();
+    CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
 
     countAggregator.incrementCount(testString, 2);
@@ -90,7 +90,7 @@ public class LPCountAggregatorTest extends AbstractTest {
 
   @Test
   public void testIncrementCountMultiple() {
-    LPCountAggregator countAggregator = new LPCountAggregator();
+    CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
     HashSet<String> testSet = new HashSet<String>(Arrays.asList(testString));
     countAggregator.setEnabledCounters(testSet);

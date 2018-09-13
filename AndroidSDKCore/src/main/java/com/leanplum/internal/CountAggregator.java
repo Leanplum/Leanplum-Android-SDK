@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LPCountAggregator {
+public class CountAggregator {
 
-    public static final LPCountAggregator INSTANCE = new LPCountAggregator();
+    public static final CountAggregator INSTANCE = new CountAggregator();
 
     private HashSet<String> enabledCounters = new HashSet<>();
     private final HashMap<String, Integer> counts = new HashMap<>();

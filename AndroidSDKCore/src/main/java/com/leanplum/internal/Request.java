@@ -581,7 +581,7 @@ public class Request {
   }
 
   private void sendRequests() {
-    LPCountAggregator.INSTANCE.sendAllCounts();
+    CountAggregator.INSTANCE.sendAllCounts();
     requestSequenceRecorder.beforeRead();
 
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
