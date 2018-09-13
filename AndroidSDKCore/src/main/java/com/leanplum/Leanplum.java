@@ -100,7 +100,7 @@ public class Leanplum {
   private static boolean userSpecifiedDeviceId;
   private static boolean initializedMessageTemplates = false;
   private static boolean locationCollectionEnabled = true;
-  private static ScheduledExecutorService heartbeatExecutor;
+  private static ScheduledExecutorService heartbeatExecutor = null;
   private static Context context;
 
   private static Runnable pushStartCallback;
@@ -1046,16 +1046,9 @@ public class Leanplum {
    */
   private static void startHeartbeat() {
     synchronized (heartbeatLock) {
-      heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
-      heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
-        public void run() {
-          try {
-            Request.post(Constants.Methods.HEARTBEAT, null).sendIfDelayed();
-          } catch (Throwable t) {
-            Util.handleException(t);
-          }
-        }
-      }, 15, 15, TimeUnit.MINUTES);
+      if (heartbeatExecutor == null) {
+        createHeartbeatExecutor();
+      }
     }
   }
 
@@ -1063,12 +1056,26 @@ public class Leanplum {
     synchronized (heartbeatLock) {
       if (heartbeatExecutor != null) {
         heartbeatExecutor.shutdown();
+        heartbeatExecutor = null;
       }
     }
   }
 
   private static void resumeHeartbeat() {
     startHeartbeat();
+  }
+
+  private static void createHeartbeatExecutor() {
+    heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
+    heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
+      public void run() {
+        try {
+          Request.post(Constants.Methods.HEARTBEAT, null).sendIfDelayed();
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
+      }
+    }, 15, 15, TimeUnit.MINUTES);
   }
 
   /**

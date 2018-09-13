@@ -15,7 +15,7 @@ clean-local-properties:
 	rm -f local.properties
 
 sdk: clean-local-properties
-	./gradlew clean assembleDebug testDebugUnitTest --info
+	gradle clean assembleDebug testDebugUnitTest --info
 
 sdk-in-container:
 	${DOCKER_RUN} make sdk
