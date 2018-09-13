@@ -36,6 +36,7 @@ import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
+import com.leanplum.internal.LPCountAggregator;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
@@ -2161,8 +2162,8 @@ public class Leanplum {
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
     if (enabledCounters != null) {
-      Set counterSet = new HashSet<>(Arrays.asList(enabledCounters));
-      Log.setEnabledCounters(counterSet);
+      HashSet counterSet = new HashSet<>(Arrays.asList(enabledCounters));
+      LPCountAggregator.INSTANCE.setEnabledCounters(counterSet);
     }
   }
 }

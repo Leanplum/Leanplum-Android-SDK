@@ -25,9 +25,6 @@ package com.leanplum.internal;
 import com.leanplum.core.BuildConfig;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Handles logging within the Leanplum SDK.
@@ -68,11 +65,6 @@ public class Log {
      */
     DEBUG,
 
-    /**
-     * Not visible to customers. Sent to us when remote COUNTING is enabled.
-     */
-    COUNT
-
   }
 
   private static final ThreadLocal<Boolean> isLogging = new ThreadLocal<Boolean>() {
@@ -82,8 +74,6 @@ public class Log {
     }
   };
 
-  private static Set<String> enabledCounters = new HashSet<>();
-  private static Map<String, Integer> counts = new HashMap<>();
 
   public static void e(Object... objects) {
     log(LeanplumLogType.ERROR, CollectionUtil.concatenateArray(objects, ", "));
@@ -109,9 +99,6 @@ public class Log {
     log(LeanplumLogType.DEBUG, CollectionUtil.concatenateArray(objects, ", "));
   }
 
-  public static void count(String name) {
-    log(LeanplumLogType.COUNT, name);
-  }
 
   /**
    * Handle Leanplum log messages, which may be sent to the server for remote logging if
@@ -150,9 +137,6 @@ public class Log {
       case PRIVATE:
         maybeSendLog(tag + prefix + message);
         return;
-      case COUNT:
-        incrementCount(message);
-        return;
       default: // DEBUG
         if (BuildConfig.DEBUG) {
           android.util.Log.d(tag, prefix + message);
@@ -160,51 +144,7 @@ public class Log {
     }
   }
 
-  /**
-   * Enables certain counters to send metrics to server.
-   */
-  public static void setEnabledCounters(Set enabledCounters) {
-    Log.enabledCounters = enabledCounters;
-  }
 
-  /**
-   * Create request to send all the counts and clear.
-   */
-  public static void sendAndClearCounts() {
-    sendAllCounts();
-    clearCounts();
-  }
-
-  /**
-   * Create request to send all the counts.
-   */
-  private static void sendAllCounts() {
-    for(Map.Entry<String, Integer> entry : counts.entrySet()) {
-      String name = entry.getKey();
-      Integer count = entry.getValue();
-        sendCount(name, count);
-    }
-  }
-
-  /**
-   * Clear all counts
-   */
-  private static void clearCounts() {
-    counts.clear();
-  }
-
-  private static void sendCount(String name, Integer count) {
-    try {
-      HashMap<String, Object> params = new HashMap<>();
-      params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
-      params.put(Constants.Params.MESSAGE, name);
-      params.put(Constants.Params.COUNT, count);
-      Request.post(Constants.Methods.LOG, params).sendEventually();
-    } catch (Throwable t) {
-      android.util.Log.e("Leanplum", "Unable to send count.", t);
-    }
-
-  }
   /**
    * Generates tag for logging purpose in format [LogType][Leanplum]
    *
@@ -257,17 +197,6 @@ public class Log {
       android.util.Log.e("Leanplum", "Unable to send log.", t);
     } finally {
       isLogging.remove();
-    }
-  }
-
-  private static void incrementCount(String name) {
-    if (enabledCounters.contains(name)) {
-      Integer count = 0;
-      if (counts.containsKey(name)) {
-        count = counts.get(name);
-      }
-      count = count + 1;
-      counts.put(name, count);
     }
   }
 
