@@ -2165,7 +2165,6 @@ public class Leanplum {
   }
 
   private static void parseSdkCounters(JSONObject response) {
-
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
     if (enabledCounters != null) {

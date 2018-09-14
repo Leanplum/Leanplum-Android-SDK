@@ -63,8 +63,7 @@ public class Log {
      * Used only for Leanplum SDK debugging. Not visible to customers. Not sent to us when remote
      * logging is enabled.
      */
-    DEBUG,
-
+    DEBUG
   }
 
   private static final ThreadLocal<Boolean> isLogging = new ThreadLocal<Boolean>() {
@@ -73,7 +72,6 @@ public class Log {
       return false;
     }
   };
-
 
   public static void e(Object... objects) {
     log(LeanplumLogType.ERROR, CollectionUtil.concatenateArray(objects, ", "));
@@ -98,7 +96,6 @@ public class Log {
   public static void d(Object... objects) {
     log(LeanplumLogType.DEBUG, CollectionUtil.concatenateArray(objects, ", "));
   }
-
 
   /**
    * Handle Leanplum log messages, which may be sent to the server for remote logging if
@@ -129,7 +126,7 @@ public class Log {
         return;
       case VERBOSE:
         if (Constants.isDevelopmentModeEnabled
-            && Constants.enableVerboseLoggingInDevelopmentMode) {
+                && Constants.enableVerboseLoggingInDevelopmentMode) {
           android.util.Log.v(tag, prefix + message);
           maybeSendLog(tag + prefix + message);
         }
@@ -143,7 +140,6 @@ public class Log {
         }
     }
   }
-
 
   /**
    * Generates tag for logging purpose in format [LogType][Leanplum]

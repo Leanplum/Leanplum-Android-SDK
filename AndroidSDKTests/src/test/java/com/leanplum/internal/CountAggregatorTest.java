@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2018, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,7 +34,6 @@ import static org.junit.Assert.assertEquals;
  * @author Grace Gu
  */
 public class CountAggregatorTest extends AbstractTest {
-
   @Test
   public void testIncrementDisabledCount() {
     CountAggregator countAggregator = new CountAggregator();
@@ -42,14 +41,11 @@ public class CountAggregatorTest extends AbstractTest {
 
     countAggregator.incrementCount(testString);
     HashMap<String, Integer> counts = countAggregator.getCounts();
-    int count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(0, count);
+    assertEquals(null, counts.get(testString));
 
     countAggregator.incrementCount(testString);
     counts = countAggregator.getCounts();
-    count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(0, count);
-
+    assertEquals(null, counts.get(testString));
   }
 
   @Test
@@ -61,14 +57,11 @@ public class CountAggregatorTest extends AbstractTest {
 
     countAggregator.incrementCount(testString);
     HashMap<String, Integer> counts = countAggregator.getCounts();
-    int count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(1, count);
+    assertEquals(1, counts.get(testString).intValue());
 
     countAggregator.incrementCount(testString);
     counts = countAggregator.getCounts();
-    count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(2, count);
-
+    assertEquals(2, counts.get(testString).intValue());
   }
 
   @Test
@@ -78,14 +71,11 @@ public class CountAggregatorTest extends AbstractTest {
 
     countAggregator.incrementCount(testString, 2);
     HashMap<String, Integer> counts = countAggregator.getCounts();
-    int count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(0, count);
+    assertEquals(null, counts.get(testString));
 
     countAggregator.incrementCount(testString, 15);
     counts = countAggregator.getCounts();
-    count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(0, count);
-
+    assertEquals(null, counts.get(testString));
   }
 
   @Test
@@ -97,13 +87,10 @@ public class CountAggregatorTest extends AbstractTest {
 
     countAggregator.incrementCount(testString, 2);
     HashMap<String, Integer> counts = countAggregator.getCounts();
-    int count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(2, count);
+    assertEquals(2, counts.get(testString).intValue());
 
     countAggregator.incrementCount(testString, 15);
     counts = countAggregator.getCounts();
-    count = counts.containsKey(testString) ? counts.get(testString) : 0;
-    assertEquals(17, count);
-
+    assertEquals(17, counts.get(testString).intValue());
   }
 }

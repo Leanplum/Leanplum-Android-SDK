@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CountAggregator {
-
     public static final CountAggregator INSTANCE = new CountAggregator();
 
     private HashSet<String> enabledCounters = new HashSet<>();
@@ -58,5 +57,4 @@ public class CountAggregator {
     public HashMap<String, Integer> getCounts() {
         return counts;
     }
-
 }
