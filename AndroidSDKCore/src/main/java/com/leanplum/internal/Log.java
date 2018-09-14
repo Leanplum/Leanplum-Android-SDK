@@ -126,7 +126,7 @@ public class Log {
         return;
       case VERBOSE:
         if (Constants.isDevelopmentModeEnabled
-                && Constants.enableVerboseLoggingInDevelopmentMode) {
+            && Constants.enableVerboseLoggingInDevelopmentMode) {
           android.util.Log.v(tag, prefix + message);
           maybeSendLog(tag + prefix + message);
         }
