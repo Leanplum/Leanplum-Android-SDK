@@ -1,5 +1,7 @@
 package com.leanplum.internal;
 
+import android.support.annotation.VisibleForTesting;
+
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,11 +31,23 @@ public class CountAggregator {
         }
     }
 
-    private HashMap<String, Integer> getAndClearCounts() {
+    @VisibleForTesting
+    public HashMap<String, Integer> getAndClearCounts() {
         HashMap<String, Integer> previousCounts = new HashMap<>();
         previousCounts.putAll(counts);
         counts.clear();
         return previousCounts;
+    }
+
+    @VisibleForTesting
+    public HashMap<String, Object> makeParams(String name, int count) {
+        HashMap<String, Object> params = new HashMap<>();
+
+        params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
+        params.put(Constants.Params.MESSAGE, name);
+        params.put(Constants.Params.COUNT, count);
+
+        return params;
     }
 
     public void sendAllCounts() {
@@ -42,11 +56,8 @@ public class CountAggregator {
         for(Map.Entry<String, Integer> entry : counts.entrySet()) {
             String name = entry.getKey();
             Integer count = entry.getValue();
+            HashMap<String, Object> params = makeParams(name, count);
             try {
-                HashMap<String, Object> params = new HashMap<>();
-                params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
-                params.put(Constants.Params.MESSAGE, name);
-                params.put(Constants.Params.COUNT, count);
                 Request.post(Constants.Methods.LOG, params).sendEventually();
             } catch (Throwable t) {
                 android.util.Log.e("Leanplum", "Unable to send count.", t);
