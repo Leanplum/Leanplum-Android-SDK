@@ -36,6 +36,7 @@ import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
+import com.leanplum.internal.CountAggregator;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
@@ -55,10 +56,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -814,6 +818,7 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
+            parseSdkCounters(response);
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
@@ -2157,5 +2162,14 @@ public class Leanplum {
    */
   public static void clearUserContent() {
     VarCache.clearUserContent();
+  }
+
+  private static void parseSdkCounters(JSONObject response) {
+    JSONArray enabledCounters = response.optJSONArray(
+            Constants.Keys.ENABLED_COUNTERS);
+    if (enabledCounters != null) {
+      HashSet counterSet = new HashSet<>(Arrays.asList(enabledCounters));
+      CountAggregator.INSTANCE.setEnabledCounters(counterSet);
+    }
   }
 }
