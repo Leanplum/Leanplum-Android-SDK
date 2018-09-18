@@ -93,4 +93,36 @@ public class CountAggregatorTest extends AbstractTest {
     counts = countAggregator.getCounts();
     assertEquals(17, counts.get(testString).intValue());
   }
+
+  @Test
+  public void testGetAndClearCounts() {
+    CountAggregator countAggregator = new CountAggregator();
+    String testString = "test";
+    String testString2 = "test2";
+    HashSet<String> testSet = new HashSet<String>(Arrays.asList(testString, testString2));
+    countAggregator.setEnabledCounters(testSet);
+
+    countAggregator.incrementCount(testString, 2);
+    countAggregator.incrementCount(testString2, 15);
+
+    HashMap<String, Integer> previousCounts = countAggregator.getAndClearCounts();
+    HashMap<String, Integer> counts = countAggregator.getCounts();
+
+    //check counts is empty after clearing
+    assertEquals(true, counts.isEmpty());
+    //test counts transferred to previousCounts
+    assertEquals(2, previousCounts.get(testString).intValue());
+    assertEquals(15, previousCounts.get(testString2).intValue());
+  }
+
+  @Test
+  public void testMakeParams() {
+    CountAggregator countAggregator = new CountAggregator();
+    String testString = "test";
+    HashMap<String, Object> params = countAggregator.makeParams(testString, 2);
+
+    assertEquals(Constants.Values.SDK_COUNT, params.get(Constants.Params.TYPE));
+    assertEquals(testString, params.get(Constants.Params.MESSAGE));
+    assertEquals(2, params.get(Constants.Params.COUNT));
+  }
 }
