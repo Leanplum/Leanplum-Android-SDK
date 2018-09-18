@@ -121,7 +121,7 @@ public class CountAggregatorTest extends AbstractTest {
     String testString = "test";
     HashMap<String, Object> params = countAggregator.makeParams(testString, 2);
 
-    assertEquals("SDK_COUNT", params.get(Constants.Params.TYPE));
+    assertEquals(Constants.Values.SDK_COUNT, params.get(Constants.Params.TYPE));
     assertEquals(testString, params.get(Constants.Params.MESSAGE));
     assertEquals(2, params.get(Constants.Params.COUNT));
   }

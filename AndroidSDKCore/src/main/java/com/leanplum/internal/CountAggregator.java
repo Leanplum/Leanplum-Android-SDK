@@ -1,5 +1,6 @@
 package com.leanplum.internal;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
 import java.util.HashSet;
@@ -16,11 +17,11 @@ public class CountAggregator {
         this.enabledCounters = enabledCounters;
     }
 
-    public void incrementCount(String name) {
+    public void incrementCount(@NonNull String name) {
         incrementCount(name, 1);
     }
 
-    public void incrementCount(String name, int incrementCount) {
+    public void incrementCount(@NonNull String name, int incrementCount) {
         if (enabledCounters.contains(name)) {
             Integer count = 0;
             if (counts.containsKey(name)) {
@@ -40,7 +41,7 @@ public class CountAggregator {
     }
 
     @VisibleForTesting
-    public HashMap<String, Object> makeParams(String name, int count) {
+    public HashMap<String, Object> makeParams(@NonNull String name, int count) {
         HashMap<String, Object> params = new HashMap<>();
 
         params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
