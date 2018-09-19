@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-#
-# LPM | Author: Ben Marten
-# Copyright (c) 2017 Leanplum Inc. All rights reserved.
-#
-set -eo pipefail; [[ $DEBUG ]] && set -x
+set -o noglob
+set -o nounset
+set -o xtrace
+set -o pipefail
+set -o errexit
 
 # Check for Jenkins build number, otherwise default to curent time in seconds.
 if [[ -z "${BUILD_NUMBER+x}" ]]; then
