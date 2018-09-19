@@ -37,6 +37,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.CountAggregator;
+import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
@@ -2170,6 +2171,15 @@ public class Leanplum {
     if (enabledCounters != null) {
       HashSet counterSet = new HashSet<>(Arrays.asList(enabledCounters));
       CountAggregator.INSTANCE.setEnabledCounters(counterSet);
+    }
+  }
+
+  private static void parseFeatureFlags(JSONObject response) {
+    JSONArray enabledFeatureFlags = response.optJSONArray(
+            Constants.Keys.ENABLED_FEATURE_FLAGS);
+    if (enabledFeatureFlags != null) {
+      HashSet featureFlagSet = new HashSet<>(Arrays.asList(enabledFeatureFlags));
+      FeatureFlagManager.INSTANCE.setEnabledFeatureFlags(featureFlagSet);
     }
   }
 }
