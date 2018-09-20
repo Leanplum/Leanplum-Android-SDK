@@ -36,7 +36,7 @@ public class Constants {
   public static int SOCKET_PORT = 80;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
-  public static String LEANPLUM_VERSION = "4.1.0";
+  public static String LEANPLUM_VERSION = BuildConfig.SDK_VERSION + '.' + BuildConfig.BUILD_NUMBER;
   public static String CLIENT = "android";
 
   static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
@@ -151,6 +151,7 @@ public class Constants {
     public static final String KINDS = "kinds";
     public static final String LIMIT_TRACKING = "limitTracking";
     public static final String MESSAGE = "message";
+    public static final String COUNT = "count";
     public static final String MESSAGE_ID = "messageId";
     public static final String NEW_USER_ID = "newUserId";
     public static final String INBOX_MESSAGE_ID = "newsfeedMessageId";
@@ -206,6 +207,7 @@ public class Constants {
     public static final String SUBTITLE = "Subtitle";
     public static final String SYNC_INBOX = "syncNewsfeed";
     public static final String LOGGING_ENABLED = "loggingEnabled";
+    public static final String ENABLED_COUNTERS = "enabledSdkCounters";
     public static final String TIMEZONE = "timezone";
     public static final String TIMEZONE_OFFSET_SECONDS = "timezoneOffsetSeconds";
     public static final String TITLE = "Title";
@@ -250,6 +252,7 @@ public class Constants {
     public static final String DEFAULT_PUSH_MESSAGE = "Push message goes here.";
     public static final String SDK_LOG = "sdkLog";
     public static final String SDK_ERROR = "sdkError";
+    public static final String SDK_COUNT = "sdkCount";
     public static final String FILE_PREFIX = "__file__";
   }
 

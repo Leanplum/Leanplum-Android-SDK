@@ -1,7 +1,7 @@
 // Export methods by turning them into closures
 ext {
     COMPILE_SDK_VERSION = 27
-    BUILD_TOOLS_VERSION = '27.0.2'
+    BUILD_TOOLS_VERSION = '27.0.3'
     SUPPORT_LIBRARY_VERSION = '27.0.2'
 
     LEANPLUM_GROUP_ID = 'com.leanplum'
