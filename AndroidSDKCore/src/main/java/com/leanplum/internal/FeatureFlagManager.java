@@ -7,8 +7,7 @@ import java.util.HashSet;
 public class FeatureFlagManager {
     public static final FeatureFlagManager INSTANCE = new FeatureFlagManager();
 
-    @VisibleForTesting
-    public HashSet<String> enabledFeatureFlags = new HashSet<>();
+    private HashSet<String> enabledFeatureFlags = new HashSet<>();
 
     public void setEnabledFeatureFlags(HashSet<String> enabledFeatureFlags) {
         this.enabledFeatureFlags= enabledFeatureFlags;

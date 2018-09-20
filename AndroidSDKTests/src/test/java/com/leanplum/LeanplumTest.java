@@ -36,6 +36,8 @@ import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.CountAggregator;
+import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
@@ -44,6 +46,9 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
@@ -1266,5 +1271,47 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(Leanplum.hasStarted());
     deviceId = Leanplum.getDeviceId();
     assertNotNull(deviceId);
+  }
+
+  /**
+   * Tests for parsing counters
+   */
+  @Test
+  public void testParseEmptySdkCounters() throws JSONException {
+    JSONObject response = new JSONObject();
+    CountAggregator countAggregator = new CountAggregator();
+    Leanplum.parseSdkCounters(response, countAggregator);
+    countAggregator.incrementCount("test");
+    assertEquals(new HashMap<String, Integer>(), countAggregator.getCounts());
+  }
+
+  @Test
+  public void testParseSdkCounters() throws JSONException {
+    JSONObject response = new JSONObject();
+    response.put(Constants.Keys.ENABLED_COUNTERS, new JSONArray("[\"test\"]"));
+    CountAggregator countAggregator = new CountAggregator();
+    Leanplum.parseSdkCounters(response, countAggregator);
+    countAggregator.incrementCount("test");
+    assertEquals(1, countAggregator.getCounts().get("test").intValue());
+  }
+
+  /**
+   * Tests for parsing feature flags
+   */
+  @Test
+  public void testParseEmptyFeatureFlags() throws JSONException {
+    JSONObject response = new JSONObject();
+    FeatureFlagManager featureFlagManager = new FeatureFlagManager();
+    Leanplum.parseFeatureFlags(response, featureFlagManager);
+    assertEquals(false, featureFlagManager.isFeatureFlagEnabled("test"));
+  }
+
+  @Test
+  public void testParseFeatureFlags() throws JSONException {
+    JSONObject response = new JSONObject();
+    response.put(Constants.Keys.ENABLED_FEATURE_FLAGS, new JSONArray("[\"test\"]"));
+    FeatureFlagManager featureFlagManager = new FeatureFlagManager();
+    Leanplum.parseFeatureFlags(response, featureFlagManager);
+    assertEquals(true, featureFlagManager.isFeatureFlagEnabled("test"));
   }
 }

@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
@@ -2166,20 +2167,38 @@ public class Leanplum {
   }
 
   private static void parseSdkCounters(JSONObject response) {
+    parseSdkCounters(response, CountAggregator.INSTANCE);
+  }
+
+  @VisibleForTesting
+  public static void parseSdkCounters(JSONObject response, CountAggregator countAggregator) {
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
     if (enabledCounters != null) {
-      HashSet counterSet = new HashSet<>(Arrays.asList(enabledCounters));
-      CountAggregator.INSTANCE.setEnabledCounters(counterSet);
+      HashSet<String> counterSet = new HashSet<>(toList(enabledCounters));
+      countAggregator.setEnabledCounters(counterSet);
     }
   }
 
   private static void parseFeatureFlags(JSONObject response) {
+    parseFeatureFlags(response, FeatureFlagManager.INSTANCE);
+  }
+
+  @VisibleForTesting
+  public static void parseFeatureFlags(JSONObject response, FeatureFlagManager featureFlagManager) {
     JSONArray enabledFeatureFlags = response.optJSONArray(
             Constants.Keys.ENABLED_FEATURE_FLAGS);
     if (enabledFeatureFlags != null) {
-      HashSet featureFlagSet = new HashSet<>(Arrays.asList(enabledFeatureFlags));
-      FeatureFlagManager.INSTANCE.setEnabledFeatureFlags(featureFlagSet);
+      HashSet<String> featureFlagSet = new HashSet<>(toList(enabledFeatureFlags));
+      featureFlagManager.setEnabledFeatureFlags(featureFlagSet);
     }
   }
+
+  private static List<String> toList(JSONArray array) {
+      List<String> list = new ArrayList<>();
+      for (int i = 0; i < array.length(); i++) {
+          list.add(array.optString(i));
+      }
+      return list;
+    }
 }

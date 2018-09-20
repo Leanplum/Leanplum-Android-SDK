@@ -34,33 +34,32 @@ import static org.junit.Assert.assertEquals;
 
 public class FeatureFlagManagerTest extends AbstractTest {
     @Test
-    public void testSetEnabledFeatureFlags() {
+    public void testIsFeatureFlagEnabledShouldBeTrueForEnabledFlag() {
         FeatureFlagManager featureFlagManager = new FeatureFlagManager();
-
         String testString = "test";
-
-        HashSet<String> enabledFeatureFlags = new HashSet<String>();
-
-        assertEquals(enabledFeatureFlags, featureFlagManager.enabledFeatureFlags);
-
+        HashSet<String> enabledFeatureFlags = new HashSet<>();
         enabledFeatureFlags.add(testString);
-
         featureFlagManager.setEnabledFeatureFlags(enabledFeatureFlags);
-        assertEquals(enabledFeatureFlags, featureFlagManager.enabledFeatureFlags);
+        assertEquals(true, featureFlagManager.isFeatureFlagEnabled(testString));
     }
 
     @Test
-    public void testIsFeatureFlagEnabled() {
+    public void testIsFeatureFlagEnabledShouldBeFalseForDisabledFlag() {
         FeatureFlagManager featureFlagManager = new FeatureFlagManager();
-
         String testString = "test";
-
         assertEquals(false, featureFlagManager.isFeatureFlagEnabled(testString));
+    }
 
-        HashSet<String> enabledFeatureFlags = new HashSet<String>();
+    @Test
+    public void testIsFeatureFlagEnabledShouldResetWhenSetToEmpty() {
+        FeatureFlagManager featureFlagManager = new FeatureFlagManager();
+        String testString = "test";
+        HashSet<String> enabledFeatureFlags = new HashSet<>();
         enabledFeatureFlags.add(testString);
-
         featureFlagManager.setEnabledFeatureFlags(enabledFeatureFlags);
         assertEquals(true, featureFlagManager.isFeatureFlagEnabled(testString));
+        enabledFeatureFlags = new HashSet<>();
+        featureFlagManager.setEnabledFeatureFlags(enabledFeatureFlags);
+        assertEquals(false, featureFlagManager.isFeatureFlagEnabled(testString));
     }
 }
