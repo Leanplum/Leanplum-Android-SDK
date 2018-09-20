@@ -41,12 +41,12 @@ public class FeatureFlagManagerTest extends AbstractTest {
 
         HashSet<String> enabledFeatureFlags = new HashSet<String>();
 
-        assertEquals(enabledFeatureFlags, featureFlagManager.getEnabledFeatureFlags());
+        assertEquals(enabledFeatureFlags, featureFlagManager.enabledFeatureFlags);
 
         enabledFeatureFlags.add(testString);
 
         featureFlagManager.setEnabledFeatureFlags(enabledFeatureFlags);
-        assertEquals(enabledFeatureFlags, featureFlagManager.getEnabledFeatureFlags());
+        assertEquals(enabledFeatureFlags, featureFlagManager.enabledFeatureFlags);
     }
 
     @Test
