@@ -10,7 +10,7 @@ public class FeatureFlagManager {
     private HashSet<String> enabledFeatureFlags = new HashSet<>();
 
     public void setEnabledFeatureFlags(HashSet<String> enabledFeatureFlags) {
-        this.enabledFeatureFlags= enabledFeatureFlags;
+        this.enabledFeatureFlags = enabledFeatureFlags;
     }
 
     public Boolean isFeatureFlagEnabled(String featureFlagName) {

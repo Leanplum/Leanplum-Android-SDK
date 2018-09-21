@@ -821,6 +821,7 @@ public class Leanplum {
             }
 
             parseSdkCounters(response);
+            parseFeatureFlags(response);
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.

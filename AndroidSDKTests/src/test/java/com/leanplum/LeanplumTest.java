@@ -58,6 +58,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1277,6 +1278,18 @@ public class LeanplumTest extends AbstractTest {
    * Tests for parsing counters
    */
   @Test
+  public void testStartResponseShouldParseCounters() {
+    // Setup sdk.
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    // check that incrementing counters work
+    CountAggregator.INSTANCE.incrementCount("testCounter1");
+    assertEquals(1, CountAggregator.INSTANCE.getCounts().get("testCounter1").intValue());
+    CountAggregator.INSTANCE.incrementCount("testCounter2");
+    assertEquals(1, CountAggregator.INSTANCE.getCounts().get("testCounter2").intValue());
+  }
+
+  @Test
   public void testParseEmptySdkCounters() throws JSONException {
     JSONObject response = new JSONObject();
     CountAggregator countAggregator = new CountAggregator();
@@ -1295,9 +1308,19 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(1, countAggregator.getCounts().get("test").intValue());
   }
 
+
   /**
    * Tests for parsing feature flags
    */
+  @Test
+  public void testStartResponseShouldParseFeatureFlags() {
+    // Setup sdk.
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    assertEquals(true, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("testFeatureFlag1"));
+    assertEquals(true, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("testFeatureFlag2"));
+  }
+
   @Test
   public void testParseEmptyFeatureFlags() throws JSONException {
     JSONObject response = new JSONObject();
