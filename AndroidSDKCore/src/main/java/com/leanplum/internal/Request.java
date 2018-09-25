@@ -707,8 +707,17 @@ public class Request {
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
-
+    if (fraction < 1) {
+      setNewUUIDs(requestData);
+    }
     return requestData;
+  }
+
+  private void setNewUUIDs(List<Map<String, Object>> requests) {
+    String uuid = UUID.randomUUID().toString();
+    for (Map<String, Object> request : requests) {
+      request.put(UUID_KEY, uuid);
+    }
   }
 
   /**
