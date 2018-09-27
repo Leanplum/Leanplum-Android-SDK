@@ -2168,7 +2168,7 @@ public class Leanplum {
   public static void clearUserContent() {
     VarCache.clearUserContent();
   }
-  
+
   @VisibleForTesting
   public static HashSet<String> parseSdkCounters(JSONObject response) {
     JSONArray enabledCounters = response.optJSONArray(
@@ -2176,7 +2176,6 @@ public class Leanplum {
     HashSet<String> counterSet = new HashSet<>();
     if (enabledCounters != null) {
       counterSet.addAll(toList(enabledCounters));
-      //countAggregator.setEnabledCounters(counterSet);
     }
     return counterSet;
   }
