@@ -820,8 +820,10 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            parseSdkCounters(response);
-            parseFeatureFlags(response);
+            HashSet<String> enabledCounters = parseSdkCounters(response);
+            CountAggregator.INSTANCE.setEnabledCounters(enabledCounters);
+            HashSet<String> enabledFeatureFlags = parseFeatureFlags(response);
+            FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
@@ -2167,32 +2169,35 @@ public class Leanplum {
     VarCache.clearUserContent();
   }
 
-  private static void parseSdkCounters(JSONObject response) {
+  /*private static void parseSdkCounters(JSONObject response) {
     parseSdkCounters(response, CountAggregator.INSTANCE);
-  }
+  }*/
 
   @VisibleForTesting
-  public static void parseSdkCounters(JSONObject response, CountAggregator countAggregator) {
+  public static HashSet<String> parseSdkCounters(JSONObject response) {
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
+    HashSet<String> counterSet = new HashSet<>();
     if (enabledCounters != null) {
-      HashSet<String> counterSet = new HashSet<>(toList(enabledCounters));
-      countAggregator.setEnabledCounters(counterSet);
+      counterSet.addAll(toList(enabledCounters));
+      //countAggregator.setEnabledCounters(counterSet);
     }
+    return counterSet;
   }
 
-  private static void parseFeatureFlags(JSONObject response) {
+  /*private static void parseFeatureFlags(JSONObject response) {
     parseFeatureFlags(response, FeatureFlagManager.INSTANCE);
-  }
+  }*/
 
   @VisibleForTesting
-  public static void parseFeatureFlags(JSONObject response, FeatureFlagManager featureFlagManager) {
+  public static HashSet<String> parseFeatureFlags(JSONObject response) {
     JSONArray enabledFeatureFlags = response.optJSONArray(
             Constants.Keys.ENABLED_FEATURE_FLAGS);
+    HashSet<String> featureFlagSet = new HashSet<>();
     if (enabledFeatureFlags != null) {
-      HashSet<String> featureFlagSet = new HashSet<>(toList(enabledFeatureFlags));
-      featureFlagManager.setEnabledFeatureFlags(featureFlagSet);
+      featureFlagSet.addAll(toList(enabledFeatureFlags));
     }
+    return featureFlagSet;
   }
 
   private static List<String> toList(JSONArray array) {

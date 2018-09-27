@@ -1292,20 +1292,16 @@ public class LeanplumTest extends AbstractTest {
   @Test
   public void testParseEmptySdkCounters() throws JSONException {
     JSONObject response = new JSONObject();
-    CountAggregator countAggregator = new CountAggregator();
-    Leanplum.parseSdkCounters(response, countAggregator);
-    countAggregator.incrementCount("test");
-    assertEquals(new HashMap<String, Integer>(), countAggregator.getCounts());
+    HashSet<String> parsedCounters = Leanplum.parseSdkCounters(response);
+    assertEquals(new HashSet<String>(), parsedCounters);
   }
 
   @Test
   public void testParseSdkCounters() throws JSONException {
     JSONObject response = new JSONObject();
     response.put(Constants.Keys.ENABLED_COUNTERS, new JSONArray("[\"test\"]"));
-    CountAggregator countAggregator = new CountAggregator();
-    Leanplum.parseSdkCounters(response, countAggregator);
-    countAggregator.incrementCount("test");
-    assertEquals(1, countAggregator.getCounts().get("test").intValue());
+    HashSet<String> parsedCounters = Leanplum.parseSdkCounters(response);
+    assertEquals(new HashSet<String>(Arrays.asList("test")), parsedCounters);
   }
 
 
@@ -1324,17 +1320,15 @@ public class LeanplumTest extends AbstractTest {
   @Test
   public void testParseEmptyFeatureFlags() throws JSONException {
     JSONObject response = new JSONObject();
-    FeatureFlagManager featureFlagManager = new FeatureFlagManager();
-    Leanplum.parseFeatureFlags(response, featureFlagManager);
-    assertEquals(false, featureFlagManager.isFeatureFlagEnabled("test"));
+    HashSet<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
+    assertEquals(new HashSet<String>(), parsedFeatureFlags);
   }
 
   @Test
   public void testParseFeatureFlags() throws JSONException {
     JSONObject response = new JSONObject();
     response.put(Constants.Keys.ENABLED_FEATURE_FLAGS, new JSONArray("[\"test\"]"));
-    FeatureFlagManager featureFlagManager = new FeatureFlagManager();
-    Leanplum.parseFeatureFlags(response, featureFlagManager);
-    assertEquals(true, featureFlagManager.isFeatureFlagEnabled("test"));
+    HashSet<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
+    assertEquals(new HashSet<String>(Arrays.asList("test")), parsedFeatureFlags);
   }
 }
