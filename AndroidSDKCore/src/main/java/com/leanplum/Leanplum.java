@@ -2168,11 +2168,7 @@ public class Leanplum {
   public static void clearUserContent() {
     VarCache.clearUserContent();
   }
-
-  /*private static void parseSdkCounters(JSONObject response) {
-    parseSdkCounters(response, CountAggregator.INSTANCE);
-  }*/
-
+  
   @VisibleForTesting
   public static HashSet<String> parseSdkCounters(JSONObject response) {
     JSONArray enabledCounters = response.optJSONArray(
@@ -2184,10 +2180,6 @@ public class Leanplum {
     }
     return counterSet;
   }
-
-  /*private static void parseFeatureFlags(JSONObject response) {
-    parseFeatureFlags(response, FeatureFlagManager.INSTANCE);
-  }*/
 
   @VisibleForTesting
   public static HashSet<String> parseFeatureFlags(JSONObject response) {
