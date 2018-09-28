@@ -820,9 +820,9 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            HashSet<String> enabledCounters = parseSdkCounters(response);
+            Set<String> enabledCounters = parseSdkCounters(response);
             CountAggregator.INSTANCE.setEnabledCounters(enabledCounters);
-            HashSet<String> enabledFeatureFlags = parseFeatureFlags(response);
+            Set<String> enabledFeatureFlags = parseFeatureFlags(response);
             FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
 
@@ -2170,32 +2170,28 @@ public class Leanplum {
   }
 
   @VisibleForTesting
-  public static HashSet<String> parseSdkCounters(JSONObject response) {
+  public static Set<String> parseSdkCounters(JSONObject response) {
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
-    HashSet<String> counterSet = new HashSet<>();
-    if (enabledCounters != null) {
-      counterSet.addAll(toList(enabledCounters));
-    }
+    Set<String> counterSet = toSet(enabledCounters);
     return counterSet;
   }
 
   @VisibleForTesting
-  public static HashSet<String> parseFeatureFlags(JSONObject response) {
+  public static Set<String> parseFeatureFlags(JSONObject response) {
     JSONArray enabledFeatureFlags = response.optJSONArray(
             Constants.Keys.ENABLED_FEATURE_FLAGS);
-    HashSet<String> featureFlagSet = new HashSet<>();
-    if (enabledFeatureFlags != null) {
-      featureFlagSet.addAll(toList(enabledFeatureFlags));
-    }
+    Set<String> featureFlagSet = toSet(enabledFeatureFlags);
     return featureFlagSet;
   }
 
-  private static List<String> toList(JSONArray array) {
-      List<String> list = new ArrayList<>();
-      for (int i = 0; i < array.length(); i++) {
-          list.add(array.optString(i));
+  private static Set<String> toSet(JSONArray array) {
+      Set<String> set = new HashSet<>();
+      if (array != null) {
+        for (int i = 0; i < array.length(); i++) {
+          set.add(array.optString(i));
+        }
       }
-      return list;
+      return set;
     }
 }

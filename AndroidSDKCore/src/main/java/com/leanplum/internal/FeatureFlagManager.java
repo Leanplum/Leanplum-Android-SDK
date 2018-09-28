@@ -3,13 +3,19 @@ package com.leanplum.internal;
 import android.support.annotation.VisibleForTesting;
 
 import java.util.HashSet;
+import java.util.Set;
 
 public class FeatureFlagManager {
     public static final FeatureFlagManager INSTANCE = new FeatureFlagManager();
 
-    private HashSet<String> enabledFeatureFlags = new HashSet<>();
+    private Set<String> enabledFeatureFlags = new HashSet<>();
 
-    public void setEnabledFeatureFlags(HashSet<String> enabledFeatureFlags) {
+    @VisibleForTesting
+    FeatureFlagManager() {
+        super();
+    }
+
+    public void setEnabledFeatureFlags(Set<String> enabledFeatureFlags) {
         this.enabledFeatureFlags = enabledFeatureFlags;
     }
 

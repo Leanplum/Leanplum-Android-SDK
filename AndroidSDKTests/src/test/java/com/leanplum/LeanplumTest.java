@@ -84,6 +84,7 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
+import java.util.Set;
 
 /**
  * Tests Leanplum SDK calls and general functionality.
@@ -1292,7 +1293,7 @@ public class LeanplumTest extends AbstractTest {
   @Test
   public void testParseEmptySdkCounters() throws JSONException {
     JSONObject response = new JSONObject();
-    HashSet<String> parsedCounters = Leanplum.parseSdkCounters(response);
+    Set<String> parsedCounters = Leanplum.parseSdkCounters(response);
     assertEquals(new HashSet<String>(), parsedCounters);
   }
 
@@ -1300,8 +1301,8 @@ public class LeanplumTest extends AbstractTest {
   public void testParseSdkCounters() throws JSONException {
     JSONObject response = new JSONObject();
     response.put(Constants.Keys.ENABLED_COUNTERS, new JSONArray("[\"test\"]"));
-    HashSet<String> parsedCounters = Leanplum.parseSdkCounters(response);
-    assertEquals(new HashSet<String>(Arrays.asList("test")), parsedCounters);
+    Set<String> parsedCounters = Leanplum.parseSdkCounters(response);
+    assertEquals(new HashSet<>(Arrays.asList("test")), parsedCounters);
   }
 
 
@@ -1315,12 +1316,13 @@ public class LeanplumTest extends AbstractTest {
 
     assertEquals(true, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("testFeatureFlag1"));
     assertEquals(true, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("testFeatureFlag2"));
+    assertEquals(false, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("missingFeatureFlag"));
   }
 
   @Test
-  public void testParseEmptyFeatureFlags() throws JSONException {
+  public void testParseEmptyFeatureFlags() {
     JSONObject response = new JSONObject();
-    HashSet<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
+    Set<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
     assertEquals(new HashSet<String>(), parsedFeatureFlags);
   }
 
@@ -1328,7 +1330,7 @@ public class LeanplumTest extends AbstractTest {
   public void testParseFeatureFlags() throws JSONException {
     JSONObject response = new JSONObject();
     response.put(Constants.Keys.ENABLED_FEATURE_FLAGS, new JSONArray("[\"test\"]"));
-    HashSet<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
-    assertEquals(new HashSet<String>(Arrays.asList("test")), parsedFeatureFlags);
+    Set<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
+    assertEquals(new HashSet<>(Arrays.asList("test")), parsedFeatureFlags);
   }
 }
