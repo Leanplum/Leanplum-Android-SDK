@@ -556,7 +556,7 @@ public class Request {
         requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
       }
 
-      jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+      jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(requestsToSend);
       requestsWithEncoding.unsentRequests = unsentRequests;
       requestsWithEncoding.requestsToSend = requestsToSend;
       requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
