@@ -262,6 +262,14 @@
       "token": "jRSv9YRFQ9yVPN80JP0quwHmN9rKk0Crm7awgTwZgCs",
       "variants": [
       ],
+      "enabledSdkCounters": [
+        "testCounter1",
+        "testCounter2"
+      ],
+      "enabledFeatureFlags": [
+        "testFeatureFlag1",
+        "testFeatureFlag2"
+      ],
       "syncNewsfeed": false,
       "success": true,
       "interfaceEvents": [

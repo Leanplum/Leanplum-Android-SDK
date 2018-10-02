@@ -27,6 +27,8 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,7 +42,7 @@ public class CountAggregatorTest extends AbstractTest {
     String testString = "test";
 
     countAggregator.incrementCount(testString);
-    HashMap<String, Integer> counts = countAggregator.getCounts();
+    Map<String, Integer> counts = countAggregator.getCounts();
     assertEquals(null, counts.get(testString));
 
     countAggregator.incrementCount(testString);
@@ -52,11 +54,11 @@ public class CountAggregatorTest extends AbstractTest {
   public void testIncrementCount() {
     CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
-    HashSet<String> testSet = new HashSet<String>(Arrays.asList(testString));
+    Set<String> testSet = new HashSet<String>(Arrays.asList(testString));
     countAggregator.setEnabledCounters(testSet);
 
     countAggregator.incrementCount(testString);
-    HashMap<String, Integer> counts = countAggregator.getCounts();
+    Map<String, Integer> counts = countAggregator.getCounts();
     assertEquals(1, counts.get(testString).intValue());
 
     countAggregator.incrementCount(testString);
@@ -70,7 +72,7 @@ public class CountAggregatorTest extends AbstractTest {
     String testString = "test";
 
     countAggregator.incrementCount(testString, 2);
-    HashMap<String, Integer> counts = countAggregator.getCounts();
+    Map<String, Integer> counts = countAggregator.getCounts();
     assertEquals(null, counts.get(testString));
 
     countAggregator.incrementCount(testString, 15);
@@ -86,7 +88,7 @@ public class CountAggregatorTest extends AbstractTest {
     countAggregator.setEnabledCounters(testSet);
 
     countAggregator.incrementCount(testString, 2);
-    HashMap<String, Integer> counts = countAggregator.getCounts();
+    Map<String, Integer> counts = countAggregator.getCounts();
     assertEquals(2, counts.get(testString).intValue());
 
     countAggregator.incrementCount(testString, 15);
@@ -105,8 +107,8 @@ public class CountAggregatorTest extends AbstractTest {
     countAggregator.incrementCount(testString, 2);
     countAggregator.incrementCount(testString2, 15);
 
-    HashMap<String, Integer> previousCounts = countAggregator.getAndClearCounts();
-    HashMap<String, Integer> counts = countAggregator.getCounts();
+    Map<String, Integer> previousCounts = countAggregator.getAndClearCounts();
+    Map<String, Integer> counts = countAggregator.getCounts();
 
     //check counts is empty after clearing
     assertEquals(true, counts.isEmpty());
@@ -119,7 +121,7 @@ public class CountAggregatorTest extends AbstractTest {
   public void testMakeParams() {
     CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
-    HashMap<String, Object> params = countAggregator.makeParams(testString, 2);
+    Map<String, Object> params = countAggregator.makeParams(testString, 2);
 
     assertEquals(Constants.Values.SDK_COUNT, params.get(Constants.Params.TYPE));
     assertEquals(testString, params.get(Constants.Params.MESSAGE));
