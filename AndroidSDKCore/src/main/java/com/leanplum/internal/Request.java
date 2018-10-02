@@ -529,7 +529,7 @@ public class Request {
       unsentRequests.add(error);
     }
     requestsToSend = unsentRequests;
-    jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(unsentRequests);
+    jsonEncodedRequestsToSend = jsonEncodeRequests(unsentRequests);
 
     RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
     // for errors, we send all unsent requests so they are identical
@@ -556,7 +556,7 @@ public class Request {
         requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
       }
 
-      jsonEncodedRequestsToSend = jsonEncodeUnsentRequests(requestsToSend);
+      jsonEncodedRequestsToSend = jsonEncodeRequests(requestsToSend);
       requestsWithEncoding.unsentRequests = unsentRequests;
       requestsWithEncoding.requestsToSend = requestsToSend;
       requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
@@ -750,7 +750,7 @@ public class Request {
     return relevantRequests;
   }
 
-  protected static String jsonEncodeUnsentRequests(List<Map<String, Object>> requestData) {
+  protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);
