@@ -6,14 +6,20 @@ import android.support.annotation.VisibleForTesting;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class CountAggregator {
     public static final CountAggregator INSTANCE = new CountAggregator();
 
-    private HashSet<String> enabledCounters = new HashSet<>();
-    private final HashMap<String, Integer> counts = new HashMap<>();
+    private Set<String> enabledCounters = new HashSet<>();
+    private final Map<String, Integer> counts = new HashMap<>();
 
-    public void setEnabledCounters(HashSet<String> enabledCounters) {
+    @VisibleForTesting
+    CountAggregator() {
+        super();
+    }
+
+    public void setEnabledCounters(Set<String> enabledCounters) {
         this.enabledCounters = enabledCounters;
     }
 
@@ -33,16 +39,16 @@ public class CountAggregator {
     }
 
     @VisibleForTesting
-    public HashMap<String, Integer> getAndClearCounts() {
-        HashMap<String, Integer> previousCounts = new HashMap<>();
+    public Map<String, Integer> getAndClearCounts() {
+        Map<String, Integer> previousCounts = new HashMap<>();
         previousCounts.putAll(counts);
         counts.clear();
         return previousCounts;
     }
 
     @VisibleForTesting
-    public HashMap<String, Object> makeParams(@NonNull String name, int count) {
-        HashMap<String, Object> params = new HashMap<>();
+    public Map<String, Object> makeParams(@NonNull String name, int count) {
+        Map<String, Object> params = new HashMap<>();
 
         params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
         params.put(Constants.Params.MESSAGE, name);
@@ -52,12 +58,12 @@ public class CountAggregator {
     }
 
     public void sendAllCounts() {
-        HashMap<String, Integer> counts = getAndClearCounts();
+        Map<String, Integer> counts = getAndClearCounts();
 
         for(Map.Entry<String, Integer> entry : counts.entrySet()) {
             String name = entry.getKey();
             Integer count = entry.getValue();
-            HashMap<String, Object> params = makeParams(name, count);
+            Map<String, Object> params = makeParams(name, count);
             try {
                 Request.post(Constants.Methods.LOG, params).sendEventually();
             } catch (Throwable t) {
@@ -66,7 +72,7 @@ public class CountAggregator {
         }
     }
 
-    public HashMap<String, Integer> getCounts() {
+    public Map<String, Integer> getCounts() {
         return counts;
     }
 }
