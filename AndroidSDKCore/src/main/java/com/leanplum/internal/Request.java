@@ -253,6 +253,7 @@ public class Request {
     args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
+    args.put(Constants.Params.REQ_ID, Integer.toString(requestId));
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);
     }
