@@ -707,7 +707,6 @@ public class Leanplum {
 
   private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests,
       final Request request, int countOfUnsentRequests) {
-    boolean hasStartResponse = false;
     JSONObject lastStartResponse = null;
 
     // Find and handle the last start response.
@@ -720,39 +719,41 @@ public class Leanplum {
         return;
       }
 
-      final int responseCount = Request.numResponses(response);
-      for (int i = requests.size() - 1; i >= 0; i--) {
-        Map<String, Object> currentRequest = requests.get(i);
-        if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
-          if (currentRequest.containsKey(Constants.Params.REQ_ID)) {
-            for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
-              JSONObject currentResponse = Request.getResponseAt(response, j);
-              if (currentResponse.optString(Constants.Params.REQ_ID) ==
-                      currentRequest.get(Constants.Params.REQ_ID)) {
-                lastStartResponse = currentResponse;
-                hasStartResponse = true;
-                break;
-              }
-            }
-          }
-          if (i < responseCount) {
-            lastStartResponse = Request.getResponseAt(response, i);
-          }
-          hasStartResponse = true;
-          break;
-        }
-      }
+      lastStartResponse = parseLastStartResponse(response, requests);
     } catch (Throwable t) {
       Util.handleException(t);
     }
 
-    if (hasStartResponse) {
+    if (lastStartResponse != null) {
       if (!LeanplumInternal.hasStarted()) {
         // Set start response to null.
         request.onApiResponse(null);
         Leanplum.handleStartResponse(lastStartResponse);
       }
     }
+  }
+
+  @VisibleForTesting
+  public static JSONObject parseLastStartResponse(JSONObject response, List<Map<String, Object>> requests) {
+    final int responseCount = Request.numResponses(response);
+    for (int i = requests.size() - 1; i >= 0; i--) {
+      Map<String, Object> currentRequest = requests.get(i);
+      if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
+        if (currentRequest.containsKey(Constants.Params.REQ_ID)) {
+          for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
+            JSONObject currentResponse = Request.getResponseAt(response, j);
+            if (currentResponse.optString(Constants.Params.REQ_ID) ==
+                    currentRequest.get(Constants.Params.REQ_ID)) {
+              return currentResponse;
+            }
+          }
+        }
+        if (i < responseCount) {
+          return Request.getResponseAt(response, i);
+        }
+      }
+    }
+    return null;
   }
 
   private static void handleStartResponse(final JSONObject response) {
