@@ -721,6 +721,16 @@ public class Leanplum {
 
       final int responseCount = Request.numResponses(response);
       for (int i = requests.size() - 1; i >= 0; i--) {
+        // break on finding a response with both messages and variables
+        JSONObject currentResponse = Request.getResponseAt(response, i);
+        JSONObject values = currentResponse.optJSONObject(Constants.Keys.VARS);
+        JSONObject messages = currentResponse.optJSONObject(Constants.Keys.MESSAGES);
+        if (values != null && messages != null) {
+          lastStartResponse = currentResponse;
+          break;
+        }
+
+        // old logic still runs if the above fails
         Map<String, Object> currentRequest = requests.get(i);
         if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
           if (i < responseCount) {
