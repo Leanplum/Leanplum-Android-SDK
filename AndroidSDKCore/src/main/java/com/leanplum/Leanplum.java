@@ -726,7 +726,7 @@ public class Leanplum {
         if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
           if (currentRequest.containsKey(Constants.Params.REQ_ID)) {
               for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
-                JSONObject currentResponse = Request.getResponseAt(response, i);
+                JSONObject currentResponse = Request.getResponseAt(response, j);
                 try {
                   if (currentResponse.get(Constants.Params.REQ_ID) ==
                           currentRequest.get(Constants.Params.REQ_ID)) {
