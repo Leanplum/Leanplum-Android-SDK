@@ -436,8 +436,8 @@ public class LeanplumTest extends AbstractTest {
     LeanplumEventDataManager.init(Leanplum.getContext());
 
     // Add two events to database.
-    Request request1 = new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
-    Request request2 = new Request("POST", Constants.Methods.LOG, null);
+    Request request1 = new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null, 0);
+    Request request2 = new Request("POST", Constants.Methods.LOG, null, 1);
 
     request1.sendEventually();
     request2.sendEventually();

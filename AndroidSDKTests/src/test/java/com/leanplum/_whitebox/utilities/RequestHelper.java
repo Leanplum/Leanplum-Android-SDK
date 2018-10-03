@@ -33,8 +33,8 @@ import java.util.Map;
 public class RequestHelper extends Request {
   private static RequestHandler sRequestHandler = null;
 
-  public RequestHelper(String httpMethod, String apiMethod, Map<String, Object> params) {
-    super(httpMethod, apiMethod, params);
+  public RequestHelper(String httpMethod, String apiMethod, Map<String, Object> params, int requestId) {
+    super(httpMethod, apiMethod, params, requestId);
 
     // execute handler with request params
     if (sRequestHandler != null) {

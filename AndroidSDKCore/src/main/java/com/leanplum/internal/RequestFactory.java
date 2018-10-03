@@ -21,20 +21,55 @@
 
 package com.leanplum.internal;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 public class RequestFactory {
+  private static final String REQUEST_ID_KEY = "LEANPLUM_REQUEST_ID_KEY";
+  private static final int MAX_REQUEST_ID = 99999;
+
   public static RequestFactory defaultFactory;
 
-  public synchronized static RequestFactory getInstance() {
+  private Context context;
+  private int requestId;
+
+  public synchronized static RequestFactory getInstance(Context context) {
     if (defaultFactory == null) {
-      defaultFactory = new RequestFactory();
+      defaultFactory = new RequestFactory(context);
+      defaultFactory.requestId = defaultFactory.loadRequestIdFromDisk();
     }
     return defaultFactory;
   }
 
+  public RequestFactory(Context context) {
+    this.context = context;
+  }
+
   public Request createRequest(
       String httpMethod, String apiMethod, Map<String, Object> params) {
-    return new Request(httpMethod, apiMethod, params);
+    return new Request(httpMethod, apiMethod, params, incrementedRequestId());
   }
+
+  private int incrementedRequestId() {
+    requestId = (requestId + 1) % MAX_REQUEST_ID;
+    saveRequestIdToDisk(requestId);
+    return requestId;
+  }
+
+  private int loadRequestIdFromDisk() {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    return preferences.getInt(REQUEST_ID_KEY, 0);
+  }
+
+  private void saveRequestIdToDisk(int requestIdToSave) {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    SharedPreferences.Editor editor = preferences.edit();
+    editor.putInt(REQUEST_ID_KEY, requestIdToSave);
+  }
+
+
 }

@@ -91,6 +91,7 @@ public class Request {
   private ErrorCallback error;
   private boolean sent;
   private long dataBaseIndex;
+  private int requestId;
 
   private static ApiResponseCallback apiResponse;
 
@@ -199,14 +200,15 @@ public class Request {
     return Request.userId;
   }
 
-  public Request(String httpMethod, String apiMethod, Map<String, Object> params) {
-    this(httpMethod, apiMethod, params, new NoRequestSequenceRecorder());
+  public Request(String httpMethod, String apiMethod, Map<String, Object> params, int requestId) {
+    this(httpMethod, apiMethod, params, requestId, new NoRequestSequenceRecorder());
   }
 
-  Request(String httpMethod, String apiMethod, Map<String, Object> params, RequestSequenceRecorder requestSequenceRecorder) {
+  Request(String httpMethod, String apiMethod, Map<String, Object> params, int requestId, RequestSequenceRecorder requestSequenceRecorder) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
+    this.requestId = requestId;
     // Check if it is error and here was SQLite exception.
     if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.willSendErrorLog) {
       localErrors.add(createArgsDictionary());
@@ -221,14 +223,14 @@ public class Request {
     Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
-    return RequestFactory.getInstance().createRequest("GET", apiMethod, params);
+    return RequestFactory.getInstance(Leanplum.getContext()).createRequest("GET", apiMethod, params);
   }
 
   public static Request post(String apiMethod, Map<String, Object> params) {
     Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
-    return RequestFactory.getInstance().createRequest("POST", apiMethod, params);
+    return RequestFactory.getInstance(Leanplum.getContext()).createRequest("POST", apiMethod, params);
   }
 
   public void onResponse(ResponseCallback response) {
