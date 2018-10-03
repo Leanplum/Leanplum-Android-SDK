@@ -1333,4 +1333,46 @@ public class LeanplumTest extends AbstractTest {
     Set<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
     assertEquals(new HashSet<>(Arrays.asList("test")), parsedFeatureFlags);
   }
+
+
+  /**
+   * Test parse last response
+   */
+  @Test
+  public void testParseLastStartResponseGivenEmptyShouldBeNull() {
+    JSONObject response = new JSONObject();
+    List<Map<String, Object>> requests = new ArrayList<>();
+
+    JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
+    assertNull(lastStartResponse);
+  }
+
+  /**
+   * Test parse last response
+   */
+  @Test
+  public void testParseLastStartResponseGivenSingleStartShouldReturnResponse() {
+    List<Map<String, Object>> requests = new ArrayList<>();
+
+    Map<String, Object> request = new HashMap<>();
+    String uuid = "uuid";
+    request.put(Constants.Params.REQ_ID, uuid);
+    request.put(Constants.Params.ACTION, Constants.Methods.START);
+
+    Map<String, Object> responseMap = new HashMap<>();
+    responseMap.put(Constants.Params.REQ_ID, uuid);
+
+    List<Map<String, Object>> responsesList = new ArrayList<>();
+    responsesList.add(responseMap);
+
+    Map<String, Object> responsesMap = new HashMap<>();
+    responsesMap.put("response", responsesList);
+
+    JSONObject response = new JSONObject(responsesMap);
+    requests.add(request);
+
+    JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
+    assertNotNull(lastStartResponse);
+    assertEquals(lastStartResponse, new JSONObject(responseMap));
+  }
 }
