@@ -91,6 +91,7 @@ public class Request {
   private ErrorCallback error;
   private boolean sent;
   private long dataBaseIndex;
+  private String requestId;
 
   private static ApiResponseCallback apiResponse;
 
@@ -215,6 +216,7 @@ public class Request {
     OsHandler.getInstance();
     dataBaseIndex = -1;
     this.requestSequenceRecorder = requestSequenceRecorder;
+    this.requestId = UUID.randomUUID().toString();
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
@@ -251,7 +253,7 @@ public class Request {
     args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-    args.put(Constants.Params.REQ_ID, Integer.toString(requestId));
+    args.put(Constants.Params.REQ_ID, requestId);
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);
     }
