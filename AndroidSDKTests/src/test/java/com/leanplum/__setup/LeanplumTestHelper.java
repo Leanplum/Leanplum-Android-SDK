@@ -20,7 +20,6 @@
  */
 package com.leanplum.__setup;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -36,8 +35,6 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.VarCache;
 import com.leanplum.tests.BuildConfig;
-
-import org.robolectric.RuntimeEnvironment;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -81,12 +78,11 @@ public class LeanplumTestHelper {
    * Sets up Leanplum for a single unit test.
    */
   public static void setUp() {
-    Application context = RuntimeEnvironment.application;
-    RequestFactory.defaultFactory = new RequestFactory(context) {
+    RequestFactory.defaultFactory = new RequestFactory() {
       @Override
       public Request createRequest(String httpMethod, String apiMethod,
           Map<String, Object> params) {
-        return new RequestHelper(httpMethod, apiMethod, params, 0);
+        return new RequestHelper(httpMethod, apiMethod, params);
       }
     };
 

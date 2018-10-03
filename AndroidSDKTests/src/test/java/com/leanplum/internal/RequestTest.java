@@ -81,7 +81,7 @@ public class RequestTest extends TestCase {
     final ThreadRequestSequenceRecorder threadRequestSequenceRecorder =
         new ThreadRequestSequenceRecorder();
     Request request =
-        new Request(POST, Constants.Methods.START, params, 0, threadRequestSequenceRecorder);
+        new Request(POST, Constants.Methods.START, params, threadRequestSequenceRecorder);
     request.setAppId("fskadfshdbfa", "wee5w4waer422323");
 
     new Thread(
@@ -127,7 +127,7 @@ public class RequestTest extends TestCase {
       InvocationTargetException, IllegalAccessException {
     LeanplumEventDataManager.init(Leanplum.getContext());
     // Prepare testable objects and method.
-    Request request = new Request("POST", Constants.Methods.START, null, 0);
+    Request request = new Request("POST", Constants.Methods.START, null);
     Method removeIrrelevantBackgroundStartRequests =
         Request.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
     removeIrrelevantBackgroundStartRequests.setAccessible(true);
@@ -151,11 +151,11 @@ public class RequestTest extends TestCase {
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}, 0).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "2");
-    }}, 1).sendEventually();
+    }}).sendEventually();
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
@@ -166,11 +166,11 @@ public class RequestTest extends TestCase {
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
-    }}, 2).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}, 3).sendEventually();
+    }}).sendEventually();
     unsentRequests = request.getUnsentRequests(1.0);
     List unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
@@ -184,15 +184,15 @@ public class RequestTest extends TestCase {
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
-    }}, 0).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
-    }}, 1).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}, 2).sendEventually();
+    }}).sendEventually();
     unsentRequests = request.getUnsentRequests(1.0);
 
     assertNotNull(unsentRequests);
@@ -207,15 +207,15 @@ public class RequestTest extends TestCase {
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}, 0).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
-    }}, 1).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
-    }}, 2).sendEventually();
+    }}).sendEventually();
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     unsentRequestsData =
@@ -229,15 +229,15 @@ public class RequestTest extends TestCase {
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}, 3).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("bg", "1");
-    }}, 4).sendEventually();
+    }}).sendEventually();
     new Request("POST", Constants.Methods.START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
-    }}, 5).sendEventually();
+    }}).sendEventually();
     unsentRequests = request.getUnsentRequests(1.0);
     unsentRequestsData =
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
@@ -256,10 +256,10 @@ public class RequestTest extends TestCase {
     LeanplumEventDataManager.init(Leanplum.getContext());
     Request.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
-    Request request = spy(new Request("POST", Constants.Methods.START, null, 0));
+    Request request = spy(new Request("POST", Constants.Methods.START, null));
     request.sendEventually(); // first request added
     for (int i = 0;i < 4999; i++) { // remaining requests to make up 5000
-      new Request("POST", Constants.Methods.START, null, 1).sendEventually();
+      new Request("POST", Constants.Methods.START, null).sendEventually();
     }
     // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
@@ -306,7 +306,7 @@ public class RequestTest extends TestCase {
   public void testJsonEncodeUnsentRequestsWithException() {
     List<Map<String, Object>> requests = mockRequests(4);
 
-    Request realRequest = new Request("POST", Constants.Methods.START, null, 0);
+    Request realRequest = new Request("POST", Constants.Methods.START, null);
     Request request = spy(realRequest);
     when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
     when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
@@ -328,7 +328,7 @@ public class RequestTest extends TestCase {
   public void testJsonEncodeUnsentRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
 
-    Request realRequest = new Request("POST", Constants.Methods.START, null, 0);
+    Request realRequest = new Request("POST", Constants.Methods.START, null);
     Request request = spy(realRequest);
     when(request.getUnsentRequests(1.0)).thenReturn(requests);
 
