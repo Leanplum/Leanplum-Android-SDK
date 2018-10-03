@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
@@ -245,7 +246,8 @@ public class Request {
     Request.apiResponse = apiResponse;
   }
 
-  private Map<String, Object> createArgsDictionary() {
+  @VisibleForTesting
+  public Map<String, Object> createArgsDictionary() {
     Map<String, Object> args = new HashMap<>();
     args.put(Constants.Params.DEVICE_ID, deviceId);
     args.put(Constants.Params.USER_ID, userId);

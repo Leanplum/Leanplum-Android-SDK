@@ -71,6 +71,14 @@ public class RequestTest extends TestCase {
     Leanplum.setApplicationContext(context);
   }
 
+  /** Test that request include a generated request id **/
+  @Test
+  public void shouldIncludeGeneratedRequestId() {
+      Request request = new Request(POST, Constants.Methods.START, null);
+      Map<String, Object> args = request.createArgsDictionary();
+      assertTrue(args.containsKey(Constants.Params.REQ_ID));
+  }
+
   /** Test that read writes happened sequentially when calling sendNow(). */
   @Test
   public void shouldWriteRequestAndSendInSequence() throws InterruptedException {
