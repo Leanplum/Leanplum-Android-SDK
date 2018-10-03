@@ -738,13 +738,12 @@ public class Leanplum {
                   Util.handleException(e);
               }
             }
-          } else {
-            if (i < responseCount) {
-              lastStartResponse = Request.getResponseAt(response, i);
-            }
-            hasStartResponse = true;
-            break;
           }
+          if (i < responseCount) {
+            lastStartResponse = Request.getResponseAt(response, i);
+          }
+          hasStartResponse = true;
+          break;
         }
       }
     } catch (Throwable t) {
