@@ -55,6 +55,7 @@ import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -723,11 +724,27 @@ public class Leanplum {
       for (int i = requests.size() - 1; i >= 0; i--) {
         Map<String, Object> currentRequest = requests.get(i);
         if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
-          if (i < responseCount) {
-            lastStartResponse = Request.getResponseAt(response, i);
+          if (currentRequest.containsKey(Constants.Params.REQ_ID)) {
+              for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
+                JSONObject currentResponse = Request.getResponseAt(response, j);
+                try {
+                  if (currentResponse.get(Constants.Params.REQ_ID) ==
+                          currentRequest.get(Constants.Params.REQ_ID)) {
+                    lastStartResponse = currentResponse;
+                    hasStartResponse = true;
+                    break;
+                  }
+                } catch (JSONException e) {
+                  Util.handleException(e);
+              }
+            }
+          } else {
+            if (i < responseCount) {
+              lastStartResponse = Request.getResponseAt(response, i);
+            }
+            hasStartResponse = true;
+            break;
           }
-          hasStartResponse = true;
-          break;
         }
       }
     } catch (Throwable t) {
