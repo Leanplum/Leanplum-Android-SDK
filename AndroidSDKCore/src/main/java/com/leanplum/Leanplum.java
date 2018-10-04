@@ -718,8 +718,6 @@ public class Leanplum {
         request.setDataBaseIndex(request.getDataBaseIndex() - countOfUnsentRequests);
         return;
       }
-
-      testParseLastStartResponseGivenSingleStartShouldReturnResponse();
       lastStartResponse = parseLastStartResponse(response, requests);
     } catch (Throwable t) {
       Util.handleException(t);
@@ -1067,7 +1065,6 @@ public class Leanplum {
     synchronized (heartbeatLock) {
       if (heartbeatExecutor == null) {
         createHeartbeatExecutor();
-        testParseLastStartResponseGivenSingleStartShouldReturnResponse();
       }
     }
   }
