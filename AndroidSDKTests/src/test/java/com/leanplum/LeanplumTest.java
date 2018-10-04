@@ -1373,6 +1373,6 @@ public class LeanplumTest extends AbstractTest {
 
     JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
     assertNotNull(lastStartResponse);
-//    assertEquals(lastStartResponse, new JSONObject(responseMap));
+    assertEquals(lastStartResponse, new JSONObject(responseMap));
   }
 }

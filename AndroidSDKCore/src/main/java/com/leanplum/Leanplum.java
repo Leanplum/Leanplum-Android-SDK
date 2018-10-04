@@ -719,6 +719,7 @@ public class Leanplum {
         return;
       }
 
+      testParseLastStartResponseGivenSingleStartShouldReturnResponse();
       lastStartResponse = parseLastStartResponse(response, requests);
     } catch (Throwable t) {
       Util.handleException(t);
@@ -742,8 +743,8 @@ public class Leanplum {
         if (currentRequest.containsKey(Constants.Params.REQ_ID)) {
           for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
             JSONObject currentResponse = Request.getResponseAt(response, j);
-            if (currentResponse.optString(Constants.Params.REQ_ID) ==
-                    currentRequest.get(Constants.Params.REQ_ID)) {
+            if (currentRequest.get(Constants.Params.REQ_ID)
+                    .equals(currentResponse.optString(Constants.Params.REQ_ID))) {
               return currentResponse;
             }
           }
@@ -1066,6 +1067,7 @@ public class Leanplum {
     synchronized (heartbeatLock) {
       if (heartbeatExecutor == null) {
         createHeartbeatExecutor();
+        testParseLastStartResponseGivenSingleStartShouldReturnResponse();
       }
     }
   }
