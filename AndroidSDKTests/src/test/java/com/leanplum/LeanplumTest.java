@@ -1355,7 +1355,7 @@ public class LeanplumTest extends AbstractTest {
   public void testParseLastStartResponseGivenSingleStartShouldReturnResponse() throws JSONException {
     List<Map<String, Object>> requests = startRequestsWithCount(1);
 
-    List<JSONObject> responsesList = responsesWithCount(1);
+    List<JSONObject> responsesList = startResponsesWithCount(1);
 
     Map<String, Object> responsesMap = new HashMap<>();
     responsesMap.put("response", new JSONArray(responsesList));
@@ -1368,34 +1368,36 @@ public class LeanplumTest extends AbstractTest {
   }
 
   private List<Map<String, Object>> startRequestsWithCount(int n) {
-    List<Map<String, Object>> requests = new ArrayList<>();
-    for (int i=0;i < n; i ++) {
-      Map<String, Object> request = new HashMap<>();
-      request.put(Constants.Params.REQ_ID, "start-uuid-" + Integer.toString(i));
-      request.put(Constants.Params.ACTION, Constants.Methods.START);
-      requests.add(request);
-    }
-
-    return requests;
-  }
+    return requestsWithCountAndPrefix(n, "start");  }
 
   private List<Map<String, Object>> trackRequestsWithCount(int n) {
+    return requestsWithCountAndPrefix(n, "track");
+  }
+
+  private List<Map<String, Object>> requestsWithCountAndPrefix(int n, String prefix) {
     List<Map<String, Object>> requests = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> request = new HashMap<>();
-      request.put(Constants.Params.REQ_ID, "track-uuid-" + Integer.toString(i));
+      request.put(Constants.Params.REQ_ID, prefix + "-uuid-" + Integer.toString(i));
       request.put(Constants.Params.ACTION, Constants.Methods.START);
       requests.add(request);
     }
-
     return requests;
   }
 
-  private List<JSONObject> responsesWithCount(int n) {
+  private List<JSONObject> startResponsesWithCount(int n) {
+    return responsesWithCountAndPrefix(n, "start");
+  }
+
+  private List<JSONObject> trackResponsesWithCount(int n) {
+    return responsesWithCountAndPrefix(n, "track");
+  }
+
+  private List<JSONObject> responsesWithCountAndPrefix(int n, String prefix) {
     List<JSONObject> responsesList = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> responseMap = new HashMap<>();
-      responseMap.put(Constants.Params.REQ_ID, "start-uuid-" + Integer.toString(i));
+      responseMap.put(Constants.Params.REQ_ID, prefix + "-uuid-" + Integer.toString(i));
       responsesList.add(new JSONObject(responseMap));
     }
     return responsesList;
