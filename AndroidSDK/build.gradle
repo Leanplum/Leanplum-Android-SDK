@@ -18,11 +18,12 @@ dependencies {
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    buildToolsVersion '28.0.2'
 //    publishNonDefault true
 
     defaultConfig {
         consumerProguardFiles CONSUMER_PROGUARD_FILES
+        minSdkVersion = 14
     }
 
     buildTypes {
