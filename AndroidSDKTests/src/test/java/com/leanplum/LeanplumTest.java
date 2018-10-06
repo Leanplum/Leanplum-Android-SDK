@@ -1364,7 +1364,32 @@ public class LeanplumTest extends AbstractTest {
 
     JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
     assertNotNull(lastStartResponse);
-    assertTrue(JSONObjectsAreEqual(lastStartResponse, responsesList.get(0)));
+    lastStartResponse.optString("uuid").equals("start-uuid-0");
+  }
+
+  /**
+   * Multiple responses should return correct response for parseLastStartResponse
+   */
+  @Test
+  public void testParseLastStartResponseGivenMultipleStartShouldReturnResponse() throws JSONException {
+    List<Map<String, Object>> requests = new ArrayList<>(startRequestsWithCount(2));
+    requests.addAll(trackRequestsWithCount(2));
+    requests.addAll(startRequestsWithCount(3));
+    requests.addAll(trackRequestsWithCount(3));
+    requests.addAll(startRequestsWithCount(4));
+
+    List<JSONObject> responsesList = startResponsesWithCount(2);
+    responsesList.addAll(trackResponsesWithCount(3));
+    responsesList.addAll(startResponsesWithCount(4));
+    responsesList.addAll(trackResponsesWithCount(3));
+
+    Map<String, Object> responsesMap = new HashMap<>();
+    responsesMap.put("response", new JSONArray(responsesList));
+    JSONObject response = new JSONObject(responsesMap);
+
+    JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
+    assertNotNull(lastStartResponse);
+    lastStartResponse.optString("uuid").equals("start-uuid-3");
   }
 
   private List<Map<String, Object>> startRequestsWithCount(int n) {
