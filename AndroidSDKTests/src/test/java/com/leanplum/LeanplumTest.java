@@ -1337,10 +1337,10 @@ public class LeanplumTest extends AbstractTest {
 
 
   /**
-   * Test parse last response
+   * Empty response should return null for parseLastStartResponse
    */
   @Test
-  public void testParseLastStartResponseGivenEmptyShouldBeNull() {
+  public void testParseLastStartResponseEmpty() {
     JSONObject response = new JSONObject();
     List<Map<String, Object>> requests = new ArrayList<>();
 
@@ -1349,11 +1349,11 @@ public class LeanplumTest extends AbstractTest {
   }
 
   /**
-   * Test parse last response
+   * Single response should return response for parseLastStartResponse
    */
   @Test
   public void testParseLastStartResponseGivenSingleStartShouldReturnResponse() throws JSONException {
-    List<Map<String, Object>> requests = requestsWithCount(1);
+    List<Map<String, Object>> requests = startRequestsWithCount(1);
 
     List<JSONObject> responsesList = responsesWithCount(1);
 
@@ -1367,11 +1367,23 @@ public class LeanplumTest extends AbstractTest {
     assertTrue(JSONObjectsAreEqual(lastStartResponse, responsesList.get(0)));
   }
 
-  private List<Map<String, Object>> requestsWithCount(int n) {
+  private List<Map<String, Object>> startRequestsWithCount(int n) {
     List<Map<String, Object>> requests = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> request = new HashMap<>();
-      request.put(Constants.Params.REQ_ID, "uuid" + Integer.toString(i));
+      request.put(Constants.Params.REQ_ID, "start-uuid-" + Integer.toString(i));
+      request.put(Constants.Params.ACTION, Constants.Methods.START);
+      requests.add(request);
+    }
+
+    return requests;
+  }
+
+  private List<Map<String, Object>> trackRequestsWithCount(int n) {
+    List<Map<String, Object>> requests = new ArrayList<>();
+    for (int i=0;i < n; i ++) {
+      Map<String, Object> request = new HashMap<>();
+      request.put(Constants.Params.REQ_ID, "track-uuid-" + Integer.toString(i));
       request.put(Constants.Params.ACTION, Constants.Methods.START);
       requests.add(request);
     }
@@ -1383,7 +1395,7 @@ public class LeanplumTest extends AbstractTest {
     List<JSONObject> responsesList = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> responseMap = new HashMap<>();
-      responseMap.put(Constants.Params.REQ_ID, "uuid" + Integer.toString(i));
+      responseMap.put(Constants.Params.REQ_ID, "start-uuid-" + Integer.toString(i));
       responsesList.add(new JSONObject(responseMap));
     }
     return responsesList;
