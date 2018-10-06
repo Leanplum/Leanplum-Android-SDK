@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1351,28 +1352,68 @@ public class LeanplumTest extends AbstractTest {
    * Test parse last response
    */
   @Test
-  public static void testParseLastStartResponseGivenSingleStartShouldReturnResponse() {
-    List<Map<String, Object>> requests = new ArrayList<>();
+  public void testParseLastStartResponseGivenSingleStartShouldReturnResponse() throws JSONException {
+    List<Map<String, Object>> requests = requestsWithCount(1);
 
-    Map<String, Object> request = new HashMap<>();
-    String uuid = "uuid";
-    request.put(Constants.Params.REQ_ID, uuid);
-    request.put(Constants.Params.ACTION, Constants.Methods.START);
-
-    Map<String, Object> responseMap = new HashMap<>();
-    responseMap.put(Constants.Params.REQ_ID, uuid);
-
-    List<Map<String, Object>> responsesList = new ArrayList<>();
-    responsesList.add(responseMap);
+    List<JSONObject> responsesList = responsesWithCount(1);
 
     Map<String, Object> responsesMap = new HashMap<>();
-    responsesMap.put("response", responsesList);
-
+    responsesMap.put("response", new JSONArray(responsesList));
     JSONObject response = new JSONObject(responsesMap);
-    requests.add(request);
+
 
     JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
     assertNotNull(lastStartResponse);
-//    assertEquals(lastStartResponse, new JSONObject(responseMap));
+    assertTrue(JSONObjectsAreEqual(lastStartResponse, responsesList.get(0)));
+  }
+
+  private List<Map<String, Object>> requestsWithCount(int n) {
+    List<Map<String, Object>> requests = new ArrayList<>();
+    for (int i=0;i < n; i ++) {
+      Map<String, Object> request = new HashMap<>();
+      request.put(Constants.Params.REQ_ID, "uuid" + Integer.toString(i));
+      request.put(Constants.Params.ACTION, Constants.Methods.START);
+      requests.add(request);
+    }
+
+    return requests;
+  }
+
+  private List<JSONObject> responsesWithCount(int n) {
+    List<JSONObject> responsesList = new ArrayList<>();
+    for (int i=0;i < n; i ++) {
+      Map<String, Object> responseMap = new HashMap<>();
+      responseMap.put(Constants.Params.REQ_ID, "uuid" + Integer.toString(i));
+      responsesList.add(new JSONObject(responseMap));
+    }
+    return responsesList;
+  }
+
+  private boolean JSONObjectsAreEqual(Object ob1, Object ob2) throws JSONException {
+    Object obj1Converted = convertJsonElement(ob1);
+    Object obj2Converted = convertJsonElement(ob2);
+    return obj1Converted.equals(obj2Converted);
+  }
+
+  private Object convertJsonElement(Object elem) throws JSONException {
+    if (elem instanceof JSONObject) {
+      JSONObject obj = (JSONObject) elem;
+      Iterator<String> keys = obj.keys();
+      Map<String, Object> jsonMap = new HashMap<>();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        jsonMap.put(key, convertJsonElement(obj.get(key)));
+      }
+      return jsonMap;
+    } else if (elem instanceof JSONArray) {
+      JSONArray arr = (JSONArray) elem;
+      Set<Object> jsonSet = new HashSet<>();
+      for (int i = 0; i < arr.length(); i++) {
+        jsonSet.add(convertJsonElement(arr.get(i)));
+      }
+      return jsonSet;
+    } else {
+      return elem;
+    }
   }
 }
