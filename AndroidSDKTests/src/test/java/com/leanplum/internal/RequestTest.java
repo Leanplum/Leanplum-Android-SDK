@@ -73,7 +73,7 @@ public class RequestTest extends TestCase {
 
   /** Test that request include a generated request id **/
   @Test
-  public void shouldIncludeGeneratedRequestId() {
+  public void testCreateArgsDictionaryShouldIncludeRequestId() {
       Request request = new Request(POST, Constants.Methods.START, null);
       Map<String, Object> args = request.createArgsDictionary();
       assertTrue(args.containsKey(Constants.Params.REQ_ID));
