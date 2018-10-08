@@ -1335,6 +1335,34 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(new HashSet<>(Arrays.asList("test")), parsedFeatureFlags);
   }
 
+  /**
+   * Responses without uuid should be matched on index.
+   */
+  @Test
+  public void testParseLastStartResponseWithoutUUID() {
+    final String index = "index";
+
+    List<Map<String, Object>> requests = new ArrayList<>(startRequestsWithCount(2));
+    requests.addAll(trackRequestsWithCount(2));
+    requests.addAll(startRequestsWithCount(3));
+    requests.addAll(trackRequestsWithCount(3));
+    requests.addAll(startRequestsWithCount(4));
+
+    List<JSONObject> responsesList = new ArrayList<>();
+    for (int i=0;i < 15; i ++) {
+      Map<String, Object> responseMap = new HashMap<>();
+      responseMap.put(index, Integer.toString(i));
+      responsesList.add(new JSONObject(responseMap));
+    }
+
+    Map<String, Object> responsesMap = new HashMap<>();
+    responsesMap.put("response", new JSONArray(responsesList));
+    JSONObject response = new JSONObject(responsesMap);
+
+    JSONObject lastStartResponse = Leanplum.parseLastStartResponse(response, requests);
+    assertNotNull(lastStartResponse);
+    lastStartResponse.optString(index).equals("13");
+  }
 
   /**
    * Empty response should return null for parseLastStartResponse
