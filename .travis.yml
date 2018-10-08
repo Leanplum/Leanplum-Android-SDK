@@ -15,3 +15,9 @@ android:
     # Specify at least one system image,
     # if you need to run emulator(s) during your tests
     - sys-img-armeabi-v7a-android-28
+
+before_install:
+  - sudo rm -r /usr/local/gradle
+  - curl -LO http://services.gradle.org/distributions/gradle-4.10.2-bin.zip
+  - unzip -q gradle-4.10.2-bin.zip
+  - sudo mv gradle-4.10.2 /usr/local/gradle
