@@ -76,7 +76,7 @@ public class RequestTest extends TestCase {
   public void testCreateArgsDictionaryShouldIncludeRequestId() {
       Request request = new Request(POST, Constants.Methods.START, null);
       Map<String, Object> args = request.createArgsDictionary();
-      assertTrue(args.containsKey(Constants.Params.REQ_ID));
+      assertTrue(args.containsKey(Request.REQUEST_ID_KEY));
   }
 
   /** Test that read writes happened sequentially when calling sendNow(). */

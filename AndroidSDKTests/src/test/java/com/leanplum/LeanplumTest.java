@@ -1431,7 +1431,7 @@ public class LeanplumTest extends AbstractTest {
     List<Map<String, Object>> requests = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> request = new HashMap<>();
-      request.put(Constants.Params.REQ_ID, prefix + "-uuid-" + Integer.toString(i));
+      request.put(Request.REQUEST_ID_KEY, prefix + "-uuid-" + Integer.toString(i));
       request.put(Constants.Params.ACTION, Constants.Methods.START);
       requests.add(request);
     }
@@ -1450,7 +1450,7 @@ public class LeanplumTest extends AbstractTest {
     List<JSONObject> responsesList = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> responseMap = new HashMap<>();
-      responseMap.put(Constants.Params.REQ_ID, prefix + "-uuid-" + Integer.toString(i));
+      responseMap.put(Request.REQUEST_ID_KEY, prefix + "-uuid-" + Integer.toString(i));
       responsesList.add(new JSONObject(responseMap));
     }
     return responsesList;

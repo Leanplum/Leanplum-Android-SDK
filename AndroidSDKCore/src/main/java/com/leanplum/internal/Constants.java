@@ -157,7 +157,6 @@ public class Constants {
     public static final String INBOX_MESSAGE_ID = "newsfeedMessageId";
     public static final String INBOX_MESSAGES = "newsfeedMessages";
     public static final String PARAMS = "params";
-    public static final String REQ_ID= "reqId";
     public static final String SDK_VERSION = "sdkVersion";
     public static final String STATE = "state";
     public static final String TIME = "time";

@@ -57,6 +57,8 @@ import java.util.UUID;
  * @author Andrew First
  */
 public class Request {
+  public static final String REQUEST_ID_KEY = "reqId";
+
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
@@ -255,7 +257,7 @@ public class Request {
     args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-    args.put(Constants.Params.REQ_ID, requestId);
+    args.put(Request.REQUEST_ID_KEY, requestId);
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);
     }

@@ -738,11 +738,11 @@ public class Leanplum {
     for (int i = requests.size() - 1; i >= 0; i--) {
       Map<String, Object> currentRequest = requests.get(i);
       if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
-        if (currentRequest.containsKey(Constants.Params.REQ_ID)) {
+        if (currentRequest.containsKey(Request.REQUEST_ID_KEY)) {
           for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
             JSONObject currentResponse = Request.getResponseAt(response, j);
-            if (currentRequest.get(Constants.Params.REQ_ID)
-                    .equals(currentResponse.optString(Constants.Params.REQ_ID))) {
+            if (currentRequest.get(Request.REQUEST_ID_KEY)
+                    .equals(currentResponse.optString(Request.REQUEST_ID_KEY))) {
               return currentResponse;
             }
           }
