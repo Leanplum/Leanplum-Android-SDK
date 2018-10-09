@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
@@ -56,6 +57,8 @@ import java.util.UUID;
  * @author Andrew First
  */
 public class Request {
+  public static final String REQUEST_ID_KEY = "reqId";
+
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
@@ -91,6 +94,7 @@ public class Request {
   private ErrorCallback error;
   private boolean sent;
   private long dataBaseIndex;
+  private String requestId;
 
   private static ApiResponseCallback apiResponse;
 
@@ -215,6 +219,7 @@ public class Request {
     OsHandler.getInstance();
     dataBaseIndex = -1;
     this.requestSequenceRecorder = requestSequenceRecorder;
+    this.requestId = UUID.randomUUID().toString();
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
@@ -243,7 +248,8 @@ public class Request {
     Request.apiResponse = apiResponse;
   }
 
-  private Map<String, Object> createArgsDictionary() {
+  @VisibleForTesting
+  public Map<String, Object> createArgsDictionary() {
     Map<String, Object> args = new HashMap<>();
     args.put(Constants.Params.DEVICE_ID, deviceId);
     args.put(Constants.Params.USER_ID, userId);
@@ -251,6 +257,7 @@ public class Request {
     args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
+    args.put(Request.REQUEST_ID_KEY, requestId);
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);
     }
