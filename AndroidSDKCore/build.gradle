@@ -28,6 +28,9 @@ android {
             proguardFiles PROGUARD_FILES
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {

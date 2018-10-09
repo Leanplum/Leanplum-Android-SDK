@@ -23,6 +23,7 @@ android {
 
     defaultConfig {
         consumerProguardFiles CONSUMER_PROGUARD_FILES
+        minSdkVersion = 14
     }
 
     buildTypes {
@@ -30,6 +31,10 @@ android {
             minifyEnabled true
             proguardFiles PROGUARD_FILES
         }
+    }
+
+    lintOptions {
+        abortOnError false
     }
 
     sourceSets {
