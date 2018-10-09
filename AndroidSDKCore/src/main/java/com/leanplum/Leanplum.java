@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
@@ -37,6 +38,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.CountAggregator;
+import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
@@ -818,7 +820,10 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            parseSdkCounters(response);
+            Set<String> enabledCounters = parseSdkCounters(response);
+            CountAggregator.INSTANCE.setEnabledCounters(enabledCounters);
+            Set<String> enabledFeatureFlags = parseFeatureFlags(response);
+            FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
@@ -2164,12 +2169,29 @@ public class Leanplum {
     VarCache.clearUserContent();
   }
 
-  private static void parseSdkCounters(JSONObject response) {
+  @VisibleForTesting
+  public static Set<String> parseSdkCounters(JSONObject response) {
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
-    if (enabledCounters != null) {
-      HashSet counterSet = new HashSet<>(Arrays.asList(enabledCounters));
-      CountAggregator.INSTANCE.setEnabledCounters(counterSet);
-    }
+    Set<String> counterSet = toSet(enabledCounters);
+    return counterSet;
   }
+
+  @VisibleForTesting
+  public static Set<String> parseFeatureFlags(JSONObject response) {
+    JSONArray enabledFeatureFlags = response.optJSONArray(
+            Constants.Keys.ENABLED_FEATURE_FLAGS);
+    Set<String> featureFlagSet = toSet(enabledFeatureFlags);
+    return featureFlagSet;
+  }
+
+  private static Set<String> toSet(JSONArray array) {
+      Set<String> set = new HashSet<>();
+      if (array != null) {
+        for (int i = 0; i < array.length(); i++) {
+          set.add(array.optString(i));
+        }
+      }
+      return set;
+    }
 }
