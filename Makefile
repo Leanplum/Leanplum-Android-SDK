@@ -40,13 +40,9 @@ buildNtest:
 	--dev-key=dev_Bx8i3Bbz1OJBTBAu63NIifr3UwWqUBU5OhHtywo58RY
 	${DOCKER_RUN} Tools/test.sh
 
-build:
-	${DOCKER_RUN} Tools/build.sh --upload
-	#Tools/notes.sh
+clean:
+	${DOCKER_RUN} gradle clean
 
-copyArtifacts:
-	./Tools/copyArtifacts.bash --upload
-
-# Step 2 publish
-publish:
-	Tools/publish.sh --release=$(shell git rev-parse --abbrev-ref HEAD) --build=1537315158 --channel=alpha --version=1
+releaseArtifacts:
+	${DOCKER_RUN} gradle assembleRelease
+	${DOCKER_RUN} gradle generatePomFileForAarPublication
