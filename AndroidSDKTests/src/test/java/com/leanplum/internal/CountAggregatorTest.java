@@ -24,7 +24,6 @@ import com.leanplum.__setup.AbstractTest;
 
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.util.Set;
