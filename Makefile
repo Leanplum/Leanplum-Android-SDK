@@ -46,3 +46,6 @@ clean:
 releaseArtifacts:
 	${DOCKER_RUN} gradle assembleRelease
 	${DOCKER_RUN} gradle generatePomFileForAarPublication
+
+deploy:
+	python Tools/deploy.py

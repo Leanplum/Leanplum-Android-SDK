@@ -6,48 +6,67 @@ def get_current_version():
     with open(SDK_VERSION_FILE, 'r') as f:
         return f.read()
 
-def deploy(project, destination, version):
-    deployAAR(project, destination, version)
-    deployPOM(project, destination, version)
+def deploy(project, package, version):
+    deployAAR(project, package, version)
+    deployPOM(project, package, version)
 
-def deployAAR(project, destination, version):
-    localAARPath = "../" + project + "/build/outputs/aar/" + project + "-release.aar"
-    remoteAARPath = "libs-release-local/com/leanplum/" + destination + "/" + version + "/" + destination + "-" + version + ".aar"
-    jfrog(localAARPath, remoteAARPath)
+def deployAAR(project, package, version):
+    localAARPath = project + "/build/outputs/aar/" + project + "-release.aar"
+    filename = remoteFilename(package, version, "aar")
+    
+    remoteAARPath = "libs-release-local/com/leanplum/" + package + "/" + version + "/" + filename
+    artifactoryDeploy(localAARPath, remoteAARPath)
+    
+    remoteBintrayPath = "https://api.bintray.com/content/leanplum/maven/" + package + "/" + version + "/" + filename
+    bintrayDeploy(localAARPath, remoteBintrayPath)
 
-def deployPOM(project, destination, version):
-    localAARPath = "../" + project + "/build/publications/aar/pom-default.xml"
-    remoteAARPath = "libs-release-local/com/leanplum/" + destination + "/" + version + "/" + destination + "-" + version + ".pom"
-    jfrog(localAARPath, remoteAARPath)
+def deployPOM(project, package, version):
+    localAARPath = project + "/build/publications/aar/pom-default.xml"
+    filename = remoteFilename(package, version, "pom")
 
-def jfrog(source, destination):
+    remoteAARPath = "libs-release-local/com/leanplum/" + package + "/" + version + "/" + package + "-" + version + ".pom"
+    artifactoryDeploy(localAARPath, remoteAARPath)
+    
+    remoteBintrayPath = "https://api.bintray.com/content/leanplum/maven/" + package + "/" + version + "/" + filename
+    bintrayDeploy(localAARPath, remoteBintrayPath)
+    
+
+def remoteFilename(package, version, extension):
+    return package + "-" + version + "." + extension
+
+def artifactoryDeploy(source, destination):
     command = "jfrog rt u " + source + " " + destination
-    # print command
-    os.system(c)
+    print command
+    # os.system(command)
+
+def bintrayDeploy(source, destination):
+    command = "curl -T " + source + " -ue7mac:<API_KEY> " + destination
+    print command
+    # os.system(command)
+    
 
 packages = [{
         "project": "AndroidSDKCore",
-        "destination": "leanplum-core"
+        "package": "leanplum-core"
     }, {
         "project": "AndroidSDKPush",
-        "destination": "leanplum-push"
+        "package": "leanplum-push"
     }, {
         "project": "AndroidSDKGcm",
-        "destination": "leanplum-gcm"
+        "package": "leanplum-gcm"
     }, {
         "project": "AndroidSDKFcm",
-        "destination": "leanplum-fcm"
+        "package": "leanplum-fcm"
     }, {
         "project": "AndroidSDKLocation",
-        "destination": "leanplum-location"
+        "package": "leanplum-location"
     }
 ]
 
 def main():
     version = get_current_version()
     for package in packages:
-        deploy(package['project'], package['destination'], version)
+        deploy(package['project'], package['package'], version)
   
 if __name__== "__main__":
   main()
-
