@@ -55,6 +55,7 @@ import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -706,7 +707,6 @@ public class Leanplum {
 
   private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests,
       final Request request, int countOfUnsentRequests) {
-    boolean hasStartResponse = false;
     JSONObject lastStartResponse = null;
 
     // Find and handle the last start response.
@@ -718,29 +718,41 @@ public class Leanplum {
         request.setDataBaseIndex(request.getDataBaseIndex() - countOfUnsentRequests);
         return;
       }
-
-      final int responseCount = Request.numResponses(response);
-      for (int i = requests.size() - 1; i >= 0; i--) {
-        Map<String, Object> currentRequest = requests.get(i);
-        if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
-          if (i < responseCount) {
-            lastStartResponse = Request.getResponseAt(response, i);
-          }
-          hasStartResponse = true;
-          break;
-        }
-      }
+      lastStartResponse = parseLastStartResponse(response, requests);
     } catch (Throwable t) {
       Util.handleException(t);
     }
 
-    if (hasStartResponse) {
+    if (lastStartResponse != null) {
       if (!LeanplumInternal.hasStarted()) {
         // Set start response to null.
         request.onApiResponse(null);
         Leanplum.handleStartResponse(lastStartResponse);
       }
     }
+  }
+
+  @VisibleForTesting
+  public static JSONObject parseLastStartResponse(JSONObject response, List<Map<String, Object>> requests) {
+    final int responseCount = Request.numResponses(response);
+    for (int i = requests.size() - 1; i >= 0; i--) {
+      Map<String, Object> currentRequest = requests.get(i);
+      if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
+        if (currentRequest.containsKey(Request.REQUEST_ID_KEY)) {
+          for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
+            JSONObject currentResponse = Request.getResponseAt(response, j);
+            if (currentRequest.get(Request.REQUEST_ID_KEY)
+                    .equals(currentResponse.optString(Request.REQUEST_ID_KEY))) {
+              return currentResponse;
+            }
+          }
+        }
+        if (i < responseCount) {
+          return Request.getResponseAt(response, i);
+        }
+      }
+    }
+    return null;
   }
 
   private static void handleStartResponse(final JSONObject response) {
