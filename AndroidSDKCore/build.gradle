@@ -6,7 +6,7 @@ apply from: "../common-methods.gradle"
 android {
 
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    buildToolsVersion '28.0.2'
     useLibrary 'org.apache.http.legacy'
 
     publishNonDefault true
@@ -22,6 +22,7 @@ android {
 
         def buildNumber = System.getenv('BUILD_NUMBER') ?: '0'
         buildConfigField 'String', 'BUILD_NUMBER', '\"' + buildNumber + '\"'
+        minSdkVersion = 14
     }
     buildTypes {
         release {
