@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
@@ -37,6 +38,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.CountAggregator;
+import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
@@ -53,6 +55,7 @@ import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -704,7 +707,6 @@ public class Leanplum {
 
   private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests,
       final Request request, int countOfUnsentRequests) {
-    boolean hasStartResponse = false;
     JSONObject lastStartResponse = null;
 
     // Find and handle the last start response.
@@ -716,29 +718,41 @@ public class Leanplum {
         request.setDataBaseIndex(request.getDataBaseIndex() - countOfUnsentRequests);
         return;
       }
-
-      final int responseCount = Request.numResponses(response);
-      for (int i = requests.size() - 1; i >= 0; i--) {
-        Map<String, Object> currentRequest = requests.get(i);
-        if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
-          if (i < responseCount) {
-            lastStartResponse = Request.getResponseAt(response, i);
-          }
-          hasStartResponse = true;
-          break;
-        }
-      }
+      lastStartResponse = parseLastStartResponse(response, requests);
     } catch (Throwable t) {
       Util.handleException(t);
     }
 
-    if (hasStartResponse) {
+    if (lastStartResponse != null) {
       if (!LeanplumInternal.hasStarted()) {
         // Set start response to null.
         request.onApiResponse(null);
         Leanplum.handleStartResponse(lastStartResponse);
       }
     }
+  }
+
+  @VisibleForTesting
+  public static JSONObject parseLastStartResponse(JSONObject response, List<Map<String, Object>> requests) {
+    final int responseCount = Request.numResponses(response);
+    for (int i = requests.size() - 1; i >= 0; i--) {
+      Map<String, Object> currentRequest = requests.get(i);
+      if (Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))) {
+        if (currentRequest.containsKey(Request.REQUEST_ID_KEY)) {
+          for (int j = Request.numResponses(response) - 1; j >= 0; j--) {
+            JSONObject currentResponse = Request.getResponseAt(response, j);
+            if (currentRequest.get(Request.REQUEST_ID_KEY)
+                    .equals(currentResponse.optString(Request.REQUEST_ID_KEY))) {
+              return currentResponse;
+            }
+          }
+        }
+        if (i < responseCount) {
+          return Request.getResponseAt(response, i);
+        }
+      }
+    }
+    return null;
   }
 
   private static void handleStartResponse(final JSONObject response) {
@@ -818,7 +832,10 @@ public class Leanplum {
               Constants.loggingEnabled = true;
             }
 
-            parseSdkCounters(response);
+            Set<String> enabledCounters = parseSdkCounters(response);
+            CountAggregator.INSTANCE.setEnabledCounters(enabledCounters);
+            Set<String> enabledFeatureFlags = parseFeatureFlags(response);
+            FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
@@ -2164,12 +2181,29 @@ public class Leanplum {
     VarCache.clearUserContent();
   }
 
-  private static void parseSdkCounters(JSONObject response) {
+  @VisibleForTesting
+  public static Set<String> parseSdkCounters(JSONObject response) {
     JSONArray enabledCounters = response.optJSONArray(
             Constants.Keys.ENABLED_COUNTERS);
-    if (enabledCounters != null) {
-      HashSet counterSet = new HashSet<>(Arrays.asList(enabledCounters));
-      CountAggregator.INSTANCE.setEnabledCounters(counterSet);
-    }
+    Set<String> counterSet = toSet(enabledCounters);
+    return counterSet;
   }
+
+  @VisibleForTesting
+  public static Set<String> parseFeatureFlags(JSONObject response) {
+    JSONArray enabledFeatureFlags = response.optJSONArray(
+            Constants.Keys.ENABLED_FEATURE_FLAGS);
+    Set<String> featureFlagSet = toSet(enabledFeatureFlags);
+    return featureFlagSet;
+  }
+
+  private static Set<String> toSet(JSONArray array) {
+      Set<String> set = new HashSet<>();
+      if (array != null) {
+        for (int i = 0; i < array.length(); i++) {
+          set.add(array.optString(i));
+        }
+      }
+      return set;
+    }
 }

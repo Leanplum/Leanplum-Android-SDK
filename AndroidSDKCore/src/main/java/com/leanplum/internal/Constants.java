@@ -208,6 +208,7 @@ public class Constants {
     public static final String SYNC_INBOX = "syncNewsfeed";
     public static final String LOGGING_ENABLED = "loggingEnabled";
     public static final String ENABLED_COUNTERS = "enabledSdkCounters";
+    public static final String ENABLED_FEATURE_FLAGS = "enabledFeatureFlags";
     public static final String TIMEZONE = "timezone";
     public static final String TIMEZONE_OFFSET_SECONDS = "timezoneOffsetSeconds";
     public static final String TITLE = "Title";

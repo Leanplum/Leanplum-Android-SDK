@@ -71,6 +71,14 @@ public class RequestTest extends TestCase {
     Leanplum.setApplicationContext(context);
   }
 
+  /** Test that request include a generated request id **/
+  @Test
+  public void testCreateArgsDictionaryShouldIncludeRequestId() {
+      Request request = new Request(POST, Constants.Methods.START, null);
+      Map<String, Object> args = request.createArgsDictionary();
+      assertTrue(args.containsKey(Request.REQUEST_ID_KEY));
+  }
+
   /** Test that read writes happened sequentially when calling sendNow(). */
   @Test
   public void shouldWriteRequestAndSendInSequence() throws InterruptedException {
@@ -346,7 +354,7 @@ public class RequestTest extends TestCase {
   @Test
   public void testGetRequestsWithEncodedStringStoredRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
-    String json = Request.jsonEncodeUnsentRequests(requests);
+    String json = Request.jsonEncodeRequests(requests);
 
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(json, expectedJson);
