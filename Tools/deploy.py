@@ -1,5 +1,10 @@
-import sys
 import os
+
+SDK_VERSION_FILE = "sdk-version.txt"
+
+def get_current_version():
+    with open(SDK_VERSION_FILE, 'r') as f:
+        return f.read()
 
 def deploy(project, destination, version):
     deployAAR(project, destination, version)
@@ -39,7 +44,7 @@ packages = [{
 ]
 
 def main():
-    version = sys.argv[1]
+    version = get_current_version()
     for package in packages:
         deploy(package['project'], package['destination'], version)
   
