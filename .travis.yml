@@ -26,3 +26,8 @@ cache:
   before_install:
     - java -v
     - which docker; echo
+
+script:
+  - ./gradlew build connectedCheck --stacktrace
+  - ./gradlew assembleRelease --stacktrace
+  - ./gradlew generatePomFileForAarPublication --stacktrace
