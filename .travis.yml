@@ -11,5 +11,22 @@ android:
     # The SDK version used to compile your project
     - android-27
 
+  licenses:
+    - '.+'
+
+jdk:
+  - oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.android/build-cache
+
   before_install:
     - java -v
+    - which docker; echo
+
+script:
+  - ./gradlew assembleRelease --stacktrace
+  - ./gradlew generatePomFileForAarPublication --stacktrace

@@ -22,16 +22,23 @@
 package com.leanplum.internal;
 
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import com.leanplum.core.BuildConfig;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 /**
  * Handles logging within the Leanplum SDK.
  *
  * @author Ben Marten
  */
+@RequiresApi(api = Build.VERSION_CODES.KITKAT)
 public class Log {
+
+  private static Logger javaLog = java.util.logging.Logger.getGlobal();
+
   public enum LeanplumLogType {
     /**
      * Always visible to customers. Sent to us when remote logging is enabled.
@@ -114,25 +121,26 @@ public class Log {
     switch (type) {
       case ERROR:
         android.util.Log.e(tag, prefix + message);
-        maybeSendLog(tag + prefix + message);
+        javaLog.severe(tag + prefix + message);
+        javaLog(tag + prefix + message);
         return;
       case WARNING:
         android.util.Log.w(tag, prefix + message);
-        maybeSendLog(tag + prefix + message);
+        javaLog(tag + prefix + message);
         return;
       case INFO:
         android.util.Log.i(tag, prefix + message);
-        maybeSendLog(tag + prefix + message);
+        javaLog(tag + prefix + message);
         return;
       case VERBOSE:
         if (Constants.isDevelopmentModeEnabled
             && Constants.enableVerboseLoggingInDevelopmentMode) {
           android.util.Log.v(tag, prefix + message);
-          maybeSendLog(tag + prefix + message);
+          javaLog(tag + prefix + message);
         }
         return;
       case PRIVATE:
-        maybeSendLog(tag + prefix + message);
+        javaLog(tag + prefix + message);
         return;
       default: // DEBUG
         if (BuildConfig.DEBUG) {
@@ -178,7 +186,7 @@ public class Log {
     return "";
   }
 
-  private static void maybeSendLog(String message) {
+  private static void javaLog(String message) {
     if (!Constants.loggingEnabled || isLogging.get()) {
       return;
     }
