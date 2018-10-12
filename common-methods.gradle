@@ -25,7 +25,7 @@ ext {
 def publishing_task(libraryArtifactId, packageName) {
 
     task makeJar(type: Copy) {
-        from('build/intermediates/bundles/release/')
+        from('build/intermediates/packaged-classes/release/')
         into('build/outputs/jar/')
         include('classes.jar')
         rename('classes.jar', packageName + '-release.jar')
