@@ -588,7 +588,7 @@ public class Request {
   }
 
   private void sendRequests() {
-    CountAggregator.INSTANCE.sendAllCounts();
+    Leanplum.countAggregator().sendAllCounts();
     requestSequenceRecorder.beforeRead();
 
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();

@@ -108,6 +108,8 @@ public class Leanplum {
 
   private static Runnable pushStartCallback;
 
+  private static CountAggregator countAggregator = new CountAggregator();
+
   private Leanplum() {
   }
 
@@ -362,6 +364,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("syncResources");
   }
 
   /**
@@ -377,6 +380,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("syncResources");
   }
 
   /**
@@ -593,6 +597,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("start");
   }
 
   /**
@@ -833,7 +838,7 @@ public class Leanplum {
             }
 
             Set<String> enabledCounters = parseSdkCounters(response);
-            CountAggregator.INSTANCE.setEnabledCounters(enabledCounters);
+            countAggregator.setEnabledCounters(enabledCounters);
             Set<String> enabledFeatureFlags = parseFeatureFlags(response);
             FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
@@ -1184,6 +1189,7 @@ public class Leanplum {
         }
       }
     }
+    countAggregator.incrementCount("onStartResponse");
   }
 
   /**
@@ -2179,6 +2185,7 @@ public class Leanplum {
    */
   public static void clearUserContent() {
     VarCache.clearUserContent();
+    countAggregator.incrementCount("clearUserContent");
   }
 
   @VisibleForTesting
@@ -2198,12 +2205,16 @@ public class Leanplum {
   }
 
   private static Set<String> toSet(JSONArray array) {
-      Set<String> set = new HashSet<>();
-      if (array != null) {
-        for (int i = 0; i < array.length(); i++) {
-          set.add(array.optString(i));
-        }
+    Set<String> set = new HashSet<>();
+    if (array != null) {
+      for (int i = 0; i < array.length(); i++) {
+        set.add(array.optString(i));
       }
-      return set;
     }
+    return set;
+  }
+
+  public static CountAggregator countAggregator() {
+    return countAggregator;
+  }
 }
