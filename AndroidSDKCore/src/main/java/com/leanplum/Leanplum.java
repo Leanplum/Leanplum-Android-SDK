@@ -266,6 +266,7 @@ public class Leanplum {
    */
   public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
     LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
+    countAggregator.incrementCount("setVariantDebugInfoEnabled");
   }
 
   /**
@@ -1596,6 +1597,7 @@ public class Leanplum {
   public static void track(final String event, double value, String info,
       Map<String, ?> params) {
     LeanplumInternal.track(event, value, info, params, null);
+    countAggregator.incrementCount("track");
   }
 
   /**
@@ -1831,6 +1833,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("advanceTo");
   }
 
   /**
@@ -2033,6 +2036,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("forceContentUpdate");
   }
 
   /**

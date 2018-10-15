@@ -399,6 +399,7 @@ public class VarCache {
       Log.e("Could not load variable diffs.\n" + Log.getStackTraceString(e));
     }
     userAttributes();
+    Leanplum.countAggregator().incrementCount("loadDiffs");
   }
 
   public static void saveDiffs() {
@@ -463,6 +464,8 @@ public class VarCache {
     editor.putString(Constants.Keys.LOGGING_ENABLED,
         aesContext.encrypt(String.valueOf(Constants.loggingEnabled)));
     SharedPreferencesUtil.commitChanges(editor);
+
+    Leanplum.countAggregator().incrementCount("sendDiffs");
   }
 
   /**
@@ -609,6 +612,7 @@ public class VarCache {
         eventsUpdateBlock.updateCache();
       }
     }
+    Leanplum.countAggregator().incrementCount("applyVariableDiffs");
   }
 
   static void applyUpdateRuleDiffs(List<Map<String, Object>> updateRuleDiffs) {
@@ -803,14 +807,17 @@ public class VarCache {
 
   public static void onUpdate(CacheUpdateBlock block) {
     updateBlock = block;
+    Leanplum.countAggregator().incrementCount("onUpdate");
   }
 
   public static void onInterfaceUpdate(CacheUpdateBlock block) {
     interfaceUpdateBlock = block;
+    Leanplum.countAggregator().incrementCount("onInterfaceUpdate");
   }
 
   public static void onEventsUpdate(CacheUpdateBlock block) {
     eventsUpdateBlock = block;
+    Leanplum.countAggregator().incrementCount("onEventsUpdate");
   }
 
   public static List<Map<String, Object>> variants() {
@@ -899,6 +906,8 @@ public class VarCache {
     AESCrypt aesContext = new AESCrypt(Request.appId(), Request.token());
     editor.putString(Constants.Defaults.ATTRIBUTES_KEY, aesContext.encrypt(plaintext));
     SharedPreferencesUtil.commitChanges(editor);
+
+    Leanplum.countAggregator().incrementCount("saveUserAttributes");
   }
 
   public static void clearUserContent() {

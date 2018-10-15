@@ -317,6 +317,7 @@ public class LeanplumPushService {
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
         || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE))) {
       // Mute notifications that have "Mute inside app" set if the app is open.
+      Leanplum.countAggregator().incrementCount("handleNotification");
       return;
     }
 
@@ -476,6 +477,7 @@ public class LeanplumPushService {
       Log.e("Unable to show push notification.", t);
       Util.handleException(t);
     }
+    Leanplum.countAggregator().incrementCount("showWithTitle");
   }
 
   static void openNotification(Context context, Intent intent) {

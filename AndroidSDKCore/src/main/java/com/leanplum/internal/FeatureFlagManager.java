@@ -2,6 +2,8 @@ package com.leanplum.internal;
 
 import android.support.annotation.VisibleForTesting;
 
+import com.leanplum.Leanplum;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,6 +22,7 @@ public class FeatureFlagManager {
     }
 
     public Boolean isFeatureFlagEnabled(String featureFlagName) {
+        Leanplum.countAggregator().incrementCount("isFeatureFlagEnabled");
         return this.enabledFeatureFlags.contains(featureFlagName);
     }
 }
