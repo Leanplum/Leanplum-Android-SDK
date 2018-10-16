@@ -1,4 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+set -o xtrace
+set -o pipefail
+set -o errexit
 
 ##############################################################################
 ##
