@@ -83,7 +83,8 @@ public class LeanplumActivityHelper {
   /**
    * Retrieves the currently active activity.
    */
-  public static Activity getCurrentActivity() { return currentActivity;
+  public static Activity getCurrentActivity() {
+    return currentActivity;
   }
 
   /**

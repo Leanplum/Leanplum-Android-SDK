@@ -403,6 +403,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("syncResourcePaths");
   }
 
   /**
@@ -424,6 +425,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("syncResourcePaths");
   }
 
   /**
@@ -766,6 +768,7 @@ public class Leanplum {
       @Override
       protected Void doInBackground(Void... params) {
         boolean success = Request.isResponseSuccess(response);
+        Leanplum.countAggregator().incrementCount("onStartResponse");
         if (!success) {
           try {
             LeanplumInternal.setHasStarted(true);
@@ -1190,7 +1193,6 @@ public class Leanplum {
         }
       }
     }
-    countAggregator.incrementCount("onStartResponse");
   }
 
   /**
@@ -1403,6 +1405,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    Leanplum.countAggregator().incrementCount("defineAction");
   }
 
   /**
