@@ -28,4 +28,4 @@ cache:
     - which docker; echo
 
 script:
-  - ./gradlew assembleRelease testReleaseUnitTest generatePomFileForAarPublication
+  - make gradlewTravis

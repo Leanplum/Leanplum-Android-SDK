@@ -28,3 +28,9 @@ build-image:
 	docker push ${SDK_BUILD_IMAGE}
 
 .PHONY: build
+
+gradlewTravis:
+	./gradlew ${GRADLE_COMMAND}
+
+gradleTravis:
+	gradle ${GRADLE_COMMAND}
