@@ -29,6 +29,7 @@ build-image:
 
 .PHONY: build
 
+GRADLE_COMMAND:=assembleDebug testDebugUnitTest assembleRelease generatePomFileForAarPublication
 gradlewTravis:
 	./gradlew ${GRADLE_COMMAND}
 
