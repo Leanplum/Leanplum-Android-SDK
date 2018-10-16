@@ -28,3 +28,10 @@ build-image:
 	docker push ${SDK_BUILD_IMAGE}
 
 .PHONY: build
+
+GRADLE_COMMAND:=assembleDebug testDebugUnitTest assembleRelease generatePomFileForAarPublication
+gradlewTravis:
+	./gradlew ${GRADLE_COMMAND}
+
+gradleTravis:
+	gradle ${GRADLE_COMMAND}

@@ -1,7 +1,6 @@
 <manifest package="com.leanplum.push"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-sdk android:minSdkVersion="14"/>
     <application>
         <!-- Leanplum GCM/FCM Registration Service. -->
         <service android:name="com.leanplum.LeanplumPushRegistrationService"/>
