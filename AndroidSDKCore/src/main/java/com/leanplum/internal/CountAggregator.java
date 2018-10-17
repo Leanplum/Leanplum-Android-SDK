@@ -9,15 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class CountAggregator {
-    public static final CountAggregator INSTANCE = new CountAggregator();
-
     private Set<String> enabledCounters = new HashSet<>();
     private final Map<String, Integer> counts = new HashMap<>();
-
-    @VisibleForTesting
-    CountAggregator() {
-        super();
-    }
 
     public void setEnabledCounters(Set<String> enabledCounters) {
         this.enabledCounters = enabledCounters;

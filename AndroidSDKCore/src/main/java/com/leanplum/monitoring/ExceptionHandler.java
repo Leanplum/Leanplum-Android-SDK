@@ -2,6 +2,7 @@ package com.leanplum.monitoring;
 
 import android.content.Context;
 
+import com.leanplum.Leanplum;
 import com.leanplum.internal.Log;
 
 public class ExceptionHandler {
@@ -43,6 +44,8 @@ public class ExceptionHandler {
       } catch (Throwable t) {
         Log.e("LeanplumExceptionHandler", t);
       }
+      Leanplum.countAggregator().incrementCount("reportException");
     }
+
   }
 }

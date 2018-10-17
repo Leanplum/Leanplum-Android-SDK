@@ -111,6 +111,7 @@ public class Socket {
           connected = true;
           connecting = false;
         }
+        Leanplum.countAggregator().incrementCount("connectToAppId");
       }
 
       @Override
@@ -202,6 +203,7 @@ public class Socket {
     } catch (JSONException e) {
       Log.e("Failed to create JSON data object: " + e.getMessage());
     }
+    Leanplum.countAggregator().incrementCount("sendEvent");
   }
 
   /**

@@ -334,6 +334,8 @@ public class LeanplumPushService {
     // Leanplum.track("Displayed", 0.0, null, null, requestArgs);
 
     showNotification(context, message);
+
+    Leanplum.countAggregator().incrementCount("handleNotification");
   }
 
   /**
@@ -476,6 +478,7 @@ public class LeanplumPushService {
       Log.e("Unable to show push notification.", t);
       Util.handleException(t);
     }
+    Leanplum.countAggregator().incrementCount("showWithTitle");
   }
 
   static void openNotification(Context context, Intent intent) {

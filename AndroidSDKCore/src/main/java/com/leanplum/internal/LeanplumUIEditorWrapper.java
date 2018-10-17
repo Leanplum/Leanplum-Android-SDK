@@ -23,6 +23,7 @@ package com.leanplum.internal;
 
 import android.app.Activity;
 
+import com.leanplum.Leanplum;
 import com.leanplum.LeanplumEditorMode;
 import com.leanplum.LeanplumUIEditor;
 
@@ -63,7 +64,6 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
           interfaceEditorSingleton = (LeanplumUIEditor) method.invoke(null);
           if (interfaceEditorSingleton != null) {
             interfaceEditorSingleton.allowInterfaceEditing(Constants.isDevelopmentModeEnabled);
-            CountAggregator.INSTANCE.incrementCount("sdkCountUiEditor");
           }
         } catch (IllegalAccessException e) {
           Util.handleException(e);
@@ -109,6 +109,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     if (interfaceEditorSingleton != null) {
       interfaceEditorSingleton.startUpdating();
     }
+    Leanplum.countAggregator().incrementCount("startUpdating");
   }
 
   /**
@@ -126,6 +127,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     if (interfaceEditorSingleton != null) {
       interfaceEditorSingleton.sendUpdate();
     }
+    Leanplum.countAggregator().incrementCount("sendUpdate");
   }
 
   @Override
