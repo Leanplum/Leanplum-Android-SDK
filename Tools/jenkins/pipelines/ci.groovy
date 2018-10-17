@@ -24,4 +24,9 @@ def buildAndTest() {
     buildImage.inside {
         sh 'make sdk'
     }
+    archiveArtifacts {
+        pattern('build/**/*.aar')
+        pattern('build/**/*.pom')
+        onlyIfSuccessful()
+    }
 }
