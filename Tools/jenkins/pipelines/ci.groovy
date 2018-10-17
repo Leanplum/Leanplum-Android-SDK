@@ -10,6 +10,14 @@ pipeline {
                 timestamps {
                     ansiColor('xterm') {
                         buildAndTest()
+                    }
+                }
+            }
+        }
+        stage('Archive artifacts') {
+            steps {
+                timestamps {
+                    ansiColor('xterm') {
                         archiveFiles()
                     }
                 }
@@ -28,8 +36,7 @@ def buildAndTest() {
 }
 
 def archiveFiles() {
-    publishers {
-        archiveArtifacts('build/**/*.aar')
-        archiveArtifacts('build/**/*.pom')
-    }
+    archiveArtifacts('build/**/*.aar')
+    archiveArtifacts('build/**/*.pom')
+    archiveArtifacts artifacts: 'build/**/*.aar'
 }
