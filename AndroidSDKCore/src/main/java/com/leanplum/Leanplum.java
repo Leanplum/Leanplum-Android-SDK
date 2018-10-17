@@ -30,6 +30,7 @@ import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
@@ -93,6 +94,8 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
+  private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
+          new ArrayList<>();
   private static final Object heartbeatLock = new Object();
   private static final String LEANPLUM_NOTIFICATION_CHANNEL =
       "com.leanplum.LeanplumNotificationChannel";
@@ -1284,6 +1287,47 @@ public class Leanplum {
 
     synchronized (noDownloadsHandlers) {
       noDownloadsHandlers.remove(handler);
+    }
+  }
+
+  /**
+   * Add a callback for when a message is displayed.
+   */
+  public static void addMessageDisplayedHandler(
+          MessageDisplayedCallback handler) {
+    if (handler == null) {
+      Log.e("addMessageDisplayedHandler - Invalid handler parameter " +
+              "provided.");
+      return;
+    }
+
+    synchronized (messageDisplayedHandlers) {
+      messageDisplayedHandlers.add(handler);
+    }
+  }
+
+  /**
+   * Removes a variables changed and no downloads pending callback.
+   */
+  public static void removeMessageDisplayedHandler(
+          MessageDisplayedCallback handler) {
+    if (handler == null) {
+      Log.e("removeMessageDisplayedHandler - Invalid handler parameter " +
+              "provided.");
+      return;
+    }
+
+    synchronized (messageDisplayedHandlers) {
+      messageDisplayedHandlers.remove(handler);
+    }
+  }
+
+  public static void triggerMessageDisplayed(ActionContext actionContext) {
+    synchronized (messageDisplayedHandlers) {
+      for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
+        callback.setActionContext(actionContext);
+        OsHandler.getInstance().post(callback);
+      }
     }
   }
 
