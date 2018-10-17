@@ -10,6 +10,7 @@ pipeline {
                 timestamps {
                     ansiColor('xterm') {
                         buildAndTest()
+                        archiveFiles()
                     }
                 }
             }
@@ -24,9 +25,11 @@ def buildAndTest() {
     buildImage.inside {
         sh 'make sdk'
     }
-    archiveArtifacts {
-        pattern('build/**/*.aar')
-        pattern('build/**/*.pom')
-        onlyIfSuccessful()
+}
+
+def archiveFiles() {
+    publishers {
+        archiveArtifacts('build/**/*.aar')
+        archiveArtifacts('build/**/*.pom')
     }
 }
