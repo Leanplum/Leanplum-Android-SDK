@@ -22,7 +22,7 @@ public class FeatureFlagManager {
     }
 
     public Boolean isFeatureFlagEnabled(String featureFlagName) {
-        Leanplum.countAggregator().incrementCount("isFeatureFlagEnabled");
+        Leanplum.countAggregator().incrementCount("is_feature_flag_enabled");
         return this.enabledFeatureFlags.contains(featureFlagName);
     }
 }

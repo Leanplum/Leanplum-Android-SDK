@@ -399,7 +399,7 @@ public class VarCache {
       Log.e("Could not load variable diffs.\n" + Log.getStackTraceString(e));
     }
     userAttributes();
-    Leanplum.countAggregator().incrementCount("loadDiffs");
+    Leanplum.countAggregator().incrementCount("load_diffs");
   }
 
   public static void saveDiffs() {
@@ -465,7 +465,7 @@ public class VarCache {
         aesContext.encrypt(String.valueOf(Constants.loggingEnabled)));
     SharedPreferencesUtil.commitChanges(editor);
 
-    Leanplum.countAggregator().incrementCount("sendDiffs");
+    Leanplum.countAggregator().incrementCount("send_diffs");
   }
 
   /**
@@ -612,7 +612,7 @@ public class VarCache {
         eventsUpdateBlock.updateCache();
       }
     }
-    Leanplum.countAggregator().incrementCount("applyVariableDiffs");
+    Leanplum.countAggregator().incrementCount("apply_variable_diffs");
   }
 
   static void applyUpdateRuleDiffs(List<Map<String, Object>> updateRuleDiffs) {
@@ -807,17 +807,17 @@ public class VarCache {
 
   public static void onUpdate(CacheUpdateBlock block) {
     updateBlock = block;
-    Leanplum.countAggregator().incrementCount("onUpdate");
+    Leanplum.countAggregator().incrementCount("on_update_varcache");
   }
 
   public static void onInterfaceUpdate(CacheUpdateBlock block) {
     interfaceUpdateBlock = block;
-    Leanplum.countAggregator().incrementCount("onInterfaceUpdate");
+    Leanplum.countAggregator().incrementCount("on_interface_update");
   }
 
   public static void onEventsUpdate(CacheUpdateBlock block) {
     eventsUpdateBlock = block;
-    Leanplum.countAggregator().incrementCount("onEventsUpdate");
+    Leanplum.countAggregator().incrementCount("on_events_update");
   }
 
   public static List<Map<String, Object>> variants() {
@@ -907,7 +907,7 @@ public class VarCache {
     editor.putString(Constants.Defaults.ATTRIBUTES_KEY, aesContext.encrypt(plaintext));
     SharedPreferencesUtil.commitChanges(editor);
 
-    Leanplum.countAggregator().incrementCount("saveUserAttributes");
+    Leanplum.countAggregator().incrementCount("save_user_attributes");
   }
 
   public static void clearUserContent() {
