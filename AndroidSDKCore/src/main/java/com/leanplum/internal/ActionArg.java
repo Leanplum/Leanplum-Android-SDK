@@ -47,7 +47,7 @@ public class ActionArg<T> {
     arg.name = name;
     arg.kind = kind;
     arg.defaultValue = defaultValue;
-    Leanplum.countAggregator().incrementCount("argNamed");
+    Leanplum.countAggregator().incrementCount("arg_named");
     return arg;
   }
 

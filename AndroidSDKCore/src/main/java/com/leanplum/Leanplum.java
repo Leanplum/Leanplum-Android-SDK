@@ -266,7 +266,7 @@ public class Leanplum {
    */
   public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
     LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
-    countAggregator.incrementCount("setVariantDebugInfoEnabled");
+    countAggregator.incrementCount("set_variant_debug_info_enabled");
   }
 
   /**
@@ -365,7 +365,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("syncResources");
+    countAggregator.incrementCount("sync_resources");
   }
 
   /**
@@ -381,7 +381,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("syncResources");
+    countAggregator.incrementCount("sync_resources");
   }
 
   /**
@@ -403,7 +403,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("syncResourcePaths");
+    countAggregator.incrementCount("sync_resource_paths");
   }
 
   /**
@@ -425,7 +425,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("syncResourcePaths");
+    countAggregator.incrementCount("sync_resource_paths");
   }
 
   /**
@@ -600,7 +600,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("start");
+    countAggregator.incrementCount("start_with_user_id");
   }
 
   /**
@@ -768,7 +768,7 @@ public class Leanplum {
       @Override
       protected Void doInBackground(Void... params) {
         boolean success = Request.isResponseSuccess(response);
-        Leanplum.countAggregator().incrementCount("onStartResponse");
+        Leanplum.countAggregator().incrementCount("on_start_response");
         if (!success) {
           try {
             LeanplumInternal.setHasStarted(true);
@@ -1405,7 +1405,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    Leanplum.countAggregator().incrementCount("defineAction");
+    Leanplum.countAggregator().incrementCount("define_action");
   }
 
   /**
@@ -1836,7 +1836,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("advanceTo");
+    countAggregator.incrementCount("advance_to");
   }
 
   /**
@@ -2039,7 +2039,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    countAggregator.incrementCount("forceContentUpdate");
+    countAggregator.incrementCount("force_content_update");
   }
 
   /**
@@ -2192,7 +2192,7 @@ public class Leanplum {
    */
   public static void clearUserContent() {
     VarCache.clearUserContent();
-    countAggregator.incrementCount("clearUserContent");
+    countAggregator.incrementCount("clear_user_content");
   }
 
   @VisibleForTesting

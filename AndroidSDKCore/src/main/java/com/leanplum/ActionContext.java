@@ -369,7 +369,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
         createActionContextForMessageId(messageAction.toString(), args, messageId, name, false);
       }
     }
-    Leanplum.countAggregator().incrementCount("runActionNamed");
+    Leanplum.countAggregator().incrementCount("run_action_named");
   }
 
   /**
@@ -527,7 +527,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     } catch (Throwable t) {
       Util.handleException(t);
     }
-    Leanplum.countAggregator().incrementCount("runTrackedActionNamed");
+    Leanplum.countAggregator().incrementCount("run_tracked_action_named");
   }
 
   /**

@@ -99,7 +99,7 @@ public class LeanplumEventDataManager {
       handleSQLiteError("Unable to insert event to database.", t);
     }
     contentValues.clear();
-    Leanplum.countAggregator().incrementCount("addEvent");
+    Leanplum.countAggregator().incrementCount("add_event");
   }
 
   /**
@@ -130,7 +130,7 @@ public class LeanplumEventDataManager {
         cursor.close();
       }
     }
-    Leanplum.countAggregator().incrementCount("eventsWithLimit");
+    Leanplum.countAggregator().incrementCount("events_with_limit");
     return events;
   }
 
@@ -150,7 +150,7 @@ public class LeanplumEventDataManager {
     } catch (Throwable t) {
       handleSQLiteError("Unable to delete events from the table.", t);
     }
-    Leanplum.countAggregator().incrementCount("deleteEventsWithLimit");
+    Leanplum.countAggregator().incrementCount("delete_events_with_limit");
   }
 
   /**

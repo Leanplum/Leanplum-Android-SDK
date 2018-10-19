@@ -73,6 +73,6 @@ public class Registration {
       }
     });
     request.sendIfConnected();
-    Leanplum.countAggregator().incrementCount("registerDevice");
+    Leanplum.countAggregator().incrementCount("register_device");
   }
 }

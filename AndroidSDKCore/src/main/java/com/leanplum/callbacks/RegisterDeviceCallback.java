@@ -47,7 +47,7 @@ public abstract class RegisterDeviceCallback implements Runnable {
 
   public void setResponseHandler(EmailCallback callback) {
     this.callback = callback;
-    Leanplum.countAggregator().incrementCount("initWithCallback");
+    Leanplum.countAggregator().incrementCount("init_with_callback");
   }
 
   public void run() { this.onResponse(callback);

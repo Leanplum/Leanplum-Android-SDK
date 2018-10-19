@@ -109,7 +109,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     if (interfaceEditorSingleton != null) {
       interfaceEditorSingleton.startUpdating();
     }
-    Leanplum.countAggregator().incrementCount("startUpdating");
+    Leanplum.countAggregator().incrementCount("start_updating_ui");
   }
 
   /**
@@ -127,7 +127,7 @@ public class LeanplumUIEditorWrapper implements LeanplumUIEditor {
     if (interfaceEditorSingleton != null) {
       interfaceEditorSingleton.sendUpdate();
     }
-    Leanplum.countAggregator().incrementCount("sendUpdate");
+    Leanplum.countAggregator().incrementCount("send_update_ui");
   }
 
   @Override
