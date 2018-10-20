@@ -94,7 +94,6 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
-  @VisibleForTesting
   private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
           new ArrayList<>();
   private static final Object heartbeatLock = new Object();

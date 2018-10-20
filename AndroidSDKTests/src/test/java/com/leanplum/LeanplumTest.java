@@ -32,6 +32,7 @@ import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.VariablesTestClass;
 import com.leanplum.annotations.Parser;
+import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.CollectionUtil;
@@ -80,6 +81,7 @@ import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -1455,4 +1457,21 @@ public class LeanplumTest extends AbstractTest {
     }
     return responsesList;
   }
+
+  /**
+   * Test trigger message displayed calls callback
+   */
+  @Test
+  public void testTriggerMessageDisplayed() {
+    final ActionContext testActionContext = new ActionContext("test", null, "test");
+
+    MessageDisplayedCallback callback = Mockito.mock(MessageDisplayedCallback.class);
+
+    Leanplum.addMessageDisplayedHandler(callback);
+    Leanplum.triggerMessageDisplayed(testActionContext);
+
+    Mockito.verify(callback).setActionContext(testActionContext);
+    Mockito.verify(callback).run();
+  }
+
 }
