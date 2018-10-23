@@ -130,6 +130,7 @@ public class FileManager {
         }
       }
     }
+    Leanplum.countAggregator().incrementCount("maybe_download_file");
     return DownloadFileResult.NONE;
   }
 

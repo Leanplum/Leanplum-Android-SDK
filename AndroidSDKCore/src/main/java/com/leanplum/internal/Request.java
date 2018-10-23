@@ -115,6 +115,7 @@ public class Request {
     if (!TextUtils.isEmpty(accessKey)) {
       Request.accessKey = accessKey.trim();
     }
+    Leanplum.countAggregator().incrementCount("set_app_id");
   }
 
   public static void setDeviceId(String deviceId) {
@@ -127,6 +128,7 @@ public class Request {
 
   public static void setToken(String token) {
     Request.token = token;
+    Leanplum.countAggregator().incrementCount("set_token");
   }
 
   public static String token() {
@@ -158,6 +160,7 @@ public class Request {
       return;
     }
     setToken(token);
+    Leanplum.countAggregator().incrementCount("load_token");
   }
 
   public static void saveToken() {
@@ -226,6 +229,7 @@ public class Request {
     Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
+    Leanplum.countAggregator().incrementCount("get_request");
     return RequestFactory.getInstance().createRequest("GET", apiMethod, params);
   }
 
@@ -233,15 +237,18 @@ public class Request {
     Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
+    Leanplum.countAggregator().incrementCount("post_request");
     return RequestFactory.getInstance().createRequest("POST", apiMethod, params);
   }
 
   public void onResponse(ResponseCallback response) {
     this.response = response;
+    Leanplum.countAggregator().incrementCount("on_response");
   }
 
   public void onError(ErrorCallback error) {
     this.error = error;
+    Leanplum.countAggregator().incrementCount("on_error");
   }
 
   public void onApiResponse(ApiResponseCallback apiResponse) {
@@ -320,6 +327,7 @@ public class Request {
         }
       }, delayMs);
     }
+    Leanplum.countAggregator().incrementCount("send_request");
   }
 
   /**
@@ -338,6 +346,7 @@ public class Request {
         }
       }
     }, 1000);
+    Leanplum.countAggregator().incrementCount("send_if_delayed");
   }
 
   /**
@@ -362,6 +371,7 @@ public class Request {
       Log.i("Device is offline, will send later");
       triggerErrorCallback(new Exception("Not connected to the Internet"));
     }
+    Leanplum.countAggregator().incrementCount("send_if_connected");
   }
 
   private void triggerErrorCallback(Exception e) {
@@ -499,6 +509,8 @@ public class Request {
 
     this.sendEventually();
 
+    Leanplum.countAggregator().incrementCount("send_now");
+
     Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
@@ -588,7 +600,7 @@ public class Request {
   }
 
   private void sendRequests() {
-    CountAggregator.INSTANCE.sendAllCounts();
+    Leanplum.countAggregator().sendAllCounts();
     requestSequenceRecorder.beforeRead();
 
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
@@ -689,6 +701,7 @@ public class Request {
       Map<String, Object> args = createArgsDictionary();
       saveRequestForLater(args);
     }
+    Leanplum.countAggregator().incrementCount("send_eventually");
   }
 
   static void deleteSentRequests(int requestsCount) {
@@ -834,6 +847,8 @@ public class Request {
       return;
     }
 
+    Leanplum.countAggregator().incrementCount("send_files_now");
+
     printUploadProgress();
 
     // Now upload the files
@@ -920,6 +935,8 @@ public class Request {
     if (!attachApiKeys(dict)) {
       return;
     }
+
+    Leanplum.countAggregator().incrementCount("download_file");
 
     Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
       @Override
@@ -1026,6 +1043,7 @@ public class Request {
   }
 
   public static JSONObject getResponseAt(JSONObject response, int index) {
+    Leanplum.countAggregator().incrementCount("get_response_at");
     try {
       return response.getJSONArray("response").getJSONObject(index);
     } catch (JSONException e) {
@@ -1036,6 +1054,7 @@ public class Request {
 
   public static JSONObject getLastResponse(JSONObject response) {
     int numResponses = numResponses(response);
+    Leanplum.countAggregator().incrementCount("get_last_response");
     if (numResponses > 0) {
       return getResponseAt(response, numResponses - 1);
     } else {
@@ -1044,6 +1063,7 @@ public class Request {
   }
 
   public static boolean isResponseSuccess(JSONObject response) {
+    Leanplum.countAggregator().incrementCount("is_response_success");
     if (response == null) {
       return false;
     }
@@ -1056,6 +1076,7 @@ public class Request {
   }
 
   public static String getResponseError(JSONObject response) {
+    Leanplum.countAggregator().incrementCount("get_response_error");
     if (response == null) {
       return null;
     }
