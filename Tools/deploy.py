@@ -1,73 +1,103 @@
+#!/usr/bin/env python2.7
+
 import os
 
 SDK_VERSION_FILE = "sdk-version.txt"
 
+
 def get_current_version():
     with open(SDK_VERSION_FILE, 'r') as f:
-        return f.read()
+        return f.read().strip()
 
-def deploy(project, package, version):
-    deployAAR(project, package, version)
-    deployPOM(project, package, version)
+VERSION = get_current_version()
 
-def deployAAR(project, package, version):
-    localAARPath = project + "/build/outputs/aar/" + project + "-release.aar"
-    
-    remoteAARPath = "libs-release-local/" + remotePath(package, version, "aar")
-    artifactoryDeploy(localAARPath, remoteAARPath)
-    
-    remoteBintrayPath = "https://api.bintray.com/content/leanplum/maven/" + package + "/" + remotePath(package, version, "aar")
-    bintrayDeploy(localAARPath, remoteBintrayPath)
 
-def deployPOM(project, package, version):
-    localAARPath = project + "/build/publications/aar/pom-default.xml"
+class Artifact:
 
-    remoteAARPath = "libs-release-local/" + remotePath(package, version, "pom")
-    artifactoryDeploy(localAARPath, remoteAARPath)
-    
-    remoteBintrayPath = "https://api.bintray.com/content/leanplum/maven/" + package + "/" + remotePath(package, version, "pom")
-    bintrayDeploy(localAARPath, remoteBintrayPath)
+    def __init__(self, path, extension):
+        self.path = path
+        self.extension = extension
 
-def remotePath(package, version, extension):
-    path = "com/leanplum/" + package + "/" + version + "/" + remoteFilename(package, version, extension)
-    return path
 
-def remoteFilename(package, version, extension):
-    return package + "-" + version + "." + extension
+class Package:
+
+    def __init__(self, project, package):
+        self.project = project
+        self.package = package
+        self.artifacts = [
+            Artifact(
+                "/build/intermediates/packaged-classes/release/classes.jar", "jar"),
+            Artifact(
+                "/build/publications/aar/pom-default.xml", "pom"),
+            Artifact("/build/outputs/aar/" +
+                     project + "-release.aar", "aar"),
+        ]
+
+    def validate(self):
+        paths = [artifact.path for artifact in self.artifacts]
+        valid = True
+        for path in paths:
+            file = self.project + path
+            if not os.path.isfile(file):
+                valid = False
+                print "Critical artifact missing: " + file
+
+        if not valid:
+            system.exit(1)
+
+    def deploy(self):
+        self.validate()
+        # deployAar(project, package, version)
+        # deployPom(project, package, version)
+        for artifact in self.artifacts:
+            self.deployArtifact(artifact.path, artifact.extension)
+
+    def deployArtifact(self, localPath, extension):
+        location = self.project + localPath
+        remotePathBase = self.remotePath(extension)
+        artifactoryPath = "libs-release-local/" + remotePathBase
+        bintrayPath = "https://api.bintray.com/content/leanplum/maven/" + \
+            self.package + "/" + remotePathBase
+        deployArtifacts(location, artifactoryPath, bintrayPath)
+
+    def remotePath(self, extension):
+        path = "com/leanplum/" + self.package + "/" + VERSION + \
+            "/" + self.remoteFilename(extension)
+        return path
+
+    def remoteFilename(self, extension):
+        return self.package + "-" + VERSION + "." + extension
+
+
+def deployArtifacts(localPath, artifactoryPath, bintrayPath):
+    artifactoryDeploy(localPath, artifactoryPath)
+    bintrayDeploy(localPath, bintrayPath)
+
 
 def artifactoryDeploy(source, destination):
     command = "jfrog rt u " + source + " " + destination
-    # print command
+    print command
     os.system(command)
+
 
 def bintrayDeploy(source, destination):
     command = "curl -T " + source + " -ue7mac:" + "API_KEY " + destination
     # print command
     # os.system(command)
-    
 
-packages = [{
-        "project": "AndroidSDKCore",
-        "package": "leanplum-core"
-    }, {
-        "project": "AndroidSDKPush",
-        "package": "leanplum-push"
-    }, {
-        "project": "AndroidSDKGcm",
-        "package": "leanplum-gcm"
-    }, {
-        "project": "AndroidSDKFcm",
-        "package": "leanplum-fcm"
-    }, {
-        "project": "AndroidSDKLocation",
-        "package": "leanplum-location"
-    }
+
+packages = [
+    Package("AndroidSDKCore", "leanplum-core"),
+    Package("AndroidSDKPush", "leanplum-push"),
+    Package("AndroidSDKGcm", "leanplum-gcm"),
+    Package("AndroidSDKFcm", "leanplum-fcm"),
+    Package("AndroidSDKLocation", "leanplum-location"),
 ]
 
+
 def main():
-    version = get_current_version()
     for package in packages:
-        deploy(package['project'], package['package'], version)
-  
-if __name__== "__main__":
-  main()
+        package.deploy()
+
+if __name__ == "__main__":
+    main()

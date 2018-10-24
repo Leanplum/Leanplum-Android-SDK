@@ -48,4 +48,4 @@ releaseArtifacts:
 	${DOCKER_RUN} gradle generatePomFileForAarPublication
 
 deploy:
-	python Tools/deploy.py
+	./Tools/deploy.py
