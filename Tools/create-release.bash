@@ -19,4 +19,5 @@ git checkout -b ${RELEASE_BRANCH}
 
 git add sdk-version.txt
 git commit -m "Create ${TYPE} release ${release_version}"
-git push --set-upstream origin ${RELEASE_BRANCH}
+
+echo "Branch created but not pushed."

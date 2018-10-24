@@ -29,23 +29,16 @@ build-image:
 	docker build -t ${SDK_BUILD_IMAGE} . -f Tools/jenkins/build.dockerfile
 	docker push ${SDK_BUILD_IMAGE}
 
-# Step 1 from montly release
 patchReleaseBranch:
 	./Tools/create-release.bash patch
 
-# Hiddent step 2 - jenkins
-buildNtest:
-	Tools/configure.sh --app-id=app_BWTRIgOs0OoevDfSsBtabRiGffu5wOFU3mkxIxA7NBs \
-	--prod-key=prod_A1c7DfHO6XTo2BRwzhkkXKFJ6oaPtoMnRA9xpPSlx74 \
-	--dev-key=dev_Bx8i3Bbz1OJBTBAu63NIifr3UwWqUBU5OhHtywo58RY
-	${DOCKER_RUN} gradle clean assembleDebug testDebugUnitTest
+releaseArtifacts: releaseBinaries releasePoms
 
-clean:
-	${DOCKER_RUN} gradle clean
+releaseBinaries:
+	${DOCKER_RUN} gradle assembleRelease --debug
 
-releaseArtifacts:
-	${DOCKER_RUN} gradle assembleRelease
-	${DOCKER_RUN} gradle generatePomFileForAarPublication
+releasePoms:
+	${DOCKER_RUN} gradle generatePomFileForAarPublication --debug
 
 deploy:
 	./Tools/deploy.py
