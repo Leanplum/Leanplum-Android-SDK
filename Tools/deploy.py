@@ -37,10 +37,10 @@ class Package:
         paths = [artifact.path for artifact in self.artifacts]
         valid = True
         for path in paths:
-            file = self.project + path
-            if not os.path.isfile(file):
+            filePath = self.project + path
+            if not os.path.isfile(filePath):
                 valid = False
-                print "Critical artifact missing: " + file
+                print "Critical artifact missing: " + filePath
 
         if not valid:
             system.exit(1)
