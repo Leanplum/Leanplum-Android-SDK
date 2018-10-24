@@ -36,6 +36,7 @@ def buildAndTest() {
 }
 
 def archiveFiles() {
-    archiveArtifacts('**/*.aar')
-    archiveArtifacts('**/*.pom')
+    archiveArtifacts('*/build/**/*.aar')
+    archiveArtifacts('*/build/**/*.jar')
+    archiveArtifacts('*/build/**/*.pom')
 }
