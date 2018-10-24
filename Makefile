@@ -16,7 +16,7 @@ clean-local-properties:
 
 GRADLE_COMMANDS:=assembleRelease testReleaseUnitTest generatePomFileForAarPublication
 sdk: clean-local-properties
-	gradle clean ${GRADLE_COMMANDS} --info
+	gradle clean ${GRADLE_COMMANDS} --debug
 
 sdk-in-container:
 	${DOCKER_RUN} make sdk
