@@ -47,8 +47,7 @@ class Package:
 
     def deploy(self):
         self.validate()
-        # deployAar(project, package, version)
-        # deployPom(project, package, version)
+
         for artifact in self.artifacts:
             self.deployArtifact(artifact.path, artifact.extension)
 
@@ -76,7 +75,7 @@ def deployArtifacts(localPath, artifactoryPath, bintrayPath):
 
 def artifactoryDeploy(source, destination):
     command = "jfrog rt u " + source + " " + destination
-    print command
+    # print command
     os.system(command)
 
 
