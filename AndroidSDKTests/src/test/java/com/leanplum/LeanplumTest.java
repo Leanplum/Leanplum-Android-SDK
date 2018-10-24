@@ -1285,10 +1285,10 @@ public class LeanplumTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
     // check that incrementing counters work
-    CountAggregator.INSTANCE.incrementCount("testCounter1");
-    assertEquals(1, CountAggregator.INSTANCE.getCounts().get("testCounter1").intValue());
-    CountAggregator.INSTANCE.incrementCount("testCounter2");
-    assertEquals(1, CountAggregator.INSTANCE.getCounts().get("testCounter2").intValue());
+    Leanplum.countAggregator().incrementCount("testCounter1");
+    assertEquals(1, Leanplum.countAggregator().getCounts().get("testCounter1").intValue());
+    Leanplum.countAggregator().incrementCount("testCounter2");
+    assertEquals(1, Leanplum.countAggregator().getCounts().get("testCounter2").intValue());
   }
 
   @Test

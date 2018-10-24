@@ -435,6 +435,7 @@ public class LeanplumInbox {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    Leanplum.countAggregator().incrementCount("all_messages_inbox");
     return messages;
   }
 
