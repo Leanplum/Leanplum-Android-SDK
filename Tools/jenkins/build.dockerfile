@@ -3,7 +3,6 @@ FROM jangrewe/gitlab-ci-android
 ################################ Tools Installation ################################
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
-  nodejs=6.11.4~dfsg-1ubuntu1 \
   build-essential \
   && rm -rf /var/lib/apt/lists/*
 
