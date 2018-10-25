@@ -8,7 +8,8 @@ RUN apt-get update && \
 
 ################################ Gradle Installation ################################
 # Allow the host to use gradle cache, otherwise gradle will always download plugins & artifacts.
-VOLUME ["/root/.gradle/caches/"]
+VOLUME ["/root/.gradle/"]
+VOLUME ["/root/.android/"]
 
 ARG GRADLE_VERSION=4.10
 ARG GRADLE_ZIP=gradle-${GRADLE_VERSION}-bin.zip

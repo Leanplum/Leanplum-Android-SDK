@@ -14,8 +14,9 @@ DOCKER_RUN:=docker run \
 clean-local-properties:
 	rm -f local.properties
 
+GRADLE_COMMANDS:=assembleRelease testReleaseUnitTest generatePomFileForAarPublication
 sdk: clean-local-properties
-	gradle clean assembleDebug testDebugUnitTest --info
+	gradle clean ${GRADLE_COMMANDS} --debug
 
 sdk-in-container:
 	${DOCKER_RUN} make sdk
@@ -25,6 +26,5 @@ shell:
 
 build-image:
 	docker build -t ${SDK_BUILD_IMAGE} . -f Tools/jenkins/build.dockerfile
-	docker push ${SDK_BUILD_IMAGE}
 
 .PHONY: build
