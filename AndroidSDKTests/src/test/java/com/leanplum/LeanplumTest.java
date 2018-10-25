@@ -1458,11 +1458,11 @@ public class LeanplumTest extends AbstractTest {
     return responsesList;
   }
 
-  /**
-   * Test trigger message displayed calls callback
+  /**testTriggerMessageDisplayed
+   * Test trigger message displayed calls callbackrecordMessageImpression
    */
   @Test
-  public void testTriggerMessageDisplayed() {
+  public void testTriggerMessageDisplayedCallbackCalled() {
     final ActionContext testActionContext = new ActionContext("test", null, "test");
 
     MessageDisplayedCallback callback = Mockito.mock(MessageDisplayedCallback.class);
@@ -1473,5 +1473,4 @@ public class LeanplumTest extends AbstractTest {
     Mockito.verify(callback).setActionContext(testActionContext);
     Mockito.verify(callback).run();
   }
-
 }

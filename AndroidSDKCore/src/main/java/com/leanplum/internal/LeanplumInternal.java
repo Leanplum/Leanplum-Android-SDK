@@ -259,7 +259,6 @@ public class LeanplumInternal {
             @Override
             public void variablesChanged() {
               try {
-                ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
                 Leanplum.triggerMessageDisplayed(actionContext);
               } catch (Throwable t) {
                 Util.handleException(t);

@@ -11,7 +11,7 @@ ext {
     LEANPLUM_FCM_ARTIFACT_ID = 'leanplum-fcm'
     LEANPLUM_GCM_ARTIFACT_ID = 'leanplum-gcm'
     LEANPLUM_LOCATION_ARTIFACT_ID = 'leanplum-location'
-    LEANPLUM_SDK_VERSION = "4.2.0"
+    LEANPLUM_SDK_VERSION = "$System.env.ANDROID_VERSION_STRING"
 
     PROGUARD_FILES = 'proguard-rules.pro'
     CONSUMER_PROGUARD_FILES = 'consumer-proguard-rules.pro'

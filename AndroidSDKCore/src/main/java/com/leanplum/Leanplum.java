@@ -35,6 +35,7 @@ import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
@@ -1323,6 +1324,7 @@ public class Leanplum {
   }
 
   public static void triggerMessageDisplayed(ActionContext actionContext) {
+    ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
     synchronized (messageDisplayedHandlers) {
       for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
         callback.setActionContext(actionContext);
