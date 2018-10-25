@@ -3,11 +3,11 @@
 import semver
 import sys 
 
-SDK_VERSION_FILE = "AndroidSDKCore/sdk-version.txt"
+SDK_VERSION_FILE = "sdk-version.txt"
 
 def get_current_version():
     with open(SDK_VERSION_FILE, 'r') as f:
-        return f.read()
+        return f.read().strip()
 
 def update_version(version):
     with open(SDK_VERSION_FILE, 'w') as f:
