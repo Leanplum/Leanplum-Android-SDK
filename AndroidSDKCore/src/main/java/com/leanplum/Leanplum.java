@@ -112,6 +112,8 @@ public class Leanplum {
 
   private static Runnable pushStartCallback;
 
+  private static CountAggregator countAggregator = new CountAggregator();
+
   private Leanplum() {
   }
 
@@ -268,6 +270,7 @@ public class Leanplum {
    */
   public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
     LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
+    countAggregator.incrementCount("set_variant_debug_info_enabled");
   }
 
   /**
@@ -366,6 +369,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("sync_resources");
   }
 
   /**
@@ -381,6 +385,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("sync_resources");
   }
 
   /**
@@ -402,6 +407,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("sync_resource_paths");
   }
 
   /**
@@ -423,6 +429,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("sync_resource_paths");
   }
 
   /**
@@ -597,6 +604,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("start_with_user_id");
   }
 
   /**
@@ -764,6 +772,7 @@ public class Leanplum {
       @Override
       protected Void doInBackground(Void... params) {
         boolean success = Request.isResponseSuccess(response);
+        Leanplum.countAggregator().incrementCount("on_start_response");
         if (!success) {
           try {
             LeanplumInternal.setHasStarted(true);
@@ -837,7 +846,7 @@ public class Leanplum {
             }
 
             Set<String> enabledCounters = parseSdkCounters(response);
-            CountAggregator.INSTANCE.setEnabledCounters(enabledCounters);
+            countAggregator.setEnabledCounters(enabledCounters);
             Set<String> enabledFeatureFlags = parseFeatureFlags(response);
             FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
@@ -1442,6 +1451,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    Leanplum.countAggregator().incrementCount("define_action");
   }
 
   /**
@@ -1636,6 +1646,7 @@ public class Leanplum {
   public static void track(final String event, double value, String info,
       Map<String, ?> params) {
     LeanplumInternal.track(event, value, info, params, null);
+    countAggregator.incrementCount("track");
   }
 
   /**
@@ -1871,6 +1882,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("advance_to");
   }
 
   /**
@@ -2073,6 +2085,7 @@ public class Leanplum {
     } catch (Throwable t) {
       Util.handleException(t);
     }
+    countAggregator.incrementCount("force_content_update");
   }
 
   /**
@@ -2225,6 +2238,7 @@ public class Leanplum {
    */
   public static void clearUserContent() {
     VarCache.clearUserContent();
+    countAggregator.incrementCount("clear_user_content");
   }
 
   @VisibleForTesting
@@ -2244,12 +2258,16 @@ public class Leanplum {
   }
 
   private static Set<String> toSet(JSONArray array) {
-      Set<String> set = new HashSet<>();
-      if (array != null) {
-        for (int i = 0; i < array.length(); i++) {
-          set.add(array.optString(i));
-        }
+    Set<String> set = new HashSet<>();
+    if (array != null) {
+      for (int i = 0; i < array.length(); i++) {
+        set.add(array.optString(i));
       }
-      return set;
     }
+    return set;
+  }
+
+  public static CountAggregator countAggregator() {
+    return countAggregator;
+  }
 }

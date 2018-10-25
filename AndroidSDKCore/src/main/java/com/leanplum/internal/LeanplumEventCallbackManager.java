@@ -23,6 +23,8 @@ package com.leanplum.internal;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
+import com.leanplum.Leanplum;
+
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -56,6 +58,7 @@ class LeanplumEventCallbackManager {
     }
 
     eventCallbacks.put(request, new LeanplumEventCallbacks(responseCallback, errorCallback));
+    Leanplum.countAggregator().incrementCount("add_event_callback_at");
   }
 
   /**
@@ -95,6 +98,7 @@ class LeanplumEventCallbackManager {
         iterator.remove();
       }
     }
+    Leanplum.countAggregator().incrementCount("invoke_error_callbacks_on_responses");
   }
 
   /**
@@ -136,6 +140,7 @@ class LeanplumEventCallbackManager {
         iterator.remove();
       }
     }
+    Leanplum.countAggregator().incrementCount("invoke_success_callbacks_on_responses");
   }
 
   private static class LeanplumEventCallbacks {

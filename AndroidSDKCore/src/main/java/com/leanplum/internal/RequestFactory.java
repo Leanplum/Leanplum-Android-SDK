@@ -21,6 +21,8 @@
 
 package com.leanplum.internal;
 
+import com.leanplum.Leanplum;
+
 import java.util.Map;
 
 public class RequestFactory {
@@ -35,6 +37,7 @@ public class RequestFactory {
 
   public Request createRequest(
       String httpMethod, String apiMethod, Map<String, Object> params) {
+    Leanplum.countAggregator().incrementCount("createRequest");
     return new Request(httpMethod, apiMethod, params);
   }
 }
