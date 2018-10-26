@@ -26,6 +26,34 @@ import com.leanplum.Leanplum;
 import java.util.Map;
 
 public class RequestFactory {
+
+  private static final String API_METHOD_START = "start";
+  private static final String API_METHOD_GET_VARS = "getVars";
+  private static final String API_METHOD_SET_VARS = "setVars";
+  private static final String API_METHOD_STOP = "stop";
+  private static final String API_METHOD_RESTART = "restart";
+  private static final String API_METHOD_TRACK = "track";
+  private static final String API_METHOD_ADVANCE = "advance";
+  private static final String API_METHOD_PAUSE_SESSION = "pauseSession";
+  private static final String API_METHOD_PAUSE_STATE = "pauseState";
+  private static final String API_METHOD_RESUME_SESSION = "resumeSession";
+  private static final String API_METHOD_RESUME_STATE = "resumeState";
+  private static final String API_METHOD_MULTI = "multi";
+  private static final String API_METHOD_REGISTER_FOR_DEVELOPMENT = "registerDevice";
+  private static final String API_METHOD_SET_USER_ATTRIBUTES = "setUserAttributes";
+  private static final String API_METHOD_SET_DEVICE_ATTRIBUTES = "setDeviceAttributes";
+  private static final String API_METHOD_SET_TRAFFIC_SOURCE_INFO = "setTrafficSourceInfo";
+  private static final String API_METHOD_UPLOAD_FILE = "uploadFile";
+  private static final String PI_METHOD_DOWNLOAD_FILE = "downloadFile";
+  private static final String API_METHOD_HEARTBEAT = "heartbeat";
+  private static final String API_METHOD_SAVE_VIEW_CONTROLLER_VERSION = "saveInterface";
+  private static final String API_METHOD_SAVE_VIEW_CONTROLLER_IMAGE = "saveInterfaceImage";
+  private static final String API_METHOD_GET_VIEW_CONTROLLER_VERSIONS_LIST = "getViewControllerVersionsList";
+  private static final String API_METHOD_LOG = "log";
+  private static final String API_METHOD_GET_INBOX_MESSAGES = "getNewsfeedMessages";
+  private static final String API_METHOD_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
+  private static final String API_METHOD_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
+
   public static RequestFactory defaultFactory;
 
   public synchronized static RequestFactory getInstance() {
