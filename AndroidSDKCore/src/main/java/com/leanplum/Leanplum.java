@@ -109,6 +109,7 @@ public class Leanplum {
   private static Runnable pushStartCallback;
 
   private static CountAggregator countAggregator = new CountAggregator();
+  private static FeatureFlagManager featureFlagManager = FeatureFlagManager.INSTANCE;
 
   private Leanplum() {
   }
@@ -2223,5 +2224,8 @@ public class Leanplum {
 
   public static CountAggregator countAggregator() {
     return countAggregator;
+  }
+  public static FeatureFlagManager featureFlagManager() {
+    return featureFlagManager;
   }
 }

@@ -56,7 +56,7 @@ import java.util.UUID;
  *
  * @author Andrew First
  */
-public class Request {
+public class Request implements LPRequesting {
   public static final String REQUEST_ID_KEY = "reqId";
 
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;

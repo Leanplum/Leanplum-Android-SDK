@@ -10,6 +10,8 @@ import java.util.Set;
 public class FeatureFlagManager {
     public static final FeatureFlagManager INSTANCE = new FeatureFlagManager();
 
+    public static String FEATURE_FLAG_REQUEST_REFACTOR = "request_refactor";
+
     private Set<String> enabledFeatureFlags = new HashSet<>();
 
     @VisibleForTesting

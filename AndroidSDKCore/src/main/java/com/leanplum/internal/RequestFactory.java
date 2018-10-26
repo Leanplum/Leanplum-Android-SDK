@@ -40,4 +40,23 @@ public class RequestFactory {
     Leanplum.countAggregator().incrementCount("createRequest");
     return new Request(httpMethod, apiMethod, params);
   }
+
+  LPRequesting createGetForApiMethod(String apiMethod, Map<String, Object> params) {
+    if (shouldReturnLPRequestClass()) {
+      return LPRequest.get(apiMethod, params);
+    }
+    return Request.get(apiMethod, params);
+  }
+
+  LPRequesting createPostForApiMethod(String apiMethod, Map<String, Object> params) {
+    if (shouldReturnLPRequestClass()) {
+      return LPRequest.post(apiMethod, params);
+    }
+    return Request.post(apiMethod, params);
+  }
+
+  Boolean shouldReturnLPRequestClass() {
+    return Leanplum.featureFlagManager().isFeatureFlagEnabled(Leanplum.featureFlagManager().FEATURE_FLAG_REQUEST_REFACTOR);
+  }
+
 }
