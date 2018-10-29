@@ -1477,9 +1477,9 @@ public class LeanplumTest extends AbstractTest {
     MessageDisplayedCallback callback = new MessageDisplayedCallback() {
       @Override
       public void messageDisplayed(String messageID, String messageBody, String recipientUserID, Date deliveryDateTime) {
-        assertEquals(messageID, testMessageID);
-        assertEquals(messageBody, testMessageBody);
-        assertEquals(recipientUserID, testUserID);
+        assertTrue(messageID.equals(testMessageID));
+        assertTrue(messageBody.equals(testMessageBody));
+        assertTrue(recipientUserID.equals(testMessageBody));
         long timeDiff = new Date().getTime() - deliveryDateTime.getTime();
         assertTrue(timeDiff < 100);
       }
