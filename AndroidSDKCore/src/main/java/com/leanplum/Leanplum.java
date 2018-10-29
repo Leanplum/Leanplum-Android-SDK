@@ -2225,6 +2225,7 @@ public class Leanplum {
   public static CountAggregator countAggregator() {
     return countAggregator;
   }
+
   public static FeatureFlagManager featureFlagManager() {
     return featureFlagManager;
   }

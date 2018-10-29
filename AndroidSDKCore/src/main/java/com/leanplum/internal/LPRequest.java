@@ -36,7 +36,7 @@ public class LPRequest implements LPRequesting {
   private ErrorCallback error = null;
   private final CountAggregator countAggregator;
 
-  LPRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+  public LPRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params;
@@ -63,12 +63,12 @@ public class LPRequest implements LPRequesting {
     return new LPRequest("POST", apiMethod, params);
   }
 
-  void onResponse(ResponseCallback response) {
+  public void onResponse(ResponseCallback response) {
     this.response = response;
     this.countAggregator.incrementCount("on_response_lprequest");
   }
 
-  void onError(ErrorCallback error) {
+  public void onError(ErrorCallback error) {
     this.error = error;
     this.countAggregator.incrementCount("on_error_lprequest");
   }

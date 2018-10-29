@@ -22,25 +22,25 @@
 package com.leanplum.internal;
 
 public class APIConfig {
-  FeatureFlagManager featureFlagManager = null;
-  CountAggregator countAggregator = null;
-  String appId = "";
-  String accessKey = "";
-  String token = "";
+  private final FeatureFlagManager featureFlagManager;
+  private final CountAggregator countAggregator;
+  private String appId = "";
+  private String accessKey = "";
+  private String token = "";
 
-  APIConfig(FeatureFlagManager featureFlagManager, CountAggregator countAggregator) {
+  public APIConfig(FeatureFlagManager featureFlagManager, CountAggregator countAggregator) {
     this.featureFlagManager = featureFlagManager;
     this.countAggregator = countAggregator;
   }
 
-  void setAppId(String appId, String accessKey) {
+  public void setAppId(String appId, String accessKey) {
     this.appId = appId;
     this.accessKey = accessKey;
 
     this.countAggregator.incrementCount("set_app_id");
   }
 
-  void loadToken() {
+  public void loadToken(String token) {
     this.token = token;
   }
 }
