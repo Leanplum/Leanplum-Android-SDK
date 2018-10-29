@@ -63,24 +63,24 @@ public class RequestFactory {
     return defaultFactory;
   }
 
-  public Request createRequest(
+  public RequestOld createRequest(
       String httpMethod, String apiMethod, Map<String, Object> params) {
     Leanplum.countAggregator().incrementCount("createRequest");
-    return new Request(httpMethod, apiMethod, params);
+    return new RequestOld(httpMethod, apiMethod, params);
   }
 
-  public LPRequesting createGetForApiMethod(String apiMethod, Map<String, Object> params) {
+  public Requesting createGetForApiMethod(String apiMethod, Map<String, Object> params) {
     if (shouldReturnLPRequestClass()) {
-      return LPRequest.get(apiMethod, params);
+      return Request.get(apiMethod, params);
     }
-    return Request.get(apiMethod, params);
+    return RequestOld.get(apiMethod, params);
   }
 
-  public LPRequesting createPostForApiMethod(String apiMethod, Map<String, Object> params) {
+  public Requesting createPostForApiMethod(String apiMethod, Map<String, Object> params) {
     if (shouldReturnLPRequestClass()) {
-      return LPRequest.post(apiMethod, params);
+      return Request.post(apiMethod, params);
     }
-    return Request.post(apiMethod, params);
+    return RequestOld.post(apiMethod, params);
   }
 
   private Boolean shouldReturnLPRequestClass() {

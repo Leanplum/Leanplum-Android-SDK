@@ -24,9 +24,9 @@ package com.leanplum.internal;
 public class APIConfig {
   private final FeatureFlagManager featureFlagManager;
   private final CountAggregator countAggregator;
-  private String appId = "";
-  private String accessKey = "";
-  private String token = "";
+  private String appId;
+  private String accessKey;
+  private String token;
 
   public APIConfig(FeatureFlagManager featureFlagManager, CountAggregator countAggregator) {
     this.featureFlagManager = featureFlagManager;

@@ -2,7 +2,7 @@ package com.leanplum.internal;
 
 import org.json.JSONObject;
 
-public interface LPRequesting {
+public interface Requesting {
 
   interface ResponseCallback {
     void response(JSONObject response);
@@ -12,4 +12,3 @@ public interface LPRequesting {
     void error(Exception e);
   }
 }
-

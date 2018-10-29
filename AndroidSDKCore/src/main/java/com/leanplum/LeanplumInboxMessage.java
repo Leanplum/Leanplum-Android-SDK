@@ -29,7 +29,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 
 import org.json.JSONObject;
@@ -185,7 +185,7 @@ public class LeanplumInboxMessage {
 
         Map<String, Object> params = new HashMap<>();
         params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
-        Request req = Request.post(Constants.Methods.MARK_INBOX_MESSAGE_AS_READ,
+        RequestOld req = RequestOld.post(Constants.Methods.MARK_INBOX_MESSAGE_AS_READ,
             params);
         req.send();
       }

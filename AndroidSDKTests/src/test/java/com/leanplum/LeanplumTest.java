@@ -36,13 +36,12 @@ import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
-import com.leanplum.internal.CountAggregator;
 import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -59,7 +58,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -228,7 +226,7 @@ public class LeanplumTest extends AbstractTest {
 
     Leanplum.start(mContext, userId);
     assertTrue(Leanplum.hasStarted());
-    assertTrue(Request.userId().equals(userId));
+    assertTrue(RequestOld.userId().equals(userId));
   }
 
   @Test
@@ -265,7 +263,7 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     assertTrue(Leanplum.hasStarted());
-    assertTrue(Request.userId().equals(userId));
+    assertTrue(RequestOld.userId().equals(userId));
   }
 
   @Test
@@ -310,7 +308,7 @@ public class LeanplumTest extends AbstractTest {
 
     Leanplum.start(mContext, userId, userAttributes);
     assertTrue(Leanplum.hasStarted());
-    assertTrue(Request.userId().equals(userId));
+    assertTrue(RequestOld.userId().equals(userId));
   }
 
   @Test
@@ -364,7 +362,7 @@ public class LeanplumTest extends AbstractTest {
     });
     countDownLatch.await(10, TimeUnit.SECONDS);
     assertTrue(Leanplum.hasStarted());
-    assertTrue(Request.userId().equals(userId));
+    assertTrue(RequestOld.userId().equals(userId));
   }
 
   @Test
@@ -437,8 +435,8 @@ public class LeanplumTest extends AbstractTest {
     LeanplumEventDataManager.init(Leanplum.getContext());
 
     // Add two events to database.
-    Request request1 = new Request("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
-    Request request2 = new Request("POST", Constants.Methods.LOG, null);
+    RequestOld request1 = new RequestOld("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
+    RequestOld request2 = new RequestOld("POST", Constants.Methods.LOG, null);
 
     request1.sendEventually();
     request2.sendEventually();
@@ -1085,20 +1083,20 @@ public class LeanplumTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
     Leanplum.setAppIdForDevelopmentMode("appid", "accesskey");
-    assertEquals("appid", Request.appId());
-    assertEquals("accesskey", TestClassUtil.getField(Request.class, "accessKey"));
+    assertEquals("appid", RequestOld.appId());
+    assertEquals("accesskey", TestClassUtil.getField(RequestOld.class, "accessKey"));
 
     Leanplum.setAppIdForDevelopmentMode(null, null);
-    assertEquals("appid", Request.appId());
-    assertEquals("accesskey", TestClassUtil.getField(Request.class, "accessKey"));
+    assertEquals("appid", RequestOld.appId());
+    assertEquals("accesskey", TestClassUtil.getField(RequestOld.class, "accessKey"));
 
     Leanplum.setAppIdForProductionMode("appid_prod", "accesskey_prod");
-    assertEquals("appid_prod", Request.appId());
-    assertEquals("accesskey_prod", TestClassUtil.getField(Request.class, "accessKey"));
+    assertEquals("appid_prod", RequestOld.appId());
+    assertEquals("accesskey_prod", TestClassUtil.getField(RequestOld.class, "accessKey"));
 
     Leanplum.setAppIdForProductionMode(null, null);
-    assertEquals("appid_prod", Request.appId());
-    assertEquals("accesskey_prod", TestClassUtil.getField(Request.class, "accessKey"));
+    assertEquals("appid_prod", RequestOld.appId());
+    assertEquals("accesskey_prod", TestClassUtil.getField(RequestOld.class, "accessKey"));
   }
 
   /**
@@ -1167,7 +1165,7 @@ public class LeanplumTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
     Leanplum.setUserId("test_id");
-    assertEquals("test_id", Request.userId());
+    assertEquals("test_id", RequestOld.userId());
   }
 
   /**
@@ -1431,7 +1429,7 @@ public class LeanplumTest extends AbstractTest {
     List<Map<String, Object>> requests = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> request = new HashMap<>();
-      request.put(Request.REQUEST_ID_KEY, prefix + "-uuid-" + Integer.toString(i));
+      request.put(RequestOld.REQUEST_ID_KEY, prefix + "-uuid-" + Integer.toString(i));
       request.put(Constants.Params.ACTION, Constants.Methods.START);
       requests.add(request);
     }
@@ -1450,7 +1448,7 @@ public class LeanplumTest extends AbstractTest {
     List<JSONObject> responsesList = new ArrayList<>();
     for (int i=0;i < n; i ++) {
       Map<String, Object> responseMap = new HashMap<>();
-      responseMap.put(Request.REQUEST_ID_KEY, prefix + "-uuid-" + Integer.toString(i));
+      responseMap.put(RequestOld.REQUEST_ID_KEY, prefix + "-uuid-" + Integer.toString(i));
       responsesList.add(new JSONObject(responseMap));
     }
     return responsesList;

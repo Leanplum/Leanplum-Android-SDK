@@ -213,10 +213,10 @@ public class LeanplumEventDataManager {
      * Migrate data from shared preferences to SQLite.
      */
     private static void migrateFromSharedPreferences(SQLiteDatabase db) {
-      synchronized (Request.class) {
+      synchronized (RequestOld.class) {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
-            Request.LEANPLUM, Context.MODE_PRIVATE);
+            RequestOld.LEANPLUM, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
         if (count == 0) {
@@ -241,12 +241,12 @@ public class LeanplumEventDataManager {
 
         try {
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % Request.MAX_EVENTS_PER_API_CALL == 0) {
+          if (uuid == null || count % RequestOld.MAX_EVENTS_PER_API_CALL == 0) {
             uuid = UUID.randomUUID().toString();
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
           }
           for (Map<String, Object> event : requestData) {
-            event.put(Request.UUID_KEY, uuid);
+            event.put(RequestOld.UUID_KEY, uuid);
             contentValues.put(COLUMN_DATA, JsonConverter.toJson(event));
             db.insert(EVENT_TABLE_NAME, null, contentValues);
             contentValues.clear();

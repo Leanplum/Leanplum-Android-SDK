@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Grace Gu
  */
-@PrepareForTest({ Request.class })
+@PrepareForTest({ RequestOld.class })
 public class CountAggregatorTest extends AbstractTest {
   @Test
   public void testIncrementDisabledCount() {
@@ -137,13 +137,13 @@ public class CountAggregatorTest extends AbstractTest {
     countAggregator.setEnabledCounters(Sets.newHashSet(testString));
     countAggregator.incrementCount(testString);
 
-    PowerMockito.mockStatic(Request.class);
+    PowerMockito.mockStatic(RequestOld.class);
     Map<String, Object> expectedParams = countAggregator.makeParams(testString, 1);
-    PowerMockito.doReturn(Mockito.mock(Request.class)).when(Request.class, "post", Constants.Methods.LOG, expectedParams);
+    PowerMockito.doReturn(Mockito.mock(RequestOld.class)).when(RequestOld.class, "post", Constants.Methods.LOG, expectedParams);
 
     countAggregator.sendAllCounts();
 
     PowerMockito.verifyStatic();
-    Request.post(Constants.Methods.LOG, expectedParams);
+    RequestOld.post(Constants.Methods.LOG, expectedParams);
   }
 }

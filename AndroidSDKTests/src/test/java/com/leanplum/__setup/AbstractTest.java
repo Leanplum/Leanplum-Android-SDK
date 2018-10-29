@@ -38,10 +38,9 @@ import com.leanplum._whitebox.utilities.SynchronousExecutor;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
-import com.leanplum.tests.BuildConfig;
 
 import org.junit.After;
 import org.junit.Before;
@@ -103,7 +102,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     LeanplumActivityHelper.class,
     URL.class,
     LocationManager.class,
-    Request.class,
+    RequestOld.class,
     LocationServices.class,
     FusedLocationProviderApi.class,
     VarCache.class
