@@ -1470,7 +1470,7 @@ public class LeanplumTest extends AbstractTest {
 
     Map<String, Object> args = new HashMap<String, Object>();
     args.put("message", testMessageBody);
-    final ActionContext testActionContext = new ActionContext("test", null, testMessageID);
+    final ActionContext testActionContext = new ActionContext("test", args, testMessageID);
 
     Leanplum.setUserId(testUserID);
 
