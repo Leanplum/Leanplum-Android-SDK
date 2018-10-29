@@ -8,7 +8,8 @@ RUN apt-get update && \
 
 ################################ Gradle Installation ################################
 # Allow the host to use gradle cache, otherwise gradle will always download plugins & artifacts.
-VOLUME ["/root/.gradle/caches/"]
+VOLUME ["/root/.gradle/"]
+VOLUME ["/root/.android/"]
 
 ARG GRADLE_VERSION=4.10
 ARG GRADLE_ZIP=gradle-${GRADLE_VERSION}-bin.zip
@@ -30,6 +31,8 @@ ENV PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/t
 
 RUN sdkmanager emulator tools platform-tools ${platform_image} ${system_image} --verbose && \
   echo no | avdmanager create avd -n "device1" --package ${system_image} --tag google_apis
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 ################################
 CMD ["bash"]
