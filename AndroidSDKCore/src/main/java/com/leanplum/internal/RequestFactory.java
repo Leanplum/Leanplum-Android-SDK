@@ -58,11 +58,11 @@ public class RequestFactory {
   private CountAggregator countAggregator;
   private FeatureFlagManager featureFlagManager;
 
-  public synchronized static RequestFactory getInstance(CountAggregator countAggregator, FeatureFlagManager featureFlagManager) {
+  public synchronized static RequestFactory getInstance() {
     if (defaultFactory == null) {
       defaultFactory = new RequestFactory();
-      defaultFactory.countAggregator = countAggregator;
-      defaultFactory.featureFlagManager = featureFlagManager;
+      defaultFactory.countAggregator = Leanplum.countAggregator();
+      defaultFactory.featureFlagManager = Leanplum.featureFlagManager();
     }
     return defaultFactory;
   }
