@@ -1336,7 +1336,16 @@ public class Leanplum {
     ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
     synchronized (messageDisplayedHandlers) {
       for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
-        callback.setActionContext(actionContext);
+        callback.setMessageID(actionContext.getMessageId());
+        String messageBody = "";
+        try {
+          messageBody = (String) actionContext.getArgs().get("message");
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
+        callback.setMessageBody(messageBody);
+        callback.setRecipientUserID(Leanplum.getUserId());
+        callback.setDeliveryDateTime(new Date());
         OsHandler.getInstance().post(callback);
       }
     }

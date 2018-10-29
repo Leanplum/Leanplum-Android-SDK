@@ -23,6 +23,8 @@ package com.leanplum.callbacks;
 
 import com.leanplum.ActionContext;
 
+import java.util.Date;
+
 /**
  * Message displayed callback.
  *
@@ -30,15 +32,31 @@ import com.leanplum.ActionContext;
  */
 public abstract class MessageDisplayedCallback implements Runnable {
 
-  private ActionContext actionContext;
+  private String messageID;
+  private String messageBody;
+  private String recipientUserID;
+  private Date deliveryDateTime;
 
-  public void setActionContext(ActionContext actionContext) {
-    this.actionContext = actionContext;
+  public void setMessageBody(String messageBody) {
+    this.messageBody = messageBody;
+  }
+
+  public void setMessageID(String messageID) {
+    this.messageID = messageID;
+  }
+
+  public void setRecipientUserID(String recipientUserID) {
+    this.recipientUserID = recipientUserID;
+  }
+
+  public void setDeliveryDateTime(Date deliveryDateTime) {
+    this.deliveryDateTime = deliveryDateTime;
   }
 
   public void run() {
-    this.messageDisplayed(actionContext);
+    this.messageDisplayed(messageID, messageBody, recipientUserID, deliveryDateTime);
   }
 
-  public abstract void messageDisplayed(ActionContext actionContext);
+  public abstract void messageDisplayed(String messageID, String messageBody,
+                                        String recipientUserID, Date deliveryDateTime);
 }
