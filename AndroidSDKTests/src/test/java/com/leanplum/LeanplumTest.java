@@ -58,6 +58,7 @@ import java.lang.reflect.Method;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1463,14 +1464,32 @@ public class LeanplumTest extends AbstractTest {
    */
   @Test
   public void testTriggerMessageDisplayedCallbackCalled() {
-    final ActionContext testActionContext = new ActionContext("test", null, "test");
+    final String testMessageID = "testMessageID";
+    final String testMessageBody = "testMessageBody";
+    final String testUserID = "testUserID";
 
-    MessageDisplayedCallback callback = Mockito.mock(MessageDisplayedCallback.class);
+    Map<String, Object> args = new HashMap<String, Object>();
+    args.put("message", testMessageBody);
+    final ActionContext testActionContext = new ActionContext("test", null, testMessageID);
+
+    Leanplum.setUserId(testUserID);
+
+    MessageDisplayedCallback callback = new MessageDisplayedCallback() {
+      @Override
+      public void messageDisplayed(String messageID, String messageBody, String recipientUserID, Date deliveryDateTime) {
+        assertEquals(messageID, testMessageID);
+        assertEquals(messageBody, testMessageBody);
+        assertEquals(recipientUserID, testUserID);
+        long timeDiff = new Date().getTime() - deliveryDateTime.getTime();
+        assertTrue(timeDiff < 100);
+      }
+    };
+
+    MessageDisplayedCallback callbackSpy = Mockito.spy(MessageDisplayedCallback.class);
 
     Leanplum.addMessageDisplayedHandler(callback);
     Leanplum.triggerMessageDisplayed(testActionContext);
 
-    Mockito.verify(callback).setActionContext(testActionContext);
-    Mockito.verify(callback).run();
+    Mockito.verify(callbackSpy).run();
   }
 }
