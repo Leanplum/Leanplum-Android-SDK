@@ -51,6 +51,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 
@@ -84,6 +85,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -1051,7 +1053,7 @@ public class LeanplumTest extends AbstractTest {
     addresses.add(address);
     Geocoder geocoder = Mockito.mock(Geocoder.class);
     whenNew(Geocoder.class).withAnyArguments().thenReturn(geocoder);
-    Mockito.when(geocoder.getFromLocation(anyDouble(), anyDouble(), anyInt()))
+    when(geocoder.getFromLocation(anyDouble(), anyDouble(), anyInt()))
         .thenReturn(addresses);
 
     // Validate set location request shorthand.
@@ -1468,28 +1470,23 @@ public class LeanplumTest extends AbstractTest {
     final String testMessageBody = "testMessageBody";
     final String testUserID = "testUserID";
 
-    Map<String, Object> args = new HashMap<String, Object>();
+    Map<String, Object> args = new HashMap<>();
     args.put("message", testMessageBody);
     final ActionContext testActionContext = new ActionContext("test", args, testMessageID);
 
-    Leanplum.setUserId(testUserID);
+    when(Leanplum.getUserId()).thenReturn(testUserID);
 
     MessageDisplayedCallback callback = new MessageDisplayedCallback() {
       @Override
       public void messageDisplayed(String messageID, String messageBody, String recipientUserID, Date deliveryDateTime) {
         assertTrue(messageID.equals(testMessageID));
         assertTrue(messageBody.equals(testMessageBody));
-        assertTrue(recipientUserID.equals(testMessageBody));
+        assertTrue(recipientUserID.equals(testUserID));
         long timeDiff = new Date().getTime() - deliveryDateTime.getTime();
-        assertTrue(timeDiff < 100);
+        assertTrue(timeDiff < 1000);
       }
     };
-
-    MessageDisplayedCallback callbackSpy = Mockito.spy(MessageDisplayedCallback.class);
-
     Leanplum.addMessageDisplayedHandler(callback);
     Leanplum.triggerMessageDisplayed(testActionContext);
-
-    Mockito.verify(callbackSpy).run();
   }
 }
