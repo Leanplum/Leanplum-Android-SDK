@@ -22,7 +22,6 @@
 package com.leanplum.internal;
 
 import com.leanplum.Leanplum;
-
 import java.util.Map;
 
 public class RequestFactory {
@@ -56,9 +55,14 @@ public class RequestFactory {
 
   public static RequestFactory defaultFactory;
 
-  public synchronized static RequestFactory getInstance() {
+  private CountAggregator countAggregator;
+  private FeatureFlagManager featureFlagManager;
+
+  public synchronized static RequestFactory getInstance(CountAggregator countAggregator, FeatureFlagManager featureFlagManager) {
     if (defaultFactory == null) {
       defaultFactory = new RequestFactory();
+      defaultFactory.countAggregator = countAggregator;
+      defaultFactory.featureFlagManager = featureFlagManager;
     }
     return defaultFactory;
   }
