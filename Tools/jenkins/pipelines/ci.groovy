@@ -14,6 +14,15 @@ pipeline {
                 }
             }
         }
+        stage('Archive artifacts') {
+            steps {
+                timestamps {
+                    ansiColor('xterm') {
+                        archiveFiles()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -24,4 +33,10 @@ def buildAndTest() {
     buildImage.inside {
         sh 'make sdk'
     }
+}
+
+def archiveFiles() {
+    archiveArtifacts('*/build/**/*.aar')
+    archiveArtifacts('*/build/intermediates/packaged-classes/release/classes.jar')
+    archiveArtifacts('*/build/publications/aar/pom-default.xml')
 }

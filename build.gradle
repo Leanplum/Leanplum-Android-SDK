@@ -2,8 +2,8 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
         google()
+        jcenter()
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.12'
@@ -14,11 +14,11 @@ buildscript {
 allprojects {
     repositories {
         mavenCentral()
-        jcenter()
         google()
         maven {
             url "https://repo.leanplum.com/"
         }
+        jcenter()
     }
 }
 

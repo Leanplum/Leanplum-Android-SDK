@@ -15,13 +15,12 @@ android {
         consumerProguardFiles CONSUMER_PROGUARD_FILES
 
         def packageIdentifier =  System.getenv('LEANPLUM_PACKAGE_IDENTIFIER') ?: 's'
-        buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', '\"' + packageIdentifier + '\"'
+        buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', "\"${packageIdentifier}\""
 
-        def sdkVersion = file('sdk-version.txt').text
-        buildConfigField 'String', 'SDK_VERSION', '\"' + sdkVersion + '\"'
+        buildConfigField 'String', 'SDK_VERSION', "\"${LEANPLUM_SDK_VERSION}\""
 
         def buildNumber = System.getenv('BUILD_NUMBER') ?: '0'
-        buildConfigField 'String', 'BUILD_NUMBER', '\"' + buildNumber + '\"'
+        buildConfigField 'String', 'BUILD_NUMBER', "\"${buildNumber}\""
     }
     buildTypes {
         release {
