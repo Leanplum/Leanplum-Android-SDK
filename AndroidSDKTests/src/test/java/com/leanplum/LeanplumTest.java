@@ -1471,7 +1471,7 @@ public class LeanplumTest extends AbstractTest {
     final String testUserID = "testUserID";
 
     Map<String, Object> args = new HashMap<>();
-    args.put("message", testMessageBody);
+    args.put("Message", testMessageBody);
     final ActionContext testActionContext = new ActionContext("test", args, testMessageID);
 
     when(Leanplum.getUserId()).thenReturn(testUserID);

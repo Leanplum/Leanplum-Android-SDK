@@ -1339,7 +1339,7 @@ public class Leanplum {
         callback.setMessageID(actionContext.getMessageId());
         String messageBody = "";
         try {
-          messageBody = (String) actionContext.getArgs().get("message");
+          messageBody = (String) actionContext.getArgs().get("Message");
         } catch (Throwable t) {
           Util.handleException(t);
         }
