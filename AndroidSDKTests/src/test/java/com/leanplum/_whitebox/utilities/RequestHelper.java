@@ -22,7 +22,7 @@ package com.leanplum._whitebox.utilities;
 
 import android.util.Log;
 
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author Milos Jakovljevic
  */
-public class RequestHelper extends Request {
+public class RequestHelper extends RequestOld {
   private static RequestHandler sRequestHandler = null;
 
   public RequestHelper(String httpMethod, String apiMethod, Map<String, Object> params) {
@@ -57,7 +57,7 @@ public class RequestHelper extends Request {
   public void sendEventually() {
     // workaround to send request now and not save it into prefs for later use
     try {
-      Field sentField = Request.class.getDeclaredField("sent");
+      Field sentField = RequestOld.class.getDeclaredField("sent");
       sentField.setAccessible(true);
 
       boolean sent = sentField.getBoolean(this);

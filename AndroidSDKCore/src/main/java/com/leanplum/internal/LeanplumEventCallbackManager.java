@@ -38,7 +38,7 @@ import java.util.Map;
  */
 class LeanplumEventCallbackManager {
   // Event callbacks map.
-  private final Map<Request, LeanplumEventCallbacks> eventCallbacks = new HashMap<>();
+  private final Map<RequestOld, LeanplumEventCallbacks> eventCallbacks = new HashMap<>();
 
   /**
    * Add callbacks to the event callbacks Map.
@@ -47,8 +47,8 @@ class LeanplumEventCallbackManager {
    * @param responseCallback Response callback.
    * @param errorCallback Error callback.
    */
-  void addCallbacks(Request request, Request.ResponseCallback responseCallback,
-      Request.ErrorCallback errorCallback) {
+  void addCallbacks(RequestOld request, RequestOld.ResponseCallback responseCallback,
+                    RequestOld.ErrorCallback errorCallback) {
     if (request == null) {
       return;
     }
@@ -73,11 +73,11 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    Iterator<Map.Entry<Request, LeanplumEventCallbacks>> iterator =
+    Iterator<Map.Entry<RequestOld, LeanplumEventCallbacks>> iterator =
         eventCallbacks.entrySet().iterator();
     // Loop over all callbacks.
     for (; iterator.hasNext(); ) {
-      final Map.Entry<Request, LeanplumEventCallbacks> entry = iterator.next();
+      final Map.Entry<RequestOld, LeanplumEventCallbacks> entry = iterator.next();
       if (entry.getKey() == null) {
         continue;
       }
@@ -85,7 +85,7 @@ class LeanplumEventCallbackManager {
         entry.getKey().setDataBaseIndex(entry.getKey().getDataBaseIndex() - countOfEvents);
       } else {
         if (entry.getValue() != null && entry.getValue().errorCallback != null) {
-          // Start callback asynchronously, to avoid creation of new Request object from the same
+          // Start callback asynchronously, to avoid creation of new RequestOld object from the same
           // thread.
           Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
             @Override
@@ -113,11 +113,11 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    Iterator<Map.Entry<Request, LeanplumEventCallbacks>> iterator =
+    Iterator<Map.Entry<RequestOld, LeanplumEventCallbacks>> iterator =
         eventCallbacks.entrySet().iterator();
     // Loop over all callbacks.
     for (; iterator.hasNext(); ) {
-      final Map.Entry<Request, LeanplumEventCallbacks> entry = iterator.next();
+      final Map.Entry<RequestOld, LeanplumEventCallbacks> entry = iterator.next();
       if (entry.getKey() == null) {
         continue;
       }
@@ -126,12 +126,12 @@ class LeanplumEventCallbackManager {
         entry.getKey().setDataBaseIndex(entry.getKey().getDataBaseIndex() - countOfEvents);
       } else {
         if (entry.getValue() != null && entry.getValue().responseCallback != null) {
-          // Start callback asynchronously, to avoid creation of new Request object from the same
+          // Start callback asynchronously, to avoid creation of new RequestOld object from the same
           // thread.
           Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-              entry.getValue().responseCallback.response(Request.getResponseAt(responseBody,
+              entry.getValue().responseCallback.response(RequestOld.getResponseAt(responseBody,
                   (int) entry.getKey().getDataBaseIndex()));
               return null;
             }
@@ -144,10 +144,10 @@ class LeanplumEventCallbackManager {
   }
 
   private static class LeanplumEventCallbacks {
-    private Request.ResponseCallback responseCallback;
-    private Request.ErrorCallback errorCallback;
+    private RequestOld.ResponseCallback responseCallback;
+    private RequestOld.ErrorCallback errorCallback;
 
-    LeanplumEventCallbacks(Request.ResponseCallback responseCallback, Request.ErrorCallback
+    LeanplumEventCallbacks(RequestOld.ResponseCallback responseCallback, RequestOld.ErrorCallback
         errorCallback) {
       this.responseCallback = responseCallback;
       this.errorCallback = errorCallback;

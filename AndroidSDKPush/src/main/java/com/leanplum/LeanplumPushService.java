@@ -22,13 +22,11 @@
 package com.leanplum;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -45,7 +43,7 @@ import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
@@ -54,7 +52,6 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,8 +242,8 @@ public class LeanplumPushService {
             Map<String, Object> params = new HashMap<>();
             params.put(Params.INCLUDE_DEFAULTS, Boolean.toString(false));
             params.put(Params.INCLUDE_MESSAGE_ID, messageId);
-            Request req = Request.post(Methods.GET_VARS, params);
-            req.onResponse(new Request.ResponseCallback() {
+            RequestOld req = RequestOld.post(Methods.GET_VARS, params);
+            req.onResponse(new RequestOld.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 try {
@@ -279,7 +276,7 @@ public class LeanplumPushService {
                 }
               }
             });
-            req.onError(new Request.ErrorCallback() {
+            req.onError(new RequestOld.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 onComplete.variablesChanged();
@@ -789,7 +786,7 @@ public class LeanplumPushService {
     if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
-    if (hasAppIDChanged(Request.appId())) {
+    if (hasAppIDChanged(RequestOld.appId())) {
       provider.unregister();
     }
     registerInBackground();

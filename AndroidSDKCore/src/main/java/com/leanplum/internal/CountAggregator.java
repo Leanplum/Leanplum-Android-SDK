@@ -58,7 +58,7 @@ public class CountAggregator {
             Integer count = entry.getValue();
             Map<String, Object> params = makeParams(name, count);
             try {
-                Request.post(Constants.Methods.LOG, params).sendEventually();
+                RequestOld.post(Constants.Methods.LOG, params).sendEventually();
             } catch (Throwable t) {
                 android.util.Log.e("Leanplum", "Unable to send count.", t);
             }

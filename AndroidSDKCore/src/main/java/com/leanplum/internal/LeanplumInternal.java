@@ -335,7 +335,7 @@ public class LeanplumInternal {
    */
   private static void trackInternal(String event, Map<String, ?> params,
       Map<String, Object> requestArgs) {
-    Request.post(Constants.Methods.TRACK, requestArgs).send();
+    RequestOld.post(Constants.Methods.TRACK, requestArgs).send();
 
     String eventTriggerName = event;
     String messageId = null;
@@ -433,14 +433,14 @@ public class LeanplumInternal {
               } catch (Throwable ignored) {
               }
             }
-            Request req = Request.post(Constants.Methods.SET_USER_ATTRIBUTES, params);
-            req.onResponse(new Request.ResponseCallback() {
+            RequestOld req = RequestOld.post(Constants.Methods.SET_USER_ATTRIBUTES, params);
+            req.onResponse(new RequestOld.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 callback.response(true);
               }
             });
-            req.onError(new Request.ErrorCallback() {
+            req.onError(new RequestOld.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 callback.response(false);
