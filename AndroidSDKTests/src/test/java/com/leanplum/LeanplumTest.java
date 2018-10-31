@@ -1461,8 +1461,8 @@ public class LeanplumTest extends AbstractTest {
     return responsesList;
   }
 
-  /**testTriggerMessageDisplayed
-   * Test trigger message displayed calls callbackrecordMessageImpression
+  /**
+   * Test trigger message displayed calls callback
    */
   @Test
   public void testTriggerMessageDisplayedCallbackCalled() {
@@ -1476,17 +1476,29 @@ public class LeanplumTest extends AbstractTest {
 
     when(Leanplum.getUserId()).thenReturn(testUserID);
 
-    MessageDisplayedCallback callback = new MessageDisplayedCallback() {
-      @Override
-      public void messageDisplayed(String messageID, String messageBody, String recipientUserID, Date deliveryDateTime) {
-        assertTrue(messageID.equals(testMessageID));
-        assertTrue(messageBody.equals(testMessageBody));
-        assertTrue(recipientUserID.equals(testUserID));
-        long timeDiff = new Date().getTime() - deliveryDateTime.getTime();
-        assertTrue(timeDiff < 1000);
+    class CallbackTest {
+      public boolean callbackCalled = false;
+      public MessageDisplayedCallback callback;
+
+      CallbackTest() {
+        callback = new MessageDisplayedCallback() {
+          @Override
+          public void messageDisplayed(String messageID, String messageBody, String recipientUserID, Date deliveryDateTime) {
+            callbackCalled = true;
+            assertTrue(messageID.equals(testMessageID));
+            assertTrue(messageBody.equals(testMessageBody));
+            assertTrue(recipientUserID.equals(testUserID));
+            long timeDiff = new Date().getTime() - deliveryDateTime.getTime();
+            assertTrue(timeDiff < 1000);
+          }
+        };
       }
-    };
-    Leanplum.addMessageDisplayedHandler(callback);
+    }
+
+    CallbackTest callbackTest = new CallbackTest();
+
+    Leanplum.addMessageDisplayedHandler(callbackTest.callback);
     Leanplum.triggerMessageDisplayed(testActionContext);
+    assertTrue(callbackTest.callbackCalled);
   }
 }
