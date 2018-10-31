@@ -32,6 +32,7 @@ import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.VariablesTestClass;
 import com.leanplum.annotations.Parser;
+import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.CollectionUtil;
@@ -45,11 +46,13 @@ import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
+import com.leanplum.models.MessageArchiveData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 
@@ -57,6 +60,7 @@ import java.lang.reflect.Method;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -80,7 +84,9 @@ import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -1048,7 +1054,7 @@ public class LeanplumTest extends AbstractTest {
     addresses.add(address);
     Geocoder geocoder = Mockito.mock(Geocoder.class);
     whenNew(Geocoder.class).withAnyArguments().thenReturn(geocoder);
-    Mockito.when(geocoder.getFromLocation(anyDouble(), anyDouble(), anyInt()))
+    when(geocoder.getFromLocation(anyDouble(), anyDouble(), anyInt()))
         .thenReturn(addresses);
 
     // Validate set location request shorthand.
@@ -1454,5 +1460,46 @@ public class LeanplumTest extends AbstractTest {
       responsesList.add(new JSONObject(responseMap));
     }
     return responsesList;
+  }
+
+  /**
+   * Test trigger message displayed calls callback
+   */
+  @Test
+  public void testTriggerMessageDisplayedCallbackCalled() {
+    final String messageID = "testMessageID";
+    final String messageBody = "testMessageBody";
+    final String userID = "testUserID";
+
+    Map<String, Object> args = new HashMap<>();
+    args.put("Message", messageBody);
+    final ActionContext testActionContext = new ActionContext("test", args, messageID);
+
+    when(Leanplum.getUserId()).thenReturn(userID);
+
+    class CallbackTest {
+      public boolean callbackCalled = false;
+      public MessageDisplayedCallback callback;
+
+      CallbackTest() {
+        callback = new MessageDisplayedCallback() {
+          @Override
+          public void messageDisplayed(MessageArchiveData messageArchiveData) {
+            callbackCalled = true;
+            assertTrue(messageArchiveData.messageID.equals(messageID));
+            assertTrue(messageArchiveData.messageBody.equals(messageBody));
+            assertTrue(messageArchiveData.recipientUserID.equals(userID));
+            long timeDiff = new Date().getTime() - messageArchiveData.deliveryDateTime.getTime();
+            assertTrue(timeDiff < 1000);
+          }
+        };
+      }
+    }
+
+    CallbackTest callbackTest = new CallbackTest();
+
+    Leanplum.addMessageDisplayedHandler(callbackTest.callback);
+    Leanplum.triggerMessageDisplayed(testActionContext);
+    assertTrue(callbackTest.callbackCalled);
   }
 }
