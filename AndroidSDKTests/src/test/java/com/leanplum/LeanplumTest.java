@@ -46,6 +46,7 @@ import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
+import com.leanplum.models.MessageArchiveData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1466,15 +1467,15 @@ public class LeanplumTest extends AbstractTest {
    */
   @Test
   public void testTriggerMessageDisplayedCallbackCalled() {
-    final String testMessageID = "testMessageID";
-    final String testMessageBody = "testMessageBody";
-    final String testUserID = "testUserID";
+    final String messageID = "testMessageID";
+    final String messageBody = "testMessageBody";
+    final String userID = "testUserID";
 
     Map<String, Object> args = new HashMap<>();
-    args.put("Message", testMessageBody);
-    final ActionContext testActionContext = new ActionContext("test", args, testMessageID);
+    args.put("Message", messageBody);
+    final ActionContext testActionContext = new ActionContext("test", args, messageID);
 
-    when(Leanplum.getUserId()).thenReturn(testUserID);
+    when(Leanplum.getUserId()).thenReturn(userID);
 
     class CallbackTest {
       public boolean callbackCalled = false;
@@ -1483,12 +1484,12 @@ public class LeanplumTest extends AbstractTest {
       CallbackTest() {
         callback = new MessageDisplayedCallback() {
           @Override
-          public void messageDisplayed(String messageID, String messageBody, String recipientUserID, Date deliveryDateTime) {
+          public void messageDisplayed(MessageArchiveData messageArchiveData) {
             callbackCalled = true;
-            assertTrue(messageID.equals(testMessageID));
-            assertTrue(messageBody.equals(testMessageBody));
-            assertTrue(recipientUserID.equals(testUserID));
-            long timeDiff = new Date().getTime() - deliveryDateTime.getTime();
+            assertTrue(messageArchiveData.messageID.equals(messageID));
+            assertTrue(messageArchiveData.messageBody.equals(messageBody));
+            assertTrue(messageArchiveData.recipientUserID.equals(userID));
+            long timeDiff = new Date().getTime() - messageArchiveData.deliveryDateTime.getTime();
             assertTrue(timeDiff < 1000);
           }
         };

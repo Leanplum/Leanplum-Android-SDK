@@ -21,9 +21,7 @@
 
 package com.leanplum.callbacks;
 
-import com.leanplum.ActionContext;
-
-import java.util.Date;
+import com.leanplum.models.MessageArchiveData;
 
 /**
  * Message displayed callback.
@@ -32,31 +30,15 @@ import java.util.Date;
  */
 public abstract class MessageDisplayedCallback implements Runnable {
 
-  private String messageID;
-  private String messageBody;
-  private String recipientUserID;
-  private Date deliveryDateTime;
+  private MessageArchiveData messageArchiveData;
 
-  public void setMessageBody(String messageBody) {
-    this.messageBody = messageBody;
-  }
-
-  public void setMessageID(String messageID) {
-    this.messageID = messageID;
-  }
-
-  public void setRecipientUserID(String recipientUserID) {
-    this.recipientUserID = recipientUserID;
-  }
-
-  public void setDeliveryDateTime(Date deliveryDateTime) {
-    this.deliveryDateTime = deliveryDateTime;
+  public void setMessageArchiveData(MessageArchiveData messageArchiveData) {
+    this.messageArchiveData = messageArchiveData;
   }
 
   public void run() {
-    this.messageDisplayed(messageID, messageBody, recipientUserID, deliveryDateTime);
+    this.messageDisplayed(messageArchiveData);
   }
 
-  public abstract void messageDisplayed(String messageID, String messageBody,
-                                        String recipientUserID, Date deliveryDateTime);
+  public abstract void messageDisplayed(MessageArchiveData messageArchiveData);
 }

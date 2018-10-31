@@ -25,6 +25,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Message;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
@@ -53,6 +54,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.models.MessageArchiveData;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -1336,16 +1338,19 @@ public class Leanplum {
     ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
     synchronized (messageDisplayedHandlers) {
       for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
-        callback.setMessageID(actionContext.getMessageId());
+        String messageID = actionContext.getMessageId();
         String messageBody = "";
         try {
           messageBody = (String) actionContext.getArgs().get("Message");
         } catch (Throwable t) {
           Util.handleException(t);
         }
-        callback.setMessageBody(messageBody);
-        callback.setRecipientUserID(Leanplum.getUserId());
-        callback.setDeliveryDateTime(new Date());
+        String recipientUserID = Leanplum.getUserId();
+        Date deliveryDateTime = new Date();
+
+        MessageArchiveData messageArchiveData = new MessageArchiveData(messageID,
+                messageBody, recipientUserID, deliveryDateTime);
+        callback.setMessageArchiveData(messageArchiveData);
         OsHandler.getInstance().post(callback);
       }
     }
