@@ -44,7 +44,7 @@ public class CountAggregator {
         Map<String, Object> params = new HashMap<>();
 
         params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
-        params.put(Constants.Params.MESSAGE, name);
+        params.put(Constants.Params.NAME, name);
         params.put(Constants.Params.COUNT, count);
 
         return params;
