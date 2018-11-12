@@ -430,7 +430,10 @@ public class LeanplumInbox {
     }
     try {
       for (String messageId : messagesIds()) {
-        messages.add(messageForId(messageId));
+        LeanplumInboxMessage message = messageForId(messageId);
+        if (message != null) {
+          messages.add(message);
+        }
       }
     } catch (Throwable t) {
       Util.handleException(t);
