@@ -61,9 +61,9 @@ public class LeanplumInbox {
   static Set<String> downloadedImageUrls;
   static boolean isInboxImagePrefetchingEnabled = true;
 
-  private int unreadCount;
-  private Map<String, LeanplumInboxMessage> messages;
-  private boolean didLoad = false;
+  private volatile int unreadCount;
+  private volatile Map<String, LeanplumInboxMessage> messages;
+  private volatile boolean didLoad = false;
 
   private final List<InboxChangedCallback> changedCallbacks;
   private final List<InboxSyncedCallback> syncedCallbacks;
