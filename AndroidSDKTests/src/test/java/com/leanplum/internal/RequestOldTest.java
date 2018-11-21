@@ -156,7 +156,6 @@ public class RequestOldTest extends TestCase {
     request.sendEventually();
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
-    Log.d("unsentRequests are ", unsentRequests);
     assertEquals(1, unsentRequests.size());
     RequestOld.deleteSentRequests(unsentRequests.size());
 
