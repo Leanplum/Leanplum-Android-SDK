@@ -24,6 +24,7 @@ import android.app.Application;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
+import com.leanplum._whitebox.utilities.SynchronousExecutor;
 
 import junit.framework.TestCase;
 
@@ -34,6 +35,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -69,6 +71,9 @@ public class RequestOldTest extends TestCase {
     Application context = RuntimeEnvironment.application;
     assertNotNull(context);
     Leanplum.setApplicationContext(context);
+
+    // Mock this so async things run synchronously
+    ReflectionHelpers.setStaticField(Util.class, "singleThreadExecutor", new SynchronousExecutor());
   }
 
   /** Test that request include a generated request id **/
