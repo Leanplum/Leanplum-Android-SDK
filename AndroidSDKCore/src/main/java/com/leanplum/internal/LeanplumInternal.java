@@ -300,6 +300,36 @@ public class LeanplumInternal {
     }
   }
 
+  public static void trackGeofence(final String event, double value, String info,
+                           Map<String, ?> params, Map<String, String> args) {
+    if (Constants.isNoop()) {
+      return;
+    }
+
+    try {
+      final Map<String, Object> requestParams = new HashMap<>();
+      if (args != null) {
+        requestParams.putAll(args);
+      }
+      requestParams.put(Constants.Params.VALUE, Double.toString(value));
+      requestParams.put(Constants.Params.INFO, info);
+      if (event != null) {
+        requestParams.put(Constants.Params.EVENT, event);
+      }
+      if (params != null) {
+        params = validateAttributes(params, "params", false);
+        requestParams.put(Constants.Params.PARAMS, JsonConverter.toJson(params));
+      }
+      if (!inForeground || LeanplumActivityHelper.isActivityPaused()) {
+        requestParams.put("allowOffline", Boolean.TRUE.toString());
+      }
+
+      RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).send();
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+  }
+
   /**
    * Performs the track operation once Leanplum has started. If Leanplum is already started, perform
    * the track immediately.
