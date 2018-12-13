@@ -311,9 +311,13 @@ class LocationManagerImplementation implements
             if (currentStatus != null && lastStatus != null) {
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "enterRegion");
+                Map<String, Geofence> trackParams = new HashMap<>();
+                trackParams.put("geofence", geofence);
+                Leanplum.trackGeofence("enterRegion", geofence.toString());
               }
               if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "exitRegion");
+                Leanplum.trackGeofence("exitRegion", geofence.toString());
               }
             }
           }
@@ -350,10 +354,12 @@ class LocationManagerImplementation implements
         if (GeofenceStatus.shouldTriggerEnteredGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
           maybePerformActions(geofence, "enterRegion");
+          Leanplum.trackGeofence("enterRegion", geofence.toString());
         }
         if (GeofenceStatus.shouldTriggerExitedGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
           maybePerformActions(geofence, "exitRegion");
+          Leanplum.trackGeofence("exitRegion", geofence.toString());
         }
       }
       lastKnownState.put(geofence.getRequestId(),

@@ -1857,6 +1857,11 @@ public class Leanplum {
    * @param params Key-value pairs with metrics or data associated with the state. Parameters can be
    * strings or numbers. You can use up to 200 different parameter names in your app.
    */
+
+  public static void trackGeofence(String event, Map<String, ?> params) {
+    LeanplumInternal.trackGeofence(event, 0.0, "", params, null);
+  }
+
   public static void advanceTo(final String state, String info, final Map<String, ?> params) {
     if (Constants.isNoop()) {
       return;
