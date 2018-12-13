@@ -297,7 +297,8 @@ class LocationManagerImplementation implements
           toBeTrackedGeofences, getTransitionPendingIntent());
       for (Geofence geofence : toBeTrackedGeofences) {
         if (geofence != null && geofence.getRequestId() != null) {
-          trackedGeofenceIds.add(geofence.getRequestId());
+          String geofenceId = geofence.getRequestId();
+          trackedGeofenceIds.add(geofenceId);
           //TODO: stateBeforeBackground doesn't get persisted.
           // If the app goes to the background and terminates, stateBeforeBackground will be reset.
           if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null
@@ -306,16 +307,16 @@ class LocationManagerImplementation implements
               // TODO(aleks): This would not work for in-app messages if we have the same geolocation
               // triggering it, as a locally triggered push notification.
               && !backgroundGeofences.contains(geofence)) {
-            Number lastStatus = (Number) stateBeforeBackground.get(geofence.getRequestId());
-            Number currentStatus = (Number) lastKnownState.get(geofence.getRequestId());
+            Number lastStatus = (Number) stateBeforeBackground.get(geofenceId);
+            Number currentStatus = (Number) lastKnownState.get(geofenceId);
             if (currentStatus != null && lastStatus != null) {
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "enterRegion");
-                Leanplum.trackGeofence("enterRegion", geofence.getRequestId());
+                Leanplum.trackGeofence("enter_region", geofenceId);
               }
               if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "exitRegion");
-                Leanplum.trackGeofence("exitRegion", geofence.getRequestId());
+                Leanplum.trackGeofence("exit_region", geofenceId);
               }
             }
           }
@@ -338,26 +339,27 @@ class LocationManagerImplementation implements
 
   void updateStatusForGeofences(List<Geofence> geofences, int transitionType) {
     for (Geofence geofence : geofences) {
-      if (!trackedGeofenceIds.contains(geofence.getRequestId()) &&
+      String geofenceId = geofence.getRequestId();
+      if (!trackedGeofenceIds.contains(geofenceId) &&
           geofence.getRequestId().startsWith("__leanplum")) {
         ArrayList<String> geofencesToRemove = new ArrayList<>();
-        geofencesToRemove.add(geofence.getRequestId());
+        geofencesToRemove.add(geofenceId);
         if (googleApiClient != null && googleApiClient.isConnected()) {
           LocationServices.GeofencingApi.removeGeofences(googleApiClient, geofencesToRemove);
         }
         continue;
       }
-      Number currentStatus = (Number) lastKnownState.get(geofence.getRequestId());
+      Number currentStatus = (Number) lastKnownState.get(geofenceId);
       if (currentStatus != null) {
         if (GeofenceStatus.shouldTriggerEnteredGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
           maybePerformActions(geofence, "enterRegion");
-          Leanplum.trackGeofence("enterRegion", geofence.getRequestId());
+          Leanplum.trackGeofence("enter_region", geofenceId);
         }
         if (GeofenceStatus.shouldTriggerExitedGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
           maybePerformActions(geofence, "exitRegion");
-          Leanplum.trackGeofence("exitRegion", geofence.getRequestId());
+          Leanplum.trackGeofence("exit_region", geofenceId);
         }
       }
       lastKnownState.put(geofence.getRequestId(),
