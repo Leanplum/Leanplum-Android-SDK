@@ -270,7 +270,8 @@ public class LeanplumInternal {
     }
   }
 
-  private static Map<String, Object> makeTrackArgs(final String event, double value, String info, Map<String, ?> params, Map<String, String> args) {
+  private static Map<String, Object> makeTrackArgs(final String event, double value, String info,
+      Map<String, ?> params, Map<String, String> args) {
     final Map<String, Object> requestParams = new HashMap<>();
     if (args != null) {
       requestParams.putAll(args);
@@ -305,7 +306,7 @@ public class LeanplumInternal {
   }
 
   public static void trackGeofence(final String event, double value, String info,
-                           Map<String, ?> params, Map<String, String> args) {
+      Map<String, ?> params, Map<String, String> args) {
     if (Constants.isNoop()) {
       return;
     }

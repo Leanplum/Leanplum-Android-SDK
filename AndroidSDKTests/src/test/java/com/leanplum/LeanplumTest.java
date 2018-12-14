@@ -684,6 +684,21 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     Leanplum.trackPurchase(eventName, 1.99, "USD", new HashMap<String, Objects>());
+
+    // Validate request for track geofence with event name and info
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.TRACK_GEOFENCE, apiMethod);
+
+        String requestEventName = (String) params.get("event");
+        String requestEventInfo = (String) params.get("info");
+
+        assertEquals(eventName, requestEventName);
+        assertEquals(String.valueOf(eventInfo), requestEventInfo);
+      }
+    });
+    Leanplum.trackGeofence(eventName, eventInfo);
   }
 
   @Test

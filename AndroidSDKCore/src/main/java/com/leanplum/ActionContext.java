@@ -579,22 +579,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     }
   }
 
-  public void trackGeofence(String event, double value, Map<String, Object> params) {
-    try {
-      if (!Constants.isNoop() && this.messageId != null) {
-        if (TextUtils.isEmpty(event)) {
-          Log.e("trackGeofence - Invalid event parameter provided.");
-          return;
-        }
-        Map<String, String> requestArgs = new HashMap<>();
-        requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
-        LeanplumInternal.trackGeofence(event, value, null, params, requestArgs);
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
-    }
-  }
-
   public void muteFutureMessagesOfSameKind() {
     try {
       ActionManager.getInstance().muteFutureMessagesOfKind(messageId);
