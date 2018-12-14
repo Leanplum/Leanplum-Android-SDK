@@ -341,7 +341,7 @@ class LocationManagerImplementation implements
     for (Geofence geofence : geofences) {
       String geofenceId = geofence.getRequestId();
       if (!trackedGeofenceIds.contains(geofenceId) &&
-          geofence.getRequestId().startsWith("__leanplum")) {
+          geofenceId.startsWith("__leanplum")) {
         ArrayList<String> geofencesToRemove = new ArrayList<>();
         geofencesToRemove.add(geofenceId);
         if (googleApiClient != null && googleApiClient.isConnected()) {
@@ -362,7 +362,7 @@ class LocationManagerImplementation implements
           Leanplum.trackGeofence("exit_region", geofenceId);
         }
       }
-      lastKnownState.put(geofence.getRequestId(),
+      lastKnownState.put(geofenceId,
           getStatusForTransitionType(transitionType));
     }
     saveLastKnownRegionState();
