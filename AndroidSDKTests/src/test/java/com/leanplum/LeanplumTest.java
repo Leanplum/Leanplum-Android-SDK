@@ -45,13 +45,13 @@ import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
+import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 
@@ -82,7 +82,6 @@ import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -684,6 +683,21 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     Leanplum.trackPurchase(eventName, 1.99, "USD", new HashMap<String, Objects>());
+
+    // Validate request for track geofence with event name and info
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.TRACK_GEOFENCE, apiMethod);
+
+        String requestEventName = (String) params.get("event");
+        String requestEventInfo = (String) params.get("info");
+
+        assertEquals(GeofenceEventType.ENTER_REGION.getName(), requestEventName);
+        assertEquals(String.valueOf(eventInfo), requestEventInfo);
+      }
+    });
+    Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, eventInfo);
   }
 
   @Test
