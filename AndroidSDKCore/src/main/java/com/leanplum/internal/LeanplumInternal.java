@@ -34,6 +34,7 @@ import com.leanplum.LeanplumLocationAccuracyType;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.models.GeofenceEventName;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -305,14 +306,14 @@ public class LeanplumInternal {
     }
   }
 
-  public static void trackGeofence(final String event, double value, String info,
+  public static void trackGeofence(final GeofenceEventName event, double value, String info,
       Map<String, ?> params, Map<String, String> args) {
     if (Constants.isNoop()) {
       return;
     }
 
     try {
-      final Map<String, Object> requestParams = makeTrackArgs(event, value, info, params, args);
+      final Map<String, Object> requestParams = makeTrackArgs(event.getName(), value, info, params, args);
       RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).send();
     } catch (Throwable t) {
       Util.handleException(t);

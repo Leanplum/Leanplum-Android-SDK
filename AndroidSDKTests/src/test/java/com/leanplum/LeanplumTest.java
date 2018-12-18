@@ -45,6 +45,7 @@ import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
+import com.leanplum.models.GeofenceEventName;
 import com.leanplum.models.MessageArchiveData;
 
 import org.json.JSONArray;
@@ -694,11 +695,11 @@ public class LeanplumTest extends AbstractTest {
         String requestEventName = (String) params.get("event");
         String requestEventInfo = (String) params.get("info");
 
-        assertEquals(eventName, requestEventName);
+        assertEquals(GeofenceEventName.ENTER_REGION.getName(), requestEventName);
         assertEquals(String.valueOf(eventInfo), requestEventInfo);
       }
     });
-    Leanplum.trackGeofence(eventName, eventInfo);
+    Leanplum.trackGeofence(GeofenceEventName.ENTER_REGION, eventInfo);
   }
 
   @Test
