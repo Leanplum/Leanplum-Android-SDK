@@ -25,7 +25,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Message;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
@@ -54,7 +53,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
-import com.leanplum.models.GeofenceEventName;
+import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -1859,7 +1858,7 @@ public class Leanplum {
    * strings or numbers. You can use up to 200 different parameter names in your app.
    */
 
-  public static void trackGeofence(GeofenceEventName event, String info) {
+  public static void trackGeofence(GeofenceEventType event, String info) {
     if (featureFlagManager().isFeatureFlagEnabled("track_geofence")) {
       LeanplumInternal.trackGeofence(event, 0.0, info, null, null);
       countAggregator().incrementCount("track_geofence");

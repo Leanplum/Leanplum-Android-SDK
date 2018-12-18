@@ -1,12 +1,12 @@
 package com.leanplum.models;
 
-public enum GeofenceEventName {
+public enum GeofenceEventType {
   ENTER_REGION("enter_region"),
   EXIT_REGION("exit_region");
 
   private final String name;
 
-  GeofenceEventName(String name) {
+  GeofenceEventType(String name) {
     this.name = name;
   }
 

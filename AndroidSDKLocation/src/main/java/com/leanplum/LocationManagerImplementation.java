@@ -36,7 +36,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.Geofence.Builder;
-import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -46,7 +45,7 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
-import com.leanplum.models.GeofenceEventName;
+import com.leanplum.models.GeofenceEventType;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.util.ArrayList;
@@ -313,11 +312,11 @@ class LocationManagerImplementation implements
             if (currentStatus != null && lastStatus != null) {
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "enterRegion");
-                Leanplum.trackGeofence(GeofenceEventName.ENTER_REGION, geofenceId);
+                Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
               }
               if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "exitRegion");
-                Leanplum.trackGeofence(GeofenceEventName.EXIT_REGION, geofenceId);
+                Leanplum.trackGeofence(GeofenceEventType.EXIT_REGION, geofenceId);
               }
             }
           }
@@ -355,12 +354,12 @@ class LocationManagerImplementation implements
         if (GeofenceStatus.shouldTriggerEnteredGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
           maybePerformActions(geofence, "enterRegion");
-          Leanplum.trackGeofence(GeofenceEventName.ENTER_REGION, geofenceId);
+          Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
         }
         if (GeofenceStatus.shouldTriggerExitedGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
           maybePerformActions(geofence, "exitRegion");
-          Leanplum.trackGeofence(GeofenceEventName.EXIT_REGION, geofenceId);
+          Leanplum.trackGeofence(GeofenceEventType.EXIT_REGION, geofenceId);
         }
       }
       lastKnownState.put(geofenceId,

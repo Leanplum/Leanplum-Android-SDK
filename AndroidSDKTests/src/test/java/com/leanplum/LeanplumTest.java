@@ -45,14 +45,13 @@ import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
-import com.leanplum.models.GeofenceEventName;
+import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 
@@ -83,7 +82,6 @@ import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -695,11 +693,11 @@ public class LeanplumTest extends AbstractTest {
         String requestEventName = (String) params.get("event");
         String requestEventInfo = (String) params.get("info");
 
-        assertEquals(GeofenceEventName.ENTER_REGION.getName(), requestEventName);
+        assertEquals(GeofenceEventType.ENTER_REGION.getName(), requestEventName);
         assertEquals(String.valueOf(eventInfo), requestEventInfo);
       }
     });
-    Leanplum.trackGeofence(GeofenceEventName.ENTER_REGION, eventInfo);
+    Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, eventInfo);
   }
 
   @Test
