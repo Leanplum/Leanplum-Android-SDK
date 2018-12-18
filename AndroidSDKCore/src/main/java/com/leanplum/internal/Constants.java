@@ -116,6 +116,7 @@ public class Constants {
     public static final String START = "start";
     public static final String STOP = "stop";
     public static final String TRACK = "track";
+    public static final String TRACK_GEOFENCE = "trackGeofence";
     public static final String UPLOAD_FILE = "uploadFile";
   }
 

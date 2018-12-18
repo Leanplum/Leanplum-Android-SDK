@@ -34,6 +34,7 @@ import com.leanplum.LeanplumLocationAccuracyType;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.models.GeofenceEventType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -270,6 +271,27 @@ public class LeanplumInternal {
     }
   }
 
+  private static Map<String, Object> makeTrackArgs(final String event, double value, String info,
+      Map<String, ?> params, Map<String, String> args) {
+    final Map<String, Object> requestParams = new HashMap<>();
+    if (args != null) {
+      requestParams.putAll(args);
+    }
+    requestParams.put(Constants.Params.VALUE, Double.toString(value));
+    requestParams.put(Constants.Params.INFO, info);
+    if (event != null) {
+      requestParams.put(Constants.Params.EVENT, event);
+    }
+    if (params != null) {
+      params = validateAttributes(params, "params", false);
+      requestParams.put(Constants.Params.PARAMS, JsonConverter.toJson(params));
+    }
+    if (!inForeground || LeanplumActivityHelper.isActivityPaused()) {
+      requestParams.put("allowOffline", Boolean.TRUE.toString());
+    }
+    return requestParams;
+  }
+
   public static void track(final String event, double value, String info,
       Map<String, ?> params, Map<String, String> args) {
     if (Constants.isNoop()) {
@@ -277,24 +299,22 @@ public class LeanplumInternal {
     }
 
     try {
-      final Map<String, Object> requestParams = new HashMap<>();
-      if (args != null) {
-        requestParams.putAll(args);
-      }
-      requestParams.put(Constants.Params.VALUE, Double.toString(value));
-      requestParams.put(Constants.Params.INFO, info);
-      if (event != null) {
-        requestParams.put(Constants.Params.EVENT, event);
-      }
-      if (params != null) {
-        params = validateAttributes(params, "params", false);
-        requestParams.put(Constants.Params.PARAMS, JsonConverter.toJson(params));
-      }
-      if (!inForeground || LeanplumActivityHelper.isActivityPaused()) {
-        requestParams.put("allowOffline", Boolean.TRUE.toString());
-      }
-
+      final Map<String, Object> requestParams = makeTrackArgs(event, value, info, params, args);
       trackInternalWhenStarted(event, params, requestParams);
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+  }
+
+  public static void trackGeofence(final GeofenceEventType event, double value, String info,
+      Map<String, ?> params, Map<String, String> args) {
+    if (Constants.isNoop()) {
+      return;
+    }
+
+    try {
+      final Map<String, Object> requestParams = makeTrackArgs(event.getName(), value, info, params, args);
+      RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).send();
     } catch (Throwable t) {
       Util.handleException(t);
     }
