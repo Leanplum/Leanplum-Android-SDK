@@ -344,20 +344,8 @@ public class LeanplumPushService {
     }
 
     int defaultIconId = 0;
-    // If client will start to use adaptive icon, there can be a problem
-    // https://issuetracker.google.com/issues/68716460 that can cause a factory reset of the device
-    // on Android Version 26.
     if (!LeanplumNotificationHelper.isApplicationIconValid(context)) {
       defaultIconId = LeanplumNotificationHelper.getDefaultPushNotificationIconResourceId(context);
-      if (defaultIconId == 0) {
-        Log.e("You are using adaptive icons without having a fallback icon for push" +
-            " notifications on Android Oreo. \n" + "This can cause a factory reset of the device" +
-            " on Android Version 26. Please add regular icon with name " +
-            "\"leanplum_default_push_icon.png\" to your \"drawable\" folder.\n" + "Google issue: " +
-            "https://issuetracker.google.com/issues/68716460"
-        );
-        return;
-      }
     }
 
     final NotificationManager notificationManager = (NotificationManager)
