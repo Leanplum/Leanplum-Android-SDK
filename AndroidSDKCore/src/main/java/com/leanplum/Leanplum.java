@@ -23,6 +23,7 @@ package com.leanplum;
 
 import android.app.Activity;
 import android.content.Context;
+import android.drm.DrmStore;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.support.annotation.VisibleForTesting;
@@ -1337,22 +1338,41 @@ public class Leanplum {
     ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
     synchronized (messageDisplayedHandlers) {
       for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
-        String messageID = actionContext.getMessageId();
-        String messageBody = "";
-        try {
-          messageBody = (String) actionContext.getArgs().get("Message");
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-        String recipientUserID = Leanplum.getUserId();
-        Date deliveryDateTime = new Date();
-
-        MessageArchiveData messageArchiveData = new MessageArchiveData(messageID,
-                messageBody, recipientUserID, deliveryDateTime);
+        MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
         callback.setMessageArchiveData(messageArchiveData);
         OsHandler.getInstance().post(callback);
       }
     }
+  }
+
+  private static MessageArchiveData messageArchiveDataFromContext(ActionContext actionContext) {
+    String messageID = actionContext.getMessageId();
+    String messageBody = "";
+    try {
+      messageBody = messageBodyFromContext(actionContext);
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    String recipientUserID = Leanplum.getUserId();
+    Date deliveryDateTime = new Date();
+
+    return new MessageArchiveData(messageID, messageBody, recipientUserID, deliveryDateTime);
+  }
+
+  private static String messageBodyFromContext(ActionContext actionContext) {
+    Object messageObject =  actionContext.getArgs().get("Message");
+    if (messageObject.getClass().isInstance(String.class)) {
+      return (String) messageObject;
+    } else {
+      HashMap<String, String> messageDict = (HashMap<String, String>) messageObject;
+      if (messageDict.get("Text") != null &&
+              messageDict.get("Text").getClass().isInstance(String.class)) {
+        return messageDict.get("Text");
+      }
+      if (messageDict.get("Text value") != null &&
+              messageDict.get("Text value").getClass().isInstance(String.class)) {
+        return messageDict.get("Text value");
+      }
   }
 
   /**
