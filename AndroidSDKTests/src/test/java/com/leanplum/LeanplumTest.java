@@ -1517,10 +1517,10 @@ public class LeanplumTest extends AbstractTest {
   }
 
   /**
-   * Test trigger message displayed calls callback
+   * Test messageBody gets correct body from context for string.
    */
   @Test
-  public void testMessageBodyFromContextGetsCorrectBody() {
+  public void testMessageBodyFromContextGetsCorrectBodyForString() {
     final String messageID = "testMessageID";
     final String messageBody = "testMessageBody";
     final String userID = "testUserID";
@@ -1533,4 +1533,49 @@ public class LeanplumTest extends AbstractTest {
     String body = Leanplum.messageBodyFromContext(testActionContext);
     assertEquals(body, messageBody);
   }
+
+  /**
+   * Test messageBody gets correct body from context for key text.
+   */
+  @Test
+  public void testMessageBodyFromContextGetsCorrectBodyForKeyText() {
+    final String messageID = "testMessageID";
+    final String messageBody = "testMessageBody";
+    final String userID = "testUserID";
+
+    Map<String, Object> messageObject = new HashMap<>();
+    messageObject.put("Text", messageBody);
+
+    Map<String, Object> args = new HashMap<>();
+    args.put("Message", messageObject);
+
+    final ActionContext testActionContext = new ActionContext("test", args, messageID);
+
+    when(Leanplum.getUserId()).thenReturn(userID);
+    String body = Leanplum.messageBodyFromContext(testActionContext);
+    assertEquals(body, messageBody);
+  }
+
+  /**
+   * Test messageBody gets correct body from context for key text value.
+   */
+  @Test
+  public void testMessageBodyFromContextGetsCorrectBodyForKeyTextValue() {
+    final String messageID = "testMessageID";
+    final String messageBody = "testMessageBody";
+    final String userID = "testUserID";
+
+    Map<String, Object> messageObject = new HashMap<>();
+    messageObject.put("Text value", messageBody);
+
+    Map<String, Object> args = new HashMap<>();
+    args.put("Message", messageObject);
+
+    final ActionContext testActionContext = new ActionContext("test", args, messageID);
+
+    when(Leanplum.getUserId()).thenReturn(userID);
+    String body = Leanplum.messageBodyFromContext(testActionContext);
+    assertEquals(body, messageBody);
+  }
+
 }

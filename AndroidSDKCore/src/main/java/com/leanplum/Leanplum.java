@@ -1362,16 +1362,16 @@ public class Leanplum {
   @VisibleForTesting
   public static String messageBodyFromContext(ActionContext actionContext) {
     Object messageObject =  actionContext.getArgs().get("Message");
-    if (messageObject.getClass().isInstance(String.class)) {
+    if (messageObject instanceof String) {
       return (String) messageObject;
     } else {
       HashMap<String, String> messageDict = (HashMap<String, String>) messageObject;
       if (messageDict.get("Text") != null &&
-              messageDict.get("Text").getClass().isInstance(String.class)) {
+              messageDict.get("Text") instanceof String) {
         return messageDict.get("Text");
       }
       if (messageDict.get("Text value") != null &&
-              messageDict.get("Text value").getClass().isInstance(String.class)) {
+              messageDict.get("Text value") instanceof String) {
         return messageDict.get("Text value");
       }
     }
