@@ -1359,7 +1359,8 @@ public class Leanplum {
     return new MessageArchiveData(messageID, messageBody, recipientUserID, deliveryDateTime);
   }
 
-  private static String messageBodyFromContext(ActionContext actionContext) {
+  @VisibleForTesting
+  public static String messageBodyFromContext(ActionContext actionContext) {
     Object messageObject =  actionContext.getArgs().get("Message");
     if (messageObject.getClass().isInstance(String.class)) {
       return (String) messageObject;
@@ -1373,6 +1374,8 @@ public class Leanplum {
               messageDict.get("Text value").getClass().isInstance(String.class)) {
         return messageDict.get("Text value");
       }
+    }
+    return null;
   }
 
   /**
