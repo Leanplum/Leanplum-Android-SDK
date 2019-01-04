@@ -287,7 +287,7 @@ class LocationManagerImplementation implements
         }
       }
     }
-    List<Geofence> toBeTrackedGeofences = getToBeTrackedGeofences();
+    List<Geofence> toBeTrackedGeofences = allGeofences;
     if (trackedGeofenceIds.size() > 0) {
       LocationServices.GeofencingApi.removeGeofences(googleApiClient, trackedGeofenceIds);
     }
