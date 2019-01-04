@@ -90,6 +90,7 @@ class LocationManagerImplementation implements
   private Map<String, Object> stateBeforeBackground;
   private List<Geofence> allGeofences;
   private List<Geofence> backgroundGeofences;
+  private List<Geofence> foregroundGeofences;
   private List<String> trackedGeofenceIds;
   private boolean isInBackground;
   private boolean isSendingLocation;
@@ -131,6 +132,7 @@ class LocationManagerImplementation implements
     }
 
     allGeofences = new ArrayList<>();
+    foregroundGeofences = new ArrayList<>();
     backgroundGeofences = new ArrayList<>();
     for (Map.Entry<String, Object> entry : regionData.entrySet()) {
       String regionName = entry.getKey();
@@ -142,6 +144,8 @@ class LocationManagerImplementation implements
         if (geofence != null) {
           if (isBackground) {
             backgroundGeofences.add(geofence);
+          } else {
+            foregroundGeofences.add(geofence);
           }
           allGeofences.add(geofence);
           if (lastKnownState != null && geofence.getRequestId() != null
@@ -304,11 +308,8 @@ class LocationManagerImplementation implements
           if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null) {
             Number lastStatus = (Number) stateBeforeBackground.get(geofenceId);
             Number currentStatus = (Number) lastKnownState.get(geofenceId);
-            if (currentStatus != null && lastStatus != null) {
-              // TODO: this should never trigger background actions (e.g. push notifications)
-              // should only trigger foreground actions, proposal: maybe add argument to maybePerformActions
-              // another version of maybePerformActions, pass false, original pass true
-
+            if (currentStatus != null && lastStatus != null && foregroundGeofences.contains(geofence)) {
+              // Only foreground geofences should be triggered here
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "enterRegion");
                 Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
