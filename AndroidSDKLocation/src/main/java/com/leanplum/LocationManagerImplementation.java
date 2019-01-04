@@ -301,15 +301,14 @@ class LocationManagerImplementation implements
           trackedGeofenceIds.add(geofenceId);
           //TODO: stateBeforeBackground doesn't get persisted.
           // If the app goes to the background and terminates, stateBeforeBackground will be reset.
-          if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null
-              // This is triggered only for in-app messages, since backgroundGeofences are only for
-              // pushes.
-              // TODO(aleks): This would not work for in-app messages if we have the same geolocation
-              // triggering it, as a locally triggered push notification.
-              ) {
+          if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null) {
             Number lastStatus = (Number) stateBeforeBackground.get(geofenceId);
             Number currentStatus = (Number) lastKnownState.get(geofenceId);
             if (currentStatus != null && lastStatus != null) {
+              // TODO: this should never trigger background actions (e.g. push notifications)
+              // should only trigger foreground actions, proposal: maybe add argument to maybePerformActions
+              // another version of maybePerformActions, pass false, original pass true
+
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
                 maybePerformActions(geofence, "enterRegion");
                 Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
