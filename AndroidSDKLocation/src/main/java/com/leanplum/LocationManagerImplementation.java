@@ -306,7 +306,7 @@ class LocationManagerImplementation implements
               // pushes.
               // TODO(aleks): This would not work for in-app messages if we have the same geolocation
               // triggering it, as a locally triggered push notification.
-              && !backgroundGeofences.contains(geofence)) {
+              ) {
             Number lastStatus = (Number) stateBeforeBackground.get(geofenceId);
             Number currentStatus = (Number) lastKnownState.get(geofenceId);
             if (currentStatus != null && lastStatus != null) {
