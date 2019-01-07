@@ -90,7 +90,6 @@ class LocationManagerImplementation implements
   private Map<String, Object> stateBeforeBackground;
   private List<Geofence> allGeofences;
   private List<Geofence> backgroundGeofences;
-  private List<Geofence> foregroundGeofences;
   private List<String> trackedGeofenceIds;
   private boolean isInBackground;
   private boolean isSendingLocation;
@@ -132,7 +131,6 @@ class LocationManagerImplementation implements
     }
 
     allGeofences = new ArrayList<>();
-    foregroundGeofences = new ArrayList<>();
     backgroundGeofences = new ArrayList<>();
     for (Map.Entry<String, Object> entry : regionData.entrySet()) {
       String regionName = entry.getKey();
@@ -144,8 +142,6 @@ class LocationManagerImplementation implements
         if (geofence != null) {
           if (isBackground) {
             backgroundGeofences.add(geofence);
-          } else {
-            foregroundGeofences.add(geofence);
           }
           allGeofences.add(geofence);
           if (lastKnownState != null && geofence.getRequestId() != null
@@ -308,14 +304,14 @@ class LocationManagerImplementation implements
           if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null) {
             Number lastStatus = (Number) stateBeforeBackground.get(geofenceId);
             Number currentStatus = (Number) lastKnownState.get(geofenceId);
-            if (currentStatus != null && lastStatus != null && foregroundGeofences.contains(geofence)) {
+            if (currentStatus != null && lastStatus != null) {
               // Only foreground geofences should be triggered here
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
-                maybePerformActions(geofence, "enterRegion");
+                maybePerformActions(geofence, "enterRegiron", true);
                 Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
               }
               if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
-                maybePerformActions(geofence, "exitRegion");
+                maybePerformActions(geofence, "exitRegion", true);
                 Leanplum.trackGeofence(GeofenceEventType.EXIT_REGION, geofenceId);
               }
             }
@@ -353,12 +349,12 @@ class LocationManagerImplementation implements
       if (currentStatus != null) {
         if (GeofenceStatus.shouldTriggerEnteredGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
-          maybePerformActions(geofence, "enterRegion");
+          maybePerformActions(geofence, "enterRegion", false);
           Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
         }
         if (GeofenceStatus.shouldTriggerExitedGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
-          maybePerformActions(geofence, "exitRegion");
+          maybePerformActions(geofence, "exitRegion", false);
           Leanplum.trackGeofence(GeofenceEventType.EXIT_REGION, geofenceId);
         }
       }
@@ -368,12 +364,14 @@ class LocationManagerImplementation implements
     saveLastKnownRegionState();
   }
 
-  private void maybePerformActions(Geofence geofence, String action) {
+  private void maybePerformActions(Geofence geofence, String action, boolean foregroundActionsOnly) {
     String regionName = getRegionName(geofence.getRequestId());
     if (regionName != null) {
       int filter = Util.isInBackground() ?
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_BACKGROUND :
-          LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL;
+          (foregroundActionsOnly ?
+              LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_FOREGROUND :
+              LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL);
       LeanplumInternal.maybePerformActions(action, regionName, filter, null, null);
     }
   }
