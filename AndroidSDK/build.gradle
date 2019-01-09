@@ -18,7 +18,6 @@ dependencies {
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
 //    publishNonDefault true
 
     defaultConfig {
