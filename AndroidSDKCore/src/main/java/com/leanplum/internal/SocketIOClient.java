@@ -74,7 +74,7 @@ class SocketIOClient {
   private static String userAgentString() {
     String appName = (Leanplum.getContext() != null) ?
         Util.getApplicationName(Leanplum.getContext()) + "/" + Util.getVersionName() : "websocket";
-    return appName + "(" + Request.appId() + "; " + Constants.CLIENT + "; "
+    return appName + "(" + RequestOld.appId() + "; " + Constants.CLIENT + "; "
         + Constants.LEANPLUM_VERSION + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER + ")";
   }
 

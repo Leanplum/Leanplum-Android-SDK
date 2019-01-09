@@ -65,7 +65,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
     "org.powermock.*",
     "android.*"
 })
-@PrepareForTest({Leanplum.class, Util.class, SocketIOClient.class, Request.class})
+@PrepareForTest({Leanplum.class, Util.class, SocketIOClient.class, RequestOld.class})
 public class SocketIOClientTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
@@ -86,7 +86,7 @@ public class SocketIOClientTest {
   @Test
   public void testUserAgentString() throws Exception {
     mockStatic(Util.class);
-    mockStatic(Request.class);
+    mockStatic(RequestOld.class);
     spy(Leanplum.class);
     SocketIOClient socketIOClient = new SocketIOClient(new URI(""), new SocketIOClient.Handler() {
       @Override
@@ -114,7 +114,7 @@ public class SocketIOClientTest {
     assertNotNull(userAgentStringMethod);
     Constants.LEANPLUM_VERSION = "1";
     Constants.CLIENT = "android";
-    when(Request.class, "appId").thenReturn("app_id");
+    when(RequestOld.class, "appId").thenReturn("app_id");
     when(Util.class, "getVersionName").thenReturn("app_version");
     when(Util.class, "getApplicationName", Matchers.any(Context.class)).thenReturn("app_name");
 

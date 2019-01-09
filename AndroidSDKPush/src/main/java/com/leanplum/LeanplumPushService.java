@@ -22,13 +22,11 @@
 package com.leanplum;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -45,7 +43,7 @@ import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
@@ -54,7 +52,6 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,8 +242,8 @@ public class LeanplumPushService {
             Map<String, Object> params = new HashMap<>();
             params.put(Params.INCLUDE_DEFAULTS, Boolean.toString(false));
             params.put(Params.INCLUDE_MESSAGE_ID, messageId);
-            Request req = Request.post(Methods.GET_VARS, params);
-            req.onResponse(new Request.ResponseCallback() {
+            RequestOld req = RequestOld.post(Methods.GET_VARS, params);
+            req.onResponse(new RequestOld.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 try {
@@ -279,7 +276,7 @@ public class LeanplumPushService {
                 }
               }
             });
-            req.onError(new Request.ErrorCallback() {
+            req.onError(new RequestOld.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 onComplete.variablesChanged();
@@ -334,6 +331,8 @@ public class LeanplumPushService {
     // Leanplum.track("Displayed", 0.0, null, null, requestArgs);
 
     showNotification(context, message);
+
+    Leanplum.countAggregator().incrementCount("handle_notification");
   }
 
   /**
@@ -345,20 +344,8 @@ public class LeanplumPushService {
     }
 
     int defaultIconId = 0;
-    // If client will start to use adaptive icon, there can be a problem
-    // https://issuetracker.google.com/issues/68716460 that can cause a factory reset of the device
-    // on Android Version 26.
     if (!LeanplumNotificationHelper.isApplicationIconValid(context)) {
       defaultIconId = LeanplumNotificationHelper.getDefaultPushNotificationIconResourceId(context);
-      if (defaultIconId == 0) {
-        Log.e("You are using adaptive icons without having a fallback icon for push" +
-            " notifications on Android Oreo. \n" + "This can cause a factory reset of the device" +
-            " on Android Version 26. Please add regular icon with name " +
-            "\"leanplum_default_push_icon.png\" to your \"drawable\" folder.\n" + "Google issue: " +
-            "https://issuetracker.google.com/issues/68716460"
-        );
-        return;
-      }
     }
 
     final NotificationManager notificationManager = (NotificationManager)
@@ -476,6 +463,7 @@ public class LeanplumPushService {
       Log.e("Unable to show push notification.", t);
       Util.handleException(t);
     }
+    Leanplum.countAggregator().incrementCount("show_with_title");
   }
 
   static void openNotification(Context context, Intent intent) {
@@ -786,7 +774,7 @@ public class LeanplumPushService {
     if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
-    if (hasAppIDChanged(Request.appId())) {
+    if (hasAppIDChanged(RequestOld.appId())) {
       provider.unregister();
     }
     registerInBackground();
