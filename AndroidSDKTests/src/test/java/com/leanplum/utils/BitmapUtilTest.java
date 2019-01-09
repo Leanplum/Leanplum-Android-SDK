@@ -96,11 +96,11 @@ public class BitmapUtilTest {
   public void getScaledBitmapTest() throws Exception {
     Bitmap bitmap = Bitmap.createBitmap(1000, 400, Bitmap.Config.ARGB_8888);
     assertNotNull(bitmap);
-    when(BitmapUtil.class, "getBitmapFromUrl", "test", 480, 289).thenReturn(bitmap);
+    when(BitmapUtil.class, "getBitmapFromUrl", "test", 320, 193).thenReturn(bitmap);
     Bitmap scaledBitMap = BitmapUtil.getScaledBitmap(context, "test");
     assertNotNull(scaledBitMap);
-    assertEquals(289, scaledBitMap.getHeight());
-    assertEquals(480, scaledBitMap.getWidth());
+    assertEquals(193, scaledBitMap.getHeight());
+    assertEquals(320, scaledBitMap.getWidth());
   }
 
   /**
