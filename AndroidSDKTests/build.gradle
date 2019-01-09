@@ -3,7 +3,6 @@ apply from: "../common-methods.gradle"
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
 
     defaultConfig {
         applicationId "com.leanplum.tests"
@@ -44,7 +43,7 @@ dependencies {
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKGcm')
     implementation project(':AndroidSDKFcm')
-    implementation "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
     implementation 'com.google.android.gms:play-services-gcm:11.6.0'
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 

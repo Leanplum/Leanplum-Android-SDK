@@ -6,7 +6,6 @@ apply from: "../common-methods.gradle"
 android {
 
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
     useLibrary 'org.apache.http.legacy'
 
     publishNonDefault true
@@ -31,8 +30,8 @@ android {
 
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
-    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api 'androidx.legacy:legacy-support-v4:1.0.0'
+    api 'androidx.appcompat:appcompat:1.1.0-alpha01'
 }
 
 task generateJavadoc(type: Javadoc) {
