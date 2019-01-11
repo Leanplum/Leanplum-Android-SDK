@@ -307,7 +307,7 @@ class LocationManagerImplementation implements
             if (currentStatus != null && lastStatus != null) {
               // Only foreground geofences should be triggered here
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
-                maybePerformActions(geofence, "enterRegiron", true);
+                maybePerformActions(geofence, "enterRegion", true);
                 Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
               }
               if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
