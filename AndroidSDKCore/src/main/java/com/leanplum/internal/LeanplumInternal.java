@@ -335,7 +335,7 @@ public class LeanplumInternal {
 
     try {
       final Map<String, Object> requestParams = makeTrackArgs(event.getName(), value, info, params, args);
-      RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).send();
+      RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).sendIfConnected();
     } catch (Throwable t) {
       Util.handleException(t);
     }
