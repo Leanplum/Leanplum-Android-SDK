@@ -701,6 +701,40 @@ public class LeanplumTest extends AbstractTest {
   }
 
   @Test
+  public void testTrackEventsSamePriority() {
+
+    // Setup sdk first.
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    // Setup event values.
+    final String eventName = "pushLocal";
+    // Validate request for track with event name.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.TRACK, apiMethod);
+        String requestEventName = (String) params.get("event");
+        assertEquals(eventName, requestEventName);
+      }
+    });
+
+    // Validate response for event with same priority and countdown
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    Leanplum.start(mContext, new StartCallback() {
+      @Override
+      public void onResponse(boolean success) {
+        //App successfully starts with local notifications with same priority and countdown
+        assertTrue(success);
+      }
+    });
+
+    assertTrue(Leanplum.hasStarted());
+    Leanplum.track(eventName);
+
+  }
+
+  @Test
   public void testAdvance() throws Exception {
     setupSDK(RuntimeEnvironment.application, "/responses/simple_start_response.json");
 
