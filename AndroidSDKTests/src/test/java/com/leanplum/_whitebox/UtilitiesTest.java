@@ -83,7 +83,7 @@ public class UtilitiesTest extends AbstractTest {
   public void mockGetDeviceName() throws Exception {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
-    assertEquals("Unknown roboelectric", Util.getDeviceName());
+    assertEquals("Unknown", Util.getDeviceName());
     doReturn("DeviceName").when(Util.class, "getDeviceName");
     assertEquals("DeviceName", Util.getDeviceName());
   }
@@ -110,7 +110,7 @@ public class UtilitiesTest extends AbstractTest {
   public void testUtilGetDeviceName() throws Exception {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
-    assertEquals("Unknown roboelectric", Util.getDeviceName());
+    assertEquals("Unknown", Util.getDeviceName());
     doReturn("DeviceName").when(Util.class, "getDeviceName");
     assertEquals("DeviceName", Util.getDeviceName());
   }
