@@ -40,5 +40,7 @@ releaseBinaries:
 releasePoms:
 	${DOCKER_RUN} gradle generatePomFileForAarPublication --debug
 
-deploy:
+deployArtifacts:
 	./Tools/deploy.py
+
+deploy: releaseArtifacts deployArtifacts
