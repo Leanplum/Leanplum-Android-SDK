@@ -31,7 +31,7 @@ def buildAndTest() {
         "leanplum/android-sdk-build",
          "-f ./Tools/jenkins/build.dockerfile .")
     buildImage.inside {
-        sh 'make sdk'
+        sh 'make sdk-in-container'
     }
 }
 
