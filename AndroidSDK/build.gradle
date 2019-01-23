@@ -18,10 +18,10 @@ dependencies {
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
-//    publishNonDefault true
+    //    publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
     }
 
