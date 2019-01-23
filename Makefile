@@ -46,4 +46,4 @@ deployArtifacts:
 tagCommit:
 	git tag `cat sdk-version.txt`; git push --tags
 
-deploy: tagCommit releaseArtifacts deployArtifacts
+deploy: releaseArtifacts tagCommit deployArtifacts
