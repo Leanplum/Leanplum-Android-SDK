@@ -11,7 +11,7 @@ RUN apt-get update && \
 VOLUME ["/root/.gradle/"]
 VOLUME ["/root/.android/"]
 
-ARG GRADLE_VERSION=4.10.2
+ARG GRADLE_VERSION=5.1.1
 ARG GRADLE_ZIP=gradle-${GRADLE_VERSION}-bin.zip
 RUN cd /usr/local && \
     curl -L https://services.gradle.org/distributions/${GRADLE_ZIP} -o ${GRADLE_ZIP} && \

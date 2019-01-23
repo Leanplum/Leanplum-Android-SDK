@@ -6,8 +6,8 @@ android {
 
     defaultConfig {
         applicationId "com.leanplum.tests"
-        minSdkVersion 14
         targetSdkVersion COMPILE_SDK_VERSION
+        minSdkVersion MIN_SDK_VERSION
         versionCode 1
         versionName "1.0"
     }

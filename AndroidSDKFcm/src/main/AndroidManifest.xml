@@ -1,7 +1,6 @@
 <manifest package="com.leanplum.fcm"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-sdk android:minSdkVersion="14"/>
     <application>
         <!-- Leanplum FCM Message Handling Service. -->
         <service

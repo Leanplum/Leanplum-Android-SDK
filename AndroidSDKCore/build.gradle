@@ -11,6 +11,7 @@ android {
     publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
 
         def packageIdentifier =  System.getenv('LEANPLUM_PACKAGE_IDENTIFIER') ?: 's'
