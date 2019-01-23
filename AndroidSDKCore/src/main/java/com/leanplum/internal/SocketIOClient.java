@@ -43,8 +43,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
-// Suppressing deprecated apache dependency.
-@SuppressWarnings("deprecation")
 class SocketIOClient {
   interface Handler {
     void onConnect();
@@ -79,15 +77,15 @@ class SocketIOClient {
 
   private static String downloadUriAsString(final String urlString)
       throws IOException {
-    String fullString = "";
+    StringBuilder result = new StringBuilder();
     URL url = new URL(urlString);
     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
     String line;
     while ((line = reader.readLine()) != null) {
-      fullString += line;
+      result.append(line);
     }
     reader.close();
-    return fullString;
+    return result.toString();
   }
 
   private static byte[] readToEndAsArray(InputStream input) throws IOException {
