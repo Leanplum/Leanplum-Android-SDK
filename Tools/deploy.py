@@ -30,7 +30,7 @@ class Package:
             Artifact(
                 "/build/publications/aar/pom-default.xml", "pom"),
             Artifact("/build/outputs/aar/" +
-                     project, "aar"),
+                    project + ".aar", "aar"),
         ]
 
     def validate(self):
