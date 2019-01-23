@@ -94,13 +94,19 @@ public class BitmapUtilTest {
    */
   @Test
   public void getScaledBitmapTest() throws Exception {
-    Bitmap bitmap = Bitmap.createBitmap(1000, 400, Bitmap.Config.ARGB_8888);
-    assertNotNull(bitmap);
-    when(BitmapUtil.class, "getBitmapFromUrl", "test", 480, 289).thenReturn(bitmap);
-    Bitmap scaledBitMap = BitmapUtil.getScaledBitmap(context, "test");
+    int width = 1000;
+    int height = 400;
+    File file = LeanplumTestHelper.createFile(context, "test_file.png", Bitmap.createBitmap(width, height,
+            Bitmap.Config.ARGB_8888));
+
+    String path = "file://" + file;
+
+
+    Bitmap scaledBitMap = BitmapUtil.getScaledBitmap(context, path);
     assertNotNull(scaledBitMap);
-    assertEquals(289, scaledBitMap.getHeight());
-    assertEquals(480, scaledBitMap.getWidth());
+
+    assertTrue(scaledBitMap.getWidth() < width);
+    assertTrue(scaledBitMap.getHeight() < height);
   }
 
   /**

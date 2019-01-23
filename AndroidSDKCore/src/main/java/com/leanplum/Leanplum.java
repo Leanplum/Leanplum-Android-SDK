@@ -23,9 +23,9 @@ package com.leanplum;
 
 import android.app.Activity;
 import android.content.Context;
+import android.drm.DrmStore;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Message;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
@@ -54,6 +54,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -1337,22 +1338,44 @@ public class Leanplum {
     ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
     synchronized (messageDisplayedHandlers) {
       for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
-        String messageID = actionContext.getMessageId();
-        String messageBody = "";
-        try {
-          messageBody = (String) actionContext.getArgs().get("Message");
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-        String recipientUserID = Leanplum.getUserId();
-        Date deliveryDateTime = new Date();
-
-        MessageArchiveData messageArchiveData = new MessageArchiveData(messageID,
-                messageBody, recipientUserID, deliveryDateTime);
+        MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
         callback.setMessageArchiveData(messageArchiveData);
         OsHandler.getInstance().post(callback);
       }
     }
+  }
+
+  private static MessageArchiveData messageArchiveDataFromContext(ActionContext actionContext) {
+    String messageID = actionContext.getMessageId();
+    String messageBody = "";
+    try {
+      messageBody = messageBodyFromContext(actionContext);
+    } catch (Throwable t) {
+      Util.handleException(t);
+    }
+    String recipientUserID = Leanplum.getUserId();
+    Date deliveryDateTime = new Date();
+
+    return new MessageArchiveData(messageID, messageBody, recipientUserID, deliveryDateTime);
+  }
+
+  @VisibleForTesting
+  public static String messageBodyFromContext(ActionContext actionContext) {
+    Object messageObject =  actionContext.getArgs().get("Message");
+    if (messageObject instanceof String) {
+      return (String) messageObject;
+    } else {
+      HashMap<String, String> messageDict = (HashMap<String, String>) messageObject;
+      if (messageDict.get("Text") != null &&
+              messageDict.get("Text") instanceof String) {
+        return messageDict.get("Text");
+      }
+      if (messageDict.get("Text value") != null &&
+              messageDict.get("Text value") instanceof String) {
+        return messageDict.get("Text value");
+      }
+    }
+    return null;
   }
 
   /**
@@ -1857,6 +1880,16 @@ public class Leanplum {
    * @param params Key-value pairs with metrics or data associated with the state. Parameters can be
    * strings or numbers. You can use up to 200 different parameter names in your app.
    */
+
+  public static void trackGeofence(GeofenceEventType event, String info) {
+    if (featureFlagManager().isFeatureFlagEnabled("track_geofence")) {
+      LeanplumInternal.trackGeofence(event, 0.0, info, null, null);
+      countAggregator().incrementCount("track_geofence");
+    } else {
+      countAggregator().incrementCount("track_geofence_disabled");
+    }
+  }
+
   public static void advanceTo(final String state, String info, final Map<String, ?> params) {
     if (Constants.isNoop()) {
       return;

@@ -24,7 +24,7 @@ android {
 
             // set heap size for the test JVM(s)
             minHeapSize = "128m"
-            maxHeapSize = "512m"
+            maxHeapSize = "2g"
 
             beforeTest { descriptor ->
                 logger.lifecycle("Running test: " + descriptor)
@@ -35,6 +35,9 @@ android {
         unitTests {
             includeAndroidResources = true
         }
+    }
+    lintOptions {
+        abortOnError false
     }
 }
 
@@ -50,7 +53,7 @@ dependencies {
 
     // Dependencies used for unit tests.
     testImplementation 'junit:junit:4.12'
-    testImplementation('org.robolectric:robolectric:3.5.1') {
+    testImplementation('org.robolectric:robolectric:4.1') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }

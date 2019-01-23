@@ -23,13 +23,13 @@ ENV GRADLE_HOME=/usr/local/gradle-${GRADLE_VERSION}
 ENV PATH=$PATH:$GRADLE_HOME/bin
 
 ########################### Android Emulator Installation ###########################
-ARG emulator_platform=android-26
+ARG emulator_platform=android-28
 ARG system_image="system-images;${emulator_platform};google_apis;x86"
 ARG platform_image="platforms;${emulator_platform}"
 
 ENV PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin"
 
-RUN sdkmanager emulator tools platform-tools ${platform_image} ${system_image} --verbose && \
+RUN echo yes | sdkmanager emulator tools platform-tools ${platform_image} ${system_image} --verbose && \
   echo no | avdmanager create avd -n "device1" --package ${system_image} --tag google_apis
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
