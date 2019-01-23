@@ -32,13 +32,14 @@ build-image:
 patchReleaseBranch:
 	./Tools/create-release.bash patch
 
-releaseArtifacts: releaseBinaries releasePoms
+releaseArtifacts:
+	${DOCKER_RUN} gradle generatePomFileForAarPublication
 
 releaseBinaries:
-	${DOCKER_RUN} gradle assembleRelease
+	gradle assembleRelease
 
 releasePoms:
-	${DOCKER_RUN} gradle generatePomFileForAarPublication
+	gradle generatePomFileForAarPublication
 
 deployArtifacts:
 	./Tools/deploy.py
@@ -46,4 +47,4 @@ deployArtifacts:
 tagCommit:
 	git tag `cat sdk-version.txt`; git push --tags
 
-deploy: releaseArtifacts tagCommit deployArtifacts
+deploy: sdk-in-container tagCommit deployArtifacts
