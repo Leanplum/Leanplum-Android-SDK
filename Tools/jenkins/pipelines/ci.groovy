@@ -4,6 +4,9 @@
 
 pipeline {
     agent { label 'base-lp-agent'}
+    options {
+      timeout(time: 1, unit: 'HOURS') 
+    }
     stages {
         stage("Build and Test the SDK") {
             steps {
