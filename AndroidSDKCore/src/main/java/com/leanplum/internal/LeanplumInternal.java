@@ -245,17 +245,25 @@ public class LeanplumInternal {
         }
       });
       int priorityThreshold = actionContexts.get(0).getPriority();
-      boolean messageActionTriggered = false;
+      int countDownThreshold = fetchCountDown(actionContexts.get(0), messages);
+      Boolean isPrioritySame = false;
       for (final ActionContext actionContext : actionContexts) {
         if (actionContext.getPriority() > priorityThreshold) {
           break;
         }
-
+        // check if priority is same.
+        if (isPrioritySame) {
+          int currentCountDown = fetchCountDown(actionContext, messages);
+          //multiple messages have same priority and same countDown, only display one message
+          if (currentCountDown == countDownThreshold) {
+            break;
+          }
+        }
+        isPrioritySame = true;
         if (actionContext.actionName().equals(ActionManager.HELD_BACK_ACTION_NAME)) {
           ActionManager.getInstance().recordHeldBackImpression(
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
-        } else if (!messageActionTriggered) {
-          messageActionTriggered = true;
+        } else {
           LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
             @Override
             public void variablesChanged() {
@@ -269,6 +277,18 @@ public class LeanplumInternal {
         }
       }
     }
+  }
+
+  private static int fetchCountDown(ActionContext context, Map<String, Object> messages) {
+    // Get eta.
+    Object countdownObj;
+    if (((BaseActionContext) context).isPreview()) {
+      countdownObj = 5.0;
+    } else {
+      Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(context.messageId));
+      countdownObj = messageConfig.get("countdown");
+    }
+    return ((Number) countdownObj).intValue();
   }
 
   private static Map<String, Object> makeTrackArgs(final String event, double value, String info,

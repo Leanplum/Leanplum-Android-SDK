@@ -40,5 +40,10 @@ releaseBinaries:
 releasePoms:
 	${DOCKER_RUN} gradle generatePomFileForAarPublication
 
-deploy:
+deployArtifacts:
 	./Tools/deploy.py
+
+tagCommit:
+	git tag `cat sdk-version.txt`; git push --tags
+
+deploy: tagCommit releaseArtifacts deployArtifacts
