@@ -18,7 +18,7 @@ clean-local-properties:
 
 GRADLE_COMMANDS:=assembleRelease testReleaseUnitTest generatePomFileForAarPublication
 sdk: clean-local-properties
-	gradle clean ${GRADLE_COMMANDS} --debug
+	gradle clean ${GRADLE_COMMANDS}
 
 sdk-in-container:
 	${DOCKER_RUN} make sdk
@@ -35,10 +35,15 @@ patchReleaseBranch:
 releaseArtifacts: releaseBinaries releasePoms
 
 releaseBinaries:
-	${DOCKER_RUN} gradle assembleRelease --debug
+	${DOCKER_RUN} gradle assembleRelease
 
 releasePoms:
-	${DOCKER_RUN} gradle generatePomFileForAarPublication --debug
+	${DOCKER_RUN} gradle generatePomFileForAarPublication
 
-deploy:
+deployArtifacts:
 	./Tools/deploy.py
+
+tagCommit:
+	git tag `cat sdk-version.txt`; git push --tags
+
+deploy: tagCommit releaseArtifacts deployArtifacts
