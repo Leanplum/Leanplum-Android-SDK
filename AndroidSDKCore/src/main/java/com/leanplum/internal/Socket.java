@@ -153,7 +153,7 @@ public class Socket {
     };
 
     try {
-      sio = new SocketIOClient(new URI("http://" + Constants.SOCKET_HOST + ":" +
+      sio = new SocketIOClient(new URI("https://" + Constants.SOCKET_HOST + ":" +
           Constants.SOCKET_PORT), socketIOClientHandler);
     } catch (URISyntaxException e) {
       Log.e(e.getMessage());
