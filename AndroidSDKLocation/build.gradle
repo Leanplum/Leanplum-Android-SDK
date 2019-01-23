@@ -6,7 +6,7 @@ apply from: "../common-methods.gradle"
 android {
     compileSdkVersion COMPILE_SDK_VERSION
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion MIN_SDK_VERSION
         defaultConfig {
             consumerProguardFiles 'consumer-proguard-rules.pro'
         }

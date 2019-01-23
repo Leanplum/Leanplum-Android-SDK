@@ -11,6 +11,7 @@ android {
     publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
 
         def packageIdentifier =  System.getenv('LEANPLUM_PACKAGE_IDENTIFIER') ?: 's'
@@ -20,7 +21,6 @@ android {
 
         def buildNumber = System.getenv('BUILD_NUMBER') ?: '0'
         buildConfigField 'String', 'BUILD_NUMBER', "\"${buildNumber}\""
-        minSdkVersion 14
     }
     buildTypes {
         release {

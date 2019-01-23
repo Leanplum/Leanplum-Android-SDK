@@ -21,8 +21,8 @@ android {
     //    publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
-        minSdkVersion 14
     }
 
     buildTypes {
