@@ -29,6 +29,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PorterDuff.Mode;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -42,7 +43,7 @@ import com.leanplum.utils.SizeUtil;
  *
  * @author Martin Yanakiev
  */
-public class BackgroundImageView extends ImageView {
+public class BackgroundImageView extends AppCompatImageView {
   private Paint paint = new Paint();
   private boolean fullscreen;
   private Matrix emptyMatrix = new Matrix();

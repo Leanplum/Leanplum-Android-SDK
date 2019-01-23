@@ -3,6 +3,7 @@
 
     <!-- Minimum permissions needed for SDK to work. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <application>
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
