@@ -103,6 +103,7 @@ class LeanplumNotificationHelper {
    */
   // Notification.Builder(Context context) constructor was deprecated in API level 26.
   @SuppressWarnings("deprecation")
+  @TargetApi(26)
   private static Notification.Builder getDefaultNotificationBuilder(Context context,
       boolean isNotificationChannelSupported) {
     if (!isNotificationChannelSupported) {
@@ -299,6 +300,7 @@ class LeanplumNotificationHelper {
    * @param messageText String with text for push notification.
    * @return Notification.BigPictureStyle or null.
    */
+  @TargetApi(16)
   static Notification.BigPictureStyle getBigPictureStyle(Bundle message, Bitmap bigPicture,
       String title, final String messageText) {
     if (Build.VERSION.SDK_INT < 16 || message == null || bigPicture == null) {
@@ -382,6 +384,7 @@ class LeanplumNotificationHelper {
    * @param context Current application context.
    * @return boolean True if it is possible to create a drawable from current app icon.
    */
+  @TargetApi(16)
   private static boolean canCreateIconDrawable(Context context) {
     try {
       // Try to create icon drawable.
