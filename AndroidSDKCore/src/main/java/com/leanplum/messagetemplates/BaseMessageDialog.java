@@ -55,6 +55,7 @@ import android.widget.TextView;
 
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
+import com.leanplum.core.R;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
@@ -105,7 +106,7 @@ public class BaseMessageDialog extends Dialog {
     dialogView.setLayoutParams(layoutParams);
 
     RelativeLayout view = createContainerView(activity, fullscreen);
-    view.setId(108);
+    view.setId(R.id.container_view);
     dialogView.addView(view, view.getLayoutParams());
 
     if ((!isWeb || (webOptions != null && webOptions.hasDismissButton())) && !isHtml) {
@@ -209,7 +210,7 @@ public class BaseMessageDialog extends Dialog {
 
   private CloseButton createCloseButton(Activity context, boolean fullscreen, View parent) {
     CloseButton closeButton = new CloseButton(context);
-    closeButton.setId(103);
+    closeButton.setId(R.id.close_button);
     RelativeLayout.LayoutParams closeLayout = new RelativeLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     if (fullscreen) {
@@ -302,11 +303,11 @@ public class BaseMessageDialog extends Dialog {
       view.addView(image, image.getLayoutParams());
 
       View title = createTitleView(context);
-      title.setId(104);
+      title.setId(R.id.title_view);
       view.addView(title, title.getLayoutParams());
 
       View button = createAcceptButton(context);
-      button.setId(105);
+      button.setId(R.id.accept_button);
       view.addView(button, button.getLayoutParams());
 
       View message = createMessageView(context);
