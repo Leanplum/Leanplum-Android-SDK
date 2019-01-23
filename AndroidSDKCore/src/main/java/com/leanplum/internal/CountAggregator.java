@@ -1,7 +1,7 @@
 package com.leanplum.internal;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.HashSet;
 import java.util.HashMap;
