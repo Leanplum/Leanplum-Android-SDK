@@ -23,7 +23,7 @@ ENV GRADLE_HOME=/usr/local/gradle-${GRADLE_VERSION}
 ENV PATH=$PATH:$GRADLE_HOME/bin
 
 ########################### Android Emulator Installation ###########################
-ARG emulator_platform=android-27
+ARG emulator_platform=android-28
 ARG system_image="system-images;${emulator_platform};google_apis;x86"
 ARG platform_image="platforms;${emulator_platform}"
 
