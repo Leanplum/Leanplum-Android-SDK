@@ -23,29 +23,26 @@
 
 package com.leanplum.internal;
 
-import android.net.http.AndroidHttpClient;
 import android.os.Looper;
 
 import com.leanplum.Leanplum;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 
-// Suppressing deprecated apache dependency.
-@SuppressWarnings("deprecation")
 class SocketIOClient {
   interface Handler {
     void onConnect();
@@ -74,19 +71,21 @@ class SocketIOClient {
   private static String userAgentString() {
     String appName = (Leanplum.getContext() != null) ?
         Util.getApplicationName(Leanplum.getContext()) + "/" + Util.getVersionName() : "websocket";
-    return appName + "(" + Request.appId() + "; " + Constants.CLIENT + "; "
+    return appName + "(" + RequestOld.appId() + "; " + Constants.CLIENT + "; "
         + Constants.LEANPLUM_VERSION + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER + ")";
   }
 
-  private static String downloadUriAsString(final HttpUriRequest req)
+  private static String downloadUriAsString(final String urlString)
       throws IOException {
-    AndroidHttpClient client = AndroidHttpClient.newInstance(userAgentString());
-    try {
-      HttpResponse res = client.execute(req);
-      return readToEnd(res.getEntity().getContent());
-    } finally {
-      client.close();
+    StringBuilder result = new StringBuilder();
+    URL url = new URL(urlString);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      result.append(line);
     }
+    reader.close();
+    return result.toString();
   }
 
   private static byte[] readToEndAsArray(InputStream input) throws IOException {
@@ -236,9 +235,8 @@ class SocketIOClient {
       return;
     new Thread() {
       public void run() {
-        HttpPost post = new HttpPost(mURL);
         try {
-          String line = downloadUriAsString(post);
+          String line = downloadUriAsString(mURL);
           String[] parts = line.split(":");
           mSession = parts[0];
           String heartbeat = parts[1];

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2018, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,19 +18,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.leanplum._whitebox.utilities;
 
-import androidx.annotation.NonNull;
+package com.leanplum.internal;
 
-import java.util.concurrent.Executor;
+public class APIConfig {
+  private final FeatureFlagManager featureFlagManager;
+  private final CountAggregator countAggregator;
+  private String appId;
+  private String accessKey;
+  private String token;
 
-/**
- * Executes all async task on a calling thread.
- */
-public class SynchronousExecutor implements Executor {
+  public APIConfig(FeatureFlagManager featureFlagManager, CountAggregator countAggregator) {
+    this.featureFlagManager = featureFlagManager;
+    this.countAggregator = countAggregator;
+  }
 
-  @Override
-  public void execute(@NonNull Runnable command) {
-    command.run();
+  public void setAppId(String appId, String accessKey) {
+    this.appId = appId;
+    this.accessKey = accessKey;
+
+    this.countAggregator.incrementCount("set_app_id");
+  }
+
+  public void loadToken(String token) {
+    this.token = token;
   }
 }
+

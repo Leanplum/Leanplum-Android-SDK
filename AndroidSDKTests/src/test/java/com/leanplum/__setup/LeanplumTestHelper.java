@@ -31,7 +31,7 @@ import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.VarCache;
 import com.leanplum.tests.BuildConfig;
@@ -80,8 +80,8 @@ public class LeanplumTestHelper {
   public static void setUp() {
     RequestFactory.defaultFactory = new RequestFactory() {
       @Override
-      public Request createRequest(String httpMethod, String apiMethod,
-          Map<String, Object> params) {
+      public RequestOld createRequest(String httpMethod, String apiMethod,
+                                      Map<String, Object> params) {
         return new RequestHelper(httpMethod, apiMethod, params);
       }
     };
@@ -96,7 +96,7 @@ public class LeanplumTestHelper {
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
     Leanplum.enableVerboseLoggingInDevelopmentMode();
 
-    TestClassUtil.setField(Request.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
+    TestClassUtil.setField(RequestOld.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
   }
 
   /**
@@ -105,10 +105,10 @@ public class LeanplumTestHelper {
   public static void tearDown() {
     reset();
     clear();
-    Request.setAppId(null, null);
-    Request.setDeviceId(null);
-    Request.setToken(null);
-    Request.setUserId(null);
+    RequestOld.setAppId(null, null);
+    RequestOld.setDeviceId(null);
+    RequestOld.setToken(null);
+    RequestOld.setUserId(null);
     Leanplum.setApplicationContext(null);
   }
 

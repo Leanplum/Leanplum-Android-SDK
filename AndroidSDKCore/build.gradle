@@ -6,22 +6,21 @@ apply from: "../common-methods.gradle"
 android {
 
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
     useLibrary 'org.apache.http.legacy'
 
     publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
 
         def packageIdentifier =  System.getenv('LEANPLUM_PACKAGE_IDENTIFIER') ?: 's'
-        buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', '\"' + packageIdentifier + '\"'
+        buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', "\"${packageIdentifier}\""
 
-        def sdkVersion = file('sdk-version.txt').text
-        buildConfigField 'String', 'SDK_VERSION', '\"' + sdkVersion + '\"'
+        buildConfigField 'String', 'SDK_VERSION', "\"${LEANPLUM_SDK_VERSION}\""
 
         def buildNumber = System.getenv('BUILD_NUMBER') ?: '0'
-        buildConfigField 'String', 'BUILD_NUMBER', '\"' + buildNumber + '\"'
+        buildConfigField 'String', 'BUILD_NUMBER', "\"${buildNumber}\""
     }
     buildTypes {
         release {
@@ -35,8 +34,8 @@ android {
 
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
-    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "androidx.legacy:legacy-support-v4:1.0.0"
+    api "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
 }
 
 task generateJavadoc(type: Javadoc) {

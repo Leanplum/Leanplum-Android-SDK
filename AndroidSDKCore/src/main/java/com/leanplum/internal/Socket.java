@@ -97,8 +97,8 @@ public class Socket {
           Log.i("Connected to development server");
           try {
             Map<String, String> args = Util.newMap(
-                Constants.Params.APP_ID, Request.appId(),
-                Constants.Params.DEVICE_ID, Request.deviceId());
+                Constants.Params.APP_ID, RequestOld.appId(),
+                Constants.Params.DEVICE_ID, RequestOld.deviceId());
             try {
               sio.emit("auth", new JSONArray(Collections.singletonList(new JSONObject(args))));
             } catch (JSONException e) {
@@ -111,6 +111,7 @@ public class Socket {
           connected = true;
           connecting = false;
         }
+        Leanplum.countAggregator().incrementCount("connect_to_app_id");
       }
 
       @Override
@@ -152,7 +153,7 @@ public class Socket {
     };
 
     try {
-      sio = new SocketIOClient(new URI("http://" + Constants.SOCKET_HOST + ":" +
+      sio = new SocketIOClient(new URI("https://" + Constants.SOCKET_HOST + ":" +
           Constants.SOCKET_PORT), socketIOClientHandler);
     } catch (URISyntaxException e) {
       Log.e(e.getMessage());
@@ -202,6 +203,7 @@ public class Socket {
     } catch (JSONException e) {
       Log.e("Failed to create JSON data object: " + e.getMessage());
     }
+    Leanplum.countAggregator().incrementCount("send_event_socket");
   }
 
   /**
@@ -232,7 +234,7 @@ public class Socket {
         ((BaseActionContext) context).setIsPreview(true);
         context.update();
         LeanplumInternal.triggerAction(context);
-        ActionManager.getInstance().recordMessageImpression(messageId);
+        Leanplum.triggerMessageDisplayed(context);
       }
     } catch (JSONException e) {
       Log.e("Error getting action info", e);

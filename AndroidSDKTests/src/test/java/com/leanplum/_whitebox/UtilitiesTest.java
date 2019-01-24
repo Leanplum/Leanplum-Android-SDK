@@ -26,7 +26,7 @@ import com.leanplum.__setup.LeanplumTestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.Registration;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.tests.R;
 
@@ -59,7 +59,7 @@ public class UtilitiesTest extends AbstractTest {
 
     // Start without user id and verify that it is properly encoded/decoded.
     Leanplum.start(mContext);
-    assertEquals(userId, Request.userId());
+    assertEquals(userId, RequestOld.userId());
   }
 
   @Test
@@ -69,21 +69,21 @@ public class UtilitiesTest extends AbstractTest {
     Leanplum.start(mContext);
 
     // Validate device id.
-    String deviceId = Request.deviceId();
+    String deviceId = RequestOld.deviceId();
     assertNotNull(deviceId);
 
     LeanplumTestHelper.reset();
 
     // Start again and verify device id.
     Leanplum.start(mContext);
-    assertEquals(deviceId, Request.deviceId());
+    assertEquals(deviceId, RequestOld.deviceId());
   }
 
   @Test
   public void mockGetDeviceName() throws Exception {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
-    assertEquals("Unknown", Util.getDeviceName());
+    assertEquals("Unknown robolectric", Util.getDeviceName());
     doReturn("DeviceName").when(Util.class, "getDeviceName");
     assertEquals("DeviceName", Util.getDeviceName());
   }
@@ -110,7 +110,7 @@ public class UtilitiesTest extends AbstractTest {
   public void testUtilGetDeviceName() throws Exception {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
-    assertEquals("Unknown", Util.getDeviceName());
+    assertEquals("Unknown robolectric", Util.getDeviceName());
     doReturn("DeviceName").when(Util.class, "getDeviceName");
     assertEquals("DeviceName", Util.getDeviceName());
   }

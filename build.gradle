@@ -2,23 +2,23 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
         google()
+        jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.12'
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5'
+        classpath 'com.android.tools.build:gradle:3.3.0'
     }
 }
 
 allprojects {
     repositories {
         mavenCentral()
-        jcenter()
         google()
         maven {
             url "https://repo.leanplum.com/"
         }
+        jcenter()
     }
 }
 

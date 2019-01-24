@@ -116,6 +116,7 @@ public class Constants {
     public static final String START = "start";
     public static final String STOP = "stop";
     public static final String TRACK = "track";
+    public static final String TRACK_GEOFENCE = "trackGeofence";
     public static final String UPLOAD_FILE = "uploadFile";
   }
 
@@ -151,6 +152,7 @@ public class Constants {
     public static final String KINDS = "kinds";
     public static final String LIMIT_TRACKING = "limitTracking";
     public static final String MESSAGE = "message";
+    public static final String NAME = "name";
     public static final String COUNT = "count";
     public static final String MESSAGE_ID = "messageId";
     public static final String NEW_USER_ID = "newUserId";

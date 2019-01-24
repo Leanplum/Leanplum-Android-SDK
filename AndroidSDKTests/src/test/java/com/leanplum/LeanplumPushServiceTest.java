@@ -28,15 +28,15 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum.__setup.TestClassUtil;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
-import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.tests.MainActivity;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -143,7 +143,7 @@ public class LeanplumPushServiceTest {
     LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
     whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);
 
-    Request.setAppId("1", "1");
+    RequestOld.setAppId("1", "1");
     when(LeanplumPushService.class, "hasAppIDChanged", "1").thenReturn(false);
 
     LeanplumPushService pushService = new LeanplumPushService();
@@ -230,7 +230,7 @@ public class LeanplumPushServiceTest {
   @Test
   public void testHasAppIDChanged() throws Exception {
     mockStatic(SharedPreferencesUtil.class);
-    Request.setAppId("1", "1");
+    RequestOld.setAppId("1", "1");
     doNothing().when(SharedPreferencesUtil.class, "setString", context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.APP_ID, "1");
     LeanplumPushService pushService = new LeanplumPushService();
@@ -378,7 +378,7 @@ public class LeanplumPushServiceTest {
   public void testRegister() throws Exception {
     Context mock = mock(Context.class);
     Leanplum.setApplicationContext(mock);
-    Request.setAppId(null, null);
+    RequestOld.setAppId(null, null);
 
     PowerMockito.doReturn(true).when(Util.class, "hasPlayServices");
     PowerMockito.doReturn(false).when(LeanplumPushService.class, "hasAppIDChanged", any());

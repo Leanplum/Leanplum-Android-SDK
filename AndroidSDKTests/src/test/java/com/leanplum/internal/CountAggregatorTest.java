@@ -20,14 +20,16 @@
  */
 package com.leanplum.internal;
 
+import com.google.common.collect.Sets;
 import com.leanplum.__setup.AbstractTest;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -35,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Grace Gu
  */
+@PrepareForTest({ RequestOld.class })
 public class CountAggregatorTest extends AbstractTest {
   @Test
   public void testIncrementDisabledCount() {
@@ -54,8 +57,7 @@ public class CountAggregatorTest extends AbstractTest {
   public void testIncrementCount() {
     CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
-    Set<String> testSet = new HashSet<String>(Arrays.asList(testString));
-    countAggregator.setEnabledCounters(testSet);
+    countAggregator.setEnabledCounters(Sets.newHashSet(testString));
 
     countAggregator.incrementCount(testString);
     Map<String, Integer> counts = countAggregator.getCounts();
@@ -124,7 +126,24 @@ public class CountAggregatorTest extends AbstractTest {
     Map<String, Object> params = countAggregator.makeParams(testString, 2);
 
     assertEquals(Constants.Values.SDK_COUNT, params.get(Constants.Params.TYPE));
-    assertEquals(testString, params.get(Constants.Params.MESSAGE));
+    assertEquals(testString, params.get(Constants.Params.NAME));
     assertEquals(2, params.get(Constants.Params.COUNT));
+  }
+
+  @Test
+  public void testSendAllCounts() throws Exception {
+    CountAggregator countAggregator = new CountAggregator();
+    String testString = "test";
+    countAggregator.setEnabledCounters(Sets.newHashSet(testString));
+    countAggregator.incrementCount(testString);
+
+    PowerMockito.mockStatic(RequestOld.class);
+    Map<String, Object> expectedParams = countAggregator.makeParams(testString, 1);
+    PowerMockito.doReturn(Mockito.mock(RequestOld.class)).when(RequestOld.class, "post", Constants.Methods.LOG, expectedParams);
+
+    countAggregator.sendAllCounts();
+
+    PowerMockito.verifyStatic();
+    RequestOld.post(Constants.Methods.LOG, expectedParams);
   }
 }

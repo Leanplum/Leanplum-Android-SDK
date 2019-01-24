@@ -21,37 +21,24 @@
 
 package com.leanplum.callbacks;
 
-import com.leanplum.Leanplum;
+import com.leanplum.models.MessageArchiveData;
 
 /**
- * Callback that gets run when the device needs to be registered.
+ * Message displayed callback.
  *
- * @author Andrew First
+ * @author Mayank Sanganeria
  */
-public abstract class RegisterDeviceCallback implements Runnable {
-  public static abstract class EmailCallback implements Runnable {
-    private String email;
+public abstract class MessageDisplayedCallback implements Runnable {
 
-    public void setResponseHandler(String email) {
-      this.email = email;
-    }
+  private MessageArchiveData messageArchiveData;
 
-    public void run() {
-      this.onResponse(email);
-    }
-
-    public abstract void onResponse(String email);
+  public void setMessageArchiveData(MessageArchiveData messageArchiveData) {
+    this.messageArchiveData = messageArchiveData;
   }
 
-  private EmailCallback callback;
-
-  public void setResponseHandler(EmailCallback callback) {
-    this.callback = callback;
-    Leanplum.countAggregator().incrementCount("init_with_callback");
+  public void run() {
+    this.messageDisplayed(messageArchiveData);
   }
 
-  public void run() { this.onResponse(callback);
-  }
-
-  public abstract void onResponse(EmailCallback callback);
+  public abstract void messageDisplayed(MessageArchiveData messageArchiveData);
 }

@@ -178,13 +178,23 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
   @Test
   public void testTiedPriorities() throws Exception {
     // Three messages with priorities of 5, no value, and 5.
-    // The first one should be triggered.
+    // 2 messages with same priority and same countdown
+    // Only 1 should be displayed with highest priority.
     InputStream inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_1.json");
     String jsonMessages = IOUtil.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
 
-    // Three messages with same priority. Only one should be triggered.
+    // Three messages with priorities of 5, no value, and 5.
+    // 2 messages with same priority but different countdown
+    // 2 messages should be displayed
+    inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_same_priority_different_time.json");
+    jsonMessages = IOUtil.toString(inputStream);
+    expectedMessageIds = new HashSet<>(Arrays.asList("1", "3"));
+    assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
+
+    // Three messages with same priority and same time
+    // Only 1 should be trigged.
     inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_2.json");
     jsonMessages = IOUtil.toString(inputStream);
     expectedMessageIds = new HashSet<>(Arrays.asList("1"));

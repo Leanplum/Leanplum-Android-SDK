@@ -36,7 +36,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.Geofence.Builder;
-import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -46,6 +45,7 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
+import com.leanplum.models.GeofenceEventType;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.util.ArrayList;
@@ -287,7 +287,7 @@ class LocationManagerImplementation implements
         }
       }
     }
-    List<Geofence> toBeTrackedGeofences = getToBeTrackedGeofences();
+    List<Geofence> toBeTrackedGeofences = allGeofences;
     if (trackedGeofenceIds.size() > 0) {
       LocationServices.GeofencingApi.removeGeofences(googleApiClient, trackedGeofenceIds);
     }
@@ -297,23 +297,22 @@ class LocationManagerImplementation implements
           toBeTrackedGeofences, getTransitionPendingIntent());
       for (Geofence geofence : toBeTrackedGeofences) {
         if (geofence != null && geofence.getRequestId() != null) {
-          trackedGeofenceIds.add(geofence.getRequestId());
+          String geofenceId = geofence.getRequestId();
+          trackedGeofenceIds.add(geofenceId);
           //TODO: stateBeforeBackground doesn't get persisted.
           // If the app goes to the background and terminates, stateBeforeBackground will be reset.
-          if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null
-              // This is triggered only for in-app messages, since backgroundGeofences are only for
-              // pushes.
-              // TODO(aleks): This would not work for in-app messages if we have the same geolocation
-              // triggering it, as a locally triggered push notification.
-              && !backgroundGeofences.contains(geofence)) {
-            Number lastStatus = (Number) stateBeforeBackground.get(geofence.getRequestId());
-            Number currentStatus = (Number) lastKnownState.get(geofence.getRequestId());
+          if (isInBackground && !Util.isInBackground() && stateBeforeBackground != null) {
+            Number lastStatus = (Number) stateBeforeBackground.get(geofenceId);
+            Number currentStatus = (Number) lastKnownState.get(geofenceId);
             if (currentStatus != null && lastStatus != null) {
+              // Only foreground geofences should be triggered here
               if (GeofenceStatus.shouldTriggerEnteredGeofence(lastStatus, currentStatus)) {
-                maybePerformActions(geofence, "enterRegion");
+                maybePerformActions(geofence, "enterRegion", true);
+                Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
               }
               if (GeofenceStatus.shouldTriggerExitedGeofence(lastStatus, currentStatus)) {
-                maybePerformActions(geofence, "exitRegion");
+                maybePerformActions(geofence, "exitRegion", true);
+                Leanplum.trackGeofence(GeofenceEventType.EXIT_REGION, geofenceId);
               }
             }
           }
@@ -336,38 +335,43 @@ class LocationManagerImplementation implements
 
   void updateStatusForGeofences(List<Geofence> geofences, int transitionType) {
     for (Geofence geofence : geofences) {
-      if (!trackedGeofenceIds.contains(geofence.getRequestId()) &&
-          geofence.getRequestId().startsWith("__leanplum")) {
+      String geofenceId = geofence.getRequestId();
+      if (!trackedGeofenceIds.contains(geofenceId) &&
+          geofenceId.startsWith("__leanplum")) {
         ArrayList<String> geofencesToRemove = new ArrayList<>();
-        geofencesToRemove.add(geofence.getRequestId());
+        geofencesToRemove.add(geofenceId);
         if (googleApiClient != null && googleApiClient.isConnected()) {
           LocationServices.GeofencingApi.removeGeofences(googleApiClient, geofencesToRemove);
         }
         continue;
       }
-      Number currentStatus = (Number) lastKnownState.get(geofence.getRequestId());
+      Number currentStatus = (Number) lastKnownState.get(geofenceId);
       if (currentStatus != null) {
         if (GeofenceStatus.shouldTriggerEnteredGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
-          maybePerformActions(geofence, "enterRegion");
+          maybePerformActions(geofence, "enterRegion", false);
+          Leanplum.trackGeofence(GeofenceEventType.ENTER_REGION, geofenceId);
         }
         if (GeofenceStatus.shouldTriggerExitedGeofence(currentStatus,
             getStatusForTransitionType(transitionType))) {
-          maybePerformActions(geofence, "exitRegion");
+          maybePerformActions(geofence, "exitRegion", false);
+          Leanplum.trackGeofence(GeofenceEventType.EXIT_REGION, geofenceId);
         }
       }
-      lastKnownState.put(geofence.getRequestId(),
+      lastKnownState.put(geofenceId,
           getStatusForTransitionType(transitionType));
     }
     saveLastKnownRegionState();
   }
 
-  private void maybePerformActions(Geofence geofence, String action) {
+  private void maybePerformActions(Geofence geofence, String action, boolean foregroundActionsOnly) {
     String regionName = getRegionName(geofence.getRequestId());
     if (regionName != null) {
       int filter = Util.isInBackground() ?
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_BACKGROUND :
-          LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL;
+          (foregroundActionsOnly ?
+              LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_FOREGROUND :
+              LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL);
       LeanplumInternal.maybePerformActions(action, regionName, filter, null, null);
     }
   }
@@ -447,7 +451,7 @@ class LocationManagerImplementation implements
   }
 
   /**
-   * Request location for user location update if googleApiClient is connected.
+   * RequestOld location for user location update if googleApiClient is connected.
    */
   // Suppressing missing permission warning which since it is up to client to add location
   // permission to their manifest.

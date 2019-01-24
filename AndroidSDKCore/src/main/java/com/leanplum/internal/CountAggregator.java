@@ -1,7 +1,7 @@
 package com.leanplum.internal;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.HashSet;
 import java.util.HashMap;
@@ -9,15 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class CountAggregator {
-    public static final CountAggregator INSTANCE = new CountAggregator();
-
     private Set<String> enabledCounters = new HashSet<>();
     private final Map<String, Integer> counts = new HashMap<>();
-
-    @VisibleForTesting
-    CountAggregator() {
-        super();
-    }
 
     public void setEnabledCounters(Set<String> enabledCounters) {
         this.enabledCounters = enabledCounters;
@@ -51,7 +44,7 @@ public class CountAggregator {
         Map<String, Object> params = new HashMap<>();
 
         params.put(Constants.Params.TYPE, Constants.Values.SDK_COUNT);
-        params.put(Constants.Params.MESSAGE, name);
+        params.put(Constants.Params.NAME, name);
         params.put(Constants.Params.COUNT, count);
 
         return params;
@@ -65,7 +58,7 @@ public class CountAggregator {
             Integer count = entry.getValue();
             Map<String, Object> params = makeParams(name, count);
             try {
-                Request.post(Constants.Methods.LOG, params).sendEventually();
+                RequestOld.post(Constants.Methods.LOG, params).sendEventually();
             } catch (Throwable t) {
                 android.util.Log.e("Leanplum", "Unable to send count.", t);
             }
