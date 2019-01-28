@@ -41,10 +41,10 @@ patchReleaseBranch:
 releaseArtifacts: releaseBinaries releasePoms
 
 releaseBinaries:
-	${DOCKER_RUN} gradle assembleRelease
+	./gradlew assembleRelease
 
 releasePoms:
-	${DOCKER_RUN} gradle generatePomFileForAarPublication
+	./gradlew generatePomFileForAarPublication
 
 deployArtifacts:
 	./Tools/deploy.py
