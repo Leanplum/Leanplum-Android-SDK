@@ -27,7 +27,7 @@ cache:
     - $HOME/.gradle/wrapper/
     - $HOME/.android/build-cache
 
-before_install:
+  before_install:
     - java -v
     - which docker; echo
 
