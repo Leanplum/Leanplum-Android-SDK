@@ -36,3 +36,10 @@ script:
 
 after_success:
   - make releaseArtifacts
+
+deploy:
+  - provider: script
+    script: ./Tools/deploy.py
+    on:
+      tags: true
+
