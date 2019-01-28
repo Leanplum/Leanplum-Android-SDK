@@ -29,17 +29,21 @@ shell:
 build-image:
 	docker build -t ${SDK_BUILD_IMAGE} . -f Tools/jenkins/build.dockerfile
 
+.PHONY: build
+
+sdkTest:
+	./gradlew assembleDebug testDebugUnitTest
+
 patchReleaseBranch:
 	./Tools/create-release.bash patch
 
-releaseArtifacts:
-	${DOCKER_RUN} gradle assembleRelease generatePomFileForAarPublication
-
 releaseBinaries:
-	gradle assembleRelease
+	./gradlew assembleRelease
 
 releasePoms:
-	gradle generatePomFileForAarPublication
+	./gradlew generatePomFileForAarPublication
+
+releaseArtifacts: releaseBinaries releasePoms
 
 deployArtifacts:
 	./Tools/deploy.py
@@ -47,4 +51,4 @@ deployArtifacts:
 tagCommit:
 	git tag `cat sdk-version.txt`; git push --tags
 
-deploy: releaseArtifacts tagCommit deployArtifacts
+deploy: tagCommit deployArtifacts
