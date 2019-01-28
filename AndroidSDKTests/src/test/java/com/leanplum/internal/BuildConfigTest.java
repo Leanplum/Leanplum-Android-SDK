@@ -39,11 +39,7 @@ public class BuildConfigTest extends AbstractTest {
 
     String[] parts = version.split("\\.");
 
-    if (isBeta(version)) {
-      assertEquals(5, parts.length);
-    } else {
-      assertEquals(4, parts.length);
-    }
+    assertEquals(4, parts.length);
     // Ensure we can parse and do not go down in major version.
     int major = Integer.parseInt(parts[0]);
     assert(major >= 4);
