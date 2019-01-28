@@ -557,6 +557,7 @@ public class Util {
         getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
             getSystemVersion() + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
+    urlConnection.setRequestProperty("Accept-Encoding", "gzip");;
     return urlConnection;
   }
 
