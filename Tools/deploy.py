@@ -74,7 +74,8 @@ def deployArtifacts(localPath, artifactoryPath, bintrayPath):
 
 
 def artifactoryDeploy(source, destination):
-    command = "jfrog rt u " + source + " " + destination
+    flags = "--url=https://artifactory.leanplum.com --apikey=os.environ['JFROG_CLI_API_KEY']"
+    command = "jfrog rt u " + source + " " + destination + " " + flags
     # print command
     os.system(command)
 
