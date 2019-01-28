@@ -29,6 +29,12 @@ shell:
 build-image:
 	docker build -t ${SDK_BUILD_IMAGE} . -f Tools/jenkins/build.dockerfile
 
+.PHONY: build
+
+GRADLE_COMMAND:=assembleDebug testDebugUnitTest assembleRelease generatePomFileForAarPublication
+gradlewTravis:
+	./gradlew ${GRADLE_COMMAND}
+
 patchReleaseBranch:
 	./Tools/create-release.bash patch
 
