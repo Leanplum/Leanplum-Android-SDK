@@ -33,7 +33,7 @@ build-image:
 
 GRADLE_COMMAND:=assembleDebug testDebugUnitTest assembleRelease generatePomFileForAarPublication
 gradlewTravis:
-	echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" >> ${JAVA_HOME}/jre/lib/security/java.security
+	sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" >> ${JAVA_HOME}/jre/lib/security/java.security
 	./gradlew ${GRADLE_COMMAND}
 
 gradleTravis:
