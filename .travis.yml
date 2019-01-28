@@ -35,4 +35,4 @@ script:
   - make gradlewTravis
 
 after_success:
-- make releaseArtifacts
+  - make releaseArtifacts
