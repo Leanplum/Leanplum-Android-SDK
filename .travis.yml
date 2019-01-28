@@ -27,5 +27,8 @@ cache:
     - java -v
     - which docker; echo
 
+before-script:
+  - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" >> ${JAVA_HOME}/jre/lib/security/java.security
+
 script:
   - make gradlewTravis
