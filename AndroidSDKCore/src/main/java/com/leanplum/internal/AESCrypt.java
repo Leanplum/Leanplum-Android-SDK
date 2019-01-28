@@ -41,10 +41,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-
 /**
  * AES Encryption as detailed at
  * http://nelenkov.blogspot.com/2012/04/using-password-based-encryption-on.html
@@ -142,21 +138,21 @@ public class AESCrypt {
      */
     public String encrypt(String plaintext) {
         Log.e("Encrypt called with " + plaintext);
-        assertNotNull(plaintext);
+//        assertNotNull(plaintext);
         if (plaintext == null) {
             return null;
         }
         Log.e("2 Encrypt called with " + plaintext);
         // Always encrypt using the APP_ID_KEY method.
-        assertNotNull(appId);
-        assertFalse(appId.isEmpty());
+//        assertNotNull(appId);
+//        assertFalse(appId.isEmpty());
         if (appId == null || appId.isEmpty()) {
             Log.e("Encrypt called with null appId.");
             return null;
         }
         Log.e("3 Encrypt called with " + plaintext);
         String cipherText = encryptInternal(appIdKeyPassword(), plaintext);
-        assertNotNull(cipherText);
+//        assertNotNull(cipherText);
         if (cipherText == null) {
             Log.w("Failed to encrypt.");
             return null;
@@ -164,7 +160,7 @@ public class AESCrypt {
         Log.e("4 Encrypt called with " + cipherText);
         if (cipherText.isEmpty() || cipherText.equals(plaintext) || !cipherText.startsWith("[")) {
             Log.w("Invalid ciphertext: " + cipherText);
-            assertEquals("foo", cipherText);
+//            assertEquals("foo", cipherText);
             return null;
         }
         Log.e("5 Encrypt called with " + plaintext);
@@ -245,7 +241,7 @@ public class AESCrypt {
             return Arrays.toString(encryptedBytes);
         } catch (UnsupportedEncodingException e) {
             Log.w("Unable to encrypt " + plaintext, e);
-            assertEquals(password, "UnsupportedEncodingException");
+//            assertEquals(password, "UnsupportedEncodingException");
             return null;
         }
     }

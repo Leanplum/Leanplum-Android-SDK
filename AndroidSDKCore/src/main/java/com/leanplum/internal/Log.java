@@ -23,18 +23,19 @@ package com.leanplum.internal;
 
 
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import com.leanplum.core.BuildConfig;
 
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import androidx.annotation.RequiresApi;
 
 /**
  * Handles logging within the Leanplum SDK.
  *
  * @author Ben Marten
  */
-@RequiresApi(api = Build.VERSION_CODES.KITKAT)
+//@RequiresApi(api = Build.VERSION_CODES.KITKAT)
 public class Log {
 
   private static Logger javaLog = java.util.logging.Logger.getGlobal();
