@@ -557,7 +557,10 @@ public class Util {
         getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
             getSystemVersion() + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
-    urlConnection.setRequestProperty("Accept-Encoding", "gzip");;
+    if (Leanplum.featureFlagManager().isFeatureFlagEnabled(Leanplum.featureFlagManager().FEATURE_FLAG_REQUEST_REFACTOR)) {
+      urlConnection.setRequestProperty("Accept-Encoding", "gzip");
+      Leanplum.countAggregator().incrementCount("operation_with_request_gzip");
+    }
     return urlConnection;
   }
 
