@@ -32,7 +32,7 @@ cache:
     - which docker; echo
 
 script:
-  - make sdkTest
+  - make testSDK
 
 after_success:
   - make releaseArtifacts
