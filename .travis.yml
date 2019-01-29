@@ -35,7 +35,6 @@ script:
   - make testSDK
 
 after_success:
-  - make releaseArtifacts
   - curl -fL https://getcli.jfrog.io | sh ; mv jfrog $HOME/bin
   - export JFROG_CLI_OFFER_CONFIG=false
 
