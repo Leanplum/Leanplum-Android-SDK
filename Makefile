@@ -5,20 +5,20 @@
 ####################################################################
 
 testSDK:
-  ./gradlew assembleRelease testReleaseUnitTest
+	./gradlew assembleRelease testReleaseUnitTest
 
 patchReleaseBranch:
-  ./Tools/create-release.bash patch
+	./Tools/create-release.bash patch
 
 releaseBinaries:
-  ./gradlew assembleRelease
+	./gradlew assembleRelease
 
 releasePoms:
-  ./gradlew generatePomFileForAarPublication
+	./gradlew generatePomFileForAarPublication
 
 releaseArtifacts: releaseBinaries releasePoms
 
 tagCommit:
-  git tag `cat sdk-version.txt`; git push origin `cat sdk-version.txt`
+	git tag `cat sdk-version.txt`; git push origin `cat sdk-version.txt`
 
 deploy: tagCommit
