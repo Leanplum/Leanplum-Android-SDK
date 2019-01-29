@@ -31,14 +31,11 @@ build-image:
 
 .PHONY: build
 
-GRADLE_COMMAND:=assembleDebug testDebugUnitTest assembleRelease generatePomFileForAarPublication
-gradlewTravis:
-	./gradlew ${GRADLE_COMMAND}
+sdkTest:
+	./gradlew assembleDebug testDebugUnitTest
 
 patchReleaseBranch:
 	./Tools/create-release.bash patch
-
-releaseArtifacts: releaseBinaries releasePoms
 
 releaseBinaries:
 	./gradlew assembleRelease
@@ -46,10 +43,12 @@ releaseBinaries:
 releasePoms:
 	./gradlew generatePomFileForAarPublication
 
+releaseArtifacts: releaseBinaries releasePoms
+
 deployArtifacts:
 	./Tools/deploy.py
 
 tagCommit:
 	git tag `cat sdk-version.txt`; git push --tags
 
-deploy: tagCommit releaseArtifacts deployArtifacts
+deploy: tagCommit deployArtifacts

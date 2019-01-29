@@ -30,7 +30,7 @@ class Package:
             Artifact(
                 "/build/publications/aar/pom-default.xml", "pom"),
             Artifact("/build/outputs/aar/" +
-                     project + "-release.aar", "aar"),
+                    project + ".aar", "aar"),
         ]
 
     def validate(self):
@@ -74,7 +74,7 @@ def deployArtifacts(localPath, artifactoryPath, bintrayPath):
 
 
 def artifactoryDeploy(source, destination):
-    flags = "--url=https://artifactory.leanplum.com --apikey=os.environ['JFROG_CLI_API_KEY']"
+    flags = "--url=https://artifactory.leanplum.com --apikey=" + os.environ['JFROG_CLI_API_KEY']
     command = "jfrog rt u " + source + " " + destination + " " + flags
     # print command
     os.system(command)

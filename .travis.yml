@@ -32,14 +32,16 @@ cache:
     - which docker; echo
 
 script:
-  - make gradlewTravis
+  - make sdkTest
 
 after_success:
   - make releaseArtifacts
+  - curl -fL https://getcli.jfrog.io | sh ; mv jfrog $HOME/bin
+  - export JFROG_CLI_OFFER_CONFIG=false
 
 deploy:
   - provider: script
+    skip_cleanup: true
     script: ./Tools/deploy.py
     on:
       tags: true
-
