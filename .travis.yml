@@ -31,13 +31,13 @@ script:
   - make testSDK
 
 after_success:
-  - make releasePoms
+  - make releaseArtifacts
   - curl -fL https://getcli.jfrog.io | sh ; mv jfrog $HOME/bin
   - export JFROG_CLI_OFFER_CONFIG=false
 
 deploy:
   - provider: script
     skip_cleanup: true
-    script: ./Tools/deploy.py
+    script: make deployArtifacts
     on:
       tags: true
