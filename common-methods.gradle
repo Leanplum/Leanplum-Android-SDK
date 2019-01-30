@@ -28,7 +28,7 @@ def publishing_task(libraryArtifactId, packageName) {
         from('build/intermediates/packaged-classes/release/')
         into('build/outputs/jar/')
         include('classes.jar')
-        rename('classes.jar', packageName + '-release.jar')
+        rename('classes.jar', packageName + '.jar')
     }
 
     publishing {
@@ -37,7 +37,7 @@ def publishing_task(libraryArtifactId, packageName) {
                 groupId LEANPLUM_GROUP_ID
                 version LEANPLUM_SDK_VERSION
                 artifactId libraryArtifactId
-                artifact("$buildDir/outputs/aar/" + packageName + "-release.aar")
+                artifact("$buildDir/outputs/aar/" + packageName + ".aar")
 
                 // The publication doesn't know about our dependencies,
                 // so we have to manually add them to the pom.
@@ -49,7 +49,7 @@ def publishing_task(libraryArtifactId, packageName) {
                 version LEANPLUM_SDK_VERSION
                 artifactId libraryArtifactId
 
-                artifact("$buildDir/outputs/jar/" + packageName + "-release.jar")
+                artifact("$buildDir/outputs/jar/" + packageName + ".jar")
 
                 // The publication doesn't know about our dependencies,
                 // so we have to manually add them to the pom.
@@ -58,23 +58,21 @@ def publishing_task(libraryArtifactId, packageName) {
         }
     }
 
-    if (project.hasProperty('artifactoryUsername') && project.hasProperty('artifactoryPassword')) {
-        artifactory {
-            contextUrl = 'http://artifactory-upload.leanplum.com'
-            publish {
-                repository {
-                    repoKey = 'libs-snapshot-local'
+    artifactory {
+        contextUrl = 'http://artifactory.leanplum.com'
+        publish {
+            repository {
+                repoKey = 'libs-release-local'
 
-                    username = artifactoryUsername
-                    password = artifactoryPassword
-                }
-                defaults {
-                    publications('aar', 'jar')
-                    publishArtifacts = true
+                username = System.getenv('ARTIFACTORY_USER')
+                password = System.getenv('ARTIFACTORY_PASSWORD')
+            }
+            defaults {
+                publications('aar', 'jar')
+                publishArtifacts = true
 
-                    properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
-                    publishPom = true
-                }
+                properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
+                publishPom = true
             }
         }
     }

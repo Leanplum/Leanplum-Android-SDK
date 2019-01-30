@@ -56,4 +56,3 @@ android {
         release.setRoot('build-types/release')
     }
 }
-publishing_task(LEANPLUM_ARTIFACT_ID, 'AndroidSDK')
