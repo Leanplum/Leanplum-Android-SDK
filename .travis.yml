@@ -7,10 +7,6 @@ android:
     - build-tools-28.0.3
     - android-28
 
-    - extra-google-google_play_services
-    - extra-google-m2repository
-    - extra-android-m2repository
-
 jdk:
   - oraclejdk8
 
