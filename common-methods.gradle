@@ -31,6 +31,23 @@ def publishing_task(libraryArtifactId, packageName) {
         rename('classes.jar', packageName + '.jar')
     }
 
+    task androidJavadocs(type: Javadoc) {
+        failOnError false
+        source = android.sourceSets.main.java.sourceFiles
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += configurations.compile
+    }
+
+    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+        classifier = 'javadoc'
+        from androidJavadocs.destinationDir
+    }
+
+    task androidSourcesJar(type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
+    }
+
     publishing {
         publications {
             aar(MavenPublication) {
@@ -38,6 +55,8 @@ def publishing_task(libraryArtifactId, packageName) {
                 version LEANPLUM_SDK_VERSION
                 artifactId libraryArtifactId
                 artifact("$buildDir/outputs/aar/" + packageName + ".aar")
+                artifact androidJavadocsJar
+                artifact androidSourcesJar
 
                 // The publication doesn't know about our dependencies,
                 // so we have to manually add them to the pom.
