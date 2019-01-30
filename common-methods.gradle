@@ -78,8 +78,8 @@ def publishing_task(libraryArtifactId, packageName) {
     }
 
     bintray {
-        user = 'e7mac'
-        key = '0f4a40e6b330cd3e271b0ee832d3c57ca7767c6a'
+        user = System.getenv('BINTRAY_USER')
+        key = System.getenv('BINTRAY_API_KEY')
         publications = ['aar', 'jar']
         pkg {
             repo = 'maven'
