@@ -19,7 +19,7 @@ releasePoms:
 releaseArtifacts: releaseBinaries releasePoms
 
 deployArtifacts: 
-	./gradlew artifactoryPublish bintrayUpload
+	./gradlew artifactoryPublish
 
 tagCommit:
 	git tag `cat sdk-version.txt`; git push origin `cat sdk-version.txt`
