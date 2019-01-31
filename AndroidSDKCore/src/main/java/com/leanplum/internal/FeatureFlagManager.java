@@ -11,7 +11,6 @@ public class FeatureFlagManager {
     public static final FeatureFlagManager INSTANCE = new FeatureFlagManager();
 
     public static final String FEATURE_FLAG_REQUEST_REFACTOR = "request_refactor";
-    public static final String FEATURE_FLAG_REQUEST_GZIP= "request_gzip";
 
     private Set<String> enabledFeatureFlags = new HashSet<>();
 
