@@ -5,7 +5,7 @@
 ####################################################################
 
 testSDK:
-	./gradlew assembleRelease testReleaseUnitTest
+	./gradlew clean assembleRelease testReleaseUnitTest
 
 patchReleaseBranch:
 	./Tools/create-release.bash patch
