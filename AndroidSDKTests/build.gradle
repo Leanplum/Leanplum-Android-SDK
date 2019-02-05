@@ -3,12 +3,11 @@ apply from: "../common-methods.gradle"
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
 
     defaultConfig {
         applicationId "com.leanplum.tests"
-        minSdkVersion 14
         targetSdkVersion COMPILE_SDK_VERSION
+        minSdkVersion MIN_SDK_VERSION
         versionCode 1
         versionName "1.0"
     }
@@ -24,7 +23,7 @@ android {
 
             // set heap size for the test JVM(s)
             minHeapSize = "128m"
-            maxHeapSize = "512m"
+            maxHeapSize = "2g"
 
             beforeTest { descriptor ->
                 logger.lifecycle("Running test: " + descriptor)
@@ -36,6 +35,9 @@ android {
             includeAndroidResources = true
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
@@ -44,13 +46,13 @@ dependencies {
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKGcm')
     implementation project(':AndroidSDKFcm')
-    implementation "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
+    implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
     implementation 'com.google.android.gms:play-services-gcm:11.6.0'
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     // Dependencies used for unit tests.
     testImplementation 'junit:junit:4.12'
-    testImplementation('org.robolectric:robolectric:3.5.1') {
+    testImplementation('org.robolectric:robolectric:4.1') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }

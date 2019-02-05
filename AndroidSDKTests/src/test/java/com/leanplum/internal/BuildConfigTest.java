@@ -35,7 +35,9 @@ public class BuildConfigTest extends AbstractTest {
    */
   @Test
   public void testVersion() {
-    String[] parts = Constants.LEANPLUM_VERSION.split("\\.");
+    String version = Constants.LEANPLUM_VERSION;
+
+    String[] parts = version.split("\\.");
 
     assertEquals(4, parts.length);
     // Ensure we can parse and do not go down in major version.
@@ -45,11 +47,14 @@ public class BuildConfigTest extends AbstractTest {
     // Ensure minor and patch versions are parseable.
     int minor = Integer.parseInt(parts[1]);
     assert(minor >= 0);
-    int patch = Integer.parseInt(parts[2]);
-    assert(patch >= 0);
 
-    // Ensure build number propagates.
-    int build = Integer.parseInt(parts[3]);
-    assert(build >= 0);
+    if (!isBeta(version)) {
+      int patch = Integer.parseInt(parts[2]);
+      assert(patch >= 0);
+    }
+  }
+
+  private boolean isBeta(String version) {
+    return version.contains("beta");
   }
 }

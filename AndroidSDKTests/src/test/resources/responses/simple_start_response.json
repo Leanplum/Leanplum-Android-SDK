@@ -4,6 +4,70 @@
       "uploadUrl": "https:\/\/www.leanplum.com\/_ah\/upload\/AMmfu6by_4mWZUn19c8v_omIeRezDaIfzqCosKTZTY4HnsxrA963YsrYMMnTPd538fmb4Gyx17-evF7X_QBqFIYjwPuTeHzihGM5-FHkW8o1zKxNl8E9yB2ZiumXvOj-gMbotIZYA1I_\/ALBNUaYAAAAAWAZDRSTEVp_wufYkJ7EFVZK_9eVhM32E\/",
       "interfaceRules": [
       ],
+      "messages": {
+        "4982955628167168": {
+          "countdown": 5,
+          "action": "__Push Notification",
+          "whenTriggers": {
+            "children": [{
+              "subject": "event",
+              "objects": [],
+              "verb": "triggers",
+              "noun": "pushLocal",
+              "secondaryVerb": "="
+            }],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Message": "Push Local #1",
+            "__name__": "__Push Notification"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          },
+          "unlessTriggers": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          }
+        },
+        "5571264209354752": {
+          "countdown": 5,
+          "action": "__Push Notification",
+          "whenTriggers": {
+            "children": [{
+              "subject": "event",
+              "objects": [],
+              "verb": "triggers",
+              "noun": "pushLocal",
+              "secondaryVerb": "="
+            }],
+            "verb": "OR"
+          },
+          "parentCampaignId": null,
+          "vars": {
+            "Message": "Push Local #2",
+            "__name__": "__Push Notification"
+          },
+          "hasImpressionCriteria": false,
+          "priority": 1000,
+          "whenLimits": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          },
+          "unlessTriggers": {
+            "children": [],
+            "subject": null,
+            "objects": []
+          }
+        }
+      },
       "actionDefinitions": {
         "Confirm": {
           "values": {
@@ -222,8 +286,6 @@
       },
       "isRegistered": false,
       "regions": {
-      },
-      "messages": {
       },
       "varsFromCode": {
         "emptyDictionary": {

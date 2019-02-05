@@ -21,7 +21,7 @@
 package com.leanplum.internal;
 
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.leanplum.Leanplum;
 

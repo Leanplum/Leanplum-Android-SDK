@@ -31,18 +31,19 @@ import android.graphics.Paint.Style;
 import android.graphics.PorterDuff.Mode;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RelativeLayout.LayoutParams;
 
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
+
+import androidx.appcompat.widget.AppCompatImageView;
 
 /**
  * The image background on a Center Popup or Interstitial dialog.
  *
  * @author Martin Yanakiev
  */
-public class BackgroundImageView extends ImageView {
+public class BackgroundImageView extends AppCompatImageView {
   private Paint paint = new Paint();
   private boolean fullscreen;
   private Matrix emptyMatrix = new Matrix();

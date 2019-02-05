@@ -99,9 +99,6 @@ public class LeanplumActivityHelper {
    */
   public static void enableLifecycleCallbacks(final Application app) {
     Leanplum.setApplicationContext(app.getApplicationContext());
-    if (Build.VERSION.SDK_INT < 14) {
-      return;
-    }
     app.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
       @Override
       public void onActivityStopped(Activity activity) {
