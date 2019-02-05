@@ -24,6 +24,8 @@ package com.leanplum.internal;
 import com.leanplum.Leanplum;
 import java.util.Map;
 
+import androidx.annotation.VisibleForTesting;
+
 public class RequestFactory {
 
   private static final String API_METHOD_START = "start";
@@ -53,7 +55,8 @@ public class RequestFactory {
   private static final String API_METHOD_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
   private static final String API_METHOD_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
 
-  private static RequestFactory defaultFactory;
+  @VisibleForTesting
+  public static RequestFactory defaultFactory;
 
   private CountAggregator countAggregator;
   private FeatureFlagManager featureFlagManager;
