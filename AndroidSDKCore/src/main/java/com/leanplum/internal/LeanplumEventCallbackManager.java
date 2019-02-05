@@ -38,7 +38,7 @@ import java.util.Map;
  */
 class LeanplumEventCallbackManager {
   // Event callbacks map.
-  private final Map<RequestOld, LeanplumEventCallbacks> eventCallbacks = new HashMap<>();
+  private final Map<Requesting, LeanplumEventCallbacks> eventCallbacks = new HashMap<>();
 
   /**
    * Add callbacks to the event callbacks Map.
@@ -47,8 +47,8 @@ class LeanplumEventCallbackManager {
    * @param responseCallback Response callback.
    * @param errorCallback Error callback.
    */
-  void addCallbacks(RequestOld request, RequestOld.ResponseCallback responseCallback,
-                    RequestOld.ErrorCallback errorCallback) {
+  void addCallbacks(Requesting request, Requesting.ResponseCallback responseCallback,
+                    Requesting.ErrorCallback errorCallback) {
     if (request == null) {
       return;
     }
@@ -73,11 +73,11 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    Iterator<Map.Entry<RequestOld, LeanplumEventCallbacks>> iterator =
+    Iterator<Map.Entry<Requesting, LeanplumEventCallbacks>> iterator =
         eventCallbacks.entrySet().iterator();
     // Loop over all callbacks.
     for (; iterator.hasNext(); ) {
-      final Map.Entry<RequestOld, LeanplumEventCallbacks> entry = iterator.next();
+      final Map.Entry<Requesting, LeanplumEventCallbacks> entry = iterator.next();
       if (entry.getKey() == null) {
         continue;
       }
@@ -113,11 +113,11 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    Iterator<Map.Entry<RequestOld, LeanplumEventCallbacks>> iterator =
+    Iterator<Map.Entry<Requesting, LeanplumEventCallbacks>> iterator =
         eventCallbacks.entrySet().iterator();
     // Loop over all callbacks.
     for (; iterator.hasNext(); ) {
-      final Map.Entry<RequestOld, LeanplumEventCallbacks> entry = iterator.next();
+      final Map.Entry<Requesting, LeanplumEventCallbacks> entry = iterator.next();
       if (entry.getKey() == null) {
         continue;
       }
@@ -131,8 +131,16 @@ class LeanplumEventCallbackManager {
           Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-              entry.getValue().responseCallback.response(RequestOld.getResponseAt(responseBody,
-                  (int) entry.getKey().getDataBaseIndex()));
+              // if feature flag on
+              if (FeatureFlagManager.INSTANCE.
+                      isFeatureFlagEnabled(FeatureFlagManager.FEATURE_FLAG_REQUEST_REFACTOR)) {
+                entry.getValue().responseCallback.response(RequestSender.getInstance().
+                        getResponseAt(responseBody, (int) entry.getKey().getDataBaseIndex()));
+              } else {
+                entry.getValue().responseCallback.response(RequestOld.getResponseAt(responseBody,
+                      (int) entry.getKey().getDataBaseIndex()));
+
+              }
               return null;
             }
           });
@@ -144,10 +152,10 @@ class LeanplumEventCallbackManager {
   }
 
   private static class LeanplumEventCallbacks {
-    private RequestOld.ResponseCallback responseCallback;
-    private RequestOld.ErrorCallback errorCallback;
+    private Requesting.ResponseCallback responseCallback;
+    private Requesting.ErrorCallback errorCallback;
 
-    LeanplumEventCallbacks(RequestOld.ResponseCallback responseCallback, RequestOld.ErrorCallback
+    LeanplumEventCallbacks(Requesting.ResponseCallback responseCallback, Requesting.ErrorCallback
         errorCallback) {
       this.responseCallback = responseCallback;
       this.errorCallback = errorCallback;

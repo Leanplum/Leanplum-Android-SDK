@@ -53,7 +53,7 @@ public class RequestFactory {
   private static final String API_METHOD_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
   private static final String API_METHOD_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
 
-  public static RequestFactory defaultFactory;
+  private static RequestFactory defaultFactory;
 
   private CountAggregator countAggregator;
   private FeatureFlagManager featureFlagManager;
@@ -193,7 +193,8 @@ public class RequestFactory {
   }
 
   private Boolean shouldReturnLPRequestClass() {
-    return Leanplum.featureFlagManager().isFeatureFlagEnabled(Leanplum.featureFlagManager().FEATURE_FLAG_REQUEST_REFACTOR);
+    return this.featureFlagManager.isFeatureFlagEnabled
+            (this.featureFlagManager.FEATURE_FLAG_REQUEST_REFACTOR);
   }
 
 }

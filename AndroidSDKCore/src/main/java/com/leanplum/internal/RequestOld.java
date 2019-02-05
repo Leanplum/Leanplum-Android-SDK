@@ -118,6 +118,11 @@ public class RequestOld implements Requesting {
     Leanplum.countAggregator().incrementCount("set_app_id");
   }
 
+  @Override
+  public void setSent(boolean sent) {
+    this.sent = sent;
+  }
+
   public static void setDeviceId(String deviceId) {
     RequestOld.deviceId = deviceId;
   }
@@ -398,21 +403,6 @@ public class RequestOld implements Requesting {
     return true;
   }
 
-  public interface ResponseCallback {
-    void response(JSONObject response);
-  }
-
-  public interface ApiResponseCallback {
-    void response(List<Map<String, Object>> requests, JSONObject response, int countOfEvents);
-  }
-
-  public interface ErrorCallback {
-    void error(Exception e);
-  }
-
-  public interface NoPendingDownloadsCallback {
-    void noPendingDownloads();
-  }
 
   /**
    * Parse response body from server.  Invoke potential error or response callbacks for all events
