@@ -30,15 +30,35 @@ public class Request implements Requesting {
   private final String httpMethod;
   private final String apiMethod;
   private final Map<String, Object> params;
-  private ResponseCallback response = null;
+  private Requesting.ResponseCallback response = null;
   private ErrorCallback error = null;
   private final CountAggregator countAggregator;
+  private boolean sent = false;
+  private final String requestId = null;
+  private long dataBaseIndex = -1;
+
 
   public Request(String httpMethod, String apiMethod, Map<String, Object> params) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params;
     this.countAggregator = Leanplum.countAggregator();
+  }
+
+
+  @Override
+  public void setSent(boolean sent) {
+    this.sent = sent;
+  }
+
+  @Override
+  public void setDataBaseIndex(long dataBaseIndex) {
+    this.dataBaseIndex = dataBaseIndex;
+  }
+
+  @Override
+  public long getDataBaseIndex() {
+    return dataBaseIndex;
   }
 
   public static Request get(String apiMethod, Map<String, Object> params) {
