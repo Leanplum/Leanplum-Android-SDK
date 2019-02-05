@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -39,6 +40,22 @@ import java.util.Map;
  */
 @SuppressLint("Registered")
 public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingService {
+
+  @Override
+  public void onNewToken(String s) {
+    super.onNewToken(s);
+    try {
+      if (Build.VERSION.SDK_INT < 26) {
+        LeanplumNotificationHelper.startPushRegistrationService(this, "FCM");
+      } else {
+        LeanplumNotificationHelper.scheduleJobService(this,
+            LeanplumFcmRegistrationJobService.class, LeanplumFcmRegistrationJobService.JOB_ID);
+      }
+    } catch (Throwable t) {
+      Log.e("Failed to update FCM token.", t);
+    }
+  }
+
   /**
    * Called when a message is received. This is also called when a notification message is received
    * while the app is in the foreground.
