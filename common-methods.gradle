@@ -55,7 +55,7 @@ def publishing_task(libraryArtifactId, packageName) {
                 version LEANPLUM_SDK_VERSION
                 artifactId libraryArtifactId
 
-                artifact("$buildDir/outputs/aar/" + packageName + ".aar")
+                artifact("$buildDir/outputs/aar/" + packageName + "-release.aar")
                 artifact androidJavadocsJar
                 artifact androidSourcesJar
 
