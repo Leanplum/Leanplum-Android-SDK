@@ -1,17 +1,18 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 apply from: "../common-methods.gradle"
 
 android {
 
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
     useLibrary 'org.apache.http.legacy'
 
     publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
 
         def packageIdentifier =  System.getenv('LEANPLUM_PACKAGE_IDENTIFIER') ?: 's'
@@ -24,15 +25,15 @@ android {
     }
     buildTypes {
         release {
-            proguardFiles PROGUARD_FILES
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), PROGUARD_FILES
         }
     }
 }
 
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
-    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
-    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "androidx.legacy:legacy-support-v4:1.0.0"
+    api "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
 }
 
 task generateJavadoc(type: Javadoc) {

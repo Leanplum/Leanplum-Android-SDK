@@ -21,6 +21,7 @@
 
 package com.leanplum;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -32,7 +33,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -338,6 +339,7 @@ public class LeanplumPushService {
   /**
    * Put the message into a notification and post it.
    */
+  @TargetApi(16)
   private static void showNotification(Context context, final Bundle message) {
     if (context == null || message == null) {
       return;

@@ -34,8 +34,8 @@ import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.widget.RemoteViews;
@@ -43,11 +43,9 @@ import android.widget.RemoteViews;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Util;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.BuildUtil;
 
-import java.util.IllegalFormatCodePointException;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -103,6 +101,7 @@ class LeanplumNotificationHelper {
    */
   // Notification.Builder(Context context) constructor was deprecated in API level 26.
   @SuppressWarnings("deprecation")
+  @TargetApi(26)
   private static Notification.Builder getDefaultNotificationBuilder(Context context,
       boolean isNotificationChannelSupported) {
     if (!isNotificationChannelSupported) {
@@ -299,6 +298,7 @@ class LeanplumNotificationHelper {
    * @param messageText String with text for push notification.
    * @return Notification.BigPictureStyle or null.
    */
+  @TargetApi(16)
   static Notification.BigPictureStyle getBigPictureStyle(Bundle message, Bitmap bigPicture,
       String title, final String messageText) {
     if (Build.VERSION.SDK_INT < 16 || message == null || bigPicture == null) {
@@ -382,6 +382,7 @@ class LeanplumNotificationHelper {
    * @param context Current application context.
    * @return boolean True if it is possible to create a drawable from current app icon.
    */
+  @TargetApi(16)
   private static boolean canCreateIconDrawable(Context context) {
     try {
       // Try to create icon drawable.

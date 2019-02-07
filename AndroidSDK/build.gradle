@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 apply from: "../common-methods.gradle"
@@ -18,10 +19,10 @@ dependencies {
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
-//    publishNonDefault true
+    //    publishNonDefault true
 
     defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
     }
 
@@ -56,4 +57,3 @@ android {
         release.setRoot('build-types/release')
     }
 }
-publishing_task(LEANPLUM_ARTIFACT_ID, 'AndroidSDK')
