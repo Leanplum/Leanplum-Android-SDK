@@ -4,6 +4,9 @@
 #
 ####################################################################
 
+verifyTag:
+	./Tools/verifyTag.sh
+
 testSDK:
 	./gradlew assembleRelease testReleaseUnitTest
 
@@ -24,4 +27,4 @@ deployArtifacts:
 tagCommit:
 	git tag `cat sdk-version.txt`; git push origin `cat sdk-version.txt`
 
-deploy: tagCommit
+deploy: verifyTag tagCommit
