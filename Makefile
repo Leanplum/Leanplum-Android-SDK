@@ -4,10 +4,7 @@
 #
 ####################################################################
 
-verifyTag:
-	./Tools/verifyTag.sh
-
 tagCommit:
 	git tag `cat sdk-version.txt`; git push origin `cat sdk-version.txt`
 
-deploy: verifyTag tagCommit
+deploy: tagCommit
