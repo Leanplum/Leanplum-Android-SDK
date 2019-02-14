@@ -14,6 +14,7 @@ script:
   - ./gradlew assembleRelease testReleaseUnitTest
 
 before_deploy:
+  - ./Tools/verifyTag.sh
   - ./gradlew assembleRelease makeJar generatePomFileForAarPublication
 
 deploy:
