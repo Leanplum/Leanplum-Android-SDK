@@ -56,7 +56,6 @@ public class LeanplumManifestHelper {
   // Leanplum
   public static final String LP_PUSH_INSTANCE_ID_SERVICE = "com.leanplum.LeanplumPushInstanceIDService";
   public static final String LP_PUSH_LISTENER_SERVICE = "com.leanplum.LeanplumPushListenerService";
-  public static final String LP_PUSH_FCM_LISTENER_SERVICE = "com.leanplum.LeanplumPushFcmListenerService";
   public static final String LP_PUSH_FCM_MESSAGING_SERVICE = "com.leanplum.LeanplumPushFirebaseMessagingService";
   public static final String LP_PUSH_REGISTRATION_SERVICE = "com.leanplum.LeanplumPushRegistrationService";
   public static final String LP_PUSH_RECEIVER = "com.leanplum.LeanplumPushReceiver";

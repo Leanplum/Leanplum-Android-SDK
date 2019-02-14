@@ -198,6 +198,66 @@ public class LeanplumPushServiceTest {
     verifyPrivate(LeanplumPushService.class, times(2)).invoke("registerInBackground");
   }
 
+
+  /**
+   * Test for {@link LeanplumPushService#initPushService} that should start {@link
+   * LeanplumPushService#registerInBackground}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testInitPushFCMProviderService() throws Exception {
+    // Mock for LeanplumFcmProvider.
+    LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
+    whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
+
+    RequestOld.setAppId("1", "1");
+    when(LeanplumPushService.class, "hasAppIDChanged", "1").thenReturn(false);
+
+    LeanplumPushService pushService = new LeanplumPushService();
+    Method initPushServiceMethod = LeanplumPushService.class.
+        getDeclaredMethod("initPushService");
+    initPushServiceMethod.setAccessible(true);
+
+    // Tests for Firebase.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
+
+    // Test if Manifest is not set up and provider is initialized.
+    doReturn(false).when(fcmProviderMock).isManifestSetup();
+    doReturn(true).when(fcmProviderMock).isInitialized();
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(0)).invoke("registerInBackground");
+
+    // Test if Manifest is set up and provider is initialized.
+    doReturn(true).when(fcmProviderMock).isManifestSetup();
+    doReturn(true).when(fcmProviderMock).isInitialized();
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
+
+    // Tests for GCM.
+    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
+
+    // Test if Manifest is not set up and provider is initialized.
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
+
+    // Test if Manifest is set up and provider not initialized.
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
+
+    // Test if Manifest is set up and provider is initialized.
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(2)).invoke("registerInBackground");
+  }
+
+  
+
   /**
    * Test for {@link LeanplumPushService#onStart}
    *

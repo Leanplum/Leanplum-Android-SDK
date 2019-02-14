@@ -42,8 +42,10 @@ import java.util.Map;
 public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingService {
 
   @Override
-  public void onNewToken(String s) {
-    super.onNewToken(s);
+  public void onNewToken(String token) {
+    super.onNewToken(token);
+
+    LeanplumPushService.getCloudMessagingProvider().storePreferences(this.getApplicationContext(), token);
     try {
       if (Build.VERSION.SDK_INT < 26) {
         LeanplumNotificationHelper.startPushRegistrationService(this, "FCM");

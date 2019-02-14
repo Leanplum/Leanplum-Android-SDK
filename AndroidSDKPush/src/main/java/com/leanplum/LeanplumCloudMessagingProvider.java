@@ -89,14 +89,9 @@ abstract class LeanplumCloudMessagingProvider {
       return;
     }
     LeanplumCloudMessagingProvider.registrationId = registrationId;
-    // Check if received push notification token is different from stored one and send new one to
-    // server.
-    if (!LeanplumCloudMessagingProvider.registrationId.equals(SharedPreferencesUtil.getString(
-        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_REGISTRATION_ID))) {
-      Log.i("Device registered for push notifications with registration token", registrationId);
-      storePreferences(context.getApplicationContext());
-      sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
-    }
+    Log.i("Device registered for push notifications with registration token", registrationId);
+    storePreferences(context.getApplicationContext());
+    sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
   }
 
   /**
@@ -108,5 +103,28 @@ abstract class LeanplumCloudMessagingProvider {
     Log.v("Saving the registration ID in the shared preferences.");
     SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
         Constants.Defaults.PROPERTY_REGISTRATION_ID, registrationId);
+  }
+
+
+  /**
+   * Stores the registration ID in the application's {@code SharedPreferences}.
+   *
+   * @param context The application context.
+   */
+  public void storePreferences(Context context, String registrationIdValue) {
+    Log.v("Saving the registration ID in the shared preferences.");
+    SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
+        Constants.Defaults.PROPERTY_REGISTRATION_ID, registrationIdValue);
+  }
+
+  /**
+   * Get the registration ID in the application's {@code SharedPreferences}.
+   *
+   * @param context The application context.
+   */
+  public String getStoredRegistrationPreferences(Context context) {
+    Log.v("Return the registration ID in the shared preferences.");
+    return SharedPreferencesUtil.getString(
+        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_REGISTRATION_ID);
   }
 }

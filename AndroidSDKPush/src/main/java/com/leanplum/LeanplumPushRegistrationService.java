@@ -48,6 +48,7 @@ public class LeanplumPushRegistrationService extends IntentService {
         Log.e("Failed to complete registration token refresh.");
         return;
       }
+      //Here for FCM, its no longer a syncronous call. 
       String registrationId = provider.getRegistrationId();
       if (!TextUtils.isEmpty(registrationId)) {
         if (existingRegistrationId != null && !registrationId.equals(existingRegistrationId)) {

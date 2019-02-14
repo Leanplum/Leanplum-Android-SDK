@@ -39,7 +39,7 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   public String getRegistrationId() {
-    return FirebaseInstanceId.getInstance().getToken();
+    return this.getStoredRegistrationPreferences(Leanplum.getContext());
   }
 
   @Override
