@@ -88,60 +88,17 @@ public class LeanplumPushService {
    * LeanplumPushService#parseNotificationBundle(Bundle)}.
    */
   public static final String LEANPLUM_MESSAGE_ID = "lp_message_id";
-  private static final String LEANPLUM_PUSH_SERVICE_GCM = "com.leanplum.LeanplumPushServiceGcm";
-  private static final String LEANPLUM_PUSH_SERVICE_FCM = "com.leanplum.LeanplumPushServiceFcm";
 
   private static final int NOTIFICATION_ID = 1;
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
-  private static final String COM_LEANPLUM_GCM_PROVIDER = "com.leanplum.LeanplumGcmProvider";
   private static Class<? extends Activity> callbackClass;
   private static LeanplumCloudMessagingProvider provider;
   private static boolean isFirebaseEnabled = false;
   private static LeanplumPushNotificationCustomizer customizer;
   private static boolean useNotificationBuilderCustomizer = false;
 
-  /**
-   * Sets the Google Cloud Messaging sender ID. Required for push GCM notifications to work.
-   *
-   * @param senderId The GCM sender ID to permit notifications from. Use {@link
-   * LeanplumPushService#LEANPLUM_SENDER_ID} to use the built-in sender ID for GCM. If you have
-   * multiple sender IDs, use {@link LeanplumPushService#setGcmSenderIds}.
-   */
-  public static void setGcmSenderId(String senderId) {
-    try {
-      Class.forName(COM_LEANPLUM_GCM_PROVIDER).getDeclaredMethod("setSenderId",
-          String.class).invoke(new Object(), senderId);
-    } catch (Throwable throwable) {
-      Log.e("Couldn't invoke a LeanplumGcmProvider.setGcmSenderId method, please be " +
-          "sure you include LeanplumGCM module.", throwable);
-    }
-  }
-
-  /**
-   * Sets the Google Cloud Messaging sender ID. Required for push GCM notifications to work.
-   *
-   * @param senderIds The GCM sender IDs to permit notifications from. Use {@link
-   * LeanplumPushService#LEANPLUM_SENDER_ID} to use the built-in sender ID.
-   */
-  public static void setGcmSenderIds(String... senderIds) {
-    StringBuilder joinedSenderIds = new StringBuilder();
-    for (String senderId : senderIds) {
-      if (joinedSenderIds.length() > 0) {
-        joinedSenderIds.append(',');
-      }
-      joinedSenderIds.append(senderId);
-    }
-
-    try {
-      Class.forName(COM_LEANPLUM_GCM_PROVIDER).getDeclaredMethod("setSenderId",
-          String.class).invoke(new Object(), joinedSenderIds.toString());
-    } catch (Throwable throwable) {
-      Log.e("Couldn't invoke a LeanplumGcmProvider.setGcmSenderId method, please be " +
-          "sure you include LeanplumGCM module.", throwable);
-    }
-  }
 
   /**
    * Use Firebase Cloud Messaging, instead of the default Google Cloud Messaging.
@@ -172,7 +129,7 @@ public class LeanplumPushService {
   }
 
   /**
-   * Get Cloud Messaging provider. By default - GCM.
+   * Get Cloud Messaging provider. By default - FCM.
    *
    * @return LeanplumCloudMessagingProvider - current provider
    */
@@ -688,7 +645,7 @@ public class LeanplumPushService {
   }
 
   /**
-   * Unregisters the device from all GCM push notifications. You shouldn't need to call this method
+   * Unregisters the device from all FCM push notifications. You shouldn't need to call this method
    * in production.
    */
   public static void unregister() {
@@ -704,7 +661,7 @@ public class LeanplumPushService {
   }
 
   /**
-   * Registers the application with GCM servers asynchronously.
+   * Registers the application with FCM servers asynchronously.
    * <p>
    * Stores the registration ID and app versionCode in the application's shared preferences.
    */
@@ -712,60 +669,12 @@ public class LeanplumPushService {
     try {
       Context context = Leanplum.getContext();
       if (context == null) {
-        Log.e("Failed to register application with GCM/FCM. Your application context is not set.");
+        Log.e("Failed to register application with FCM. Your application context is not set.");
         return;
       }
       Intent registerIntent = new Intent(context, LeanplumPushRegistrationService.class);
       context.startService(registerIntent);
     } catch (Throwable ignored) {
-    }
-  }
-
-  /**
-   * Register manually for Google Cloud Messaging services.
-   *
-   * @param token The registration ID token or the instance ID security token.
-   */
-  public static void setGcmRegistrationId(String token) {
-    new LeanplumManualProvider(Leanplum.getContext().getApplicationContext(), token);
-  }
-
-  /**
-   * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
-   */
-  static void onStart() {
-    Class leanplumGcmPushServiceClass = null;
-    Class leanplumFcmPushServiceClass = null;
-
-    try {
-      leanplumGcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_GCM);
-    } catch (Throwable ignored) {
-    }
-
-    try {
-      leanplumFcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_FCM);
-    } catch (Throwable ignored) {
-    }
-
-    if (leanplumGcmPushServiceClass != null && leanplumFcmPushServiceClass != null) {
-      Log.e("Leanplum does not support leanplum-gcm and leanplum-fcm library at the " +
-          "same time. To support Leanplum GCM and Location services modify your build.gradle by " +
-          "including only implementation 'com.leanplum:leanplum:+' " +
-          "To support only GCM services, use implementation 'com.leanplum:leanplum-gcm:+' " +
-          "For FCM services include implementation 'com.leanplum:leanplum-fcm:+'" +
-          " If you wish to use Leanplum FCM and Location services you also need to include " +
-          "implementation 'com.leanplum:leanplum-location:+'.");
-
-    } else if (leanplumGcmPushServiceClass != null) {
-      try {
-        leanplumGcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
-      } catch (Throwable ignored) {
-      }
-    } else if (leanplumFcmPushServiceClass != null) {
-      try {
-        leanplumFcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
-      } catch (Throwable ignored) {
-      }
     }
   }
 

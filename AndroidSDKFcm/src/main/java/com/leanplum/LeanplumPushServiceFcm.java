@@ -12,13 +12,13 @@ public class LeanplumPushServiceFcm {
    * push provider and init push service. This method will call by reflection from AndroidSDKPush.
    */
   static void onStart() {
-    try {
+    /*try {
       LeanplumPushService.setCloudMessagingProvider(new LeanplumFcmProvider());
       LeanplumPushService.initPushService();
     } catch (LeanplumException e) {
       Log.e("There was an error registering for push notifications.\n" +
           Log.getStackTraceString(e));
     } catch (Throwable ignored) {
-    }
+    }*/
   }
 }

@@ -45,6 +45,7 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
   public void onNewToken(String token) {
     super.onNewToken(token);
 
+    LeanplumPushService.setCloudMessagingProvider(new LeanplumFcmProvider());
     LeanplumPushService.getCloudMessagingProvider().storePreferences(this.getApplicationContext(), token);
     try {
       if (Build.VERSION.SDK_INT < 26) {

@@ -34,7 +34,6 @@ import com.leanplum.internal.Log;
  * @author Aleksandar Gyorev
  */
 public class LeanplumPushRegistrationService extends IntentService {
-  private static String existingRegistrationId;
 
   public LeanplumPushRegistrationService() {
     super("LeanplumPushRegistrationService");
@@ -48,17 +47,9 @@ public class LeanplumPushRegistrationService extends IntentService {
         Log.e("Failed to complete registration token refresh.");
         return;
       }
-      //Here for FCM, its no longer a syncronous call. 
+      //Here for FCM, its no longer a syncronous call.
       String registrationId = provider.getRegistrationId();
       if (!TextUtils.isEmpty(registrationId)) {
-        if (existingRegistrationId != null && !registrationId.equals(existingRegistrationId)) {
-          Log.e("WARNING: It appears your app is registering " +
-              "with GCM/FCM using multiple GCM/FCM sender ids. Please be sure to call " +
-              "LeanplumPushService.setGcmSenderIds() with " +
-              "all of the GCM sender ids that you use, not just the one that you use with " +
-              "Leanplum. Otherwise, GCM/FCM push notifications may not work consistently.");
-        }
-        existingRegistrationId = registrationId;
         provider.onRegistrationIdReceived(getApplicationContext(), registrationId);
       }
     } catch (Throwable t) {

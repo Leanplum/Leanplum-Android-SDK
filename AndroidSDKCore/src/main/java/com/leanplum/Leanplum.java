@@ -608,25 +608,9 @@ public class Leanplum {
     countAggregator.incrementCount("start_with_user_id");
   }
 
-  /**
-   * Checks for leanplum notifications modules and if someone present - invoke onStart method.
-   */
-  private static void checkAndStartNotificationsModules() {
-    if (Util.hasPlayServices()) {
-      try {
-        Class.forName(LEANPLUM_PUSH_SERVICE).getDeclaredMethod("onStart")
-            .invoke(null);
-      } catch (Throwable ignored) {
-      }
-    } else {
-      Log.i("No valid Google Play Services APK found.");
-    }
-  }
-
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
     LeanplumEventDataManager.init(context);
-    checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
     String deviceId = RequestOld.deviceId();
     if (deviceId == null) {

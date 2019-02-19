@@ -90,7 +90,6 @@ abstract class LeanplumCloudMessagingProvider {
     }
     LeanplumCloudMessagingProvider.registrationId = registrationId;
     Log.i("Device registered for push notifications with registration token", registrationId);
-    storePreferences(context.getApplicationContext());
     sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
   }
 

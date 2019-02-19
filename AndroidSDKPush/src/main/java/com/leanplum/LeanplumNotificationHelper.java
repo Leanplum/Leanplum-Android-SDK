@@ -488,7 +488,7 @@ class LeanplumNotificationHelper {
   }
 
   /**
-   * Starts push registration service to update GCM/FCM InstanceId token.
+   * Starts push registration service to update FCM InstanceId token.
    *
    * @param context Current application context.
    * @param providerName Name of push notification provider.
