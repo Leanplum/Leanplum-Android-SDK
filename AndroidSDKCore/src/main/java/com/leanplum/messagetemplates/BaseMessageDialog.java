@@ -89,7 +89,7 @@ public class BaseMessageDialog extends Dialog {
 
   protected BaseMessageDialog(Activity activity, boolean fullscreen, BaseMessageOptions options,
       WebInterstitialOptions webOptions, HTMLOptions htmlOptions) {
-    super(activity, getTheme(activity, htmlOptions));
+    super(activity, getTheme(activity));
 
     SizeUtil.init(activity);
     this.activity = activity;
@@ -276,7 +276,8 @@ public class BaseMessageDialog extends Dialog {
       int height = SizeUtil.dpToPx(context, htmlOptions.getHtmlHeight());
       HTMLOptions.Size htmlWidth = htmlOptions.getHtmlWidth();
       if (htmlWidth == null || TextUtils.isEmpty(htmlWidth.type)) {
-        layoutParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
+        layoutParams = new RelativeLayout.LayoutParams(
+            LayoutParams.MATCH_PARENT, height);
       } else {
         int width = htmlWidth.value;
         if ("%".equals(htmlWidth.type)) {
@@ -647,13 +648,13 @@ public class BaseMessageDialog extends Dialog {
     return view;
   }
 
-  private static int getTheme(Activity activity, HTMLOptions htmlOptions) {
+  private static int getTheme(Activity activity) {
     boolean full = (activity.getWindow().getAttributes().flags &
         WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN;
     if (full) {
       return android.R.style.Theme_Translucent_NoTitleBar_Fullscreen;
     } else {
-        return android.R.style.Theme_Translucent_NoTitleBar;
+      return android.R.style.Theme_Translucent_NoTitleBar;
     }
   }
 }
