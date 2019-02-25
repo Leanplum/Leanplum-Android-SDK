@@ -193,7 +193,8 @@ public class RequestFactory {
   }
 
   private Boolean shouldReturnLPRequestClass() {
-    return Leanplum.featureFlagManager().isFeatureFlagEnabled(Leanplum.featureFlagManager().FEATURE_FLAG_REQUEST_REFACTOR);
+    return Leanplum.featureFlagManager().isFeatureFlagEnabled(
+            FeatureFlag.FEATURE_FLAG_REQUEST_REFACTOR);
   }
 
 }

@@ -849,7 +849,10 @@ public class Util {
    * Handles uncaught exceptions in the SDK.
    */
   public static void handleException(Throwable t) {
-    ExceptionHandler.getInstance().reportException(t);
+    if (FeatureFlagManager.INSTANCE.isFeatureFlagEnabled(
+            FeatureFlag.FEATURE_FLAG_CRASH_MONITORING)) {
+      ExceptionHandler.getInstance().reportException(t);
+    }
 
     if (t instanceof OutOfMemoryError) {
       if (Constants.isDevelopmentModeEnabled) {
