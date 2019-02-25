@@ -38,6 +38,7 @@ public class Constants {
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
   public static String LEANPLUM_VERSION = BuildConfig.SDK_VERSION + '.' + BuildConfig.BUILD_NUMBER;
   public static String CLIENT = "android";
+  public static String LEANPLUM_SUPPORTED_ENCODING = "gzip";
 
   static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";

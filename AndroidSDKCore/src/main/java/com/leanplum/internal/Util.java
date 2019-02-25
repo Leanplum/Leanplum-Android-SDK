@@ -556,8 +556,8 @@ public class Util {
     urlConnection.setRequestProperty("User-Agent",
         getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
-            getSystemVersion() + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
-    urlConnection.setRequestProperty("Accept-Encoding", "gzip");
+            getSystemVersion() + "/" + Constants.LEANPLUM_SUPPORTED_ENCODING + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
+    urlConnection.setRequestProperty("Accept-Encoding", Constants.LEANPLUM_SUPPORTED_ENCODING);
     return urlConnection;
   }
 
