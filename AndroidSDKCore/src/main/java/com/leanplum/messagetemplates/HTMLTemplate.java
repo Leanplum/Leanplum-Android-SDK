@@ -22,10 +22,13 @@
 package com.leanplum.messagetemplates;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Point;
 import androidx.annotation.NonNull;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
@@ -33,6 +36,7 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.Log;
 import com.leanplum.utils.SizeUtil;
 
 /**
@@ -52,6 +56,10 @@ public class HTMLTemplate extends BaseMessageDialog {
   @Override
   public boolean dispatchTouchEvent(@NonNull MotionEvent ev) {
     if (!htmlOptions.isFullScreen()) {
+      if (isBanner(htmlOptions)) {
+        return super.dispatchTouchEvent(ev);
+      }
+
       Point size = SizeUtil.getDisplaySize(activity);
       int dialogWidth = webView.getWidth();
       int left = (size.x - dialogWidth) / 2;
@@ -73,6 +81,7 @@ public class HTMLTemplate extends BaseMessageDialog {
         if (htmlOptions.isHtmlTabOutsideToClose()) {
           cancel();
         }
+
         activity.dispatchTouchEvent(ev);
       }
     }
