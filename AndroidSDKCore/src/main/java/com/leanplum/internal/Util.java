@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
@@ -661,7 +662,12 @@ public class Util {
   private static String getResponse(HttpURLConnection op) throws IOException {
     InputStream inputStream;
     if (op.getResponseCode() < 400) {
-      inputStream = op.getInputStream();
+      String contentHeader = op.getHeaderField("content-encoding");
+      if (contentHeader != null && contentHeader.equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING)) {
+        inputStream = new GZIPInputStream(op.getInputStream());
+      } else {
+        inputStream = op.getInputStream();
+      }
     } else {
       inputStream = op.getErrorStream();
     }
