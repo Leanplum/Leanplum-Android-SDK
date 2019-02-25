@@ -134,7 +134,7 @@ public class BaseMessageDialog extends Dialog {
       } else {
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-        if (isBanner(htmlOptions)) {
+        if (treatAsBanner(htmlOptions)) {
           // banners are in a floating window which must be stretched to the full width and
           // positioned at the top manually (unless they get repositioned to the bottom later)
           window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -156,7 +156,7 @@ public class BaseMessageDialog extends Dialog {
 
         if (htmlOptions != null &&
             MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
-          if (isBanner(htmlOptions)) {
+          if (treatAsBanner(htmlOptions)) {
             window.setGravity(Gravity.BOTTOM);
           } else {
             dialogView.setGravity(Gravity.BOTTOM);
@@ -166,9 +166,9 @@ public class BaseMessageDialog extends Dialog {
     }
   }
 
-  protected static boolean isBanner(HTMLOptions htmlOptions) {
+  protected static boolean treatAsBanner(HTMLOptions htmlOptions) {
     String templateName = htmlOptions.getActionContext().getArgs().get("__file__Template").toString();
-    return templateName.toLowerCase().contains("banner");
+    return templateName.toLowerCase().contains("banner") && !htmlOptions.isHtmlTabOutsideToClose();
   }
 
   @Override
@@ -291,7 +291,7 @@ public class BaseMessageDialog extends Dialog {
 
       layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
       int htmlYOffset = htmlOptions.getHtmlYOffset(context);
-      if (!isBanner(htmlOptions)) {
+      if (!treatAsBanner(htmlOptions)) {
         if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
           layoutParams.bottomMargin = htmlYOffset;
         } else {

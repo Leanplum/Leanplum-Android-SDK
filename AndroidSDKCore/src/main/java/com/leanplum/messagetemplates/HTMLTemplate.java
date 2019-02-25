@@ -56,7 +56,7 @@ public class HTMLTemplate extends BaseMessageDialog {
   @Override
   public boolean dispatchTouchEvent(@NonNull MotionEvent ev) {
     if (!htmlOptions.isFullScreen()) {
-      if (isBanner(htmlOptions)) {
+      if (treatAsBanner(htmlOptions)) {
         return super.dispatchTouchEvent(ev);
       }
 
