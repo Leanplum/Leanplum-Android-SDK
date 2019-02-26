@@ -376,7 +376,26 @@ public class RequestOldTest extends TestCase {
     return requests;
   }
 
-  private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
+  @Test
+  public void testSetNewBatchUUID() {
+    RequestOld request1 = new RequestOld("POST", Constants.Methods.START, null);
+    request1.sendEventually();
+    RequestOld request2 = new RequestOld("POST", Constants.Methods.TRACK, null);
+    request2.sendEventually();
+    List<Map<String, Object>> unsentRequests1 = request1.getUnsentRequests(1.0);
+    String oldUUID1 = (String) unsentRequests1.get(0).get(request1.UUID_KEY)
+
+    List<Map<String, Object>> unsentRequests2 = request1.getUnsentRequests(1.0);
+    String oldUUID2 = (String) unsentRequests2.get(0).get(request1.UUID_KEY);
+
+    List<Map<String, Object>> unsentRequests3 = request1.getUnsentRequests(0.5);
+    String newUUID = (String) unsentRequests3.get(0).get(request1.UUID_KEY);
+
+    assertTrue(oldUUID1.equals(oldUUID2));
+    assertFalse(oldUUID1.equals(newUUID));
+  }
+
+    private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
     Instant beforeReadTime, afterReadTime, beforeWriteTime, afterWriteTime;
     final Semaphore writeSemaphore = new Semaphore(0);
     final Semaphore readSemaphore = new Semaphore(1);
