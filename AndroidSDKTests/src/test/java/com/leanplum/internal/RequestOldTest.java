@@ -378,12 +378,14 @@ public class RequestOldTest extends TestCase {
 
   @Test
   public void testSetNewBatchUUID() {
+    LeanplumEventDataManager.init(Leanplum.getContext());
+
     RequestOld request1 = new RequestOld("POST", Constants.Methods.START, null);
     request1.sendEventually();
     RequestOld request2 = new RequestOld("POST", Constants.Methods.TRACK, null);
     request2.sendEventually();
     List<Map<String, Object>> unsentRequests1 = request1.getUnsentRequests(1.0);
-    String oldUUID1 = (String) unsentRequests1.get(0).get(request1.UUID_KEY)
+    String oldUUID1 = (String) unsentRequests1.get(0).get(request1.UUID_KEY);
 
     List<Map<String, Object>> unsentRequests2 = request1.getUnsentRequests(1.0);
     String oldUUID2 = (String) unsentRequests2.get(0).get(request1.UUID_KEY);
