@@ -734,8 +734,19 @@ public class RequestOld implements Requesting {
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
     }
-
+    // if we send less than 100% of requests, we need to reset the batch
+    // UUID for the next batch
+    if (fraction < 1) {
+      setNewBatchUUID(requestData);
+    }
     return requestData;
+  }
+
+  private void setNewBatchUUID(List<Map<String, Object>> requests) {
+    String uuid = UUID.randomUUID().toString();
+    for (Map<String, Object> request : requests) {
+      request.put(UUID_KEY, uuid);
+    }
   }
 
   /**
