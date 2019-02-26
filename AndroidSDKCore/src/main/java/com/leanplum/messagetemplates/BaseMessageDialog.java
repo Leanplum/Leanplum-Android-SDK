@@ -132,11 +132,15 @@ public class BaseMessageDialog extends Dialog {
           window.setDimAmount(0.7f);
         }
       } else {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        if (htmlOptions == null) {
+          return;
+        }
 
-        if (treatAsBanner(htmlOptions)) {
-          // banners are in a floating window which must be stretched to the full width and
-          // positioned at the top manually (unless they get repositioned to the bottom later)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        boolean treatAsBanner = treatAsBanner(htmlOptions);
+        if (treatAsBanner) {
+          // banners need to be positioned at the top manually (unless they get repositioned to the bottom later)
+          // or the anchor would be the center of the screen
           window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
           window.setGravity(Gravity.TOP);
 
@@ -154,9 +158,8 @@ public class BaseMessageDialog extends Dialog {
               WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
         }
 
-        if (htmlOptions != null &&
-            MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
-          if (treatAsBanner(htmlOptions)) {
+        if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
+          if (treatAsBanner) {
             window.setGravity(Gravity.BOTTOM);
           } else {
             dialogView.setGravity(Gravity.BOTTOM);
@@ -166,6 +169,13 @@ public class BaseMessageDialog extends Dialog {
     }
   }
 
+  /**
+   * Banners with property TabOutsideToClose = false need to be treated differently
+   * so they do not block interaction with other dialogs and the keyboard.
+   * Banners with property TabOutsideToClose = true do not need to be treated this way.
+   * The original way banners worked was fine because they need to be aware of any touch events
+   * in its container window
+   */
   protected static boolean treatAsBanner(HTMLOptions htmlOptions) {
     String templateName = htmlOptions.getActionContext().getArgs().get("__file__Template").toString();
     return templateName.toLowerCase().contains("banner") && !htmlOptions.isHtmlTabOutsideToClose();
