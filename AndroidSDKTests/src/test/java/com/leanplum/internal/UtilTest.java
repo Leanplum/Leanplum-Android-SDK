@@ -1,31 +1,20 @@
 package com.leanplum.internal;
 
-import android.app.Application;
-import android.content.Context;
-
-import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum._whitebox.utilities.ResponseHelper;
-import com.leanplum.internal.Util;
-import com.leanplum.utils.BitmapUtil;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.net.HttpURLConnection;
-import java.net.URL;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
