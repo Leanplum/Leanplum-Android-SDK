@@ -554,6 +554,13 @@ public class Util {
     urlConnection.setUseCaches(false);
     urlConnection.setInstanceFollowRedirects(true);
     Context context = Leanplum.getContext();
+
+    /*
+      Must include `Accept-Encoding: gzip` in the header
+      Must include the phrase `gzip` in the `User-Agent` header
+      https://cloud.google.com/appengine/kb/
+    */
+
     urlConnection.setRequestProperty("User-Agent",
         getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
