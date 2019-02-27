@@ -48,6 +48,7 @@ import com.leanplum.internal.LeanplumUIEditorWrapper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OsHandler;
 import com.leanplum.internal.Registration;
+import com.leanplum.internal.RequestFactoryNew;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
@@ -2320,4 +2321,6 @@ public class Leanplum {
   public static FeatureFlagManager featureFlagManager() {
     return featureFlagManager;
   }
+
+  public RequestFactoryNew requestFactoryNew = new RequestFactoryNew();
 }
