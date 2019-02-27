@@ -81,7 +81,6 @@ public class HTMLTemplate extends BaseMessageDialog {
         if (htmlOptions.isHtmlTabOutsideToClose()) {
           cancel();
         }
-
         activity.dispatchTouchEvent(ev);
       }
     }
