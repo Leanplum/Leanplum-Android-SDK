@@ -2322,5 +2322,5 @@ public class Leanplum {
     return featureFlagManager;
   }
 
-  public RequestFactoryNew requestFactoryNew = new RequestFactoryNew();
+  public static RequestFactoryNew requestFactoryNew = new RequestFactoryNew(countAggregator(), featureFlagManager());
 }

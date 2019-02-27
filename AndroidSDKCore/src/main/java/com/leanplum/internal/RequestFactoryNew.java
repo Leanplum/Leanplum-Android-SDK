@@ -36,9 +36,9 @@ public class RequestFactoryNew {
   private final String API_METHOD_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
   private final String API_METHOD_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
 
-  public RequestFactoryNew() {
-    countAggregator = Leanplum.countAggregator();
-    featureFlagManager = Leanplum.featureFlagManager();
+  public RequestFactoryNew(CountAggregator countAggregator, FeatureFlagManager featureFlagManager) {
+    this.countAggregator = countAggregator;
+    this.featureFlagManager = featureFlagManager;
   }
 
   public RequestOld createRequest(

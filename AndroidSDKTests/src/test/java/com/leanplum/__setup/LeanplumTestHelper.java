@@ -31,6 +31,7 @@ import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.RequestFactoryNew;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.VarCache;
@@ -78,13 +79,22 @@ public class LeanplumTestHelper {
    * Sets up Leanplum for a single unit test.
    */
   public static void setUp() {
-    RequestFactory.defaultFactory = new RequestFactory() {
+
+    RequestFactoryNew requestFactory = new RequestFactoryNew(Leanplum.countAggregator(), Leanplum.featureFlagManager()) {
       @Override
       public RequestOld createRequest(String httpMethod, String apiMethod,
-                                      Map<String, Object> params) {
+          Map<String, Object> params) {
         return new RequestHelper(httpMethod, apiMethod, params);
       }
     };
+
+//    RequestFactory.defaultFactory = new RequestFactory() {
+//      @Override
+//      public RequestOld createRequest(String httpMethod, String apiMethod,
+//                                      Map<String, Object> params) {
+//        return new RequestHelper(httpMethod, apiMethod, params);
+//      }
+//    };
 
     if (BuildConfig.DEBUG) {
       Leanplum.setAppIdForDevelopmentMode(APP_ID, DEVELOPMENT_KEY);

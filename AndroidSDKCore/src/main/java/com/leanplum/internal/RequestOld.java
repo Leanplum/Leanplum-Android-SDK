@@ -230,7 +230,8 @@ public class RequestOld implements Requesting {
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
     Leanplum.countAggregator().incrementCount("get_request");
-    return RequestFactory.getInstance().createRequest("GET", apiMethod, params);
+    //return RequestFactory.getInstance().createRequest("GET", apiMethod, params);
+    return Leanplum.requestFactoryNew.createRequest("GET", apiMethod, params);
   }
 
   public static RequestOld post(String apiMethod, Map<String, Object> params) {
@@ -238,7 +239,8 @@ public class RequestOld implements Requesting {
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
     Leanplum.countAggregator().incrementCount("post_request");
-    return RequestFactory.getInstance().createRequest("POST", apiMethod, params);
+    //return RequestFactory.getInstance().createRequest("POST", apiMethod, params);
+    return Leanplum.requestFactoryNew.createRequest("POST", apiMethod, params);
   }
 
   public void onResponse(ResponseCallback response) {
