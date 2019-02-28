@@ -667,6 +667,7 @@ public class LeanplumInternal {
   }
 
   public static boolean hasStarted() {
+    Log.d("hasStarted is ", hasStarted);
     return hasStarted;
   }
 

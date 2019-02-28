@@ -1148,6 +1148,7 @@ public class Leanplum {
    * Whether or not Leanplum has finished starting.
    */
   public static boolean hasStarted() {
+    Log.d("leanpluminternal hasStarted is ", LeanplumInternal.hasStarted());
     return LeanplumInternal.hasStarted();
   }
 

@@ -80,7 +80,7 @@ public class LeanplumTestHelper {
    */
   public static void setUp() {
 
-    RequestFactoryNew requestFactory = new RequestFactoryNew(Leanplum.countAggregator(), Leanplum.featureFlagManager()) {
+    RequestFactoryNew requestFactoryNew = new RequestFactoryNew(Leanplum.countAggregator(), Leanplum.featureFlagManager()) {
       @Override
       public RequestOld createRequest(String httpMethod, String apiMethod,
           Map<String, Object> params) {

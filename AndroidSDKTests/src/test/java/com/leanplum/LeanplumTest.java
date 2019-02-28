@@ -89,7 +89,7 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import java.util.Set;
-
+import com.leanplum.internal.Log;
 /**
  * Tests Leanplum SDK calls and general functionality.
  *
@@ -1322,6 +1322,7 @@ public class LeanplumTest extends AbstractTest {
   public void testGetDeviceId() {
     String deviceId = Leanplum.getDeviceId();
     assertNull(deviceId);
+    Log.d("mcontext is", mContext);
     Leanplum.start(mContext);
     assertTrue(Leanplum.hasStarted());
     deviceId = Leanplum.getDeviceId();
