@@ -134,7 +134,7 @@ public class BaseMessageDialog extends Dialog {
       } else {
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-        if (treatAsBanner(htmlOptions)) {
+        if (htmlOptions != null && treatAsBanner(htmlOptions)) {
           // banners need to be positioned at the top manually
           // (unless they get repositioned to the bottom later)
           window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
