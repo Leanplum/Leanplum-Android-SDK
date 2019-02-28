@@ -670,7 +670,7 @@ public class Util {
     InputStream inputStream;
     if (op.getResponseCode() < 400) {
       String contentHeader = op.getHeaderField("content-encoding");
-      if (contentHeader != null && contentHeader.equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING)) {
+      if (contentHeader != null && contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING)) {
         inputStream = new GZIPInputStream(op.getInputStream());
       } else {
         inputStream = op.getInputStream();
