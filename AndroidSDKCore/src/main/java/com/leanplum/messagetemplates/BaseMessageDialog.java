@@ -116,7 +116,6 @@ public class BaseMessageDialog extends Dialog {
       CloseButton closeButton = createCloseButton(activity, fullscreen, view);
       dialogView.addView(closeButton, closeButton.getLayoutParams());
     }
-
     setContentView(dialogView, dialogView.getLayoutParams());
 
     dialogView.setAnimation(createFadeInAnimation());
