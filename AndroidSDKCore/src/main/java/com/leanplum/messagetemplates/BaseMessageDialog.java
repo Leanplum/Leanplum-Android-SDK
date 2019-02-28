@@ -133,7 +133,7 @@ public class BaseMessageDialog extends Dialog {
       } else {
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-        if (htmlOptions != null && treatAsBanner(htmlOptions)) {
+        if (htmlOptions != null && isBannerWithTapOutsideFalse(htmlOptions)) {
           // banners need to be positioned at the top manually
           // (unless they get repositioned to the bottom later)
           window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -155,7 +155,7 @@ public class BaseMessageDialog extends Dialog {
 
         if (htmlOptions != null &&
             MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
-          if (treatAsBanner(htmlOptions)) {
+          if (isBannerWithTapOutsideFalse(htmlOptions)) {
             window.setGravity(Gravity.BOTTOM);
           } else {
             dialogView.setGravity(Gravity.BOTTOM);
@@ -172,7 +172,7 @@ public class BaseMessageDialog extends Dialog {
    * The original way banners worked was fine because they need to be aware of any touch events
    * in its container window
    */
-  protected static boolean treatAsBanner(HTMLOptions htmlOptions) {
+  protected static boolean isBannerWithTapOutsideFalse(HTMLOptions htmlOptions) {
     String templateName = htmlOptions.getActionContext().getArgs().get("__file__Template").toString();
     return templateName.toLowerCase().contains("banner") && !htmlOptions.isHtmlTabOutsideToClose();
   }
@@ -297,7 +297,7 @@ public class BaseMessageDialog extends Dialog {
 
       layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
       int htmlYOffset = htmlOptions.getHtmlYOffset(context);
-      if (!treatAsBanner(htmlOptions)) {
+      if (!isBannerWithTapOutsideFalse(htmlOptions)) {
         if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
           layoutParams.bottomMargin = htmlYOffset;
         } else {
