@@ -132,15 +132,11 @@ public class BaseMessageDialog extends Dialog {
           window.setDimAmount(0.7f);
         }
       } else {
-        if (htmlOptions == null) {
-          return;
-        }
-
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-        boolean treatAsBanner = treatAsBanner(htmlOptions);
-        if (treatAsBanner) {
-          // banners need to be positioned at the top manually (unless they get repositioned to the bottom later)
-          // or the anchor would be the center of the screen
+
+        if (treatAsBanner(htmlOptions)) {
+          // banners need to be positioned at the top manually
+          // (unless they get repositioned to the bottom later)
           window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
           window.setGravity(Gravity.TOP);
 
@@ -158,8 +154,9 @@ public class BaseMessageDialog extends Dialog {
               WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
         }
 
-        if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
-          if (treatAsBanner) {
+        if (htmlOptions != null &&
+            MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
+          if (treatAsBanner(htmlOptions)) {
             window.setGravity(Gravity.BOTTOM);
           } else {
             dialogView.setGravity(Gravity.BOTTOM);
