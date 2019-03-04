@@ -1368,9 +1368,9 @@ public class LeanplumTest extends AbstractTest {
     // Setup sdk.
     setupSDK(mContext, "/responses/simple_start_response.json");
 
-    assertEquals(true, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("testFeatureFlag1"));
-    assertEquals(true, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("testFeatureFlag2"));
-    assertEquals(false, FeatureFlagManager.INSTANCE.isFeatureFlagEnabled("missingFeatureFlag"));
+    assertEquals(true, Leanplum.featureFlagManager().isFeatureFlagEnabled("testFeatureFlag1"));
+    assertEquals(true, Leanplum.featureFlagManager().isFeatureFlagEnabled("testFeatureFlag2"));
+    assertEquals(false, Leanplum.featureFlagManager().isFeatureFlagEnabled("missingFeatureFlag"));
   }
 
   @Test

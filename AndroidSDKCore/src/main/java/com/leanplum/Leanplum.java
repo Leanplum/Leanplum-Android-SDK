@@ -114,7 +114,7 @@ public class Leanplum {
   private static Runnable pushStartCallback;
 
   private static CountAggregator countAggregator = new CountAggregator();
-  private static FeatureFlagManager featureFlagManager = FeatureFlagManager.INSTANCE;
+  private static FeatureFlagManager featureFlagManager = new FeatureFlagManager();
 
   public static RequestFactory requestFactory = new RequestFactory(countAggregator, featureFlagManager);
 
@@ -852,7 +852,7 @@ public class Leanplum {
             Set<String> enabledCounters = parseSdkCounters(response);
             countAggregator.setEnabledCounters(enabledCounters);
             Set<String> enabledFeatureFlags = parseFeatureFlags(response);
-            FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
+            featureFlagManager.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
 
             // Allow bidirectional realtime variable updates.
