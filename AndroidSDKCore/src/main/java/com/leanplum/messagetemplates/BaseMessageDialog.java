@@ -33,11 +33,13 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
 import android.os.Build;
 import android.os.Handler;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
@@ -56,6 +58,7 @@ import android.widget.TextView;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.core.R;
+import com.leanplum.internal.Log;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
@@ -113,7 +116,6 @@ public class BaseMessageDialog extends Dialog {
       CloseButton closeButton = createCloseButton(activity, fullscreen, view);
       dialogView.addView(closeButton, closeButton.getLayoutParams());
     }
-
     setContentView(dialogView, dialogView.getLayoutParams());
 
     dialogView.setAnimation(createFadeInAnimation());
@@ -130,14 +132,49 @@ public class BaseMessageDialog extends Dialog {
         }
       } else {
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+
+        if (htmlOptions != null && isBannerWithTapOutsideFalse(htmlOptions)) {
+          // banners need to be positioned at the top manually
+          // (unless they get repositioned to the bottom later)
+          window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+          window.setGravity(Gravity.TOP);
+
+          // use the html y offset to determine the y location of the window; this is different
+          // from non-banners because we don't want to make the window too big (e.g. via a margin
+          // in the layout) and block other things on the screen (e.g. dialogs)
+          WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
+          windowLayoutParams.y = htmlOptions.getHtmlYOffset(activity);
+          window.setAttributes(windowLayoutParams);
+
+          window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+              WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        } else {
+          window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+              WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+        }
+
         if (htmlOptions != null &&
             MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
-          dialogView.setGravity(Gravity.BOTTOM);
+          if (isBannerWithTapOutsideFalse(htmlOptions)) {
+            window.setGravity(Gravity.BOTTOM);
+          } else {
+            dialogView.setGravity(Gravity.BOTTOM);
+          }
         }
       }
     }
+  }
+
+  /**
+   * Banners with property TabOutsideToClose = false need to be treated differently
+   * so they do not block interaction with other dialogs and the keyboard.
+   * Banners with property TabOutsideToClose = true do not need to be treated this way.
+   * The original way banners worked was fine because they need to be aware of any touch events
+   * in its container window
+   */
+  protected static boolean isBannerWithTapOutsideFalse(HTMLOptions htmlOptions) {
+    String templateName = htmlOptions.getActionContext().getArgs().get("__file__Template").toString();
+    return templateName.toLowerCase().contains("banner") && !htmlOptions.isHtmlTabOutsideToClose();
   }
 
   @Override
@@ -260,10 +297,12 @@ public class BaseMessageDialog extends Dialog {
 
       layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
       int htmlYOffset = htmlOptions.getHtmlYOffset(context);
-      if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
-        layoutParams.bottomMargin = htmlYOffset;
-      } else {
-        layoutParams.topMargin = htmlYOffset;
+      if (!isBannerWithTapOutsideFalse(htmlOptions)) {
+        if (MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(htmlOptions.getHtmlAlign())) {
+          layoutParams.bottomMargin = htmlYOffset;
+        } else {
+          layoutParams.topMargin = htmlYOffset;
+        }
       }
     } else {
       // Make sure the dialog fits on screen.
