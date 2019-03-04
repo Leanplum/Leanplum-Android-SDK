@@ -48,7 +48,7 @@ import com.leanplum.internal.LeanplumUIEditorWrapper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OsHandler;
 import com.leanplum.internal.Registration;
-import com.leanplum.internal.RequestFactoryNew;
+import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
@@ -115,6 +115,8 @@ public class Leanplum {
 
   private static CountAggregator countAggregator = new CountAggregator();
   private static FeatureFlagManager featureFlagManager = FeatureFlagManager.INSTANCE;
+
+  public static RequestFactory requestFactory = new RequestFactory(countAggregator, featureFlagManager);
 
   private Leanplum() {
   }
@@ -2322,6 +2324,4 @@ public class Leanplum {
   public static FeatureFlagManager featureFlagManager() {
     return featureFlagManager;
   }
-
-  public static RequestFactoryNew requestFactoryNew = new RequestFactoryNew(countAggregator(), featureFlagManager());
 }

@@ -1,27 +1,7 @@
-/*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package com.leanplum.internal;
 
 import com.leanplum.Leanplum;
+
 import java.util.Map;
 
 public class RequestFactory {
@@ -53,18 +33,12 @@ public class RequestFactory {
   private static final String API_METHOD_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
   private static final String API_METHOD_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
 
-  public static RequestFactory defaultFactory;
+  private final CountAggregator countAggregator;
+  private final FeatureFlagManager featureFlagManager;
 
-  private CountAggregator countAggregator;
-  private FeatureFlagManager featureFlagManager;
-
-  public synchronized static RequestFactory getInstance() {
-    if (defaultFactory == null) {
-      defaultFactory = new RequestFactory();
-      defaultFactory.countAggregator = Leanplum.countAggregator();
-      defaultFactory.featureFlagManager = Leanplum.featureFlagManager();
-    }
-    return defaultFactory;
+  public RequestFactory(CountAggregator countAggregator, FeatureFlagManager featureFlagManager) {
+    this.countAggregator = countAggregator;
+    this.featureFlagManager = featureFlagManager;
   }
 
   public RequestOld createRequest(
@@ -93,8 +67,8 @@ public class RequestFactory {
     return createPostForApiMethod(API_METHOD_RESTART, params);
   }
 
-    public Requesting trackWithParams(Map<String, Object> params) {
-      return createPostForApiMethod(API_METHOD_TRACK, params);
+  public Requesting trackWithParams(Map<String, Object> params) {
+    return createPostForApiMethod(API_METHOD_TRACK, params);
   }
 
   public Requesting advanceWithParams(Map<String, Object> params) {
