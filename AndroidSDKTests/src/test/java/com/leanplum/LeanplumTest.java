@@ -1611,4 +1611,63 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(body, messageBody);
   }
 
+  @Test
+  public void testVariantsForceContentUpdate() throws Exception {
+    final Semaphore semaphore = new Semaphore(1);
+    semaphore.acquire();
+
+    // Seed response from the file.
+    ResponseHelper.seedResponse("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+            "city", "(detect)",
+            "country", "(detect)",
+            "location", "(detect)",
+            "region", "(detect)",
+            "locale", "en_US"
+    );
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    Leanplum.start(mContext, new StartCallback() {
+      @Override
+      public void onResponse(boolean success) {
+        assertTrue(success);
+        semaphore.release();
+      }
+    });
+    assertTrue(Leanplum.hasStarted());
+
+    assertEquals(0, VarCache.variants().size());
+
+    semaphore.acquire();
+
+    // Seed getVars response.
+    ResponseHelper.seedResponse("/responses/variants_response.json");
+
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.GET_VARS, apiMethod);
+      }
+    });
+
+    Leanplum.forceContentUpdate(new VariablesChangedCallback() {
+      @Override
+      public void variablesChanged() {
+        semaphore.release();
+      }
+    });
+
+    assertEquals(4, VarCache.variants().size());
+  }
 }
