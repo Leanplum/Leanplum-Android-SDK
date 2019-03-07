@@ -22,13 +22,20 @@
 package com.leanplum;
 
 import android.content.Context;
+import android.nfc.Tag;
+import android.text.TextUtils;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
 import java.util.Collections;
+
+import androidx.annotation.NonNull;
 
 /**
  * Leanplum provider for work with Firebase.
@@ -40,6 +47,26 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
   @Override
   public String getRegistrationId() {
     return this.getStoredRegistrationPreferences(Leanplum.getContext());
+  }
+
+  @Override
+  public void getCurrentRegistrationIdAndUpdateBackend() {
+    FirebaseInstanceId.getInstance().getInstanceId()
+        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+          @Override
+          public void onComplete(@NonNull Task<InstanceIdResult> task) {
+            if (!task.isSuccessful()) {
+              Log.e("getInstanceId failed");
+              return;
+            }
+            // Get new Instance ID token
+            String tokenId = task.getResult().getToken();
+            LeanplumPushService.getCloudMessagingProvider().storePreferences(Leanplum.getContext(), tokenId);
+            if (!TextUtils.isEmpty(tokenId)) {
+              onRegistrationIdReceived(Leanplum.getContext(), tokenId);
+            }
+          }
+        });
   }
 
   @Override

@@ -87,7 +87,7 @@ public class Constants {
     public static final String INBOX_KEY = "__leanplum_newsfeed";
     public static final String LEANPLUM_PUSH = "__leanplum_push__";
     public static final String APP_ID = "__app_id";
-    public static final String PROPERTY_REGISTRATION_ID = "registration_id";
+    public static final String PROPERTY_TOKEN_ID = "registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
     public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
     public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";

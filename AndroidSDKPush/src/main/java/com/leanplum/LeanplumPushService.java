@@ -89,6 +89,7 @@ public class LeanplumPushService {
    */
   public static final String LEANPLUM_MESSAGE_ID = "lp_message_id";
 
+  private static final String LEANPLUM_PUSH_SERVICE_FCM = "com.leanplum.LeanplumPushServiceFcm";
   private static final int NOTIFICATION_ID = 1;
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
@@ -675,6 +676,25 @@ public class LeanplumPushService {
       Intent registerIntent = new Intent(context, LeanplumPushRegistrationService.class);
       context.startService(registerIntent);
     } catch (Throwable ignored) {
+    }
+  }
+
+  /**
+   * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
+   */
+  static void onStart() {
+    Class leanplumFcmPushServiceClass = null;
+
+    try {
+      leanplumFcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_FCM);
+    } catch (Throwable ignored) {
+    }
+
+    if (leanplumFcmPushServiceClass != null) {
+      try {
+        leanplumFcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
+      } catch (Throwable ignored) {
+      }
     }
   }
 

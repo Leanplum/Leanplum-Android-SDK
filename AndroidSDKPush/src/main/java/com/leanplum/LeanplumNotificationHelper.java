@@ -488,26 +488,6 @@ class LeanplumNotificationHelper {
   }
 
   /**
-   * Starts push registration service to update FCM InstanceId token.
-   *
-   * @param context Current application context.
-   * @param providerName Name of push notification provider.
-   */
-  static void startPushRegistrationService(Context context, String providerName) {
-    try {
-      if (context == null) {
-        return;
-      }
-      Log.i("Updating " + providerName + " InstanceId token.");
-      // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
-      Intent intent = new Intent(context, LeanplumPushRegistrationService.class);
-      context.startService(intent);
-    } catch (Throwable t) {
-      Log.e("Couldn't update " + providerName + " InstanceId token.", t);
-    }
-  }
-
-  /**
    * Gets bitmap for BigPicture style push notification.
    *
    * @param context Current application context.

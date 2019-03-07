@@ -33,7 +33,7 @@ import com.leanplum.utils.SharedPreferencesUtil;
  * @author Anna Orlova
  */
 abstract class LeanplumCloudMessagingProvider {
-  private static String registrationId;
+  private static String tokenId;
 
   /**
    * Gets the registration Id associated with current messaging provider.
@@ -41,8 +41,9 @@ abstract class LeanplumCloudMessagingProvider {
    * @return Registration Id.
    */
   static String getCurrentRegistrationId() {
-    return registrationId;
+    return tokenId;
   }
+
 
   /**
    * Sends the registration ID to the server over HTTP.
@@ -57,6 +58,13 @@ abstract class LeanplumCloudMessagingProvider {
    * @return String - registration id for app.
    */
   public abstract String getRegistrationId();
+
+
+  /**
+   * Gets the registration Id from FirebaseInstaceId with current messaging provider.
+   * And update the backend
+   */
+  public abstract void getCurrentRegistrationIdAndUpdateBackend();
 
   /**
    * Whether Messaging Provider is initialized correctly.
@@ -81,16 +89,16 @@ abstract class LeanplumCloudMessagingProvider {
    * Callback should be invoked when Registration ID is received from provider.
    *
    * @param context The application context.
-   * @param registrationId Registration Id.
+   * @param tokenId Registration Id.
    */
-  void onRegistrationIdReceived(Context context, String registrationId) {
-    if (registrationId == null) {
+  void onRegistrationIdReceived(Context context, String tokenId) {
+    if (tokenId == null) {
       Log.w("Registration ID is undefined.");
       return;
     }
-    LeanplumCloudMessagingProvider.registrationId = registrationId;
-    Log.i("Device registered for push notifications with registration token", registrationId);
-    sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
+    LeanplumCloudMessagingProvider.tokenId = tokenId;
+    Log.i("Device registered for push notifications with registration token", tokenId);
+    sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.tokenId);
   }
 
   /**
@@ -101,7 +109,7 @@ abstract class LeanplumCloudMessagingProvider {
   public void storePreferences(Context context) {
     Log.v("Saving the registration ID in the shared preferences.");
     SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_REGISTRATION_ID, registrationId);
+        Constants.Defaults.PROPERTY_TOKEN_ID, tokenId);
   }
 
 
@@ -113,7 +121,7 @@ abstract class LeanplumCloudMessagingProvider {
   public void storePreferences(Context context, String registrationIdValue) {
     Log.v("Saving the registration ID in the shared preferences.");
     SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_REGISTRATION_ID, registrationIdValue);
+        Constants.Defaults.PROPERTY_TOKEN_ID, registrationIdValue);
   }
 
   /**
@@ -124,6 +132,6 @@ abstract class LeanplumCloudMessagingProvider {
   public String getStoredRegistrationPreferences(Context context) {
     Log.v("Return the registration ID in the shared preferences.");
     return SharedPreferencesUtil.getString(
-        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_REGISTRATION_ID);
+        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID);
   }
 }

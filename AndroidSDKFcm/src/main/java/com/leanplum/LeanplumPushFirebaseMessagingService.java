@@ -47,16 +47,9 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
 
     LeanplumPushService.setCloudMessagingProvider(new LeanplumFcmProvider());
     LeanplumPushService.getCloudMessagingProvider().storePreferences(this.getApplicationContext(), token);
-    try {
-      if (Build.VERSION.SDK_INT < 26) {
-        LeanplumNotificationHelper.startPushRegistrationService(this, "FCM");
-      } else {
-        LeanplumNotificationHelper.scheduleJobService(this,
-            LeanplumFcmRegistrationJobService.class, LeanplumFcmRegistrationJobService.JOB_ID);
-      }
-    } catch (Throwable t) {
-      Log.e("Failed to update FCM token.", t);
-    }
+
+    //send the new token to backend
+    LeanplumPushService.getCloudMessagingProvider().onRegistrationIdReceived(this.getApplicationContext(), token);
   }
 
   /**

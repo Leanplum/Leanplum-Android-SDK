@@ -28,7 +28,7 @@ import android.text.TextUtils;
 import com.leanplum.internal.Log;
 
 /**
- * Registration service that handles registration with the GCM and FCM, using
+ * Registration service that handles registration with FCM, using
  * InstanceID.
  *
  * @author Aleksandar Gyorev
@@ -47,11 +47,7 @@ public class LeanplumPushRegistrationService extends IntentService {
         Log.e("Failed to complete registration token refresh.");
         return;
       }
-      //Here for FCM, its no longer a syncronous call.
-      String registrationId = provider.getRegistrationId();
-      if (!TextUtils.isEmpty(registrationId)) {
-        provider.onRegistrationIdReceived(getApplicationContext(), registrationId);
-      }
+      provider.getCurrentRegistrationIdAndUpdateBackend();
     } catch (Throwable t) {
       Log.e("Failed to complete registration token refresh.", t);
     }
