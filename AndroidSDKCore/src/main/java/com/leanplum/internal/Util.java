@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
@@ -553,10 +554,18 @@ public class Util {
     urlConnection.setUseCaches(false);
     urlConnection.setInstanceFollowRedirects(true);
     Context context = Leanplum.getContext();
+
+    /*
+      Must include `Accept-Encoding: gzip` in the header
+      Must include the phrase `gzip` in the `User-Agent` header
+      https://cloud.google.com/appengine/kb/
+    */
+
     urlConnection.setRequestProperty("User-Agent",
         getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
-            getSystemVersion() + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
+            getSystemVersion() + "/" + Constants.LEANPLUM_SUPPORTED_ENCODING + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
+    urlConnection.setRequestProperty("Accept-Encoding", Constants.LEANPLUM_SUPPORTED_ENCODING);
     return urlConnection;
   }
 
@@ -660,7 +669,12 @@ public class Util {
   private static String getResponse(HttpURLConnection op) throws IOException {
     InputStream inputStream;
     if (op.getResponseCode() < 400) {
-      inputStream = op.getInputStream();
+      String contentHeader = op.getHeaderField("content-encoding");
+      if (contentHeader != null && contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING)) {
+        inputStream = new GZIPInputStream(op.getInputStream());
+      } else {
+        inputStream = op.getInputStream();
+      }
     } else {
       inputStream = op.getErrorStream();
     }
