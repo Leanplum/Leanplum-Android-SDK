@@ -61,11 +61,10 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
             }
             // Get new Instance ID token
             String tokenId = task.getResult().getToken();
-            LeanplumPushService.getCloudMessagingProvider().storePreferences(Leanplum.getContext(), tokenId);
             if (!TextUtils.isEmpty(tokenId)) {
-              onRegistrationIdReceived(Leanplum.getContext(), tokenId);
+                onRegistrationIdReceived(Leanplum.getContext(), tokenId);
+              }
             }
-          }
         });
   }
 

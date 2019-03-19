@@ -96,38 +96,8 @@ public class LeanplumPushService {
   private static final String OPEN_ACTION = "Open";
   private static Class<? extends Activity> callbackClass;
   private static LeanplumCloudMessagingProvider provider;
-  private static boolean isFirebaseEnabled = false;
   private static LeanplumPushNotificationCustomizer customizer;
   private static boolean useNotificationBuilderCustomizer = false;
-
-
-  /**
-   * Use Firebase Cloud Messaging, instead of the default Google Cloud Messaging.
-   *
-   * @deprecated FCM is no longer packaged in the SDK. Instead it is split up into modules.
-   *  Modify your build.gradle by replacing implementation 'com.leanplum:Leanplum:+'
-   *  with each module separately.
-   *
-   *  For example:
-   *    implementation 'com.leanplum:leanplum-fcm:+'
-   *    implementation 'com.leanplum:leanplum-location:+'
-   */
-  @Deprecated
-  public static void enableFirebase() {
-    LeanplumPushService.isFirebaseEnabled = true;
-    Log.e("enableFirebase() is deprecated and FCM is not enabled! " +
-            "SDK has been split up into modules and you need to modify your build.gradle. " +
-            "See the doc for more info.");
-  }
-
-  /**
-   * Whether Firebase Cloud Messaging is enabled or not.
-   *
-   * @return Boolean - true if enabled
-   */
-  static boolean isFirebaseEnabled() {
-    return isFirebaseEnabled;
-  }
 
   /**
    * Get Cloud Messaging provider. By default - FCM.

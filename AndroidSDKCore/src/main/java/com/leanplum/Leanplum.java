@@ -1607,7 +1607,7 @@ public class Leanplum {
         try {
           HashMap<String, Object> params = new HashMap<>();
           params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
-          RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params).send();
+          RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params).sendIfConnected();
         } catch (Throwable t) {
           Util.handleException(t);
         }
