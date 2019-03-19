@@ -11,14 +11,15 @@ before_install:
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
 
 script:
-  - make testSDK
+  - ./gradlew assembleRelease testReleaseUnitTest
 
-after_success:
-  - make releaseArtifacts
+before_deploy:
+  - ./Tools/verifyTag.sh
+  - ./gradlew assembleRelease makeJar generatePomFileForAarPublication
 
 deploy:
   - provider: script
     skip_cleanup: true
-    script: make deployArtifacts
+    script: ./gradlew artifactoryPublish bintrayUpload
     on:
       tags: true

@@ -981,6 +981,7 @@ public class Leanplum {
         || !messages.equals(VarCache.getMessageDiffs())
         || !updateRules.equals(VarCache.getUpdateRuleDiffs())
         || !eventRules.equals(VarCache.getEventRuleDiffs())
+        || !variants.equals(VarCache.variants())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(values, messages, updateRules,
           eventRules, regions, variants, variantDebugInfo);
