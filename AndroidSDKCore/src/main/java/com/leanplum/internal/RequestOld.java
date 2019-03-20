@@ -736,17 +736,11 @@ public class RequestOld implements Requesting {
       // if we send less than 100% of requests, we need to reset the batch
       // UUID for the next batch
       if (fraction < 1) {
-        setNewBatchUUID(requestData);
+        RequestOldUtil util = new RequestOldUtil();
+        util.setNewBatchUUID(requestData);
       }
     }
     return requestData;
-  }
-
-  private void setNewBatchUUID(List<Map<String, Object>> requests) {
-    String uuid = UUID.randomUUID().toString();
-    for (Map<String, Object> request : requests) {
-      request.put(UUID_KEY, uuid);
-    }
   }
 
   /**

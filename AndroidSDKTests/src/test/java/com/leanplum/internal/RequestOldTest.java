@@ -281,34 +281,34 @@ public class RequestOldTest extends TestCase {
     assertNotNull(requestsWithEncoding.requestsToSend);
     assertNotNull(requestsWithEncoding.jsonEncodedString);
     assertEquals(5000, requestsWithEncoding.unsentRequests.size());
-//
-//    // Throw OOM on 5000 requests
-//    // Expectation: 2500 requests returned.
-//    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-//    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
-//
-//    assertNotNull(requestsWithEncoding.unsentRequests);
-//    assertNotNull(requestsWithEncoding.requestsToSend);
-//    assertNotNull(requestsWithEncoding.jsonEncodedString);
-//    assertEquals(2500, requestsWithEncoding.unsentRequests.size());
-//
-//    // Throw OOM on 2500, 5000 requests
-//    // Expectation: 1250 requests returned.
-//    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-//    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
-//    assertEquals(1250, requestsWithEncoding.unsentRequests.size());
-//
-//    // Throw OOM on serializing any finite number of requests (extreme condition)
-//    // Expectation: Determine only 0 requests to be sent
-//    when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
-//    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
-//
-//    assertNotNull(requestsWithEncoding.unsentRequests);
-//    assertNotNull(requestsWithEncoding.requestsToSend);
-//    assertNotNull(requestsWithEncoding.jsonEncodedString);
-//    assertEquals(0, requestsWithEncoding.unsentRequests.size());
-//    assertEquals(0, requestsWithEncoding.requestsToSend.size());
-//    assertEquals("{\"data\":[]}", requestsWithEncoding.jsonEncodedString);
+
+    // Throw OOM on 5000 requests
+    // Expectation: 2500 requests returned.
+    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
+    assertEquals(2500, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on 2500, 5000 requests
+    // Expectation: 1250 requests returned.
+    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    assertEquals(1250, requestsWithEncoding.unsentRequests.size());
+
+    // Throw OOM on serializing any finite number of requests (extreme condition)
+    // Expectation: Determine only 0 requests to be sent
+    when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+
+    assertNotNull(requestsWithEncoding.unsentRequests);
+    assertNotNull(requestsWithEncoding.requestsToSend);
+    assertNotNull(requestsWithEncoding.jsonEncodedString);
+    assertEquals(0, requestsWithEncoding.unsentRequests.size());
+    assertEquals(0, requestsWithEncoding.requestsToSend.size());
+    assertEquals("{\"data\":[]}", requestsWithEncoding.jsonEncodedString);
 
   }
 
@@ -374,27 +374,6 @@ public class RequestOldTest extends TestCase {
       requests.add(request);
     }
     return requests;
-  }
-
-  @Test
-  public void testSetNewBatchUUID() {
-    LeanplumEventDataManager.init(Leanplum.getContext());
-
-    RequestOld request1 = new RequestOld("POST", Constants.Methods.START, null);
-    request1.sendEventually();
-    RequestOld request2 = new RequestOld("POST", Constants.Methods.TRACK, null);
-    request2.sendEventually();
-    List<Map<String, Object>> unsentRequests1 = request1.getUnsentRequests(1.0);
-    String oldUUID1 = (String) unsentRequests1.get(0).get(request1.UUID_KEY);
-
-    List<Map<String, Object>> unsentRequests2 = request1.getUnsentRequests(1.0);
-    String oldUUID2 = (String) unsentRequests2.get(0).get(request1.UUID_KEY);
-
-    List<Map<String, Object>> unsentRequests3 = request1.getUnsentRequests(0.5);
-    String newUUID = (String) unsentRequests3.get(0).get(request1.UUID_KEY);
-
-    assertTrue(oldUUID1.equals(oldUUID2));
-    assertFalse(oldUUID1.equals(newUUID));
   }
 
     private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
