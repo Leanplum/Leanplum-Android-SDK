@@ -376,7 +376,7 @@ public class RequestOldTest extends TestCase {
     return requests;
   }
 
-    private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
+  private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {
     Instant beforeReadTime, afterReadTime, beforeWriteTime, afterWriteTime;
     final Semaphore writeSemaphore = new Semaphore(0);
     final Semaphore readSemaphore = new Semaphore(1);
