@@ -736,9 +736,9 @@ public class RequestOld implements Requesting {
     }
     // if we send less than 100% of requests, we need to reset the batch
     // UUID for the next batch
-    if (fraction < 1) {
-      setNewBatchUUID(requestData);
-    }
+//    if (fraction < 1) {
+//      setNewBatchUUID(requestData);
+//    }
     return requestData;
   }
 
