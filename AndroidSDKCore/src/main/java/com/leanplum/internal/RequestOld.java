@@ -727,18 +727,18 @@ public class RequestOld implements Requesting {
       lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
-          LEANPLUM, Context.MODE_PRIVATE);
+              LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
       requestData = LeanplumEventDataManager.getEvents(count);
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
+      // if we send less than 100% of requests, we need to reset the batch
+      // UUID for the next batch
+      if (fraction < 1) {
+        setNewBatchUUID(requestData);
+      }
     }
-    // if we send less than 100% of requests, we need to reset the batch
-    // UUID for the next batch
-//    if (fraction < 1) {
-//      setNewBatchUUID(requestData);
-//    }
     return requestData;
   }
 
