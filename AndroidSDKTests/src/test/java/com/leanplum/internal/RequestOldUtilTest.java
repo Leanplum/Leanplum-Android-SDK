@@ -27,7 +27,7 @@ import java.util.Map;
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
 public class RequestOldUtilTest extends TestCase {
-    public final String POST = "POST";
+    private final String POST = "POST";
     /**
      * Runs before every test case.
      */
@@ -45,9 +45,9 @@ public class RequestOldUtilTest extends TestCase {
     public void testSetNewBatchUUID() {
         LeanplumEventDataManager.init(Leanplum.getContext());
 
-        RequestOld request1 = new RequestOld("POST", Constants.Methods.START, null);
+        RequestOld request1 = new RequestOld(this.POST, Constants.Methods.START, null);
         request1.sendEventually();
-        RequestOld request2 = new RequestOld("POST", Constants.Methods.TRACK, null);
+        RequestOld request2 = new RequestOld(this.POST, Constants.Methods.TRACK, null);
         request2.sendEventually();
         List<Map<String, Object>> unsentRequests1 = request1.getUnsentRequests(1.0);
         String oldUUID1 = (String) unsentRequests1.get(0).get(request1.UUID_KEY);
