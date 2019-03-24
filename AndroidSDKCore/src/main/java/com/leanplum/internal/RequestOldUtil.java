@@ -22,8 +22,7 @@ public class RequestOldUtil {
                 LEANPLUM, Context.MODE_PRIVATE);
         long count = LeanplumEventDataManager.getEventsCount();
         String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-        if (uuid == null ||
-                (count > 0 && count % MAX_EVENTS_PER_API_CALL == 0)) {
+        if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
             uuid = generateAndStoreBatchUUID();
         }
         return uuid;

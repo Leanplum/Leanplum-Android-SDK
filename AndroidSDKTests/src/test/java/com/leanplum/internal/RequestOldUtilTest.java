@@ -1,17 +1,13 @@
 package com.leanplum.internal;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum._whitebox.utilities.SynchronousExecutor;
-import com.leanplum.utils.SharedPreferencesUtil;
 
 import junit.framework.TestCase;
 
-import org.bouncycastle.cert.ocsp.Req;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,8 +19,6 @@ import org.robolectric.util.ReflectionHelpers;
 
 import java.util.List;
 import java.util.Map;
-
-import static com.leanplum.internal.RequestOld.LEANPLUM;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
@@ -48,31 +42,6 @@ public class RequestOldUtilTest extends TestCase {
     }
 
     @Test
-    public void testStoringBatchUUID() {
-        RequestOldUtil util = new RequestOldUtil();
-        String uuid = util.generateAndStoreBatchUUID();
-        assertTrue(uuid.equals(uuidFromPreferences()));
-    }
-
-    @Test
-    public void testStoringAndRetrievingBatchUUID() {
-        RequestOldUtil util = new RequestOldUtil();
-        String uuid = util.generateAndStoreBatchUUID();
-        String retrievedUUID = util.getStoredBatchUUID();
-        assertTrue(uuid.equals(retrievedUUID));
-    }
-
-    @Test
-    public void testRemovingStoredBatchUUID() {
-        RequestOldUtil util = new RequestOldUtil();
-        util.generateAndStoreBatchUUID();
-        assertNotNull(uuidFromPreferences());
-
-        util.removeStoredBatchUUID();
-        assertNull(uuidFromPreferences());
-    }
-
-    @Test
     public void testSetNewBatchUUIDForRequests() {
         LeanplumEventDataManager.init(Leanplum.getContext());
 
@@ -91,12 +60,5 @@ public class RequestOldUtilTest extends TestCase {
 
         assertTrue(oldUUID1.equals(oldUUID2));
         assertFalse(oldUUID1.equals(newUUID));
-    }
-
-    private String uuidFromPreferences() {
-        Context context = Leanplum.getContext();
-        SharedPreferences preferences = context.getSharedPreferences(
-                LEANPLUM, Context.MODE_PRIVATE);
-        return preferences.getString(Constants.Defaults.UUID_KEY, null);
     }
 }
