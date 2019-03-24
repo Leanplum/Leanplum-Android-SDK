@@ -277,12 +277,20 @@ public class RequestOld implements Requesting {
       requestSequenceRecorder.beforeWrite();
 
       synchronized (RequestOld.class) {
-        RequestOldUtil util = new RequestOldUtil();
-        String uuid = util.getStoredBatchUUID();
+        Context context = Leanplum.getContext();
+        SharedPreferences preferences = context.getSharedPreferences(
+            LEANPLUM, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        long count = LeanplumEventDataManager.getEventsCount();
+        String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+        if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+          uuid = UUID.randomUUID().toString();
+          editor.putString(Constants.Defaults.UUID_KEY, uuid);
+          SharedPreferencesUtil.commitChanges(editor);
+        }
         args.put(UUID_KEY, uuid);
         LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
 
-        long count = LeanplumEventDataManager.getEventsCount();
         dataBaseIndex = count;
         // Checks if here response and/or error callback for this request. We need to add callbacks to
         // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
@@ -717,15 +725,19 @@ public class RequestOld implements Requesting {
 
     synchronized (RequestOld.class) {
       lastSendTimeMs = System.currentTimeMillis();
-      RequestOldUtil util = new RequestOldUtil();
-      util.removeStoredBatchUUID();
+      Context context = Leanplum.getContext();
+      SharedPreferences preferences = context.getSharedPreferences(
+              LEANPLUM, Context.MODE_PRIVATE);
+      SharedPreferences.Editor editor = preferences.edit();
       int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
       requestData = LeanplumEventDataManager.getEvents(count);
+      editor.remove(Constants.Defaults.UUID_KEY);
+      SharedPreferencesUtil.commitChanges(editor);
       // if we send less than 100% of requests, we need to reset the batch
       // UUID for the next batch
       if (fraction < 1) {
-        String uuid = util.generateAndStoreBatchUUID();
-        util.setNewBatchUUIDForRequests(requestData, uuid);
+        RequestOldUtil util = new RequestOldUtil();
+        util.setNewBatchUUID(requestData);
       }
     }
     return requestData;
