@@ -33,7 +33,7 @@ import com.leanplum.utils.SharedPreferencesUtil;
  * @author Anna Orlova
  */
 abstract class LeanplumCloudMessagingProvider {
-  private static String registrationId;
+  private static String tokenId;
 
   /**
    * Gets the registration Id associated with current messaging provider.
@@ -41,8 +41,9 @@ abstract class LeanplumCloudMessagingProvider {
    * @return Registration Id.
    */
   static String getCurrentRegistrationId() {
-    return registrationId;
+    return tokenId;
   }
+
 
   /**
    * Sends the registration ID to the server over HTTP.
@@ -57,6 +58,13 @@ abstract class LeanplumCloudMessagingProvider {
    * @return String - registration id for app.
    */
   public abstract String getRegistrationId();
+
+
+  /**
+   * Gets the registration Id from FirebaseInstaceId with current messaging provider.
+   * And update the backend
+   */
+  public abstract void getCurrentRegistrationIdAndUpdateBackend();
 
   /**
    * Whether Messaging Provider is initialized correctly.
@@ -81,21 +89,22 @@ abstract class LeanplumCloudMessagingProvider {
    * Callback should be invoked when Registration ID is received from provider.
    *
    * @param context The application context.
-   * @param registrationId Registration Id.
+   * @param tokenId Registration Id.
    */
-  void onRegistrationIdReceived(Context context, String registrationId) {
-    if (registrationId == null) {
+  void onRegistrationIdReceived(Context context, String tokenId) {
+    if (tokenId == null) {
       Log.w("Registration ID is undefined.");
       return;
     }
-    LeanplumCloudMessagingProvider.registrationId = registrationId;
+    LeanplumCloudMessagingProvider.tokenId = tokenId;
+    Log.i("Device registered for push notifications with registration token", tokenId);
     // Check if received push notification token is different from stored one and send new one to
     // server.
-    if (!LeanplumCloudMessagingProvider.registrationId.equals(SharedPreferencesUtil.getString(
-        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_REGISTRATION_ID))) {
-      Log.i("Device registered for push notifications with registration token", registrationId);
-      storePreferences(context.getApplicationContext());
-      sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.registrationId);
+    if (!LeanplumCloudMessagingProvider.tokenId.equals(SharedPreferencesUtil.getString(
+        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID))) {
+      SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
+          Constants.Defaults.PROPERTY_TOKEN_ID, tokenId);
+      sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.tokenId);
     }
   }
 
@@ -107,6 +116,29 @@ abstract class LeanplumCloudMessagingProvider {
   public void storePreferences(Context context) {
     Log.v("Saving the registration ID in the shared preferences.");
     SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_REGISTRATION_ID, registrationId);
+        Constants.Defaults.PROPERTY_TOKEN_ID, tokenId);
+  }
+
+
+  /**
+   * Stores the registration ID in the application's {@code SharedPreferences}.
+   *
+   * @param context The application context.
+   */
+  public void storePreferences(Context context, String registrationIdValue) {
+    Log.v("Saving the registration ID in the shared preferences.");
+    SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
+        Constants.Defaults.PROPERTY_TOKEN_ID, registrationIdValue);
+  }
+
+  /**
+   * Get the registration ID in the application's {@code SharedPreferences}.
+   *
+   * @param context The application context.
+   */
+  public String getStoredRegistrationPreferences(Context context) {
+    Log.v("Return the registration ID in the shared preferences.");
+    return SharedPreferencesUtil.getString(
+        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID);
   }
 }

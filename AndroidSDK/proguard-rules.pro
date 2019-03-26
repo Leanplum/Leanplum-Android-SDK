@@ -336,8 +336,6 @@
 -keep class com.leanplum.LeanplumPushService  { *; }
 -keep class com.leanplum.LeanplumFcmProvider { *; }
 -keep class com.leanplum.LeanplumCloudMessagingProvider{ *; }
--keep class com.leanplum.LeanplumGcmProvider { *; }
--keep class com.leanplum.LeanplumPushServiceGcm { *; }
 -keep class com.leanplum.LocationManagerImplementation { *; }
 
 -keep class com.leanplum.messagetemplates.BaseMessageOptions { *; }

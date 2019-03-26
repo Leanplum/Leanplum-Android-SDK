@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -39,6 +40,18 @@ import java.util.Map;
  */
 @SuppressLint("Registered")
 public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingService {
+
+  @Override
+  public void onNewToken(String token) {
+    super.onNewToken(token);
+
+    LeanplumPushService.setCloudMessagingProvider(new LeanplumFcmProvider());
+    LeanplumPushService.getCloudMessagingProvider().storePreferences(this.getApplicationContext(), token);
+
+    //send the new token to backend
+    LeanplumPushService.getCloudMessagingProvider().onRegistrationIdReceived(this.getApplicationContext(), token);
+  }
+
   /**
    * Called when a message is received. This is also called when a notification message is received
    * while the app is in the foreground.

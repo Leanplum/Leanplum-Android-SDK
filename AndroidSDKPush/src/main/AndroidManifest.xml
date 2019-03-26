@@ -2,7 +2,7 @@
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
-        <!-- Leanplum GCM/FCM Registration Service. -->
+        <!-- Leanplum FCM Registration Service. -->
         <service android:name="com.leanplum.LeanplumPushRegistrationService"/>
         <!-- Leanplum Local Push Notification Service. -->
         <service android:name="com.leanplum.LeanplumLocalPushListenerService"/>

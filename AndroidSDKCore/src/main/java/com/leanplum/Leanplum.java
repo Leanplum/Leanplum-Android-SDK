@@ -661,7 +661,7 @@ public class Leanplum {
     int timezoneOffsetSeconds = localTimeZone.getOffset(now.getTime()) / 1000;
 
     String registrationId = SharedPreferencesUtil.getString(context,
-        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_REGISTRATION_ID);
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID);
 
     HashMap<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
@@ -1608,7 +1608,7 @@ public class Leanplum {
         try {
           HashMap<String, Object> params = new HashMap<>();
           params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
-          RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params).send();
+          RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params).sendIfConnected();
         } catch (Throwable t) {
           Util.handleException(t);
         }

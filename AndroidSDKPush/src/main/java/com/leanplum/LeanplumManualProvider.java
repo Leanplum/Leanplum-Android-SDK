@@ -39,6 +39,11 @@ public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
   }
 
   @Override
+  public void getCurrentRegistrationIdAndUpdateBackend() {
+
+  }
+
+  @Override
   public boolean isInitialized() {
     return true;
   }

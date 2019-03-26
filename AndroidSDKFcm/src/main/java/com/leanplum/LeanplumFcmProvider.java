@@ -22,13 +22,20 @@
 package com.leanplum;
 
 import android.content.Context;
+import android.nfc.Tag;
+import android.text.TextUtils;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.leanplum.internal.LeanplumManifestHelper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
 import java.util.Collections;
+
+import androidx.annotation.NonNull;
 
 /**
  * Leanplum provider for work with Firebase.
@@ -39,7 +46,26 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   public String getRegistrationId() {
-    return FirebaseInstanceId.getInstance().getToken();
+    return this.getStoredRegistrationPreferences(Leanplum.getContext());
+  }
+
+  @Override
+  public void getCurrentRegistrationIdAndUpdateBackend() {
+    FirebaseInstanceId.getInstance().getInstanceId()
+        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+          @Override
+          public void onComplete(@NonNull Task<InstanceIdResult> task) {
+            if (!task.isSuccessful()) {
+              Log.e("getInstanceId failed");
+              return;
+            }
+            // Get new Instance ID token
+            String tokenId = task.getResult().getToken();
+            if (!TextUtils.isEmpty(tokenId)) {
+                onRegistrationIdReceived(Leanplum.getContext(), tokenId);
+              }
+            }
+        });
   }
 
   @Override
@@ -64,16 +90,11 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
           LeanplumManifestHelper.LP_PUSH_FCM_MESSAGING_SERVICE, false, null,
           Collections.singletonList(LeanplumManifestHelper.FCM_MESSAGING_EVENT), context.getPackageName());
 
-      boolean hasPushFirebaseListenerService = LeanplumManifestHelper.checkComponent(
-          LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumManifestHelper.LP_PUSH_FCM_LISTENER_SERVICE, false, null,
-          Collections.singletonList(LeanplumManifestHelper.FCM_INSTANCE_ID_EVENT), context.getPackageName());
-
       boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
           LeanplumManifestHelper.ApplicationComponent.SERVICE,
           LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
 
-      boolean hasServices = hasPushFirebaseMessagingService && hasPushFirebaseListenerService &&
+      boolean hasServices = hasPushFirebaseMessagingService &&
           hasRegistrationService;
 
       if (hasPushReceiver && hasServices) {

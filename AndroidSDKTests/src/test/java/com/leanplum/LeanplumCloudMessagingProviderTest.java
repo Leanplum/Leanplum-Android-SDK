@@ -100,6 +100,11 @@ public class LeanplumCloudMessagingProviderTest {
       }
 
       @Override
+      public void getCurrentRegistrationIdAndUpdateBackend() {
+
+      }
+
+      @Override
       public boolean isInitialized() {
         return false;
       }
@@ -121,7 +126,7 @@ public class LeanplumCloudMessagingProviderTest {
     // Mock getString from SharedPreferencesUtil for registration id and sendRegistrationIdToBackend
     // of LeanplumCloudMessagingProvider class, referenced in onRegistrationIdReceived.
     when(SharedPreferencesUtil.class, "getString", context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_REGISTRATION_ID).thenReturn("stored_token");
+        Constants.Defaults.PROPERTY_TOKEN_ID).thenReturn("stored_token");
     doNothing().when(cloudMessagingProviderMock).storePreferences(context.getApplicationContext());
     doNothing().when(LeanplumCloudMessagingProvider.class, "sendRegistrationIdToBackend",
         "new_token");

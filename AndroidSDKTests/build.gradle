@@ -38,16 +38,15 @@ android {
     lintOptions {
         abortOnError false
     }
+    testOptions.unitTests.includeAndroidResources = true
 }
 
 dependencies {
     implementation project(':AndroidSDKCore')
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
-    implementation project(':AndroidSDKGcm')
     implementation project(':AndroidSDKFcm')
     implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
-    implementation 'com.google.android.gms:play-services-gcm:11.6.0'
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     // Dependencies used for unit tests.

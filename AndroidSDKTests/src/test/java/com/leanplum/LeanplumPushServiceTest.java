@@ -97,8 +97,8 @@ import static org.robolectric.Shadows.shadowOf;
     "org.powermock.*",
     "android.*"
 })
-@PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class, LeanplumGcmProvider.class,
-    SharedPreferencesUtil.class, Util.class, LeanplumPushServiceGcm.class,
+@PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class,
+    SharedPreferencesUtil.class, Util.class,
     LeanplumPushServiceFcm.class})
 public class LeanplumPushServiceTest {
   @Rule
@@ -118,7 +118,6 @@ public class LeanplumPushServiceTest {
     mockStatic(LeanplumPushService.class);
     spy(LeanplumPushService.class);
     spy(Util.class);
-    spy(LeanplumGcmProvider.class);
 
     this.context = RuntimeEnvironment.application;
     assertNotNull(this.context);
@@ -139,9 +138,6 @@ public class LeanplumPushServiceTest {
     // Mock for LeanplumFcmProvider.
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
-    // Mock for LeanplumGcmProvider.
-    LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
-    whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);
 
     RequestOld.setAppId("1", "1");
     when(LeanplumPushService.class, "hasAppIDChanged", "1").thenReturn(false);
@@ -154,8 +150,43 @@ public class LeanplumPushServiceTest {
 //    when(LeanplumPushService.class, "enableFcmServices").thenReturn(true);
 //    when(LeanplumPushService.class, "enableGcmServices").thenReturn(true);
 
-    // Tests for Firebase.
-    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(true);
+    LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
+
+    // Test if Manifest is not set up and provider is initialized.
+    doReturn(false).when(fcmProviderMock).isManifestSetup();
+    doReturn(true).when(fcmProviderMock).isInitialized();
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(0)).invoke("registerInBackground");
+
+    // Test if Manifest is set up and provider is initialized.
+    doReturn(true).when(fcmProviderMock).isManifestSetup();
+    doReturn(true).when(fcmProviderMock).isInitialized();
+    initPushServiceMethod.invoke(pushService);
+    assertNotNull(initPushServiceMethod);
+    verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
+  }
+
+
+  /**
+   * Test for {@link LeanplumPushService#initPushService} that should start {@link
+   * LeanplumPushService#registerInBackground}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testInitPushFCMProviderService() throws Exception {
+    // Mock for LeanplumFcmProvider.
+    LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
+    whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
+
+    RequestOld.setAppId("1", "1");
+    when(LeanplumPushService.class, "hasAppIDChanged", "1").thenReturn(false);
+
+    LeanplumPushService pushService = new LeanplumPushService();
+    Method initPushServiceMethod = LeanplumPushService.class.
+        getDeclaredMethod("initPushService");
+    initPushServiceMethod.setAccessible(true);
     LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
     // Test if Manifest is not set up and provider is initialized.
@@ -172,31 +203,13 @@ public class LeanplumPushServiceTest {
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
 
-    // Tests for GCM.
-    when(LeanplumPushService.isFirebaseEnabled()).thenReturn(false);
-    LeanplumPushService.setCloudMessagingProvider(gcmProviderMock);
-
-    // Test if Manifest is not set up and provider is initialized.
-    doReturn(false).when(gcmProviderMock).isManifestSetup();
-    doReturn(true).when(gcmProviderMock).isInitialized();
-    initPushServiceMethod.invoke(pushService);
-    assertNotNull(initPushServiceMethod);
-    verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
-
-    // Test if Manifest is set up and provider not initialized.
-    doReturn(true).when(gcmProviderMock).isManifestSetup();
-    doReturn(false).when(gcmProviderMock).isInitialized();
-    initPushServiceMethod.invoke(pushService);
-    assertNotNull(initPushServiceMethod);
-    verifyPrivate(LeanplumPushService.class, times(1)).invoke("registerInBackground");
-
     // Test if Manifest is set up and provider is initialized.
-    doReturn(true).when(gcmProviderMock).isManifestSetup();
-    doReturn(true).when(gcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
     verifyPrivate(LeanplumPushService.class, times(2)).invoke("registerInBackground");
   }
+
+  
 
   /**
    * Test for {@link LeanplumPushService#onStart}
@@ -209,15 +222,12 @@ public class LeanplumPushServiceTest {
     Method onStartMethod = LeanplumPushService.class.getDeclaredMethod("onStart");
     onStartMethod.setAccessible(true);
 
-    mockStatic(LeanplumPushServiceGcm.class);
     mockStatic(LeanplumPushServiceFcm.class);
 
-    // Don't call GCM onStart or FCM onStart if both FCM and GCM enabled.
+    // FCM gets invoked
     onStartMethod.invoke(pushService);
     assertNotNull(onStartMethod);
-    verifyStatic(times(0));
-    LeanplumPushServiceGcm.class.getDeclaredMethod("onStart");
-    verifyStatic(times(0));
+    verifyStatic(times(1));
     LeanplumPushServiceFcm.class.getDeclaredMethod("onStart");
   }
 
@@ -306,15 +316,6 @@ public class LeanplumPushServiceTest {
   }
 
   @Test
-  public void testGcmSenderId() {
-    LeanplumPushService.setGcmSenderId("sender_id");
-    assertNotNull(TestClassUtil.getField(LeanplumGcmProvider.class, "senderIds"));
-
-    LeanplumPushService.setGcmSenderIds("sender_id_1", "sender_id_2");
-    assertNotNull(TestClassUtil.getField(LeanplumGcmProvider.class, "senderIds"));
-  }
-
-  @Test
   public void testHandleNotification() {
     Bundle bundle = new Bundle();
     bundle.putString("_lpm", "message_id");
@@ -383,23 +384,15 @@ public class LeanplumPushServiceTest {
     PowerMockito.doReturn(true).when(Util.class, "hasPlayServices");
     PowerMockito.doReturn(false).when(LeanplumPushService.class, "hasAppIDChanged", any());
 
-    LeanplumGcmProvider gcmProviderMock = spy(new LeanplumGcmProvider());
-    whenNew(LeanplumGcmProvider.class).withNoArguments().thenReturn(gcmProviderMock);
-    doReturn(true).when(gcmProviderMock).isManifestSetup();
-    doReturn(true).when(gcmProviderMock).isInitialized();
-    LeanplumPushService.setCloudMessagingProvider(gcmProviderMock);
-    LeanplumPushService.initPushService();
-
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
     doReturn(true).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
 
-    PowerMockito.doReturn(true).when(LeanplumPushService.class, "isFirebaseEnabled");
     LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
     LeanplumPushService.initPushService();
-    verify(mock, times(2)).startService(any(Intent.class));
+    verify(mock, times(1)).startService(any(Intent.class));
   }
 
   @Test

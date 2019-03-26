@@ -9,7 +9,6 @@ ext {
     LEANPLUM_CORE_ARTIFACT_ID = 'leanplum-core'
     LEANPLUM_PUSH_ARTIFACT_ID = 'leanplum-push'
     LEANPLUM_FCM_ARTIFACT_ID = 'leanplum-fcm'
-    LEANPLUM_GCM_ARTIFACT_ID = 'leanplum-gcm'
     LEANPLUM_LOCATION_ARTIFACT_ID = 'leanplum-location'
     def sdkVersion = file('../sdk-version.txt').text.replace('\n','')
     LEANPLUM_SDK_VERSION = "$sdkVersion"
@@ -166,10 +165,6 @@ def pomConfig(itParam, dependenciesNode) {
         } else if (itParam.name == 'AndroidSDKPush') {
             dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
             dependencyNode.appendNode('artifactId', LEANPLUM_PUSH_ARTIFACT_ID)
-            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
-        } else if (itParam.name == 'AndroidSDKGcm') {
-            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
-            dependencyNode.appendNode('artifactId', LEANPLUM_GCM_ARTIFACT_ID)
             dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
         } else if (itParam.name == 'AndroidSDKFcm') {
             dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)

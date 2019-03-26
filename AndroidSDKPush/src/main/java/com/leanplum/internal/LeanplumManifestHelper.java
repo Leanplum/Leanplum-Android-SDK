@@ -41,13 +41,6 @@ import java.util.List;
  * @author Anna Orlova
  */
 public class LeanplumManifestHelper {
-  // Google Cloud Messaging
-  public static final String GCM_SEND_PERMISSION = "com.google.android.c2dm.permission.SEND";
-  public static final String GCM_RECEIVE_PERMISSION = "com.google.android.c2dm.permission.RECEIVE";
-  public static final String GCM_RECEIVE_ACTION = "com.google.android.c2dm.intent.RECEIVE";
-  public static final String GCM_REGISTRATION_ACTION = "com.google.android.c2dm.intent.REGISTRATION";
-  public static final String GCM_INSTANCE_ID_ACTION = "com.google.android.gms.iid.InstanceID";
-  public static final String GCM_RECEIVER = "com.google.android.gms.gcm.GcmReceiver";
 
   // Firebase
   public static final String FCM_INSTANCE_ID_EVENT = "com.google.firebase.INSTANCE_ID_EVENT";
@@ -56,7 +49,6 @@ public class LeanplumManifestHelper {
   // Leanplum
   public static final String LP_PUSH_INSTANCE_ID_SERVICE = "com.leanplum.LeanplumPushInstanceIDService";
   public static final String LP_PUSH_LISTENER_SERVICE = "com.leanplum.LeanplumPushListenerService";
-  public static final String LP_PUSH_FCM_LISTENER_SERVICE = "com.leanplum.LeanplumPushFcmListenerService";
   public static final String LP_PUSH_FCM_MESSAGING_SERVICE = "com.leanplum.LeanplumPushFirebaseMessagingService";
   public static final String LP_PUSH_REGISTRATION_SERVICE = "com.leanplum.LeanplumPushRegistrationService";
   public static final String LP_PUSH_RECEIVER = "com.leanplum.LeanplumPushReceiver";
