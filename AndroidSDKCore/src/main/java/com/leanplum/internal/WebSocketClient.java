@@ -99,24 +99,23 @@ class WebSocketClient {
       @Override
       public void run() {
         try {
-          int port = (mURI.getPort() != -1) ? mURI.getPort() : (mURI.getScheme().equals("wss") ? 443 : 80);
+          int port = (mURI.getPort() != -1) ? mURI.getPort() : (mURI.getScheme().equals("https") ? 443 : 80);
 
           String path = TextUtils.isEmpty(mURI.getPath()) ? "/" : mURI.getPath();
           if (!TextUtils.isEmpty(mURI.getQuery())) {
             path += "?" + mURI.getQuery();
           }
 
-          String originScheme = mURI.getScheme().equals("wss") ? "https" : "http";
           URI origin = null;
           try {
-            origin = new URI(originScheme, "//" + mURI.getHost(), null);
+            origin = new URI(mURI.getScheme(), "//" + mURI.getHost(), null);
           } catch (URISyntaxException e) {
             Util.handleException(e);
           }
 
           SocketFactory factory;
           try {
-            factory = mURI.getScheme().equals("wss") ? getSSLSocketFactory() : SocketFactory.getDefault();
+            factory = mURI.getScheme().equals("https") ? getSSLSocketFactory() : SocketFactory.getDefault();
           } catch (GeneralSecurityException e) {
             Util.handleException(e);
             return;
