@@ -39,7 +39,7 @@ import com.leanplum.internal.WebSocketClient;
  * @author Grace Gu
  */
 
-@RunWith(RobolectricTestRunner.class)
+//@RunWith(RobolectricTestRunner.class)
 public class WebSocketClientTest {
 
   // java doesn't support wss so we expect WebSocketClient to respect http vs https
