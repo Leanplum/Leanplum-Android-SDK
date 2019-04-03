@@ -81,6 +81,9 @@ public class Socket {
       @Override
       public void onError(Exception error) {
         Log.e("Development socket error", error);
+
+        // if error happens during connecting, reset flag
+        connecting = false;
       }
 
       @Override
