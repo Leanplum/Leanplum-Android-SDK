@@ -24,6 +24,7 @@ package com.leanplum.internal;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,6 +32,7 @@ import java.net.URISyntaxException;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum.internal.WebSocketClient;
 
 /**
@@ -39,7 +41,11 @@ import com.leanplum.internal.WebSocketClient;
  * @author Grace Gu
  */
 
-//@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
+@Config(
+    sdk = 16,
+    application = LeanplumTestApp.class
+)
 public class WebSocketClientTest {
 
   // java doesn't support wss so we expect WebSocketClient to respect http vs https
