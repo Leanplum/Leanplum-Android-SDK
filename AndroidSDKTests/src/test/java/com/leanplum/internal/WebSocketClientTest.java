@@ -56,7 +56,7 @@ import com.leanplum.internal.WebSocketClient;
     "org.powermock.*",
     "android.*"
 })
-@PrepareForTest({Leanplum.class, Util.class, SocketIOClient.class, RequestOld.class})
+@PrepareForTest({Leanplum.class, Util.class, WebSocketClient.class, RequestOld.class})
 public class WebSocketClientTest {
 
   // java doesn't support wss so we expect WebSocketClient to respect http vs https
