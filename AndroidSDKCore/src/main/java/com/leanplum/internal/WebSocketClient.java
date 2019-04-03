@@ -99,7 +99,7 @@ class WebSocketClient {
       @Override
       public void run() {
         try {
-          int port = (mURI.getPort() != -1) ? mURI.getPort() : (mURI.getScheme().equals("https") ? 443 : 80);
+          int port = (mURI.getPort() != -1) ? mURI.getPort() : (isSecure() ? 443 : 80);
 
           String path = TextUtils.isEmpty(mURI.getPath()) ? "/" : mURI.getPath();
           if (!TextUtils.isEmpty(mURI.getQuery())) {
@@ -115,7 +115,7 @@ class WebSocketClient {
 
           SocketFactory factory;
           try {
-            factory = mURI.getScheme().equals("https") ? getSSLSocketFactory() : SocketFactory.getDefault();
+            factory = isSecure() ? getSSLSocketFactory() : SocketFactory.getDefault();
           } catch (GeneralSecurityException e) {
             Util.handleException(e);
             return;
@@ -183,6 +183,10 @@ class WebSocketClient {
       }
     });
     mThread.start();
+  }
+
+  public boolean isSecure() {
+    return mURI.getScheme().equals("https");
   }
 
   public void disconnect() {
