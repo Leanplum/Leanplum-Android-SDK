@@ -699,14 +699,7 @@ public class RequestOld implements Requesting {
     if (!sent) {
       sent = true;
       Map<String, Object> args = createArgsDictionary();
-      Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
-        @Override
-        protected Void doInBackground(Void... params) {
-          Map<String, Object> args = createArgsDictionary();
-          saveRequestForLater(args);
-          return null;
-        }
-      });
+      saveRequestForLater(args);
     }
     Leanplum.countAggregator().incrementCount("send_eventually");
   }
