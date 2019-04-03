@@ -31,6 +31,8 @@ import java.net.URISyntaxException;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.leanplum.internal.WebSocketClient;
+
 /**
  * Tests for {@link WebSocketClient} class.
  *
