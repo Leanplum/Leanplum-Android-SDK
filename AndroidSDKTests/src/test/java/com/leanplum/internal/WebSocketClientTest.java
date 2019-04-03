@@ -23,6 +23,8 @@ package com.leanplum.internal;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -32,6 +34,7 @@ import java.net.URISyntaxException;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum.internal.WebSocketClient;
 
@@ -46,6 +49,14 @@ import com.leanplum.internal.WebSocketClient;
     sdk = 16,
     application = LeanplumTestApp.class
 )
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "org.json.*",
+    "org.powermock.*",
+    "android.*"
+})
+@PrepareForTest({Leanplum.class, Util.class, SocketIOClient.class, RequestOld.class})
 public class WebSocketClientTest {
 
   // java doesn't support wss so we expect WebSocketClient to respect http vs https
