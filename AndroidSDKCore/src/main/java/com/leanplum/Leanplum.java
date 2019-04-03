@@ -551,47 +551,46 @@ public class Leanplum {
         }
         return;
       }
-
-      initializedMessageTemplates = true;
-      MessageTemplates.register(Leanplum.getContext());
-
-      LeanplumInternal.setStartedInBackground(actuallyInBackground);
-
-      final Map<String, ?> validAttributes = LeanplumInternal.validateAttributes(attributes,
-          "userAttributes", true);
-      LeanplumInternal.setCalledStart(true);
-
-      if (validAttributes != null) {
-        LeanplumInternal.getUserAttributeChanges().add(validAttributes);
-      }
-
-      RequestOld.loadToken();
-      VarCache.setSilent(true);
-      VarCache.loadDiffs();
-      VarCache.setSilent(false);
-      LeanplumInbox.getInstance().load();
-
-      // Setup class members.
-      VarCache.onUpdate(new CacheUpdateBlock() {
-        @Override
-        public void updateCache() {
-          triggerVariablesChanged();
-          if (RequestOld.numPendingDownloads() == 0) {
-            triggerVariablesChangedAndNoDownloadsPending();
-          }
-        }
-      });
-      RequestOld.onNoPendingDownloads(new RequestOld.NoPendingDownloadsCallback() {
-        @Override
-        public void noPendingDownloads() {
-          triggerVariablesChangedAndNoDownloadsPending();
-        }
-      });
-
       // Reduce latency by running the rest of the start call in a background thread.
       Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
         @Override
         protected Void doInBackground(Void... params) {
+          initializedMessageTemplates = true;
+          MessageTemplates.register(Leanplum.getContext());
+
+          LeanplumInternal.setStartedInBackground(actuallyInBackground);
+
+          final Map<String, ?> validAttributes = LeanplumInternal.validateAttributes(attributes,
+              "userAttributes", true);
+          LeanplumInternal.setCalledStart(true);
+
+          if (validAttributes != null) {
+            LeanplumInternal.getUserAttributeChanges().add(validAttributes);
+          }
+
+          RequestOld.loadToken();
+          VarCache.setSilent(true);
+          VarCache.loadDiffs();
+          VarCache.setSilent(false);
+          LeanplumInbox.getInstance().load();
+
+          // Setup class members.
+          VarCache.onUpdate(new CacheUpdateBlock() {
+            @Override
+            public void updateCache() {
+              triggerVariablesChanged();
+              if (RequestOld.numPendingDownloads() == 0) {
+                triggerVariablesChangedAndNoDownloadsPending();
+              }
+            }
+          });
+          RequestOld.onNoPendingDownloads(new RequestOld.NoPendingDownloadsCallback() {
+            @Override
+            public void noPendingDownloads() {
+              triggerVariablesChangedAndNoDownloadsPending();
+            }
+          });
+
           try {
             startHelper(userId, validAttributes, actuallyInBackground);
           } catch (Throwable t) {
