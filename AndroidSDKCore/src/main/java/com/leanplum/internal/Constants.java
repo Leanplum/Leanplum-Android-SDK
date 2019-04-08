@@ -33,7 +33,7 @@ public class Constants {
   public static String API_SERVLET = "api";
   public static boolean API_SSL = true;
   public static String SOCKET_HOST = "dev.leanplum.com";
-  public static int SOCKET_PORT = 80;
+  public static int SOCKET_PORT = 443;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
   public static String LEANPLUM_VERSION = BuildConfig.SDK_VERSION + '.' + BuildConfig.BUILD_NUMBER;

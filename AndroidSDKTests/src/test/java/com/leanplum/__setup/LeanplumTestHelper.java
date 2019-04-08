@@ -71,7 +71,7 @@ public class LeanplumTestHelper {
   private static final Boolean API_SSL = true;
 
   private static final String SOCKET_HOST_NAME = "dev.leanplum.com";
-  private static final Integer SOCKET_PORT = 80;
+  private static final Integer SOCKET_PORT = 443;
   public static final LeanplumDeviceIdMode DEVICE_ID_MODE = LeanplumDeviceIdMode.MD5_MAC_ADDRESS;
 
   /**
