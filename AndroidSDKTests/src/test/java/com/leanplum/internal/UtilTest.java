@@ -68,4 +68,17 @@ public class UtilTest {
     assertNotNull(Util.getJsonResponse(mockHttpUrlConnection));
   }
 
+
+  /**
+   * Test for {@link Util#getJsonResponse(HttpURLConnection op)} that returns gzip unmarshalled error data.
+   */
+  @Test
+  public void getGzipEncodedErrorResponseWithContentEndingTest() throws Exception {
+    HttpURLConnection mockHttpUrlConnection = mock(HttpURLConnection.class);
+    when(mockHttpUrlConnection.getErrorStream()).thenReturn(ResponseHelper.class.getResourceAsStream("/responses/simple_start_response.json.gz"));
+    when(mockHttpUrlConnection.getResponseCode()).thenReturn(403);
+    when(mockHttpUrlConnection.getHeaderField("content-encoding")).thenReturn("gzip");
+    assertNotNull(Util.getJsonResponse(mockHttpUrlConnection));
+  }
+
 }
