@@ -25,8 +25,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Point;
-import androidx.annotation.NonNull;
 import android.view.Gravity;
+import android.content.Context;
+import android.graphics.Point;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 
@@ -36,7 +39,6 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
-import com.leanplum.internal.Log;
 import com.leanplum.utils.SizeUtil;
 
 /**

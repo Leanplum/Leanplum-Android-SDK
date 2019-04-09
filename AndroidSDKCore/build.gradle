@@ -32,8 +32,8 @@ android {
 
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
-    api "androidx.legacy:legacy-support-v4:1.0.0"
-    api "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
+    api "com.android.support:support-v4:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
+    api "com.android.support:appcompat-v7:[22.0.0,${SUPPORT_LIBRARY_VERSION}]"
 }
 
 task generateJavadoc(type: Javadoc) {

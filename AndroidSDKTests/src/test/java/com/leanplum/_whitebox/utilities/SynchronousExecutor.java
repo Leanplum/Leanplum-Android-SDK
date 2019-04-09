@@ -20,7 +20,7 @@
  */
 package com.leanplum._whitebox.utilities;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import java.util.concurrent.Executor;
 

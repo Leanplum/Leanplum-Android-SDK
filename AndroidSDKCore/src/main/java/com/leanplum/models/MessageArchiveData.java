@@ -1,6 +1,6 @@
 package com.leanplum.models;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 import java.util.Date;
 

@@ -23,8 +23,8 @@ package com.leanplum;
 
 import android.app.Notification;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
+import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 
 /**
  * Implement LeanplumPushNotificationCustomizer to customize the appearance of notifications.

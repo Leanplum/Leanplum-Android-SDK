@@ -21,7 +21,7 @@
 
 package com.leanplum;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.leanplum.callbacks.VariablesChangedCallback;

@@ -1,6 +1,6 @@
 package com.leanplum.internal;
 
-import androidx.annotation.VisibleForTesting;
+import android.support.annotation.VisibleForTesting;
 
 import com.leanplum.Leanplum;
 
