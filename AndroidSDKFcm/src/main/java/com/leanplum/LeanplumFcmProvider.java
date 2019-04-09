@@ -35,7 +35,7 @@ import com.leanplum.internal.Util;
 
 import java.util.Collections;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 /**
  * Leanplum provider for work with Firebase.
