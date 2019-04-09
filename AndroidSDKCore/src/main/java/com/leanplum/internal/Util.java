@@ -668,16 +668,17 @@ public class Util {
 
   private static String getResponse(HttpURLConnection op) throws IOException {
     InputStream inputStream;
+    String contentHeader = op.getHeaderField("content-encoding");
+    boolean isCompressed = contentHeader != null && contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING);
     if (op.getResponseCode() < 400) {
-      String contentHeader = op.getHeaderField("content-encoding");
-      if (contentHeader != null && contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING)) {
-        inputStream = new GZIPInputStream(op.getInputStream());
-      } else {
-        inputStream = op.getInputStream();
-      }
+      inputStream = op.getInputStream();
     } else {
       inputStream = op.getErrorStream();
     }
+
+    // If we have a gzipped response, de-compress it first
+    if (isCompressed) inputStream = new GZIPInputStream(inputStream);
+
     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
     StringBuilder builder = new StringBuilder();
     for (String line; (line = reader.readLine()) != null; ) {
