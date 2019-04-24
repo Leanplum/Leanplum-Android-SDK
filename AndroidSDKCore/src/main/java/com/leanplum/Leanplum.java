@@ -2112,6 +2112,8 @@ public class Leanplum {
               }
 
               parseVariantDebugInfo(response);
+              Map<String, String> filenamesToURL = parseFileURLs(response);
+              FileManager.setFilenameToURL(filenamesToURL);
             }
             if (callback != null) {
               OsHandler.getInstance().post(callback);
