@@ -852,6 +852,9 @@ public class Leanplum {
             FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
 
+            Map<String, String> filenamesToURL = parseFileURLs(response);
+            FileManager.setFilenameToURL(filenamesToURL);
+
             // Allow bidirectional realtime variable updates.
             if (Constants.isDevelopmentModeEnabled) {
 
@@ -2301,6 +2304,13 @@ public class Leanplum {
             Constants.Keys.ENABLED_FEATURE_FLAGS);
     Set<String> featureFlagSet = toSet(enabledFeatureFlags);
     return featureFlagSet;
+  }
+
+  @VisibleForTesting
+  public static Map<String, String> parseFileURLs(JSONObject response) {
+    JSONObject filesObject = response.optJSONObject(
+            Constants.Keys.FILES);
+    return JsonConverter.mapFromJson(filesObject);
   }
 
   private static Set<String> toSet(JSONArray array) {
