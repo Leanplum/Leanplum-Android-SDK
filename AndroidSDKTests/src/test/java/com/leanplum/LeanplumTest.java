@@ -1358,6 +1358,31 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(new HashSet<>(Arrays.asList("test")), parsedCounters);
   }
 
+  @Test
+  public void testParseFilenameToURLs() throws JSONException {
+    JSONObject response = new JSONObject();
+    JSONObject files = new JSONObject();
+    files.put("file.jpg", "https://www.domain.com/file.jpg");
+    response.put(Constants.Keys.FILES, files);
+
+    Map<String, String> parsedFiles= Leanplum.parseFileURLs(response);
+    assertEquals(JsonConverter.mapFromJson(files), parsedFiles);
+  }
+
+  /**
+   * Tests for parsing filenameToURLs
+   */
+  @Test
+  public void testStartResponseShouldParseFilenameToURLs() {
+    // Setup sdk.
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    Map<String, String> files = new HashMap<>();
+    files.put("file1.jpg", "http://www.domain.com/file1.jpg");
+    files.put("file2.jpg", "http://www.domain.com/file2.jpg");
+
+    assertEquals(files, FileManager.filenameToURL);
+  }
 
   /**
    * Tests for parsing feature flags
