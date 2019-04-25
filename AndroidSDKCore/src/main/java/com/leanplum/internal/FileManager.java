@@ -109,7 +109,7 @@ public class FileManager {
       if (!FileManager.fileExistsAtPath(realPath)) {
         realPath = FileManager.fileRelativeToDocuments(stringValue);
         if (!FileManager.fileExistsAtPath(realPath)) {
-          if (FileManager.filenameToURL.containsKey(stringValue) && urlValue == null) {
+          if (FileManager.filenameToURL != null && FileManager.filenameToURL.containsKey(stringValue) && urlValue == null) {
             urlValue = FileManager.filenameToURL.get(stringValue);
           }
           RequestOld downloadRequest = RequestOld.get(Constants.Methods.DOWNLOAD_FILE, null);

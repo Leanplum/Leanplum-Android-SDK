@@ -811,6 +811,8 @@ public class Leanplum {
             if (variants == null) {
               Log.d("No variants received from the server.");
             }
+            Map<String, String> filenamesToURL = parseFileURLs(response);
+            FileManager.setFilenameToURL(filenamesToURL);
 
             if (BuildUtil.isNotificationChannelSupported(context)) {
               // Get notification channels and groups.
@@ -851,9 +853,6 @@ public class Leanplum {
             Set<String> enabledFeatureFlags = parseFeatureFlags(response);
             FeatureFlagManager.INSTANCE.setEnabledFeatureFlags((enabledFeatureFlags));
             parseVariantDebugInfo(response);
-
-            Map<String, String> filenamesToURL = parseFileURLs(response);
-            FileManager.setFilenameToURL(filenamesToURL);
 
             // Allow bidirectional realtime variable updates.
             if (Constants.isDevelopmentModeEnabled) {
