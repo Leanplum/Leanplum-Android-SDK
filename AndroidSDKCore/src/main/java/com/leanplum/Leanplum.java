@@ -811,8 +811,8 @@ public class Leanplum {
             if (variants == null) {
               Log.d("No variants received from the server.");
             }
-            Map<String, String> filenamesToURL = parseFileURLs(response);
-            FileManager.setFilenameToURL(filenamesToURL);
+            Map<String, String> filenameToURLs = parseFilenameToURLs(response);
+            FileManager.setFilenameToURLs(filenameToURLs);
 
             if (BuildUtil.isNotificationChannelSupported(context)) {
               // Get notification channels and groups.
@@ -2111,8 +2111,8 @@ public class Leanplum {
               }
 
               parseVariantDebugInfo(response);
-              Map<String, String> filenamesToURL = parseFileURLs(response);
-              FileManager.setFilenameToURL(filenamesToURL);
+              Map<String, String> filenameToURLs = parseFilenameToURLs(response);
+              FileManager.setFilenameToURLs(filenameToURLs);
             }
             if (callback != null) {
               OsHandler.getInstance().post(callback);
@@ -2308,7 +2308,7 @@ public class Leanplum {
   }
 
   @VisibleForTesting
-  public static Map<String, String> parseFileURLs(JSONObject response) {
+  public static Map<String, String> parseFilenameToURLs(JSONObject response) {
     JSONObject filesObject = response.optJSONObject(
             Constants.Keys.FILES);
     return JsonConverter.mapFromJson(filesObject);

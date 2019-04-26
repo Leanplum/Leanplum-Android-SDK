@@ -1365,7 +1365,7 @@ public class LeanplumTest extends AbstractTest {
     files.put("file.jpg", "https://www.domain.com/file.jpg");
     response.put(Constants.Keys.FILES, files);
 
-    Map<String, String> parsedFiles= Leanplum.parseFileURLs(response);
+    Map<String, String> parsedFiles= Leanplum.parseFilenameToURLs(response);
     assertEquals(JsonConverter.mapFromJson(files), parsedFiles);
   }
 
@@ -1381,7 +1381,7 @@ public class LeanplumTest extends AbstractTest {
     files.put("file1.jpg", "http://www.domain.com/file1.jpg");
     files.put("file2.jpg", "http://www.domain.com/file2.jpg");
 
-    assertEquals(files, FileManager.filenameToURL);
+    assertEquals(files, FileManager.filenameToURLs);
   }
 
   /**
