@@ -2311,7 +2311,10 @@ public class Leanplum {
   public static Map<String, String> parseFilenameToURLs(JSONObject response) {
     JSONObject filesObject = response.optJSONObject(
             Constants.Keys.FILES);
-    return JsonConverter.mapFromJson(filesObject);
+    if (filesObject != null) {
+      return JsonConverter.mapFromJson(filesObject);
+    }
+    return null;
   }
 
   private static Set<String> toSet(JSONArray array) {
