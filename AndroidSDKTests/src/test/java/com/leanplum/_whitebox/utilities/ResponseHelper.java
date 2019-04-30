@@ -74,4 +74,19 @@ public class ResponseHelper {
       Log.e("ResponseHelper", "Unable to seed response from file: " + filename);
     }
   }
+
+  /**
+   * Seeds the Null response to Util.getResponse method.
+   *
+   */
+
+
+  public static void seedResponseNull(String filename) {
+    try {
+      doReturn(false).when(Util.class, Util.isConnected());
+      doReturn(parseResponse(filename)).when(Util.class, "getResponse", anyObject());
+    } catch (Exception e) {
+      Log.e("ResponseHelper", "Unable to seed response from file: " + filename);
+    }
+  }
 }

@@ -1671,4 +1671,63 @@ public class LeanplumTest extends AbstractTest {
 
     assertEquals(4, VarCache.variants().size());
   }
+
+  @Test
+  public void testStartAndVariableChangeCallBacksForOffline() throws Exception {
+    final Semaphore semaphore = new Semaphore(1);
+    semaphore.acquire();
+
+    //Offline Mode.
+     ResponseHelper.seedResponseNull("/responses/simple_start_response.json");
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
+    );
+
+    // Validate request.
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.START, apiMethod);
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+
+    Leanplum.start(mContext, new StartCallback() {
+      @Override
+      public void onResponse(boolean success) {
+        assertTrue(success);
+        semaphore.release();
+      }
+    });
+    assertTrue(Leanplum.hasStarted());
+
+    semaphore.acquire();
+
+    // Seed getVars response.
+    ResponseHelper.seedResponseNull("/responses/variants_response.json");
+
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(Constants.Methods.GET_VARS, apiMethod);
+      }
+    });
+
+    Leanplum.forceContentUpdate(new VariablesChangedCallback() {
+      @Override
+      public void variablesChanged() {
+        semaphore.release();
+      }
+    });
+    
+  }
 }
