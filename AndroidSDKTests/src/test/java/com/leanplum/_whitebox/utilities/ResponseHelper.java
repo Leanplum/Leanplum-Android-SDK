@@ -84,7 +84,6 @@ public class ResponseHelper {
   public static void seedResponseNull() {
     try {
       doReturn(false).when(Util.class, Util.isConnected());
-      //doReturn(parseResponse(filename)).when(Util.class, "getResponse", anyObject());
     } catch (Exception e) {
       Log.e("ResponseHelper", "Unable to seed response from file: ");
     }
