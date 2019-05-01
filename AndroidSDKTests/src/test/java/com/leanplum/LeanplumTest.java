@@ -1673,12 +1673,12 @@ public class LeanplumTest extends AbstractTest {
   }
 
   @Test
-  public void testStartAndVariableChangeCallBacksForOffline() throws Exception {
+  public void testStartChangeCallBackForOffline() throws Exception {
     final Semaphore semaphore = new Semaphore(1);
     semaphore.acquire();
 
     //Offline Mode.
-     ResponseHelper.seedResponseNull("/responses/simple_start_response.json");
+     ResponseHelper.seedResponseNull();
 
     // Expected request params.
     final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
@@ -1709,11 +1709,17 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     assertTrue(Leanplum.hasStarted());
+    
+  }
+
+  @Test
+  public void testVariableChangeCallBacksForOffline() throws Exception {
+    final Semaphore semaphore = new Semaphore(1);
 
     semaphore.acquire();
 
     // Seed getVars response.
-    ResponseHelper.seedResponseNull("/responses/variants_response.json");
+    ResponseHelper.seedResponseNull();
 
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
@@ -1728,6 +1734,6 @@ public class LeanplumTest extends AbstractTest {
         semaphore.release();
       }
     });
-    
+
   }
 }
