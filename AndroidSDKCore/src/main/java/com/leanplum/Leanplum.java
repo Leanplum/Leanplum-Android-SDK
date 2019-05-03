@@ -740,9 +740,9 @@ public class Leanplum {
       if (!LeanplumInternal.hasStarted()) {
         // Set start response to null.
         request.onApiResponse(null);
-        Leanplum.handleStartResponse(lastStartResponse);
       }
     }
+    Leanplum.handleStartResponse(lastStartResponse);
   }
 
   @VisibleForTesting
