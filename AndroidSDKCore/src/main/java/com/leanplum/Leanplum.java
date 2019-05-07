@@ -2247,7 +2247,7 @@ public class Leanplum {
           "call setDeviceLocation. If you prefer to always set location manually, " +
           "then call disableLocationCollection.");
     }
-    Leanplum.countAggregator().incrementCount("setDeviceLocation:type");
+    Leanplum.countAggregator().incrementCount("setDeviceLocation_type");
     LeanplumInternal.setUserLocationAttribute(location, type,
         new LeanplumInternal.locationAttributeRequestsCallback() {
           @Override
