@@ -2231,6 +2231,7 @@ public class Leanplum {
    */
   public static void setDeviceLocation(Location location) {
     setDeviceLocation(location, LeanplumLocationAccuracyType.CELL);
+    Leanplum.countAggregator().incrementCount("setDeviceLocation");
   }
 
   /**
@@ -2246,6 +2247,7 @@ public class Leanplum {
           "call setDeviceLocation. If you prefer to always set location manually, " +
           "then call disableLocationCollection.");
     }
+    Leanplum.countAggregator().incrementCount("setDeviceLocation_type");
     LeanplumInternal.setUserLocationAttribute(location, type,
         new LeanplumInternal.locationAttributeRequestsCallback() {
           @Override
