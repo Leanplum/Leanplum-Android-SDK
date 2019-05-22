@@ -22,7 +22,7 @@ To build the sdk run:
 ./gradlew assembleRelease
 ```
 ## Contributing
-Please follow the Conventional Changelog Commit Style and send a pull request to `master` branch.
+Please follow the guidelines under https://github.com/Leanplum/Leanplum-Android-SDK/blob/master/CONTRIBUTING.md
 ## License
 See LICENSE file.
 ## Support
