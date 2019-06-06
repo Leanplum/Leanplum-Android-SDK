@@ -274,10 +274,15 @@ public class RequestOld implements Requesting {
 
   private void saveRequestForLater(Map<String, Object> args) {
     try {
+
+      Context context = Leanplum.getContext();
+      if (context == null) {
+        return;
+      }
+
       requestSequenceRecorder.beforeWrite();
 
       synchronized (RequestOld.class) {
-        Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
             LEANPLUM, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();

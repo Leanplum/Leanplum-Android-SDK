@@ -21,6 +21,7 @@
 package com.leanplum.internal;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
@@ -369,6 +370,34 @@ public class RequestOldTest extends TestCase {
       requests.add(request);
     }
     return requests;
+  }
+
+  @Test
+  public void testNotSendingIfContextIsNull() {
+    Context context = Leanplum.getContext();
+    Leanplum.setApplicationContext(null);
+
+    final Semaphore semaphore = new Semaphore(1);
+    semaphore.tryAcquire();
+
+    // Given a request.
+    Map<String, Object> params = new HashMap<>();
+    params.put("data1", "value1");
+    params.put("data2", "value2");
+    RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
+    request.onError(new RequestOld.ErrorCallback() {
+      @Override
+      public void error(Exception e) {
+        assertNotNull(e);
+        semaphore.release();
+      }
+    });
+    request.setAppId("fskadfshdbfa", "wee5w4waer422323");
+
+    // When the request is sent.
+    request.sendIfConnected();
+
+    Leanplum.setApplicationContext(context);
   }
 
   private static class ThreadRequestSequenceRecorder implements RequestSequenceRecorder {

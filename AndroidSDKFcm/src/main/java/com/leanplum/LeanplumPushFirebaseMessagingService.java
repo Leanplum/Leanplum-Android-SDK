@@ -61,6 +61,9 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
   @Override
   public void onMessageReceived(RemoteMessage remoteMessage) {
     try {
+      if (Leanplum.getContext() == null) {
+        Leanplum.setApplicationContext(this);
+      }
       Map<String, String> messageMap = remoteMessage.getData();
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
         LeanplumPushService.handleNotification(this, getBundle(messageMap));
