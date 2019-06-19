@@ -22,15 +22,20 @@
 package com.leanplum;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -65,6 +70,9 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
         Leanplum.setApplicationContext(this);
       }
       Map<String, String> messageMap = remoteMessage.getData();
+      if (isDuplicateNotification(messageMap)) {
+        return;
+      }
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
         LeanplumPushService.handleNotification(this, getBundle(messageMap));
       }
@@ -85,5 +93,64 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
       }
     }
     return bundle;
+  }
+
+  private Boolean isDuplicateNotification(Map<String, String> messageMap) {
+    Boolean isDuplicate = false;
+    String messageId = "";
+    if (messageMap.containsKey("_lpn")) {
+      messageId = messageMap.get("_lpn");
+    }
+    if (messageMap.containsKey("_lpm")) {
+      messageId = messageMap.get("_lpm");
+    }
+
+    Map<String, Object> handledNotifications = retrieveHandledNotifications();
+    handledNotifications = purgeExpiredHandledNotifications(handledNotifications);
+    if (handledNotifications.containsKey(messageId)) {
+      Long timeNotificationShown = (Long) handledNotifications.get(messageId);
+      if (new Date().getTime() - timeNotificationShown < 3600000) { //milliseconds
+        isDuplicate = true;
+      }
+    } else {
+      handledNotifications.put(messageId, new Date().getTime());
+    }
+    persistHandledNotifications(handledNotifications);
+    return isDuplicate;
+  }
+
+  private Map<String, Object> retrieveHandledNotifications() {
+    SharedPreferences preferences = this.getSharedPreferences(Constants.Defaults.LEANPLUM,
+            Context.MODE_PRIVATE);
+    String jsonString = preferences.getString(handledNotificationsKey(), null);
+    Map<String, Object> handledNotifications;
+    if (jsonString != null) {
+      handledNotifications = JsonConverter.fromJson(jsonString);
+    } else {
+      handledNotifications = new HashMap<>();
+    }
+    return handledNotifications;
+  }
+
+  private void persistHandledNotifications(Map<String, Object> handledNotifications) {
+    SharedPreferences.Editor editor = this.getSharedPreferences(Constants.Defaults.LEANPLUM,
+            Context.MODE_PRIVATE).edit();
+    String jsonString = JsonConverter.toJson(handledNotifications);
+    editor.putString(handledNotificationsKey(), jsonString).apply();
+  }
+
+  private Map<String, Object> purgeExpiredHandledNotifications(Map<String, Object> handledNotifications) {
+    Long now = new Date().getTime();
+    for (String messageId : handledNotifications.keySet()) {
+      Long timeNotificationShown = (Long) handledNotifications.get(messageId);
+      if (now - timeNotificationShown > 3600000) { //milliseconds
+        handledNotifications.remove(messageId);
+      }
+    }
+    return handledNotifications;
+  }
+
+  private String handledNotificationsKey() {
+    return "LeanplumPushFirebaseMessagingService_handledNotifications";
   }
 }
