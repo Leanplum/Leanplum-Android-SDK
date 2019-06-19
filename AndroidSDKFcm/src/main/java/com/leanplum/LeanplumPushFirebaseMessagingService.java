@@ -36,6 +36,7 @@ import com.leanplum.internal.Util;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -70,8 +71,12 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
         Leanplum.setApplicationContext(this);
       }
       Map<String, String> messageMap = remoteMessage.getData();
-      if (isDuplicateNotification(messageMap)) {
-        return;
+      try {
+        if (isDuplicateNotification(messageMap)) {
+          return;
+        }
+      } catch (Throwable t) {
+        Util.handleException(t);
       }
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
         LeanplumPushService.handleNotification(this, getBundle(messageMap));
@@ -108,10 +113,7 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
     Map<String, Object> handledNotifications = retrieveHandledNotifications();
     handledNotifications = purgeExpiredHandledNotifications(handledNotifications);
     if (handledNotifications.containsKey(messageId)) {
-      Long timeNotificationShown = (Long) handledNotifications.get(messageId);
-      if (new Date().getTime() - timeNotificationShown < 3600000) { //milliseconds
-        isDuplicate = true;
-      }
+      isDuplicate = true;
     } else {
       handledNotifications.put(messageId, new Date().getTime());
     }
@@ -141,10 +143,13 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
 
   private Map<String, Object> purgeExpiredHandledNotifications(Map<String, Object> handledNotifications) {
     Long now = new Date().getTime();
-    for (String messageId : handledNotifications.keySet()) {
+
+    Iterator<String> it = handledNotifications.keySet().iterator();
+    while (it.hasNext()) {
+      String messageId = it.next();
       Long timeNotificationShown = (Long) handledNotifications.get(messageId);
       if (now - timeNotificationShown > 3600000) { //milliseconds
-        handledNotifications.remove(messageId);
+        it.remove();
       }
     }
     return handledNotifications;
