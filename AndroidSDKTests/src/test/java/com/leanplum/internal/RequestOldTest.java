@@ -134,7 +134,7 @@ public class RequestOldTest extends TestCase {
   @Test
   public void testRemoveIrrelevantBackgroundStartRequests() throws NoSuchMethodException,
       InvocationTargetException, IllegalAccessException {
-    LeanplumEventDataManager.init(Leanplum.getContext());
+    LeanplumEventDataManager.sharedInstance();
     // Prepare testable objects and method.
     RequestOld request = new RequestOld("POST", Constants.Methods.START, null);
     Method removeIrrelevantBackgroundStartRequests =
@@ -262,7 +262,7 @@ public class RequestOldTest extends TestCase {
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws NoSuchMethodException,
           InvocationTargetException, IllegalAccessException {
-    LeanplumEventDataManager.init(Leanplum.getContext());
+    LeanplumEventDataManager.sharedInstance();
     RequestOld.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     RequestOld request = spy(new RequestOld("POST", Constants.Methods.START, null));

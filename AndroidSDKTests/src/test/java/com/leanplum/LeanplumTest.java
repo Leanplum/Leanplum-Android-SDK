@@ -437,7 +437,7 @@ public class LeanplumTest extends AbstractTest {
 
     Context currentCotext = Leanplum.getContext();
     assertNotNull(currentCotext);
-    LeanplumEventDataManager.init(Leanplum.getContext());
+    LeanplumEventDataManager.sharedInstance();
 
     // Add two events to database.
     RequestOld request1 = new RequestOld("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
