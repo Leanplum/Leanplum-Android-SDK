@@ -35,6 +35,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -69,7 +70,11 @@ public class RequestOldTest extends TestCase {
   public void setUp() {
     Application context = RuntimeEnvironment.application;
     assertNotNull(context);
+
     Leanplum.setApplicationContext(context);
+
+    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
+    LeanplumEventDataManager.sharedInstance();
   }
 
   /** Test that request include a generated request id **/
@@ -134,7 +139,6 @@ public class RequestOldTest extends TestCase {
   @Test
   public void testRemoveIrrelevantBackgroundStartRequests() throws NoSuchMethodException,
       InvocationTargetException, IllegalAccessException {
-    LeanplumEventDataManager.sharedInstance();
     // Prepare testable objects and method.
     RequestOld request = new RequestOld("POST", Constants.Methods.START, null);
     Method removeIrrelevantBackgroundStartRequests =
@@ -260,14 +264,13 @@ public class RequestOldTest extends TestCase {
   // we want to generate the requests to send
   // The list should try and get a smaller fraction of the available requests
   @Test
-  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws NoSuchMethodException,
-          InvocationTargetException, IllegalAccessException {
-    LeanplumEventDataManager.sharedInstance();
+  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() {
     RequestOld.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     RequestOld request = spy(new RequestOld("POST", Constants.Methods.START, null));
     request.sendEventually(); // first request added
-    for (int i = 0;i < 4999; i++) { // remaining requests to make up 5000
+
+    for (int i = 0;i < 5000; i++) { // remaining requests to make up 5000
       new RequestOld("POST", Constants.Methods.START, null).sendEventually();
     }
     // Expectation: 5000 requests returned.
