@@ -520,27 +520,17 @@ public class RequestOld implements Requesting {
 
     Leanplum.countAggregator().incrementCount("send_now");
 
-    // If we are running on main thread, fire the async task to execute the request async,
-    // otherwise send the request synchronously.
-    if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
-      Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
-        @Override
-        protected Void doInBackground(Void... params) {
-          try {
-            sendRequests();
-          } catch (Throwable t) {
-            Util.handleException(t);
-          }
-          return null;
+    Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
+      @Override
+      protected Void doInBackground(Void... params) {
+        try {
+          sendRequests();
+        } catch (Throwable t) {
+          Util.handleException(t);
         }
-      });
-    } else {
-      try {
-        sendRequests();
-      } catch (Throwable t) {
-        Util.handleException(t);
+        return null;
       }
-    }
+    });
   }
 
   /**
