@@ -66,6 +66,7 @@ public class FileManager {
   private static boolean initializing = false;
   static final Object initializingLock = new Object();
   public static Var<HashMap<String, Object>> resources = null;
+  public static Map<String, String> filenameToURLs = null;
 
   public enum DownloadFileResult {
     NONE,
@@ -108,6 +109,9 @@ public class FileManager {
       if (!FileManager.fileExistsAtPath(realPath)) {
         realPath = FileManager.fileRelativeToDocuments(stringValue);
         if (!FileManager.fileExistsAtPath(realPath)) {
+          if (FileManager.filenameToURLs != null && FileManager.filenameToURLs.containsKey(stringValue) && urlValue == null) {
+            urlValue = FileManager.filenameToURLs.get(stringValue);
+          }
           RequestOld downloadRequest = RequestOld.get(Constants.Methods.DOWNLOAD_FILE, null);
           downloadRequest.onResponse(new RequestOld.ResponseCallback() {
             @Override
@@ -183,6 +187,10 @@ public class FileManager {
 
   public static boolean fileExistsAtPath(String path) {
     return path != null && new File(path).exists();
+  }
+
+  public static void setFilenameToURLs(Map<String, String> filenameToURLs) {
+    FileManager.filenameToURLs = filenameToURLs;
   }
 
   @SuppressWarnings("SameReturnValue")

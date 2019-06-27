@@ -43,7 +43,7 @@ public class RequestOldUtilTest extends TestCase {
 
     @Test
     public void testSetNewBatchUUID() {
-        LeanplumEventDataManager.init(Leanplum.getContext());
+        LeanplumEventDataManager.sharedInstance();
 
         RequestOld request1 = new RequestOld(this.POST, Constants.Methods.START, null);
         request1.sendEventually();

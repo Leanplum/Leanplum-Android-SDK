@@ -42,14 +42,20 @@ import java.util.Map;
 public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingService {
 
   @Override
+  public void onCreate() {
+    super.onCreate();
+    Leanplum.setApplicationContext(getApplicationContext());
+  }
+
+  @Override
   public void onNewToken(String token) {
     super.onNewToken(token);
 
     LeanplumPushService.setCloudMessagingProvider(new LeanplumFcmProvider());
-    LeanplumPushService.getCloudMessagingProvider().storePreferences(this.getApplicationContext(), token);
+    LeanplumPushService.getCloudMessagingProvider().storePreferences(getApplicationContext(), token);
 
     //send the new token to backend
-    LeanplumPushService.getCloudMessagingProvider().onRegistrationIdReceived(this.getApplicationContext(), token);
+    LeanplumPushService.getCloudMessagingProvider().onRegistrationIdReceived(getApplicationContext(), token);
   }
 
   /**
@@ -63,7 +69,7 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
     try {
       Map<String, String> messageMap = remoteMessage.getData();
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
-        LeanplumPushService.handleNotification(this, getBundle(messageMap));
+        LeanplumPushService.handleNotification(getApplicationContext(), getBundle(messageMap));
       }
       Log.i("Received: " + messageMap.toString());
     } catch (Throwable t) {

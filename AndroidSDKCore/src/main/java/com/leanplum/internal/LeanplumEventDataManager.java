@@ -48,38 +48,43 @@ import java.util.UUID;
  * @author Anna Orlova
  */
 public class LeanplumEventDataManager {
+
+  private static LeanplumEventDataManager instance;
+
   private static final String DATABASE_NAME = "__leanplum.db";
   private static final int DATABASE_VERSION = 1;
   private static final String EVENT_TABLE_NAME = "event";
   private static final String COLUMN_DATA = "data";
   private static final String KEY_ROWID = "rowid";
 
-  private static SQLiteDatabase database;
-  private static LeanplumDataBaseManager databaseManager;
-  private static ContentValues contentValues = new ContentValues();
+  private SQLiteDatabase database;
+  private LeanplumDataBaseManager databaseManager;
+  private ContentValues contentValues = new ContentValues();
+  private boolean sendErrorLogs = false;
 
-  static boolean willSendErrorLog = false;
-
-  /**
-   * Creates connection to database, if database is not present, it will automatically create it.
-   *
-   * @param context Current context.
-   */
-  public static void init(Context context) {
-    if (database != null) {
-      Log.e("Database is already initialized.");
-      return;
-    }
-
-    // Create database if needed.
+  private LeanplumEventDataManager() {
     try {
+      Context context = Leanplum.getContext();
+
+      if (context == null) {
+        return;
+      }
+
       if (databaseManager == null) {
-        databaseManager = new LeanplumDataBaseManager(context);
+        databaseManager = new LeanplumDataBaseManager(Leanplum.getContext());
       }
       database = databaseManager.getWritableDatabase();
+
     } catch (Throwable t) {
       handleSQLiteError("Cannot create database.", t);
     }
+  }
+
+  public static LeanplumEventDataManager sharedInstance() {
+    if (instance == null) {
+      instance = new LeanplumEventDataManager();
+    }
+    return instance;
   }
 
   /**
@@ -87,14 +92,14 @@ public class LeanplumEventDataManager {
    *
    * @param event String with json of event.
    */
-  static void insertEvent(String event) {
+  void insertEvent(String event) {
     if (database == null) {
       return;
     }
     contentValues.put(COLUMN_DATA, event);
     try {
       database.insert(EVENT_TABLE_NAME, null, contentValues);
-      willSendErrorLog = false;
+      sendErrorLogs = false;
     } catch (Throwable t) {
       handleSQLiteError("Unable to insert event to database.", t);
     }
@@ -108,7 +113,7 @@ public class LeanplumEventDataManager {
    * @param count Number of events.
    * @return List of events.
    */
-  static List<Map<String, Object>> getEvents(int count) {
+  List<Map<String, Object>> getEvents(int count) {
     List<Map<String, Object>> events = new ArrayList<>();
     if (database == null) {
       return events;
@@ -117,7 +122,7 @@ public class LeanplumEventDataManager {
     try {
       cursor = database.query(EVENT_TABLE_NAME, new String[] {COLUMN_DATA}, null, null, null,
           null, KEY_ROWID + " ASC", "" + count);
-      willSendErrorLog = false;
+      sendErrorLogs = false;
       while (cursor.moveToNext()) {
         Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
             cursor.getString(cursor.getColumnIndex(COLUMN_DATA))));
@@ -139,14 +144,14 @@ public class LeanplumEventDataManager {
    *
    * @param count Number of event that need to be deleted.
    */
-  static void deleteEvents(int count) {
+  void deleteEvents(int count) {
     if (database == null) {
       return;
     }
     try {
       database.delete(EVENT_TABLE_NAME, KEY_ROWID + " in (select " + KEY_ROWID + " from " +
           EVENT_TABLE_NAME + " ORDER BY " + KEY_ROWID + " ASC LIMIT " + count + ")", null);
-      willSendErrorLog = false;
+      sendErrorLogs = false;
     } catch (Throwable t) {
       handleSQLiteError("Unable to delete events from the table.", t);
     }
@@ -158,14 +163,14 @@ public class LeanplumEventDataManager {
    *
    * @return Number of rows in the event table.
    */
-  static long getEventsCount() {
+  long getEventsCount() {
     long count = 0;
     if (database == null) {
       return count;
     }
     try {
       count = DatabaseUtils.queryNumEntries(database, EVENT_TABLE_NAME);
-      willSendErrorLog = false;
+      sendErrorLogs = false;
     } catch (Throwable t) {
       handleSQLiteError("Unable to get a number of rows in the table.", t);
     }
@@ -173,18 +178,26 @@ public class LeanplumEventDataManager {
   }
 
   /**
+   * Whether we are going to send error log or not.
+   */
+  boolean willSendErrorLogs() {
+    return sendErrorLogs;
+  }
+
+  /**
    * Helper function that logs and sends errors to the server.
    */
-  private static void handleSQLiteError(String log, Throwable t) {
+  private void handleSQLiteError(String log, Throwable t) {
     Log.e(log, t);
     // Send error log. Using willSendErrorLog to prevent infinte loop.
-    if (!willSendErrorLog) {
-      willSendErrorLog = true;
+    if (!sendErrorLogs) {
+      sendErrorLogs = true;
       Util.handleException(t);
     }
   }
 
   private static class LeanplumDataBaseManager extends SQLiteOpenHelper {
+
     LeanplumDataBaseManager(Context context) {
       super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -238,6 +251,8 @@ public class LeanplumEventDataManager {
         }
 
         editor.remove(Constants.Defaults.COUNT_KEY);
+
+        ContentValues contentValues = new ContentValues();
 
         try {
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);

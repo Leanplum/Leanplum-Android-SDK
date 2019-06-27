@@ -15,15 +15,14 @@
 ## Installation & Usage
 Please refer to: https://www.leanplum.com/docs/android/setup
 ## Development Workflow
-- We are using GitFlow branching model: https://github.com/nvie/gitflow
-- We use the Conventional Changelog Commit Style for commit messages: https://github.com/commitizen/cz-cli
+- We use feature branches that get merged to `master`.
 ## Build the SDK
 To build the sdk run:
 ```bash
-make sdk-in-container
+./gradlew assembleRelease
 ```
 ## Contributing
-Please follow the Conventional Changelog Commit Style and send a pull request to `develop` branch.
+Please follow the guidelines under https://github.com/Leanplum/Leanplum-Android-SDK/blob/master/CONTRIBUTING.md
 ## License
 See LICENSE file.
 ## Support
