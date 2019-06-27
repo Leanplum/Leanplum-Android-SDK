@@ -67,10 +67,6 @@ public class LeanplumEventDataManagerTest {
     Leanplum.setApplicationContext(this.mContext);
   }
 
-  /**
-   * Test for {@link LeanplumEventDataManager.LeanplumDataBaseManager#migrateFromSharedPreferences(
-   *SQLiteDatabase)} that should migrate data from shared preferences to SQLite.
-   */
   @Test
   public void migrateFromSharedPreferencesTest() {
     setDatabaseToNull();
@@ -99,16 +95,16 @@ public class LeanplumEventDataManagerTest {
     assertEquals(3, count);
 
     // Create database. That should also migrate data from shared preferences.
-    LeanplumEventDataManager.init(mContext);
+    LeanplumEventDataManager.sharedInstance();
     // Assert in database after migration 3 events.
-    assertEquals(count, LeanplumEventDataManager.getEventsCount());
+    assertEquals(count, LeanplumEventDataManager.sharedInstance().getEventsCount());
 
     // Assert count 0 after data migration.
     count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
     assertEquals(0, count);
 
     // Get list of events from SQLite.
-    List<Map<String, Object>> events = LeanplumEventDataManager.getEvents(3);
+    List<Map<String, Object>> events = LeanplumEventDataManager.sharedInstance().getEvents(3);
     assertNotNull(events);
     assertEquals(3, events.size());
     // Checks that all events inserted to SQLite in order.
@@ -120,10 +116,7 @@ public class LeanplumEventDataManagerTest {
   }
 
   public static void setDatabaseToNull(){
-    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "databaseManager",
-        null);
-    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "database",
-        null);
+    ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
   }
 }
 

@@ -25,8 +25,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
+
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
+
+import android.os.Looper;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
@@ -215,7 +219,7 @@ public class RequestOld implements Requesting {
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
     // Check if it is error and here was SQLite exception.
-    if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.willSendErrorLog) {
+    if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
       localErrors.add(createArgsDictionary());
     }
     // Make sure the Handler is initialized on the main thread.
@@ -286,7 +290,7 @@ public class RequestOld implements Requesting {
         SharedPreferences preferences = context.getSharedPreferences(
             LEANPLUM, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        long count = LeanplumEventDataManager.getEventsCount();
+        long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
         String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
         if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
           uuid = UUID.randomUUID().toString();
@@ -294,7 +298,7 @@ public class RequestOld implements Requesting {
           SharedPreferencesUtil.commitChanges(editor);
         }
         args.put(UUID_KEY, uuid);
-        LeanplumEventDataManager.insertEvent(JsonConverter.toJson(args));
+        LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
 
         dataBaseIndex = count;
         // Checks if here response and/or error callback for this request. We need to add callbacks to
@@ -370,9 +374,9 @@ public class RequestOld implements Requesting {
 
   public void sendIfConnected() {
     if (Util.isConnected()) {
-      this.sendNow();
+      sendNow();
     } else {
-      this.sendEventually();
+      sendEventually();
       Log.i("Device is offline, will send later");
       triggerErrorCallback(new Exception("Not connected to the Internet"));
     }
@@ -528,7 +532,6 @@ public class RequestOld implements Requesting {
       }
     });
   }
-
 
   /**
    * This class wraps the unsent requests, requests that we need to send
@@ -697,7 +700,7 @@ public class RequestOld implements Requesting {
       return;
     }
 
-    if (LeanplumEventDataManager.willSendErrorLog) {
+    if (LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
       return;
     }
 
@@ -714,7 +717,7 @@ public class RequestOld implements Requesting {
       return;
     }
     synchronized (RequestOld.class) {
-      LeanplumEventDataManager.deleteEvents(requestsCount);
+      LeanplumEventDataManager.sharedInstance().deleteEvents(requestsCount);
     }
   }
 
@@ -728,7 +731,7 @@ public class RequestOld implements Requesting {
               LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
-      requestData = LeanplumEventDataManager.getEvents(count);
+      requestData = LeanplumEventDataManager.sharedInstance().getEvents(count);
       editor.remove(Constants.Defaults.UUID_KEY);
       SharedPreferencesUtil.commitChanges(editor);
       // if we send less than 100% of requests, we need to reset the batch

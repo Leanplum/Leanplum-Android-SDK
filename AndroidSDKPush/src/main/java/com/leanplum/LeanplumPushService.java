@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Leanplum push notification service class, handling initialization, opening, showing, integration
@@ -367,6 +368,9 @@ public class LeanplumPushService {
       // Check if we have a chained message, and if it exists in var cache.
       if (ActionContext.shouldForceContentUpdateForChainedMessage(
           JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
+
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+
         final int currentNotificationId = notificationId;
         final Notification.Builder currentNotificationBuilder = notificationBuilder;
         final NotificationCompat.Builder currentNotificationCompatBuilder = notificationCompatBuilder;
@@ -378,8 +382,10 @@ public class LeanplumPushService {
             } else {
               notificationManager.notify(currentNotificationId, currentNotificationCompatBuilder.build());
             }
+            countDownLatch.countDown();
           }
         });
+        countDownLatch.await();
       } else {
         if (notificationBuilder != null) {
           notificationManager.notify(notificationId, notificationBuilder.build());

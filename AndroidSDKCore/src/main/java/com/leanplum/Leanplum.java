@@ -625,7 +625,7 @@ public class Leanplum {
 
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
-    LeanplumEventDataManager.init(context);
+    LeanplumEventDataManager.sharedInstance();
     checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
     String deviceId = RequestOld.deviceId();
