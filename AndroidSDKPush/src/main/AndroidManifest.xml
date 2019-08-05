@@ -1,10 +1,15 @@
-<manifest package="com.leanplum.push"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.leanplum.push">
 
     <application>
+        <receiver android:name="com.leanplum.LeanplumJobStartReceiver" />
         <!-- Leanplum FCM Registration Service. -->
-        <service android:name="com.leanplum.LeanplumPushRegistrationService"/>
+        <service android:name="com.leanplum.LeanplumPushRegistrationService" />
         <!-- Leanplum Local Push Notification Service. -->
-        <service android:name="com.leanplum.LeanplumLocalPushListenerService"/>
+        <service
+            android:name="com.leanplum.LeanplumLocalPushListenerService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
+
 </manifest>

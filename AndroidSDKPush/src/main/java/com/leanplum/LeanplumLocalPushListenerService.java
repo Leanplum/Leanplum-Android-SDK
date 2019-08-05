@@ -21,9 +21,12 @@
 
 package com.leanplum;
 
-import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
 
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
@@ -34,24 +37,30 @@ import com.leanplum.internal.Util;
  *
  * @author Aleksandar Gyorev
  */
-public class LeanplumLocalPushListenerService extends IntentService {
-  public LeanplumLocalPushListenerService() {
-    super("LeanplumLocalPushListenerService");
-  }
+public class LeanplumLocalPushListenerService extends JobIntentService {
 
-  @Override
-  protected void onHandleIntent(Intent intent) {
-    try {
-      if (intent == null) {
-        Log.e("The intent cannot be null");
-        return;
-      }
-      Bundle extras = intent.getExtras();
-      if (extras != null && extras.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
-        LeanplumPushService.handleNotification(this, extras);
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
+    public static Intent getIntent(Context context) {
+        Intent intent = new Intent();
+        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_SERVICE_CLASS,
+                LeanplumLocalPushListenerService.class.getName());
+        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_JOB_ID, 0);
+        intent.setClass(context, LeanplumJobStartReceiver.class);
+        return intent;
     }
-  }
+
+    @Override
+    protected void onHandleWork(@NonNull Intent intent) {
+        try {
+            if (intent == null) {
+                Log.e("The intent cannot be null");
+                return;
+            }
+            Bundle extras = intent.getExtras();
+            if (extras != null && extras.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+                LeanplumPushService.handleNotification(this, extras);
+            }
+        } catch (Throwable t) {
+            Util.handleException(t);
+        }
+    }
 }
