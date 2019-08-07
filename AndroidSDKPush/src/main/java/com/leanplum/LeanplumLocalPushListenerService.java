@@ -39,11 +39,18 @@ import com.leanplum.internal.Util;
  */
 public class LeanplumLocalPushListenerService extends JobIntentService {
 
+    private static final String LP_CLASS_NAME = LeanplumLocalPushListenerService.class.getName();
+    private static final int LP_JOB_ID = 1;
+
+    /**
+     * Convenience method that returns Intent which can be used to start the job.
+     * @param context Surrounding context.
+     * @return Intent with class name and job id.
+     */
     public static Intent getIntent(Context context) {
         Intent intent = new Intent();
-        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_SERVICE_CLASS,
-                LeanplumLocalPushListenerService.class.getName());
-        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_JOB_ID, 0);
+        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_SERVICE_CLASS, LP_CLASS_NAME);
+        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_JOB_ID, LP_JOB_ID);
         intent.setClass(context, LeanplumJobStartReceiver.class);
         return intent;
     }

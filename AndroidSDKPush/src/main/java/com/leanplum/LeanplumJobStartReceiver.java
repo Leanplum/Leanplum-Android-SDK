@@ -30,6 +30,11 @@ import androidx.core.app.JobIntentService;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
+/**
+ * Broadcast receiver used for starting any JobIntentService.
+ * Received intent needs to have {@link LeanplumJobStartReceiver#LP_EXTRA_SERVICE_CLASS} and
+ * {@link LeanplumJobStartReceiver#LP_EXTRA_JOB_ID} populated to successfully enqueue work.
+ */
 public class LeanplumJobStartReceiver extends BroadcastReceiver {
 
     public static final String LP_EXTRA_SERVICE_CLASS = "com.leanplum.service_class";
