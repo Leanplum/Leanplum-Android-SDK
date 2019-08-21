@@ -21,9 +21,12 @@
 
 package com.leanplum;
 
-import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.JobIntentService;
 
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
@@ -34,24 +37,37 @@ import com.leanplum.internal.Util;
  *
  * @author Aleksandar Gyorev
  */
-public class LeanplumLocalPushListenerService extends IntentService {
-  public LeanplumLocalPushListenerService() {
-    super("LeanplumLocalPushListenerService");
-  }
+public class LeanplumLocalPushListenerService extends JobIntentService {
 
-  @Override
-  protected void onHandleIntent(Intent intent) {
-    try {
-      if (intent == null) {
-        Log.e("The intent cannot be null");
-        return;
-      }
-      Bundle extras = intent.getExtras();
-      if (extras != null && extras.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
-        LeanplumPushService.handleNotification(this, extras);
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
+    private static final String LP_CLASS_NAME = LeanplumLocalPushListenerService.class.getName();
+    private static final int LP_JOB_ID = 1;
+
+    /**
+     * Convenience method that returns Intent which can be used to start the job.
+     * @param context Surrounding context.
+     * @return Intent with class name and job id.
+     */
+    public static Intent getIntent(Context context) {
+        Intent intent = new Intent();
+        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_SERVICE_CLASS, LP_CLASS_NAME);
+        intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_JOB_ID, LP_JOB_ID);
+        intent.setClass(context, LeanplumJobStartReceiver.class);
+        return intent;
     }
-  }
+
+    @Override
+    protected void onHandleWork(@NonNull Intent intent) {
+        try {
+            if (intent == null) {
+                Log.e("The intent cannot be null");
+                return;
+            }
+            Bundle extras = intent.getExtras();
+            if (extras != null && extras.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+                LeanplumPushService.handleNotification(this, extras);
+            }
+        } catch (Throwable t) {
+            Util.handleException(t);
+        }
+    }
 }
