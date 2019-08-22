@@ -1,9 +1,12 @@
 package com.leanplum.internal;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
+import com.leanplum.__setup.TestClassUtil;
 import com.leanplum._whitebox.utilities.SynchronousExecutor;
 
 import junit.framework.TestCase;
@@ -39,6 +42,10 @@ public class RequestOldUtilTest extends TestCase {
 
         // Mock this so async things run synchronously
         ReflectionHelpers.setStaticField(Util.class, "singleThreadExecutor", new SynchronousExecutor());
+
+        OperationQueue operationQueue = OperationQueue.sharedInstance();
+        Handler handler = new Handler(Looper.getMainLooper());
+        TestClassUtil.setField(operationQueue, "handler", handler);
     }
 
     @Test

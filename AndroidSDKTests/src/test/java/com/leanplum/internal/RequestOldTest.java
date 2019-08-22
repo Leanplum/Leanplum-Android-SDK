@@ -22,7 +22,9 @@ package com.leanplum.internal;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
@@ -81,6 +83,10 @@ public class RequestOldTest extends TestCase {
 
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
     LeanplumEventDataManager.sharedInstance();
+
+    OperationQueue operationQueue = OperationQueue.sharedInstance();
+    Handler handler = new Handler(Looper.getMainLooper());
+    TestClassUtil.setField(operationQueue, "handler", handler);
   }
 
   /** Test that request include a generated request id **/
@@ -122,12 +128,6 @@ public class RequestOldTest extends TestCase {
         latch.countDown();
       }
     });
-
-    HandlerThread handlerThread = (HandlerThread) TestClassUtil.getField(
-            OperationQueue.sharedInstance(),
-            "handlerThread");
-    // force thread loop
-    ((ShadowLooper) Shadow.extract(handlerThread.getLooper())).idle();
 
     latch.await();
   }
@@ -275,7 +275,7 @@ public class RequestOldTest extends TestCase {
   // we want to generate the requests to send
   // The list should try and get a smaller fraction of the available requests
   @Test
-  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() {
+  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
     RequestOld.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     RequestOld request = spy(new RequestOld("POST", Constants.Methods.START, null));
@@ -284,6 +284,10 @@ public class RequestOldTest extends TestCase {
     for (int i = 0;i < 5000; i++) { // remaining requests to make up 5000
       new RequestOld("POST", Constants.Methods.START, null).sendEventually();
     }
+
+    // loop to complete all tasks
+    ShadowLooper.idleMainLooper();
+
     // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
