@@ -165,6 +165,10 @@ public class RequestOldTest extends TestCase {
     // Regular start request.
     // Expectation: One request returned.
     request.sendEventually();
+
+    // loop to complete all tasks
+    ShadowLooper.idleMainLooper();
+
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
