@@ -166,8 +166,7 @@ public class RequestOldTest extends TestCase {
     request.sendEventually();
 
     // loop to complete all tasks
-    ShadowLooper.idleMainLooper();
-    Thread.sleep(1000);
+    ShadowLooper.idleMainLooperConstantly(true);
 
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
@@ -285,13 +284,12 @@ public class RequestOldTest extends TestCase {
     RequestOld request = spy(new RequestOld("POST", Constants.Methods.START, null));
     request.sendEventually(); // first request added
 
-    for (int i = 0;i < 5000; i++) { // remaining requests to make up 5000
+    for (int i = 0;i < 5000; i++) { // remaininsg requests to make up 5000
       new RequestOld("POST", Constants.Methods.START, null).sendEventually();
     }
 
     // loop to complete all tasks
-    ShadowLooper.idleMainLooper();
-    Thread.sleep(1000);
+    ShadowLooper.idleMainLooperConstantly(true);
 
     // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
