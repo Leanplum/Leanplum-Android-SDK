@@ -148,8 +148,7 @@ public class RequestOldTest extends TestCase {
    * a <code>start</code> call.
    */
   @Test
-  public void testRemoveIrrelevantBackgroundStartRequests() throws NoSuchMethodException,
-      InvocationTargetException, IllegalAccessException {
+  public void testRemoveIrrelevantBackgroundStartRequests() throws Exception {
     // Prepare testable objects and method.
     RequestOld request = new RequestOld("POST", Constants.Methods.START, null);
     Method removeIrrelevantBackgroundStartRequests =
@@ -168,6 +167,7 @@ public class RequestOldTest extends TestCase {
 
     // loop to complete all tasks
     ShadowLooper.idleMainLooper();
+    Thread.sleep(1000);
 
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
@@ -291,6 +291,7 @@ public class RequestOldTest extends TestCase {
 
     // loop to complete all tasks
     ShadowLooper.idleMainLooper();
+    Thread.sleep(1000);
 
     // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
