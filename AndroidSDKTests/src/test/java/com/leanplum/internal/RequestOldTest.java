@@ -22,13 +22,9 @@ package com.leanplum.internal;
 
 import android.app.Application;
 import android.content.Context;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.TestClassUtil;
 
 import junit.framework.TestCase;
 
@@ -39,11 +35,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +70,7 @@ public class RequestOldTest extends TestCase {
    * Runs before every test case.
    */
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     Application context = RuntimeEnvironment.application;
     assertNotNull(context);
 
@@ -84,9 +79,13 @@ public class RequestOldTest extends TestCase {
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
     LeanplumEventDataManager.sharedInstance();
 
-    OperationQueue operationQueue = OperationQueue.sharedInstance();
-    Handler handler = new Handler(Looper.getMainLooper());
-    TestClassUtil.setField(operationQueue, "handler", handler);
+    ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
+
+    Field instance = OperationQueue.class.getDeclaredField("instance");
+    instance.setAccessible(true);
+    instance.set(instance, shadowOperationQueue);
+
+    ShadowLooper.idleMainLooperConstantly(true);
   }
 
   /** Test that request include a generated request id **/
@@ -108,7 +107,7 @@ public class RequestOldTest extends TestCase {
 
     final CountDownLatch latch = new CountDownLatch(2);
 
-    OperationQueue operationQueue = OperationQueue.sharedInstance();
+    ShadowOperationQueue operationQueue = new ShadowOperationQueue();
     operationQueue.addOperation(new Runnable() {
       @Override
       public void run() {
@@ -287,9 +286,6 @@ public class RequestOldTest extends TestCase {
     for (int i = 0;i < 5000; i++) { // remaininsg requests to make up 5000
       new RequestOld("POST", Constants.Methods.START, null).sendEventually();
     }
-
-    // loop to complete all tasks
-    ShadowLooper.idleMainLooperConstantly(true);
 
     // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);

@@ -1,12 +1,9 @@
 package com.leanplum.internal;
 
 import android.app.Application;
-import android.os.Handler;
-import android.os.Looper;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum.__setup.TestClassUtil;
 import com.leanplum._whitebox.utilities.SynchronousExecutor;
 
 import junit.framework.TestCase;
@@ -20,6 +17,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +33,7 @@ public class RequestOldUtilTest extends TestCase {
      * Runs before every test case.
      */
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         Application context = RuntimeEnvironment.application;
         assertNotNull(context);
         Leanplum.setApplicationContext(context);
@@ -43,9 +41,11 @@ public class RequestOldUtilTest extends TestCase {
         // Mock this so async things run synchronously
         ReflectionHelpers.setStaticField(Util.class, "singleThreadExecutor", new SynchronousExecutor());
 
-        OperationQueue operationQueue = OperationQueue.sharedInstance();
-        Handler handler = new Handler(Looper.getMainLooper());
-        TestClassUtil.setField(operationQueue, "handler", handler);
+        ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
+
+        Field instance = OperationQueue.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(instance, shadowOperationQueue);
     }
 
     @Test

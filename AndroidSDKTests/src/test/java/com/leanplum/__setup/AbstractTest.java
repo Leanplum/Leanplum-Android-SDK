@@ -43,6 +43,7 @@ import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -171,9 +172,11 @@ public abstract class AbstractTest {
     when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
         .seedInputStream("/responses/simple_start_response.json"));
 
-    OperationQueue operationQueue = OperationQueue.sharedInstance();
-    Handler handler = new Handler(Looper.getMainLooper());
-    TestClassUtil.setField(operationQueue, "handler", handler);
+    ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
+
+    Field instance = OperationQueue.class.getDeclaredField("instance");
+    instance.setAccessible(true);
+    instance.set(instance, shadowOperationQueue);
   }
 
   @After

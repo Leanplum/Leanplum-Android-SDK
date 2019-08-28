@@ -42,7 +42,7 @@ public class OperationQueue {
         return instance;
     }
 
-    private OperationQueue() {
+    OperationQueue() {
         start();
     }
 
