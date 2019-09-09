@@ -54,7 +54,7 @@ class LeanplumLocalPushHelper {
   static boolean scheduleLocalPush(ActionContext actionContext, String messageId, long eta) {
     try {
       Context context = Leanplum.getContext();
-      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
+      Intent intentAlarm = LeanplumLocalPushListenerService.getIntent(context);
       AlarmManager alarmManager = (AlarmManager) context.getSystemService(
           Context.ALARM_SERVICE);
 
@@ -68,7 +68,7 @@ class LeanplumLocalPushHelper {
         if (existingEta < eta) {
           return false;
         } else if (existingEta >= eta) {
-          PendingIntent existingIntent = PendingIntent.getService(
+          PendingIntent existingIntent = PendingIntent.getBroadcast(
               context, messageId.hashCode(), intentAlarm,
               PendingIntent.FLAG_UPDATE_CURRENT);
           alarmManager.cancel(existingIntent);
@@ -120,7 +120,7 @@ class LeanplumLocalPushHelper {
       }
 
       // Schedule notification.
-      PendingIntent operation = PendingIntent.getService(
+      PendingIntent operation = PendingIntent.getBroadcast(
           context, messageId.hashCode(), intentAlarm,
           PendingIntent.FLAG_UPDATE_CURRENT);
       alarmManager.set(AlarmManager.RTC_WAKEUP, eta, operation);
