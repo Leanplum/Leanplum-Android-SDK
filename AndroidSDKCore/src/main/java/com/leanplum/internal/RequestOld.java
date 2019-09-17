@@ -64,7 +64,7 @@ public class RequestOld implements Requesting {
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   private static final long PRODUCTION_DELAY = 60000;
-  private RequestSequenceRecorder requestSequenceRecorder;
+
   static final int MAX_EVENTS_PER_API_CALL;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
@@ -174,28 +174,6 @@ public class RequestOld implements Requesting {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
-  private static class NoRequestSequenceRecorder implements RequestSequenceRecorder {
-    @Override
-    public void beforeRead() {
-      // No op.
-    }
-
-    @Override
-    public void afterRead() {
-      // No op.
-    }
-
-    @Override
-    public void beforeWrite() {
-      // No op.
-    }
-
-    @Override
-    public void afterWrite() {
-      // No op.
-    }
-  }
-
   public static String appId() {
     return appId;
   }
@@ -209,10 +187,6 @@ public class RequestOld implements Requesting {
   }
 
   public RequestOld(String httpMethod, String apiMethod, Map<String, Object> params) {
-    this(httpMethod, apiMethod, params, new NoRequestSequenceRecorder());
-  }
-
-  RequestOld(String httpMethod, String apiMethod, Map<String, Object> params, RequestSequenceRecorder requestSequenceRecorder) {
     this.httpMethod = httpMethod;
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
@@ -223,7 +197,7 @@ public class RequestOld implements Requesting {
     // Make sure the Handler is initialized on the main thread.
     OsHandler.getInstance();
     dataBaseIndex = -1;
-    this.requestSequenceRecorder = requestSequenceRecorder;
+
     this.requestId = UUID.randomUUID().toString();
   }
 
@@ -257,7 +231,6 @@ public class RequestOld implements Requesting {
     RequestOld.apiResponse = apiResponse;
   }
 
-  @VisibleForTesting
   public Map<String, Object> createArgsDictionary() {
     Map<String, Object> args = new HashMap<>();
     args.put(Constants.Params.DEVICE_ID, deviceId);
@@ -274,43 +247,47 @@ public class RequestOld implements Requesting {
     return args;
   }
 
-  private void saveRequestForLater(Map<String, Object> args) {
-    try {
+  /**
+   * Saves requests into database.
+   * Saving will be executed on background thread serially.
+   * @param args json to save.
+   */
+  private void saveRequestForLater(final Map<String, Object> args) {
+    OperationQueue.sharedInstance().addOperation(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Context context = Leanplum.getContext();
+          if (context == null) {
+            return;
+          }
 
-      Context context = Leanplum.getContext();
-      if (context == null) {
-        return;
-      }
+          SharedPreferences preferences = context.getSharedPreferences(LEANPLUM,
+                  Context.MODE_PRIVATE);
+          SharedPreferences.Editor editor = preferences.edit();
+          long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
+          String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+          if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+            uuid = UUID.randomUUID().toString();
+            editor.putString(Constants.Defaults.UUID_KEY, uuid);
+            SharedPreferencesUtil.commitChanges(editor);
+          }
+          args.put(UUID_KEY, uuid);
+          LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
 
-      requestSequenceRecorder.beforeWrite();
+          dataBaseIndex = count;
+          // Checks if here response and/or error callback for this request. We need to add callbacks to
+          // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
+          // will handle error callback for this event.
+          if (response != null || error != null && !Util.isConnected()) {
+            eventCallbackManager.addCallbacks(RequestOld.this, response, error);
+          }
 
-      synchronized (RequestOld.class) {
-        SharedPreferences preferences = context.getSharedPreferences(
-            LEANPLUM, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
-        String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-        if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-          uuid = UUID.randomUUID().toString();
-          editor.putString(Constants.Defaults.UUID_KEY, uuid);
-          SharedPreferencesUtil.commitChanges(editor);
+        } catch (Throwable t) {
+          Util.handleException(t);
         }
-        args.put(UUID_KEY, uuid);
-        LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
-
-        dataBaseIndex = count;
-        // Checks if here response and/or error callback for this request. We need to add callbacks to
-        // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
-        // will handle error callback for this event.
-        if (response != null || error != null && !Util.isConnected()) {
-          eventCallbackManager.addCallbacks(this, response, error);
-        }
       }
-
-      requestSequenceRecorder.afterWrite();
-    } catch (Throwable t) {
-      Util.handleException(t);
-    }
+    });
   }
 
   public void send() {
@@ -481,7 +458,6 @@ public class RequestOld implements Requesting {
    * @param errorMessage String of error from server response.
    * @return String of readable error message.
    */
-  @NonNull
   private String getReadableErrorMessage(String errorMessage) {
     if (errorMessage == null || errorMessage.length() == 0) {
       errorMessage = "API error";
@@ -607,11 +583,8 @@ public class RequestOld implements Requesting {
 
   private void sendRequests() {
     Leanplum.countAggregator().sendAllCounts();
-    requestSequenceRecorder.beforeRead();
 
     RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
-
-    requestSequenceRecorder.afterRead();
 
     List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
     List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
