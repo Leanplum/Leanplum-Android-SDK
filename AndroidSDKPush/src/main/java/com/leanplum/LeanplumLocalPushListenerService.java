@@ -25,8 +25,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
-import androidx.core.app.JobIntentService;
+import android.support.annotation.NonNull;
+import android.support.v4.app.JobIntentService;
 
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
