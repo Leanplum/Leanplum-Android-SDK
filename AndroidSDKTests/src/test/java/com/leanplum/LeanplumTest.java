@@ -437,7 +437,7 @@ public class LeanplumTest extends AbstractTest {
 
     Context currentCotext = Leanplum.getContext();
     assertNotNull(currentCotext);
-    LeanplumEventDataManager.init(Leanplum.getContext());
+    LeanplumEventDataManager.sharedInstance();
 
     // Add two events to database.
     RequestOld request1 = new RequestOld("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
@@ -1358,6 +1358,31 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(new HashSet<>(Arrays.asList("test")), parsedCounters);
   }
 
+  @Test
+  public void testParseFilenameToURLs() throws JSONException {
+    JSONObject response = new JSONObject();
+    JSONObject files = new JSONObject();
+    files.put("file.jpg", "https://www.domain.com/file.jpg");
+    response.put(Constants.Keys.FILES, files);
+
+    Map<String, String> parsedFiles= Leanplum.parseFilenameToURLs(response);
+    assertEquals(JsonConverter.mapFromJson(files), parsedFiles);
+  }
+
+  /**
+   * Tests for parsing filenameToURLs
+   */
+  @Test
+  public void testStartResponseShouldParseFilenameToURLs() {
+    // Setup sdk.
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    Map<String, String> files = new HashMap<>();
+    files.put("file1.jpg", "http://www.domain.com/file1.jpg");
+    files.put("file2.jpg", "http://www.domain.com/file2.jpg");
+
+    assertEquals(files, FileManager.filenameToURLs);
+  }
 
   /**
    * Tests for parsing feature flags
