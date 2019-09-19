@@ -599,7 +599,12 @@ public class LeanplumPushService {
       for (ResolveInfo resolveInfo : resolveInfoList) {
         if (resolveInfo != null && resolveInfo.activityInfo != null &&
             resolveInfo.activityInfo.name != null) {
-          deepLinkIntent.setPackage(resolveInfo.activityInfo.packageName);
+          if (resolveInfo.activityInfo.name.contains(context.getPackageName())) {
+            // If url can be handled by current app - set package name to intent, so url will be
+            // open by current app. Skip chooser dialog.
+            deepLinkIntent.setPackage(resolveInfo.activityInfo.packageName);
+          }
+          return true;
         }
       }
     }
