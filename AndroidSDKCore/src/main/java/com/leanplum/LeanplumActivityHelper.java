@@ -280,7 +280,6 @@ public class LeanplumActivityHelper {
       } else {
         synchronized (pendingActions) {
           pendingActions.add(action);
-          LeanplumInternal.addStartIssuedHandler(runPendingActionsRunnable);
         }
       }
     } catch (Throwable t) {
