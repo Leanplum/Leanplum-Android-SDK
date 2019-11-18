@@ -506,11 +506,10 @@ public class Leanplum {
         LeanplumActivityHelper.currentActivity = (Activity) context;
       }
 
-      // Detect if app is in background automatically if isBackground is not set.
+      // We assume by default that we are not running in the background.
       final boolean actuallyInBackground;
       if (isBackground == null) {
-        actuallyInBackground = LeanplumActivityHelper.currentActivity == null ||
-            LeanplumActivityHelper.isActivityPaused();
+        actuallyInBackground = false;
       } else {
         actuallyInBackground = isBackground;
       }
