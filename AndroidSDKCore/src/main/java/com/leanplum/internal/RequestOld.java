@@ -486,19 +486,20 @@ public class RequestOld implements Requesting {
       return;
     }
 
-    this.sendEventually();
+    // We need to save request first.
+    sendEventually();
 
     Leanplum.countAggregator().incrementCount("send_now");
 
-    Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
+    // Try to send all saved requests.
+    OperationQueue.sharedInstance().addOperation(new Runnable() {
       @Override
-      protected Void doInBackground(Void... params) {
+      public void run() {
         try {
           sendRequests();
         } catch (Throwable t) {
           Util.handleException(t);
         }
-        return null;
       }
     });
   }
