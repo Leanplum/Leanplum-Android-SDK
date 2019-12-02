@@ -24,6 +24,9 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -38,7 +41,9 @@ import com.leanplum._whitebox.utilities.SynchronousExecutor;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -52,9 +57,11 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
+import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
@@ -81,7 +88,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     application = LeanplumTestApp.class,
     packageName = "com.leanplum.tests",
     shadows = {
-        ShadowLooper.class
+        ShadowLooper.class,
     }
 )
 @PowerMockIgnore({
@@ -105,7 +112,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     RequestOld.class,
     LocationServices.class,
     FusedLocationProviderApi.class,
-    VarCache.class
+    VarCache.class,
+    OperationQueue.class
 }, fullyQualifiedNames = {"com.leanplum.internal.*"})
 /**
  * AbstractTest class which holds methods to properly setup test environment.
@@ -163,6 +171,12 @@ public abstract class AbstractTest {
     // used in FileManager tests other tests depends on Util.getResponse() to mock response.
     when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
         .seedInputStream("/responses/simple_start_response.json"));
+
+    ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
+
+    Field instance = OperationQueue.class.getDeclaredField("instance");
+    instance.setAccessible(true);
+    instance.set(instance, shadowOperationQueue);
   }
 
   @After

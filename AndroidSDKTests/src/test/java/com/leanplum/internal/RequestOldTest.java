@@ -35,17 +35,17 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Matchers.eq;
@@ -57,8 +57,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
-    application = LeanplumTestApp.class
+        sdk = 16,
+        application = LeanplumTestApp.class,
+        shadows = {
+                ShadowLooper.class,
+        }
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
 public class RequestOldTest extends TestCase {
@@ -67,7 +70,7 @@ public class RequestOldTest extends TestCase {
    * Runs before every test case.
    */
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     Application context = RuntimeEnvironment.application;
     assertNotNull(context);
 
@@ -75,6 +78,14 @@ public class RequestOldTest extends TestCase {
 
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
     LeanplumEventDataManager.sharedInstance();
+
+    ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
+
+    Field instance = OperationQueue.class.getDeclaredField("instance");
+    instance.setAccessible(true);
+    instance.set(instance, shadowOperationQueue);
+
+    ShadowLooper.idleMainLooperConstantly(true);
   }
 
   /** Test that request include a generated request id **/
@@ -88,37 +99,36 @@ public class RequestOldTest extends TestCase {
   /** Test that read writes happened sequentially when calling sendNow(). */
   @Test
   public void shouldWriteRequestAndSendInSequence() throws InterruptedException {
-    // Given a request.
-    Map<String, Object> params = new HashMap<>();
+    final Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    final ThreadRequestSequenceRecorder threadRequestSequenceRecorder =
-        new ThreadRequestSequenceRecorder();
-    RequestOld request =
-        new RequestOld(POST, Constants.Methods.START, params, threadRequestSequenceRecorder);
-    request.setAppId("fskadfshdbfa", "wee5w4waer422323");
 
-    new Thread(
-            new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  Thread.sleep(100);
-                } catch (InterruptedException e) {
-                  throw new RuntimeException(e);
-                }
-                threadRequestSequenceRecorder.writeSemaphore.release(1);
-              }
-            })
-        .start();
+    RequestOld.setAppId("appId", "accessKey");
 
-    // When the request is sent.
-    request.sendIfConnected();
+    final CountDownLatch latch = new CountDownLatch(2);
 
-    threadRequestSequenceRecorder.testThreadSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
+    ShadowOperationQueue operationQueue = new ShadowOperationQueue();
+    operationQueue.addOperation(new Runnable() {
+      @Override
+      public void run() {
+        RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
+        request.sendIfConnected();
 
-    // Then the request is written to the local db first, and then read and sent.
-    threadRequestSequenceRecorder.assertCallSequence();
+        latch.countDown();
+      }
+    });
+
+    operationQueue.addOperation(new Runnable() {
+      @Override
+      public void run() {
+        RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
+        request.sendIfConnected();
+
+        latch.countDown();
+      }
+    });
+
+    latch.await();
   }
 
   /**
@@ -137,8 +147,7 @@ public class RequestOldTest extends TestCase {
    * a <code>start</code> call.
    */
   @Test
-  public void testRemoveIrrelevantBackgroundStartRequests() throws NoSuchMethodException,
-      InvocationTargetException, IllegalAccessException {
+  public void testRemoveIrrelevantBackgroundStartRequests() throws Exception {
     // Prepare testable objects and method.
     RequestOld request = new RequestOld("POST", Constants.Methods.START, null);
     Method removeIrrelevantBackgroundStartRequests =
@@ -154,6 +163,10 @@ public class RequestOldTest extends TestCase {
     // Regular start request.
     // Expectation: One request returned.
     request.sendEventually();
+
+    // loop to complete all tasks
+    ShadowLooper.idleMainLooperConstantly(true);
+
     unsentRequests = request.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
@@ -264,15 +277,16 @@ public class RequestOldTest extends TestCase {
   // we want to generate the requests to send
   // The list should try and get a smaller fraction of the available requests
   @Test
-  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() {
+  public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
     RequestOld.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     RequestOld request = spy(new RequestOld("POST", Constants.Methods.START, null));
     request.sendEventually(); // first request added
 
-    for (int i = 0;i < 5000; i++) { // remaining requests to make up 5000
+    for (int i = 0;i < 5000; i++) { // remaininsg requests to make up 5000
       new RequestOld("POST", Constants.Methods.START, null).sendEventually();
     }
+
     // Expectation: 5000 requests returned.
     requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
 
@@ -421,35 +435,26 @@ public class RequestOldTest extends TestCase {
       }
     }
 
-    @Override
-    public void afterRead() {
-      afterReadTime = Instant.now();
-      testThreadSemaphore.release(1);
-    }
+    final Semaphore semaphore = new Semaphore(1);
+    semaphore.tryAcquire();
 
-    @Override
-    public void beforeWrite() {
-      // since we are blocking on main thread
-      try {
-        writeSemaphore.tryAcquire(10, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      } finally {
-        writeSemaphore.release();
+    // Given a request.
+    Map<String, Object> params = new HashMap<>();
+    params.put("data1", "value1");
+    params.put("data2", "value2");
+    RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
+    request.onError(new RequestOld.ErrorCallback() {
+      @Override
+      public void error(Exception e) {
+        assertNotNull(e);
+        semaphore.release();
       }
-      beforeWriteTime = Instant.now();
-    }
+    });
+    request.setAppId("fskadfshdbfa", "wee5w4waer422323");
 
-    @Override
-    public void afterWrite() {
-      afterWriteTime = Instant.now();
-    }
+    // When the request is sent.
+    request.sendIfConnected();
 
-    void assertCallSequence() {
-      assertTrue(
-          beforeWriteTime.isBefore(afterWriteTime)
-              && beforeReadTime.isBefore(afterReadTime)
-              && beforeReadTime.isAfter(afterWriteTime));
-    }
+    Leanplum.setApplicationContext(context);
   }
 }

@@ -603,8 +603,8 @@ public class LeanplumPushService {
             // If url can be handled by current app - set package name to intent, so url will be
             // open by current app. Skip chooser dialog.
             deepLinkIntent.setPackage(resolveInfo.activityInfo.packageName);
-            return true;
           }
+          return true;
         }
       }
     }
