@@ -705,7 +705,7 @@ public class Leanplum {
     request.onApiResponse(new RequestOld.ApiResponseCallback() {
       @Override
       public void response(List<Map<String, Object>> requests, JSONObject response, int countOfEvents) {
-        Leanplum.handleApiResponse(response, requests, request, countOfEvents);
+        Leanplum.handleStartResponse(response, requests, request, countOfEvents);
       }
     });
 
@@ -718,19 +718,12 @@ public class Leanplum {
     LeanplumInternal.triggerStartIssued();
   }
 
-  private static void handleApiResponse(JSONObject response, List<Map<String, Object>> requests,
+  private static void handleStartResponse(JSONObject response, List<Map<String, Object>> requests,
                                         final RequestOld request, int countOfUnsentRequests) {
     JSONObject lastStartResponse = null;
 
-    // Find and handle the last start response.
     try {
-      // Checks if START event inside the current batch. If database index of START event bigger
-      // then a number of count of events that we got from the database - decrease START event
-      // database index.
-      if (request.getDataBaseIndex() >= countOfUnsentRequests) {
-        request.setDataBaseIndex(request.getDataBaseIndex() - countOfUnsentRequests);
-        return;
-      }
+      // Parse the last start response.
       lastStartResponse = parseLastStartResponse(response, requests);
     } catch (Throwable t) {
       Util.handleException(t);
@@ -738,7 +731,7 @@ public class Leanplum {
 
     if (lastStartResponse != null) {
       if (!LeanplumInternal.hasStarted()) {
-        // Set start response to null.
+        // Set start response handler to null.
         request.onApiResponse(null);
       }
     }
