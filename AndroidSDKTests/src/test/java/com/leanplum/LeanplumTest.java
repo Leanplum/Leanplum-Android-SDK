@@ -829,6 +829,7 @@ public class LeanplumTest extends AbstractTest {
     Var<Integer> colorVariable = Var.defineColor("test_color", 12345);
     Var<String> groupStringVariable = Var.define("groups.strings", "groups_string_test");
     Var<Integer> groupIntegerVariable = Var.define("groups.integers", 5);
+    Var<Integer> integerVariableString = Var.define("test_integer_string_invalid", 10);
 
     setupSDK(mContext, "/responses/simple_start_response.json");
 
@@ -844,6 +845,7 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(listVariable.defaultValue(), VarCache.getVariable("test_list").value());
     assertEquals(dictionaryVariable.defaultValue(), VarCache.getVariable("test_dictionary")
             .value());
+    assertEquals(integerVariable.defaultValue(), VarCache.getVariable("test_integer_string_invalid").value());
 
     // Validate values.
     assertEquals(colorVariable.value(), VarCache.getVariable("test_color").value());
