@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 version=`cat sdk-version.txt`
 body="{
 \"request\": {
