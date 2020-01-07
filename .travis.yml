@@ -20,6 +20,8 @@ before_deploy:
 deploy:
   - provider: script
     skip_cleanup: true
-    script: ./gradlew artifactoryPublish bintrayUpload
+    script: 
+      - ./gradlew artifactoryPublish bintrayUpload
+      - ./Tools/triggerRondo.sh
     on:
       tags: true
