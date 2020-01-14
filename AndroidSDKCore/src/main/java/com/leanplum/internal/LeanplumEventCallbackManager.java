@@ -20,16 +20,15 @@
  */
 package com.leanplum.internal;
 
-import android.os.AsyncTask;
-import androidx.annotation.NonNull;
-
 import com.leanplum.Leanplum;
 
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import androidx.annotation.NonNull;
 
 /**
  * LeanplumEventCallbackManager class to handle event callbacks.
@@ -37,8 +36,8 @@ import java.util.Map;
  * @author Anna Orlova
  */
 class LeanplumEventCallbackManager {
-  // Event callbacks map.
-  private final Map<RequestOld, LeanplumEventCallbacks> eventCallbacks = new HashMap<>();
+
+  private final ConcurrentHashMap<String, LeanplumEventCallbacks> callbacks = new ConcurrentHashMap<>();
 
   /**
    * Add callbacks to the event callbacks Map.
@@ -48,7 +47,7 @@ class LeanplumEventCallbackManager {
    * @param errorCallback Error callback.
    */
   void addCallbacks(RequestOld request, RequestOld.ResponseCallback responseCallback,
-                    RequestOld.ErrorCallback errorCallback) {
+      RequestOld.ErrorCallback errorCallback) {
     if (request == null) {
       return;
     }
@@ -57,8 +56,72 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    eventCallbacks.put(request, new LeanplumEventCallbacks(responseCallback, errorCallback));
+    callbacks.put(request.requestId(), new LeanplumEventCallbacks(responseCallback, errorCallback));
     Leanplum.countAggregator().incrementCount("add_event_callback_at");
+  }
+
+  /**
+   * Invoke all callbacks for response body. Callbacks will be executed based on success flag for
+   * each request
+   *
+   * @param body response body
+   */
+  void invokeCallbacks(JSONObject body) {
+    if (body == null) {
+      return;
+    }
+
+    if (callbacks.size() == 0) {
+      return;
+    }
+
+    ArrayList<String> keys = new ArrayList<>();
+
+    for (Map.Entry<String, LeanplumEventCallbacks> pair : callbacks.entrySet()) {
+      final String reqId = pair.getKey();
+      final LeanplumEventCallbacks callbacks = pair.getValue();
+
+      if (reqId != null && callbacks != null) {
+        final JSONObject response = RequestOld.getResponseForId(body, reqId);
+        if (response != null) {
+          boolean isSuccess = RequestOld.isResponseSuccess(response);
+
+          // if response for event is success, execute success callback
+          if (isSuccess) {
+
+            OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
+              @Override
+              public void run() {
+                if (callbacks.responseCallback != null) {
+                  callbacks.responseCallback.response(response);
+                }
+              }
+            });
+          } else {
+            // otherwise find the error message and execute error callback
+            final String responseError = RequestOld.getResponseError(response);
+            final String msg = RequestOld.getReadableErrorMessage(responseError);
+
+            OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
+              @Override
+              public void run() {
+                if (callbacks.errorCallback != null) {
+                  callbacks.errorCallback.error(new Exception(msg));
+                }
+              }
+            });
+          }
+
+          // add key for removal
+          keys.add(reqId);
+        }
+      }
+    }
+
+    // remove all keys for which callbacks were executed
+    for (String key : keys) {
+      callbacks.remove(key);
+    }
   }
 
   /**
@@ -66,81 +129,37 @@ class LeanplumEventCallbackManager {
    * that we got from database.
    *
    * @param error Exception.
-   * @param countOfEvents Count of events that we got from database.
    */
-  void invokeAllCallbacksWithError(@NonNull final Exception error, int countOfEvents) {
-    if (eventCallbacks.size() == 0) {
+  void invokeAllCallbacksWithError(@NonNull final Exception error) {
+    if (callbacks.size() == 0) {
       return;
     }
 
-    Iterator<Map.Entry<RequestOld, LeanplumEventCallbacks>> iterator =
-        eventCallbacks.entrySet().iterator();
-    // Loop over all callbacks.
-    for (; iterator.hasNext(); ) {
-      final Map.Entry<RequestOld, LeanplumEventCallbacks> entry = iterator.next();
-      if (entry.getKey() == null) {
-        continue;
-      }
-      if (entry.getKey().getDataBaseIndex() >= countOfEvents) {
-        entry.getKey().setDataBaseIndex(entry.getKey().getDataBaseIndex() - countOfEvents);
-      } else {
-        if (entry.getValue() != null && entry.getValue().errorCallback != null) {
-          // Start callback asynchronously, to avoid creation of new RequestOld object from the same
-          // thread.
-          Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-              entry.getValue().errorCallback.error(error);
-              return null;
+    ArrayList<String> keys = new ArrayList<>();
+
+    for (Map.Entry<String, LeanplumEventCallbacks> pair : callbacks.entrySet()) {
+      String reqId = pair.getKey();
+      final LeanplumEventCallbacks callbacks = pair.getValue();
+      if (callbacks != null) {
+        OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
+          @Override
+          public void run() {
+            if (callbacks.errorCallback != null) {
+              callbacks.errorCallback.error(error);
             }
-          });
-        }
-        iterator.remove();
+          }
+        });
+
+        // add key for removal
+        keys.add(reqId);
       }
     }
+
+    for (String key : keys) {
+      callbacks.remove(key);
+    }
+
     Leanplum.countAggregator().incrementCount("invoke_error_callbacks_on_responses");
-  }
-
-  /**
-   * Invoke potential response callbacks for all events with database index less than a count of
-   * events that we got from database.
-   *
-   * @param responseBody JSONObject withs server response.
-   * @param countOfEvents Count of events that we got from database.
-   */
-  void invokeAllCallbacksForResponse(@NonNull final JSONObject responseBody, int countOfEvents) {
-    if (eventCallbacks.size() == 0) {
-      return;
-    }
-
-    Iterator<Map.Entry<RequestOld, LeanplumEventCallbacks>> iterator =
-        eventCallbacks.entrySet().iterator();
-    // Loop over all callbacks.
-    for (; iterator.hasNext(); ) {
-      final Map.Entry<RequestOld, LeanplumEventCallbacks> entry = iterator.next();
-      if (entry.getKey() == null) {
-        continue;
-      }
-
-      if (entry.getKey().getDataBaseIndex() >= countOfEvents) {
-        entry.getKey().setDataBaseIndex(entry.getKey().getDataBaseIndex() - countOfEvents);
-      } else {
-        if (entry.getValue() != null && entry.getValue().responseCallback != null) {
-          // Start callback asynchronously, to avoid creation of new RequestOld object from the same
-          // thread.
-          Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-              entry.getValue().responseCallback.response(RequestOld.getResponseAt(responseBody,
-                  (int) entry.getKey().getDataBaseIndex()));
-              return null;
-            }
-          });
-        }
-        iterator.remove();
-      }
-    }
-    Leanplum.countAggregator().incrementCount("invoke_success_callbacks_on_responses");
   }
 
   private static class LeanplumEventCallbacks {

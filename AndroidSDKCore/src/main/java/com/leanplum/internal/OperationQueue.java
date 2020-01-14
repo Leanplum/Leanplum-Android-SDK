@@ -25,6 +25,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 public class OperationQueue {
 
     private static OperationQueue instance;
@@ -34,6 +37,8 @@ public class OperationQueue {
 
     private HandlerThread handlerThread;
     private Handler handler;
+
+    private Executor executor = Executors.newCachedThreadPool();
 
     public static OperationQueue sharedInstance() {
         if (instance == null) {
@@ -49,7 +54,7 @@ public class OperationQueue {
     /**
      * Start the underlying thread, call to this method is optional.
      */
-    void start() {
+    private void start() {
         if (handlerThread == null) {
             handlerThread = new HandlerThread(OPERATION_QUEUE_NAME, OPERATION_QUEUE_PRIORITY);
             handlerThread.start();
@@ -61,7 +66,7 @@ public class OperationQueue {
     /**
      * Stop OperationQueue and remove all operations
      */
-    void stop() {
+    private void stop() {
         removeAllOperations();
 
         handlerThread.quit();
@@ -69,11 +74,21 @@ public class OperationQueue {
     }
 
     /**
+     * Add operation to Executor to be run in parallel
+     * @param operation The operation that will be executed.
+     */
+    public void addParallelOperation(Runnable operation) {
+        if (operation != null && handler != null) {
+            executor.execute(operation);
+        }
+    }
+
+    /**
      * Add operation to OperationQueue at the end
      * @param operation The operation that will be executed.
      * @return return true if the operation was successfully placed in to the operation queue. Returns false on failure.
      */
-    boolean addOperation(Runnable operation) {
+    public boolean addOperation(Runnable operation) {
         if (operation != null && handler != null) {
             return handler.post(new Operation(operation));
         }
@@ -85,7 +100,7 @@ public class OperationQueue {
      * @param operation The operation that will be executed.
      * @return return true if the operation was successfully placed in to the operation queue. Returns false on failure.
      */
-    boolean addOperationAtFront(Runnable operation) {
+    public boolean addOperationAtFront(Runnable operation) {
         if (operation != null && handler != null) {
             return handler.postAtFrontOfQueue(new Operation(operation));
         }
@@ -97,7 +112,7 @@ public class OperationQueue {
      * @param operation operation The operation that will be executed.
      * @return return true if the operation was successfully placed in to the operation queue. Returns false on failure.
      */
-    boolean addOperationAtTime(Runnable operation, long millis) {
+    public boolean addOperationAtTime(Runnable operation, long millis) {
         if (operation != null && handler != null) {
             return handler.postAtTime(new Operation(operation), millis);
         }
@@ -110,7 +125,7 @@ public class OperationQueue {
      * @param delayMillis
      * @return return true if the operation was successfully placed in to the operation queue. Returns false on failure.
      */
-    boolean addOperationAfterDelay(Runnable operation, long delayMillis) {
+    public boolean addOperationAfterDelay(Runnable operation, long delayMillis) {
         if (operation != null && handler != null) {
             return handler.postDelayed(new Operation(operation), delayMillis);
         }
@@ -120,7 +135,7 @@ public class OperationQueue {
     /**
      * Remove all pending Operations that are in OperationQueue
      */
-    void removeAllOperations() {
+    public void removeAllOperations() {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }

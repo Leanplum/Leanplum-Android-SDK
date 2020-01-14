@@ -57,11 +57,9 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
-import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
@@ -133,6 +131,7 @@ public abstract class AbstractTest {
     spy(LeanplumEventDataManager.class);
     spy(Leanplum.class);
     spy(LeanplumActivityHelper.class);
+    spy(RequestOld.class);
 
     // Mock with our executor which will run on main thread.
     ReflectionHelpers.setStaticField(Util.class, "asyncExecutor", new SynchronousExecutor());

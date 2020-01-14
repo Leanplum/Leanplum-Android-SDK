@@ -122,6 +122,8 @@ public class Constants {
   }
 
   public static class Params {
+    public static final String RESPONSE = "response";
+
     public static final String ACTION = "action";
     public static final String ACTION_DEFINITIONS = "actionDefinitions";
     public static final String APP_ID = "appId";
@@ -172,6 +174,7 @@ public class Constants {
     public static final String VALUE = "value";
     public static final String VARS = "vars";
     public static final String VERSION_NAME = "versionName";
+    public static final String REQUEST_ID = "reqId";
   }
 
   public static class Keys {
