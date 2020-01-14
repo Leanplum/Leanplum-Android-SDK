@@ -721,12 +721,6 @@ public class Leanplum {
   }
 
   private static void handleStartResponse(final JSONObject response) {
-    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
-      @Override
-      public void run() {
-
-      }
-    });
     Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
       @Override
       protected Void doInBackground(Void... params) {
