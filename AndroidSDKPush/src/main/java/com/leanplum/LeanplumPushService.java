@@ -239,7 +239,7 @@ public class LeanplumPushService {
   }
 
   static void handleNotification(final Context context, final Bundle message) {
-    if (LeanplumActivityHelper.currentActivity != null
+    if (LeanplumActivityHelper.getCurrentActivity() != null
         && !LeanplumActivityHelper.isActivityPaused
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
         || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE))) {
@@ -418,7 +418,7 @@ public class LeanplumPushService {
     // Start activity.
     Class<? extends Activity> callbackClass = LeanplumPushService.getCallbackClass();
     boolean shouldStartActivity = true;
-    Activity currentActivity = LeanplumActivityHelper.currentActivity;
+    Activity currentActivity = LeanplumActivityHelper.getCurrentActivity();
     if (currentActivity != null && !LeanplumActivityHelper.isActivityPaused) {
       if (callbackClass == null) {
         shouldStartActivity = false;
