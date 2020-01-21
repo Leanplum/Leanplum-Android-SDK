@@ -497,12 +497,12 @@ public class RequestOld implements Requesting {
     if (!RequestOld.attachApiKeys(multiRequestArgs)) {
       return;
     }
+
     multiRequestArgs.put(Constants.Params.DATA, jsonEncodedString);
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
 
-    JSONObject responseBody;
     HttpURLConnection op = null;
     try {
       try {
@@ -514,26 +514,13 @@ public class RequestOld implements Requesting {
             Constants.API_SSL,
             Constants.NETWORK_TIMEOUT_SECONDS);
 
-        responseBody = Util.getJsonResponse(op);
+        JSONObject responseBody = Util.getJsonResponse(op);
         int statusCode = op.getResponseCode();
 
-        Exception errorException;
         if (statusCode >= 200 && statusCode <= 299) {
-          if (responseBody == null) {
-            errorException = new Exception("Response JSON is null.");
-            deleteSentRequests(unsentRequests.size());
-            parseResponseBody(null, errorException);
-            return;
-          }
-
-          Exception exception = null;
-          // Checks if we received the same number of responses as a number of sent request.
-          int numResponses = RequestOld.numResponses(responseBody);
-          if (numResponses != requestsToSend.size()) {
-            Log.w("Sent " + requestsToSend.size() + " requests but only" +
-                " received " + numResponses);
-          }
+          // Parse response body and trigger callbacks
           parseResponseBody(responseBody, null);
+
           // Clear localErrors list.
           localErrors.clear();
           deleteSentRequests(unsentRequests.size());
@@ -543,7 +530,7 @@ public class RequestOld implements Requesting {
             sendRequests();
           }
         } else {
-          errorException = new Exception("HTTP error " + statusCode);
+          Exception errorException = new Exception("HTTP error " + statusCode);
           if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
             deleteSentRequests(unsentRequests.size());
             parseResponseBody(responseBody, errorException);
@@ -910,24 +897,6 @@ public class RequestOld implements Requesting {
 
   public static void onNoPendingDownloads(NoPendingDownloadsCallback block) {
     noPendingDownloadsBlock = block;
-  }
-
-  /**
-   * Gets number of response from body
-   *
-   * @param response response body
-   * @return number of response
-   */
-  public static int numResponses(JSONObject response) {
-    if (response == null) {
-      return 0;
-    }
-    try {
-      return response.getJSONArray(Constants.Params.RESPONSE).length();
-    } catch (JSONException e) {
-      Log.e("Could not parse JSON response.", e);
-      return 0;
-    }
   }
 
   /**
