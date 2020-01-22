@@ -477,6 +477,12 @@ public class RequestOld implements Requesting {
     if (Constants.isTestMode) {
       return;
     }
+
+    // always save request first
+    sendEventually();
+
+    // in case appId and accessKey are set later, request is already saved and will be
+    // sent when variables are set.
     if (appId == null) {
       Log.e("Cannot send request. appId is not set.");
       return;
@@ -485,9 +491,6 @@ public class RequestOld implements Requesting {
       Log.e("Cannot send request. accessKey is not set.");
       return;
     }
-
-    // We need to save request first.
-    sendEventually();
 
     Leanplum.countAggregator().incrementCount("send_now");
 
