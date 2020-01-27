@@ -362,7 +362,7 @@ public class RequestOld implements Requesting {
    * @param responseBody JSONObject with response body from server.
    * @param error Exception.
    */
-  private void parseResponseBody(JSONObject responseBody, Exception error) {
+  protected void parseResponseBody(JSONObject responseBody, Exception error) {
     synchronized (RequestOld.class) {
 
       if (responseBody == null && error != null) {

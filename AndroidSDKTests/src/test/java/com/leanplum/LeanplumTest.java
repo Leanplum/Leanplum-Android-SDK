@@ -1053,7 +1053,7 @@ public class LeanplumTest extends AbstractTest {
     });
     // Start and wait.
     setupSDK(mContext, "/responses/simple_start_response.json");
-    countDownLatch.await();
+    countDownLatch.await(3, TimeUnit.SECONDS);
   }
 
   /**
