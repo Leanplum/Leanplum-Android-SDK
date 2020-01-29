@@ -364,7 +364,6 @@ public class RequestOld implements Requesting {
    */
   protected void parseResponseBody(JSONObject responseBody, Exception error) {
     synchronized (RequestOld.class) {
-
       if (responseBody == null && error != null) {
         // Invoke potential error callbacks for all events of this request.
         eventCallbackManager.invokeAllCallbacksWithError(error);
