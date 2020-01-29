@@ -24,9 +24,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -38,9 +35,11 @@ import com.leanplum.LocationManager;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.SynchronousExecutor;
+import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Operation;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.ShadowOperationQueue;
@@ -67,6 +66,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -132,6 +133,7 @@ public abstract class AbstractTest {
     spy(Leanplum.class);
     spy(LeanplumActivityHelper.class);
     spy(RequestOld.class);
+    spy(OperationQueue.class);
 
     // Mock with our executor which will run on main thread.
     ReflectionHelpers.setStaticField(Util.class, "asyncExecutor", new SynchronousExecutor());
