@@ -56,7 +56,7 @@ public class LeanplumActivityHelperTest extends TestCase {
     assertTrue(isRunnableQueued(runnable));
 
     FakeActivity fakeActivity = new FakeActivity();
-    LeanplumActivityHelper.currentActivity = fakeActivity;
+    LeanplumActivityHelper.setCurrentActivity(fakeActivity);
 
     // Test activity is finishing.
     final CountDownLatch latch2 = new CountDownLatch(1);
