@@ -82,11 +82,12 @@ class LeanplumEventCallbackManager {
       final LeanplumEventCallbacks callbacks = pair.getValue();
 
       if (reqId != null && callbacks != null) {
+        // get the response for specified reqId
         final JSONObject response = RequestOld.getResponseForId(body, reqId);
         if (response != null) {
           boolean isSuccess = RequestOld.isResponseSuccess(response);
 
-          // if response for event is success, execute success callback
+          // if response for event is successful, execute success callback
           if (isSuccess) {
 
             OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
@@ -125,8 +126,7 @@ class LeanplumEventCallbackManager {
   }
 
   /**
-   * Invoke potential error callbacks for all events with database index less than a count of events
-   * that we got from database.
+   * Invoke potential error callbacks for all events which have added callbacks.
    *
    * @param error Exception.
    */
@@ -141,6 +141,7 @@ class LeanplumEventCallbackManager {
       String reqId = pair.getKey();
       final LeanplumEventCallbacks callbacks = pair.getValue();
       if (callbacks != null) {
+        // executed all error callbacks in parallel
         OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
           @Override
           public void run() {
@@ -155,6 +156,7 @@ class LeanplumEventCallbackManager {
       }
     }
 
+    // remove all keys for which callbacks were executed
     for (String key : keys) {
       callbacks.remove(key);
     }
