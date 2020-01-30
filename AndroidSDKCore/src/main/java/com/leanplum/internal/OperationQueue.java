@@ -78,7 +78,7 @@ public class OperationQueue {
      * @param operation The operation that will be executed.
      */
     public void addParallelOperation(Runnable operation) {
-        if (operation != null && handler != null) {
+        if (operation != null && executor != null) {
             executor.execute(operation);
         }
     }
