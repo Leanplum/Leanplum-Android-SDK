@@ -16,4 +16,9 @@ public class ShadowOperationQueue extends OperationQueue {
     public void addParallelOperation(Runnable operation) {
         operation.run();
     }
+
+    @Override
+    public void addUiOperation(Runnable operation) {
+        operation.run();
+    }
 }

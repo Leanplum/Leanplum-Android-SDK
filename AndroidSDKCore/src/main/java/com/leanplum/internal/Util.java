@@ -34,7 +34,6 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings.Secure;
 import androidx.annotation.RequiresPermission;
@@ -79,8 +78,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -92,8 +89,6 @@ import javax.net.ssl.SSLSocketFactory;
  * @author Andrew First
  */
 public class Util {
-  private static final Executor asyncExecutor = Executors.newCachedThreadPool();
-  private static final Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
 
   private static final String ACCESS_WIFI_STATE_PERMISSION = "android.permission.ACCESS_WIFI_STATE";
 
@@ -739,23 +734,6 @@ public class Util {
       current = ((Map<?, ?>) current).get(index);
     }
     return CollectionUtil.uncheckedCast(current);
-  }
-
-  /**
-   * Execute async task on single thread Executer or cached thread pool Executer.
-   *
-   * @param singleThread True if needs to be executed on single thread Executer, otherwise it will
-   * use cached thread pool Executer.
-   * @param task Async task to execute.
-   * @param params Params.
-   */
-  public static <T> void executeAsyncTask(boolean singleThread, AsyncTask<T, ?, ?> task,
-      T... params) {
-    if (singleThread) {
-      task.executeOnExecutor(singleThreadExecutor, params);
-    } else {
-      task.executeOnExecutor(asyncExecutor, params);
-    }
   }
 
   /**

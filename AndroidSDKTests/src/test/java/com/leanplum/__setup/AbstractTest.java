@@ -135,10 +135,6 @@ public abstract class AbstractTest {
     spy(RequestOld.class);
     spy(OperationQueue.class);
 
-    // Mock with our executor which will run on main thread.
-    ReflectionHelpers.setStaticField(Util.class, "asyncExecutor", new SynchronousExecutor());
-    ReflectionHelpers.setStaticField(Util.class, "singleThreadExecutor", new SynchronousExecutor());
-
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
     // Get and set application context.
     mContext = RuntimeEnvironment.application;

@@ -23,7 +23,6 @@ package com.leanplum.internal;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.text.TextUtils;
 
@@ -175,8 +174,6 @@ public class RequestOld implements Requesting {
     if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
       localErrors.add(createArgsDictionary());
     }
-    // Make sure the Handler is initialized on the main thread.
-    OsHandler.getInstance();
   }
 
   public static RequestOld get(String apiMethod, Map<String, Object> params) {
@@ -264,7 +261,8 @@ public class RequestOld implements Requesting {
   }
 
   public void send() {
-    this.sendEventually();
+    sendEventually();
+
     if (Constants.isDevelopmentModeEnabled) {
       long currentTimeMs = System.currentTimeMillis();
       long delayMs;
@@ -273,7 +271,7 @@ public class RequestOld implements Requesting {
       } else {
         delayMs = (lastSendTimeMs + DEVELOPMENT_MAX_DELAY_MS) - currentTimeMs;
       }
-      OsHandler.getInstance().postDelayed(new Runnable() {
+      OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
         @Override
         public void run() {
           try {
@@ -284,6 +282,7 @@ public class RequestOld implements Requesting {
         }
       }, delayMs);
     }
+
     Leanplum.countAggregator().incrementCount("send_request");
   }
 
@@ -293,7 +292,7 @@ public class RequestOld implements Requesting {
    */
   public void sendIfDelayed() {
     sendEventually();
-    OsHandler.getInstance().postDelayed(new Runnable() {
+    OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
       @Override
       public void run() {
         try {
@@ -723,10 +722,9 @@ public class RequestOld implements Requesting {
 
     printUploadProgress();
 
-    // Now upload the files
-    Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
+    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
       @Override
-      protected Void doInBackground(Void... params) {
+      public void run() {
         synchronized (uploadFileLock) {  // Don't overload app and server with many upload tasks
           JSONObject result;
           HttpURLConnection op = null;
@@ -783,13 +781,9 @@ public class RequestOld implements Requesting {
             fileUploadProgress.put(file, 1.0);
           }
           printUploadProgress();
-
-          return null;
         }
       }
     });
-
-    // TODO: Upload progress
   }
 
   void downloadFile(final String path, final String url) {
@@ -810,18 +804,16 @@ public class RequestOld implements Requesting {
 
     Leanplum.countAggregator().incrementCount("download_file");
 
-    Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
+    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
       @Override
-      protected Void doInBackground(Void... params) {
+      public void run() {
         try {
           downloadHelper(Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
         } catch (Throwable t) {
           Util.handleException(t);
         }
-        return null;
       }
     });
-    // TODO: Download progress
   }
 
   private void downloadHelper(String hostName, String servlet, final String path, final String url,

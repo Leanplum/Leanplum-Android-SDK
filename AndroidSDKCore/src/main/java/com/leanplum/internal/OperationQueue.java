@@ -23,6 +23,7 @@ package com.leanplum.internal;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Process;
 
 import java.util.concurrent.Executor;
@@ -37,6 +38,7 @@ public class OperationQueue {
 
     private HandlerThread handlerThread;
     private Handler handler;
+    private Handler uiHandler = new Handler(Looper.getMainLooper());
 
     private Executor executor = Executors.newCachedThreadPool();
 
@@ -84,13 +86,23 @@ public class OperationQueue {
     }
 
     /**
+     * Add operation to UI Handler to be run on main thread
+     * @param operation The operation that will be executed.
+     */
+    public void addUiOperation(Runnable operation) {
+        if (operation != null && uiHandler != null) {
+            uiHandler.post(operation);
+        }
+    }
+
+    /**
      * Add operation to OperationQueue at the end
      * @param operation The operation that will be executed.
      * @return return true if the operation was successfully placed in to the operation queue. Returns false on failure.
      */
     public boolean addOperation(Runnable operation) {
         if (operation != null && handler != null) {
-            return handler.post(new Operation(operation));
+            return handler.post(operation);
         }
         return false;
     }
@@ -102,7 +114,7 @@ public class OperationQueue {
      */
     public boolean addOperationAtFront(Runnable operation) {
         if (operation != null && handler != null) {
-            return handler.postAtFrontOfQueue(new Operation(operation));
+            return handler.postAtFrontOfQueue(operation);
         }
         return false;
     }
@@ -114,7 +126,7 @@ public class OperationQueue {
      */
     public boolean addOperationAtTime(Runnable operation, long millis) {
         if (operation != null && handler != null) {
-            return handler.postAtTime(new Operation(operation), millis);
+            return handler.postAtTime(operation, millis);
         }
         return false;
     }
@@ -127,7 +139,7 @@ public class OperationQueue {
      */
     public boolean addOperationAfterDelay(Runnable operation, long delayMillis) {
         if (operation != null && handler != null) {
-            return handler.postDelayed(new Operation(operation), delayMillis);
+            return handler.postDelayed(operation, delayMillis);
         }
         return false;
     }

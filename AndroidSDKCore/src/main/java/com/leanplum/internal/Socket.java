@@ -276,7 +276,7 @@ public class Socket {
       Log.v("Socket - No developer e-mail provided.");
     }
     final String email = (emailArg == null) ? "a Leanplum account" : emailArg;
-    OsHandler.getInstance().post(new Runnable() {
+    OperationQueue.sharedInstance().addUiOperation(new Runnable() {
       @Override
       public void run() {
         LeanplumActivityHelper.queueActionUponActive(new VariablesChangedCallback() {

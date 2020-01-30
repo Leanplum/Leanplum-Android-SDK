@@ -34,42 +34,31 @@ public class Registration {
     Map<String, Object> params = new HashMap<>();
     params.put(Constants.Params.EMAIL, email);
     RequestOld request = RequestOld.post(Constants.Methods.REGISTER_FOR_DEVELOPMENT, params);
+
     request.onResponse(new RequestOld.ResponseCallback() {
       @Override
-      public void response(final JSONObject response) {
-        OsHandler.getInstance().post(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              boolean isSuccess = RequestOld.isResponseSuccess(response);
-              if (isSuccess) {
-                if (callback != null) {
-                  callback.onResponse(true);
-                }
-              } else {
-                Log.e(RequestOld.getResponseError(response));
-                if (callback != null) {
-                  callback.onResponse(false);
-                }
-              }
-            } catch (Throwable t) {
-              Util.handleException(t);
-            }
+      public void response(JSONObject response) {
+        try {
+          boolean success = RequestOld.isResponseSuccess(response);
+          callback.setSuccess(success);
+
+          if (!success) {
+            String error = RequestOld.getResponseError(response);
+            Log.e(error);
           }
-        });
+
+          OperationQueue.sharedInstance().addUiOperation(callback);
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
       }
     });
+
     request.onError(new RequestOld.ErrorCallback() {
       @Override
       public void error(final Exception e) {
-        OsHandler.getInstance().post(new Runnable() {
-          @Override
-          public void run() {
-            if (callback != null) {
-              callback.onResponse(false);
-            }
-          }
-        });
+        callback.setSuccess(false);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     });
     request.sendIfConnected();
