@@ -503,15 +503,12 @@ public class Leanplum {
       final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
     try {
       OsHandler.getInstance();
-
-      if (context instanceof Activity) {
-        LeanplumActivityHelper.currentActivity = (Activity) context;
-      }
+      LeanplumActivityHelper.setCurrentActivity(context);
 
       // Detect if app is in background automatically if isBackground is not set.
       final boolean actuallyInBackground;
       if (isBackground == null) {
-        actuallyInBackground = LeanplumActivityHelper.currentActivity == null ||
+        actuallyInBackground = LeanplumActivityHelper.getCurrentActivity() == null ||
             LeanplumActivityHelper.isActivityPaused();
       } else {
         actuallyInBackground = isBackground;
@@ -810,9 +807,9 @@ public class Leanplum {
             if (Constants.isDevelopmentModeEnabled) {
 
               final Context currentContext = (
-                  LeanplumActivityHelper.currentActivity != context &&
-                      LeanplumActivityHelper.currentActivity != null) ?
-                  LeanplumActivityHelper.currentActivity
+                  LeanplumActivityHelper.getCurrentActivity() != context &&
+                      LeanplumActivityHelper.getCurrentActivity() != null) ?
+                  LeanplumActivityHelper.getCurrentActivity()
                   : context;
 
               // Register device.
