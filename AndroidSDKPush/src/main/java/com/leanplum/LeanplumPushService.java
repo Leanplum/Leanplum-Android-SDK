@@ -33,7 +33,6 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.core.app.NotificationCompat;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -58,6 +57,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import androidx.core.app.NotificationCompat;
 
 /**
  * Leanplum push notification service class, handling initialization, opening, showing, integration
@@ -239,7 +241,7 @@ public class LeanplumPushService {
   }
 
   static void handleNotification(final Context context, final Bundle message) {
-    if (LeanplumActivityHelper.currentActivity != null
+    if (LeanplumActivityHelper.getCurrentActivity() != null
         && !LeanplumActivityHelper.isActivityPaused
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
         || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE))) {
@@ -369,30 +371,26 @@ public class LeanplumPushService {
       if (ActionContext.shouldForceContentUpdateForChainedMessage(
           JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
 
+        // try to fetch referenced chained message and wait a bit for result
         final CountDownLatch countDownLatch = new CountDownLatch(1);
-
-        final int currentNotificationId = notificationId;
-        final Notification.Builder currentNotificationBuilder = notificationBuilder;
-        final NotificationCompat.Builder currentNotificationCompatBuilder = notificationCompatBuilder;
         Leanplum.forceContentUpdate(new VariablesChangedCallback() {
           @Override
           public void variablesChanged() {
-            if (currentNotificationBuilder != null) {
-              notificationManager.notify(currentNotificationId, currentNotificationBuilder.build());
-            } else {
-              notificationManager.notify(currentNotificationId, currentNotificationCompatBuilder.build());
-            }
             countDownLatch.countDown();
           }
         });
-        countDownLatch.await();
-      } else {
-        if (notificationBuilder != null) {
-          notificationManager.notify(notificationId, notificationBuilder.build());
-        } else {
-          notificationManager.notify(notificationId, notificationCompatBuilder.build());
-        }
+
+        // continue after 3 seconds and post the notification
+        countDownLatch.await(3, TimeUnit.SECONDS);
       }
+
+      // always post notification
+      if (notificationBuilder != null) {
+        notificationManager.notify(notificationId, notificationBuilder.build());
+      } else {
+        notificationManager.notify(notificationId, notificationCompatBuilder.build());
+      }
+
     } catch (NullPointerException e) {
       Log.e("Unable to show push notification.", e);
     } catch (Throwable t) {
@@ -418,7 +416,7 @@ public class LeanplumPushService {
     // Start activity.
     Class<? extends Activity> callbackClass = LeanplumPushService.getCallbackClass();
     boolean shouldStartActivity = true;
-    Activity currentActivity = LeanplumActivityHelper.currentActivity;
+    Activity currentActivity = LeanplumActivityHelper.getCurrentActivity();
     if (currentActivity != null && !LeanplumActivityHelper.isActivityPaused) {
       if (callbackClass == null) {
         shouldStartActivity = false;
