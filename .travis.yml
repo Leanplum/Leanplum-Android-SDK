@@ -17,11 +17,12 @@ before_deploy:
   - ./Tools/verifyTag.sh
   - ./gradlew assembleRelease makeJar generatePomFileForAarPublication
 
+after_deploy:
+  - ./Tools/triggerRondo.sh
+
 deploy:
   - provider: script
     skip_cleanup: true
-    script: 
-      - ./gradlew artifactoryPublish bintrayUpload
-      - ./Tools/triggerRondo.sh
+    script: ./gradlew artifactoryPublish bintrayUpload
     on:
       tags: true
