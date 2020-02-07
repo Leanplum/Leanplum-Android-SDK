@@ -33,13 +33,11 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
 import android.os.Build;
 import android.os.Handler;
-import android.text.Layout;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
@@ -58,7 +56,6 @@ import android.widget.TextView;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.core.R;
-import com.leanplum.internal.Log;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
@@ -212,6 +209,7 @@ public class BaseMessageDialog extends Dialog {
       return;
     }
     isClosing = true;
+    Leanplum.triggerMessageClosed();
     Animation animation = createFadeOutAnimation();
     animation.setAnimationListener(new Animation.AnimationListener() {
       @Override

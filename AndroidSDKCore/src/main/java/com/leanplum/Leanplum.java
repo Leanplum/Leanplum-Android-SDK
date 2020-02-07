@@ -31,6 +31,7 @@ import android.text.TextUtils;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.EmbeddedHTMLUrlCallback;
+import com.leanplum.callbacks.MessageClosedCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
@@ -97,6 +98,8 @@ public class Leanplum {
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
   private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
+          new ArrayList<>();
+  private static final ArrayList<MessageClosedCallback> messageClosedHandlers =
           new ArrayList<>();
   private static EmbeddedHTMLUrlCallback embeddedHTMLUrlHandler = new EmbeddedHTMLUrlCallback() {
     @Override
@@ -1337,6 +1340,49 @@ public class Leanplum {
 
     synchronized (messageDisplayedHandlers) {
       messageDisplayedHandlers.remove(handler);
+    }
+  }
+
+  /**
+   * Add a callback for when a message is closed.
+   */
+  public static void addMessageClosedHandler(MessageClosedCallback handler)
+  {
+    if (handler == null)
+    {
+      Log.e("addMessageDismissedHandler - Invalid handler parameter provided.");
+      return;
+    }
+
+    synchronized (messageClosedHandlers)
+    {
+      messageClosedHandlers.add(handler);
+    }
+  }
+
+  /**
+   * Removes a message closed pending callback
+   */
+  public static void removeMessageClosedHandler(MessageClosedCallback handler)
+  {
+    if (handler == null)
+    {
+      Log.e("removeMessageDismissedHandler - Invalid handler parameter provided.");
+      return;
+    }
+
+    synchronized (messageClosedHandlers)
+    {
+      messageClosedHandlers.remove(handler);
+    }
+  }
+
+  public static void triggerMessageClosed()
+  {
+    synchronized (messageClosedHandlers) {
+      for (MessageClosedCallback callback : messageClosedHandlers) {
+        OsHandler.getInstance().post(callback);
+      }
     }
   }
 
