@@ -32,8 +32,6 @@ import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.LeanplumUIEditorWrapper;
-import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Util;
 
 import java.util.Collections;
@@ -124,16 +122,6 @@ public class LeanplumActivityHelper {
       @Override
       public void onActivityResumed(final Activity activity) {
         try {
-          if (Leanplum.isInterfaceEditingEnabled()) {
-            // Execute runnable in next frame to ensure that all system stuff is setup, before
-            // applying UI edits.
-            OperationQueue.sharedInstance().addUiOperation(new Runnable() {
-              @Override
-              public void run() {
-                LeanplumUIEditorWrapper.getInstance().applyInterfaceEdits(activity);
-              }
-            });
-          }
           onResume(activity);
           if (Leanplum.isScreenTrackingEnabled()) {
             Leanplum.advanceTo(activity.getLocalClassName());

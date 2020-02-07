@@ -28,7 +28,6 @@ import android.content.DialogInterface;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.LeanplumEditorMode;
 import com.leanplum.callbacks.VariablesChangedCallback;
 
 import org.json.JSONArray;
@@ -54,7 +53,6 @@ public class Socket {
   private static final String TAG = "Leanplum";
   private static final String EVENT_CONTENT_RESPONSE = "getContentResponse";
   private static final String EVENT_UPDATE_VARS = "updateVars";
-  private static final String EVENT_GET_VIEW_HIERARCHY = "getViewHierarchy";
   private static final String EVENT_PREVIEW_UPDATE_RULES = "previewUpdateRules";
   private static final String EVENT_TRIGGER = "trigger";
   private static final String EVENT_GET_VARIABLES = "getVariables";
@@ -126,10 +124,6 @@ public class Socket {
               break;
             case EVENT_TRIGGER:
               handleTriggerEvent(arguments);
-              break;
-            case EVENT_GET_VIEW_HIERARCHY:
-              LeanplumUIEditorWrapper.getInstance().startUpdating();
-              LeanplumUIEditorWrapper.getInstance().sendUpdate();
               break;
             case EVENT_PREVIEW_UPDATE_RULES:
               previewUpdateRules(arguments);
@@ -321,37 +315,18 @@ public class Socket {
   }
 
   void previewUpdateRules(JSONArray arguments) {
-    JSONObject packetData;
     try {
-      packetData = arguments.getJSONObject(0);
+      JSONObject packetData = arguments.getJSONObject(0);
+      JSONArray rules = packetData.optJSONArray("rules");
+
+      if (rules != null) {
+        List<Map<String, Object>> ruleDiffs = JsonConverter.listFromJson(rules);
+        VarCache.applyUpdateRuleDiffs(ruleDiffs);
+      }
     } catch (Exception e) {
       Log.e("Error parsing data");
       return;
     }
-
-    if (!packetData.optBoolean("closed")) {
-      LeanplumUIEditorWrapper.getInstance().startUpdating();
-    } else {
-      LeanplumUIEditorWrapper.getInstance().stopUpdating();
-    }
-
-    LeanplumEditorMode mode;
-    int intMode = packetData.optInt("mode");
-    if (intMode >= LeanplumEditorMode.values().length) {
-      Log.p("Invalid editor mode in packet");
-      mode = LeanplumEditorMode.LP_EDITOR_MODE_INTERFACE;
-    } else {
-      mode = LeanplumEditorMode.values()[intMode];
-    }
-    LeanplumUIEditorWrapper.getInstance().setMode(mode);
-
-    JSONArray rules = packetData.optJSONArray("rules");
-    if (rules != null) {
-      List<Map<String, Object>> ruleDiffs = JsonConverter.listFromJson(rules);
-      VarCache.applyUpdateRuleDiffs(ruleDiffs);
-    }
-
-    LeanplumUIEditorWrapper.getInstance().sendUpdateDelayedDefault();
   }
 
   /**
