@@ -25,15 +25,9 @@ import android.os.Handler;
 import android.os.Looper;
 
 
-public class Operation extends Thread {
+public abstract class Operation implements Runnable {
 
     private static final Handler handler = new Handler(Looper.getMainLooper());
-
-    private Runnable runnable;
-
-    protected Operation(Runnable runnable) {
-        this.runnable = runnable;
-    }
 
     /**
      * Helper methods to execute runnable on main thread
@@ -60,12 +54,5 @@ public class Operation extends Thread {
      */
     public static void removeOperationOnUiThread(Runnable runnable) {
         handler.removeCallbacks(runnable);
-    }
-
-    @Override
-    public void run() {
-        if (runnable != null) {
-            runnable.run();
-        }
     }
 }

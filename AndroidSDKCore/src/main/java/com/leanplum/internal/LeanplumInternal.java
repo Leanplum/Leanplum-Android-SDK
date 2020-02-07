@@ -24,7 +24,6 @@ package com.leanplum.internal;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.AsyncTask;
 
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
@@ -124,7 +123,7 @@ public class LeanplumInternal {
     }
     final AtomicBoolean handled = new AtomicBoolean(false);
     for (final ActionCallback callback : callbacks) {
-      OsHandler.getInstance().post(new Runnable() {
+      OperationQueue.sharedInstance().addUiOperation(new Runnable() {
         @Override
         public void run() {
           if (callback.onResponse(context) && handledCallback != null) {
@@ -438,16 +437,15 @@ public class LeanplumInternal {
     Leanplum.addStartResponseHandler(new StartCallback() {
       @Override
       public void onResponse(final boolean success) {
-        // Geocoder query must be executed on background thread.
-        Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
+        OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
           @Override
-          protected Void doInBackground(Void... voids) {
+          public void run() {
             if (!success) {
-              return null;
+              return;
             }
             if (location == null) {
               Log.e("Location can't be null in setUserLocationAttribute.");
-              return null;
+              return;
             }
             String latLongLocation = String.format(Locale.US, "%.6f,%.6f", location.getLatitude(),
                 location.getLongitude());
@@ -489,7 +487,6 @@ public class LeanplumInternal {
               }
             });
             req.send();
-            return null;
           }
         });
       }
@@ -567,7 +564,7 @@ public class LeanplumInternal {
     synchronized (startIssuedHandlers) {
       LeanplumInternal.setIssuedStart(true);
       for (Runnable callback : startIssuedHandlers) {
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
       startIssuedHandlers.clear();
     }
