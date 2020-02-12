@@ -21,7 +21,6 @@
 
 package com.leanplum;
 
-import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.text.TextUtils;
@@ -42,7 +41,6 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
-import com.leanplum.internal.LeanplumUIEditorWrapper;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
@@ -288,8 +286,9 @@ public class Leanplum {
    *
    * @return Boolean - true if enabled
    */
+  @Deprecated
   public static boolean isInterfaceEditingEnabled() {
-    return LeanplumUIEditorWrapper.isUIEditorAvailable();
+    return false;
   }
 
   /**

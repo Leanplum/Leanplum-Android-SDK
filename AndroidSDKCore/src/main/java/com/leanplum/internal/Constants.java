@@ -275,8 +275,4 @@ public class Constants {
     public static final int MAX_STORED_OCCURRENCES_PER_MESSAGE = 100;
     public static final int DEFAULT_PRIORITY = 1000;
   }
-
-  public static class ClassUtil {
-    public static final String UI_INTERFACE_EDITOR = "com.leanplum.uieditor.LeanplumUIEditor";
-  }
 }
