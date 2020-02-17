@@ -2,10 +2,7 @@
 
 <p align="center">
     <img src='https://img.shields.io/badge/branch-master-blue.svg'>
-    <img src='https://jenkins.leanplum.com/buildStatus/icon?job=android-sdk-master' alt="Build status">
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <img src='https://img.shields.io/badge/branch-develop-red.svg'>
-    <img src='https://jenkins.leanplum.com/buildStatus/icon?job=android-sdk-develop' alt="Build status">
+    <img src='https://travis-ci.org/Leanplum/Leanplum-Android-SDK.svg?branch=master' alt="Build status">
 </p>
 <p align="center">
     <a href="https://github.com/Leanplum/Leanplum-Android-SDK/master/LICENSE">
