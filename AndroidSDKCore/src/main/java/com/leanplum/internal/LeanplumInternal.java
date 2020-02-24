@@ -279,15 +279,21 @@ public class LeanplumInternal {
   }
 
   private static int fetchCountDown(ActionContext context, Map<String, Object> messages) {
+    if (context == null || messages == null) {
+      return 0;
+    }
+
     // Get eta.
-    Object countdownObj;
     if (((BaseActionContext) context).isPreview()) {
-      countdownObj = 5.0;
+      return 5;
     } else {
       Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(context.messageId));
-      countdownObj = messageConfig.get("countdown");
+      Object countdown = messageConfig.get("countdown");
+      if (countdown instanceof Number) {
+        return ((Number) countdown).intValue();
+      }
+      return 0;
     }
-    return ((Number) countdownObj).intValue();
   }
 
   private static Map<String, Object> makeTrackArgs(final String event, double value, String info,
