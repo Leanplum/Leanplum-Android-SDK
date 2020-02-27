@@ -17,6 +17,9 @@ before_deploy:
   - ./Tools/verifyTag.sh
   - ./gradlew assembleRelease makeJar generatePomFileForAarPublication
 
+after_deploy:
+  - ./Tools/triggerRondo.sh
+
 deploy:
   - provider: script
     skip_cleanup: true

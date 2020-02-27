@@ -72,6 +72,7 @@ public class Alert {
                     .setPositiveButton(context.stringNamed(Args.DISMISS_TEXT),
                         new DialogInterface.OnClickListener() {
                           public void onClick(DialogInterface dialog, int id) {
+                            Leanplum.triggerMessageClosed();
                             context.runActionNamed(Args.DISMISS_ACTION);
                           }
                         });

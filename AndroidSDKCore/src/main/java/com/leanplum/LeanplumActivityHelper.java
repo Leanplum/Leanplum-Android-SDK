@@ -24,6 +24,7 @@ package com.leanplum;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
+import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -60,7 +61,7 @@ public class LeanplumActivityHelper {
    */
   private static boolean registeredCallbacks;
 
-  static Activity currentActivity;
+  private static Activity currentActivity;
 
   private final Activity activity;
   private LeanplumResources res;
@@ -78,6 +79,18 @@ public class LeanplumActivityHelper {
     this.activity = activity;
     Leanplum.setApplicationContext(activity.getApplicationContext());
     Parser.parseVariables(activity);
+  }
+
+  /**
+   * Set activity and run pending actions
+   */
+  public static void setCurrentActivity(Context context) {
+    if (context instanceof Activity) {
+      currentActivity = (Activity) context;
+
+      // run pending actions if any upon start
+      LeanplumInternal.addStartIssuedHandler(runPendingActionsRunnable);
+    }
   }
 
   /**
@@ -158,6 +171,8 @@ public class LeanplumActivityHelper {
 
     });
     registeredCallbacks = true;
+    // run pending actions if any upon start
+    LeanplumInternal.addStartIssuedHandler(runPendingActionsRunnable);
   }
 
   public LeanplumResources getLeanplumResources() {
