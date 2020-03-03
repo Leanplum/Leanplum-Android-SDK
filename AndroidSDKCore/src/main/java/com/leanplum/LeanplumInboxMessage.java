@@ -118,6 +118,22 @@ public class LeanplumInboxMessage {
     return object;
   }
 
+
+  /**
+   * Returns the action of the inbox message. Advanced use only.
+   */
+  public JSONObject getActionData() {
+    JSONObject object = null;
+    try {
+      Map<String, ?> mapData =
+              CollectionUtil.uncheckedCast(getContext().objectNamed(Constants.Values.DEFAULT_PUSH_ACTION));
+      object = JsonConverter.mapToJsonObject(mapData);
+    } catch (Throwable t) {
+      Log.w("Unable to parse JSONObject for Action field of inbox message.");
+    }
+    return object;
+  }
+
   /**
    * Returns the message identifier of the newsfeed message.
    */
