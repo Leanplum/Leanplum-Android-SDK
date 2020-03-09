@@ -31,6 +31,7 @@ import android.text.TextUtils;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.EmbeddedHTMLUrlCallback;
+import com.leanplum.callbacks.MessageClosedCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
@@ -97,6 +98,8 @@ public class Leanplum {
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
   private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
+          new ArrayList<>();
+  private static final ArrayList<MessageClosedCallback> messageClosedHandlers =
           new ArrayList<>();
   private static EmbeddedHTMLUrlCallback embeddedHTMLUrlHandler = new EmbeddedHTMLUrlCallback() {
     @Override
@@ -508,15 +511,12 @@ public class Leanplum {
       final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
     try {
       OsHandler.getInstance();
-
-      if (context instanceof Activity) {
-        LeanplumActivityHelper.currentActivity = (Activity) context;
-      }
+      LeanplumActivityHelper.setCurrentActivity(context);
 
       // Detect if app is in background automatically if isBackground is not set.
       final boolean actuallyInBackground;
       if (isBackground == null) {
-        actuallyInBackground = LeanplumActivityHelper.currentActivity == null ||
+        actuallyInBackground = LeanplumActivityHelper.getCurrentActivity() == null ||
             LeanplumActivityHelper.isActivityPaused();
       } else {
         actuallyInBackground = isBackground;
@@ -865,9 +865,9 @@ public class Leanplum {
             if (Constants.isDevelopmentModeEnabled) {
 
               final Context currentContext = (
-                  LeanplumActivityHelper.currentActivity != context &&
-                      LeanplumActivityHelper.currentActivity != null) ?
-                  LeanplumActivityHelper.currentActivity
+                  LeanplumActivityHelper.getCurrentActivity() != context &&
+                      LeanplumActivityHelper.getCurrentActivity() != null) ?
+                  LeanplumActivityHelper.getCurrentActivity()
                   : context;
 
               // Register device.
@@ -1340,6 +1340,49 @@ public class Leanplum {
 
     synchronized (messageDisplayedHandlers) {
       messageDisplayedHandlers.remove(handler);
+    }
+  }
+
+  /**
+   * Add a callback for when a message is closed.
+   */
+  public static void addMessageClosedHandler(MessageClosedCallback handler)
+  {
+    if (handler == null)
+    {
+      Log.e("addMessageDismissedHandler - Invalid handler parameter provided.");
+      return;
+    }
+
+    synchronized (messageClosedHandlers)
+    {
+      messageClosedHandlers.add(handler);
+    }
+  }
+
+  /**
+   * Removes a message closed pending callback
+   */
+  public static void removeMessageClosedHandler(MessageClosedCallback handler)
+  {
+    if (handler == null)
+    {
+      Log.e("removeMessageDismissedHandler - Invalid handler parameter provided.");
+      return;
+    }
+
+    synchronized (messageClosedHandlers)
+    {
+      messageClosedHandlers.remove(handler);
+    }
+  }
+
+  public static void triggerMessageClosed()
+  {
+    synchronized (messageClosedHandlers) {
+      for (MessageClosedCallback callback : messageClosedHandlers) {
+        OsHandler.getInstance().post(callback);
+      }
     }
   }
 

@@ -477,6 +477,12 @@ public class RequestOld implements Requesting {
     if (Constants.isTestMode) {
       return;
     }
+
+    // always save request first
+    sendEventually();
+
+    // in case appId and accessKey are set later, request is already saved and will be
+    // sent when variables are set.
     if (appId == null) {
       Log.e("Cannot send request. appId is not set.");
       return;
@@ -486,19 +492,17 @@ public class RequestOld implements Requesting {
       return;
     }
 
-    this.sendEventually();
-
     Leanplum.countAggregator().incrementCount("send_now");
 
-    Util.executeAsyncTask(true, new AsyncTask<Void, Void, Void>() {
+    // Try to send all saved requests.
+    OperationQueue.sharedInstance().addOperation(new Runnable() {
       @Override
-      protected Void doInBackground(Void... params) {
+      public void run() {
         try {
           sendRequests();
         } catch (Throwable t) {
           Util.handleException(t);
         }
-        return null;
       }
     });
   }

@@ -302,6 +302,22 @@ public class Var<T> {
         numberValue = Double.valueOf(stringValue);
       } catch (NumberFormatException e) {
         numberValue = null;
+        if (defaultValue instanceof Short) {
+          value = (T) (Short) ((Number) defaultValue).shortValue();
+          numberValue = Double.valueOf(((Number) defaultValue).shortValue());
+        } else if (defaultValue instanceof Integer) {
+          value = (T) (Integer) ((Number) defaultValue).intValue();
+          numberValue = Double.valueOf(((Number) defaultValue).intValue());
+        } else if (defaultValue instanceof Long) {
+          value = (T) (Long) ((Number) defaultValue).longValue();
+          numberValue = Double.valueOf(((Number) defaultValue).longValue());
+        } else if (defaultValue instanceof Float) {
+          value = (T) (Float) ((Number) defaultValue).floatValue();
+          numberValue = Double.valueOf(((Number) defaultValue).floatValue());
+        } else if (defaultValue instanceof Double) {
+          value = (T) (Double) ((Number) defaultValue).doubleValue();
+          numberValue = Double.valueOf(((Number) defaultValue).doubleValue());
+        }
       }
     } else if (value instanceof Number) {
       stringValue = "" + value;
