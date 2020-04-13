@@ -287,7 +287,13 @@ public class LeanplumInternal {
     if (((BaseActionContext) context).isPreview()) {
       return 5;
     } else {
-      Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(context.messageId));
+      // We need to lookup by original message id, to avoid looking up messages with
+      // added prefix of __held_back__ to message id.
+      String originalMessageId = context.getOriginalMessageId();
+      if (originalMessageId == null) {
+        return 0;
+      }
+      Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(originalMessageId));
       Object countdown = messageConfig.get("countdown");
       if (countdown instanceof Number) {
         return ((Number) countdown).intValue();
