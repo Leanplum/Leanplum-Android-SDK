@@ -1,6 +1,6 @@
 // Export methods by turning them into closures
 ext {
-    COMPILE_SDK_VERSION = 28
+    COMPILE_SDK_VERSION = 29
     APPCOMPAT_LIBRARY_VERSION = '1.1.0'
     MIN_SDK_VERSION = 14
 
