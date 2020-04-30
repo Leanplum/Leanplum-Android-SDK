@@ -19,6 +19,7 @@ before_deploy:
 
 after_deploy:
   - ./Tools/triggerRondo.sh
+  - version=`cat sdk-version.txt`; if [[ $version != *"beta"* ]]; then ./Tools/triggerRN.sh; fi; # trigger ReactNative if not beta release
 
 deploy:
   - provider: script
