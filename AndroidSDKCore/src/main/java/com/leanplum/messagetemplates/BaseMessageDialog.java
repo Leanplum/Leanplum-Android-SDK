@@ -523,6 +523,9 @@ public class BaseMessageDialog extends Dialog {
       @SuppressWarnings("deprecation")
       @Override
       public boolean shouldOverrideUrlLoading(WebView wView, String url) {
+        if (isClosing) // prevent multiple clicks on same button
+          return true;
+
         // Open URL event.
         if (url.contains(htmlOptions.getOpenUrl())) {
           dialogView.setVisibility(View.VISIBLE);
