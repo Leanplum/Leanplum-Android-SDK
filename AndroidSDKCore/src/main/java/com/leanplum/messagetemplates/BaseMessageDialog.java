@@ -474,14 +474,6 @@ public class BaseMessageDialog extends Dialog {
     dialogView.setVisibility(View.GONE);
     final WebView webView = new WebView(context);
     webView.setBackgroundColor(Color.TRANSPARENT);
-    webView.setVerticalScrollBarEnabled(false);
-    webView.setHorizontalScrollBarEnabled(false);
-    webView.setOnTouchListener(new View.OnTouchListener() {
-      public boolean onTouch(View v, MotionEvent event) {
-        return (event.getAction() == MotionEvent.ACTION_MOVE);
-      }
-    });
-    webView.canGoBack();
     // Disable long click.
     webView.setLongClickable(false);
     webView.setHapticFeedbackEnabled(false);
