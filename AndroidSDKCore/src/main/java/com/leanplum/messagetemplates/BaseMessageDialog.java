@@ -24,13 +24,16 @@ package com.leanplum.messagetemplates;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.text.Layout;
@@ -455,6 +458,20 @@ public class BaseMessageDialog extends Dialog {
             }
           }
           return true;
+        }
+
+        // handle Google Play URI
+        Uri uri = Uri.parse(url);
+        if ("market".equals(uri.getScheme())) {
+          try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(uri);
+            wView.getContext().startActivity(intent);
+            return true;
+          } catch (ActivityNotFoundException e) {
+            // Missing Google Play
+            return false;
+          }
         }
         return false;
       }
