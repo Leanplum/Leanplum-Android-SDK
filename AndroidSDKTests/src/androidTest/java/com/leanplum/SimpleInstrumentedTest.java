@@ -39,7 +39,7 @@ public class SimpleInstrumentedTest {
   @Test
   public void viewSnapshotTest() {
 //        Context appContext = InstrumentationRegistry.getTargetContext();
-    Context appContext = androidx.test.InstrumentationRegistry.getInstrumentation().getTargetContext();
+    Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     LinearLayout view = new LinearLayout(appContext);
     view.setBackgroundColor(appContext.getResources().getColor(R.color.colorPrimary));
 

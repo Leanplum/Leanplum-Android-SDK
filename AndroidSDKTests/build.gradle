@@ -49,7 +49,7 @@ dependencies {
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
-    implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
+    implementation "androidx.appcompat:appcompat:1.2.0-beta01"
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     // Dependencies used for unit tests.
