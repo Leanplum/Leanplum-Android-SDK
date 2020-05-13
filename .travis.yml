@@ -14,8 +14,9 @@ before_install:
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
 
 before_script:
+  - mksdcard -l e 512M test-sd.img
   - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
+  - emulator -avd test -sdcard test-sd.img -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
