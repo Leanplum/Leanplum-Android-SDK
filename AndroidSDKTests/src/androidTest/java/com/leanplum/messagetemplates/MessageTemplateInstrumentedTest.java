@@ -103,7 +103,7 @@ CenterPopup centerpopup;
 //    map.put(MessageTemplates.Args.LAYOUT_HEIGHT, 128);
     a = new HashMap<>();
     a.put("Width", 300);
-    a.put("Height", 300);
+    a.put("Height", 250);
     map.put("Layout", a);
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");

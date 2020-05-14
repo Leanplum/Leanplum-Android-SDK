@@ -64,7 +64,7 @@ dependencies {
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
-    implementation "androidx.appcompat:appcompat:1.2.0-beta01" // Emulator with API22 WebView is failing with exception because of appcompat version. Fixed in newest version.
+    implementation "androidx.appcompat:appcompat:1.2.0-beta01" // WebView in Emulator with API22 is failing with exception because of appcompat version. In 1.2.0-beta01 it is not reproduced.
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     // Dependencies used for unit tests.

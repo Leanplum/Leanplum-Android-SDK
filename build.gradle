@@ -7,9 +7,8 @@ buildscript {
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.7.5'
-        classpath 'com.android.tools.build:gradle:3.6.0'
+        classpath 'com.android.tools.build:gradle:3.6.2'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
-
     }
 }
 
