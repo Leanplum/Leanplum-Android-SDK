@@ -45,7 +45,7 @@ script:
 #  - ./gradlew assembleRelease testReleaseUnitTest
 #  ./gradlew connectedAndroidTest
 #  - ./gradlew recordDebugAndroidTestScreenshotTest
-  - ./gradlew recordDebugAndroidTestScreenshotTest
+  - ./gradlew verifyDebugAndroidTestScreenshotTest
 
 before_deploy:
   - ./Tools/verifyTag.sh
