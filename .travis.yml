@@ -14,6 +14,7 @@ before_install:
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
 
 before_script:
+  - python -m pip install Pillow --user
   - mksdcard -l e 512M test-sd.img
   - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
   - emulator -avd test -sdcard test-sd.img -no-audio -no-window &
@@ -22,7 +23,9 @@ before_script:
 
 script:
 #  - ./gradlew assembleRelease testReleaseUnitTest
-  ./gradlew connectedAndroidTest
+#  ./gradlew connectedAndroidTest
+  - ./gradlew recordDebugAndroidTestScreenshotTest
+  - ./gradlew verifyDebugAndroidTestScreenshotTest
 
 before_deploy:
   - ./Tools/verifyTag.sh
