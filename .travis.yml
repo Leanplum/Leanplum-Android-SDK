@@ -24,7 +24,7 @@ before_script:
 script:
 #  - ./gradlew assembleRelease testReleaseUnitTest
 #  ./gradlew connectedAndroidTest
-  - ./gradlew recordDebugAndroidTestScreenshotTest
+#  - ./gradlew recordDebugAndroidTestScreenshotTest
   - ./gradlew verifyDebugAndroidTestScreenshotTest
 
 before_deploy:
