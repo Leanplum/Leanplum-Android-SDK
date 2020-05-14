@@ -1,23 +1,43 @@
 language: android
+
+env:
+  global:
+    - BUILD_API=28
+    - BUILD_TOOLS=28.0.3
+    - ABI=x86
+    - EMU_API=22
+    - EMU_FLAVOR=default
+    - ANDROID_HOME=/usr/local/android-sdk
+    - TOOLS=${ANDROID_HOME}/tools
+    # PATH order is important, the 'emulator' script exists in more than one place
+    - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
+
 android:
   components:
     - tools
-    - platform-tools
-    - build-tools-28.0.3
-    - android-22
-    - android-28
-    - sys-img-armeabi-v7a-android-22
-    - extra-android-m2repository
+
+licenses:
+  - 'android-sdk-preview-license-.+'
+  - 'android-sdk-license-.+'
+  - 'google-gdk-license-.+'
 
 before_install:
   - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-160.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-160.jar"
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
 
 before_script:
-  - python -m pip install Pillow --user
-  - mksdcard -l e 512M test-sd.img
-  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
-  - emulator -avd test -sdcard test-sd.img -no-audio -no-window &
+  - python -m pip install Pillow --user # for image manipulation
+  # Emulator - Create, Start and Wait
+  - echo 'count=0' > /home/travis/.android/repositories.cfg # avoid harmless sdkmanager warning
+  - echo y | sdkmanager "platform-tools" >/dev/null
+  - echo y | sdkmanager "tools" >/dev/null
+  - echo y | sdkmanager "build-tools;$BUILD_TOOLS" >/dev/null
+  - echo y | sdkmanager "platforms;android-$EMU_API" >/dev/null
+  - echo y | sdkmanager "platforms;android-$BUILD_API" >/dev/null
+  - echo y | sdkmanager "extras;android;m2repository" >/dev/null
+  - echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"
+  - echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M
+  - emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
@@ -25,7 +45,7 @@ script:
 #  - ./gradlew assembleRelease testReleaseUnitTest
 #  ./gradlew connectedAndroidTest
 #  - ./gradlew recordDebugAndroidTestScreenshotTest
-  - ./gradlew verifyDebugAndroidTestScreenshotTest
+  - ./gradlew recordDebugAndroidTestScreenshotTest
 
 before_deploy:
   - ./Tools/verifyTag.sh
