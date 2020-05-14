@@ -2,6 +2,15 @@ apply plugin: 'com.android.application'
 apply from: "../common-methods.gradle"
 apply plugin: 'com.facebook.testing.screenshot'
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.facebook.testing.screenshot:plugin:0.12.0'
+    }
+}
+
 android {
     compileSdkVersion COMPILE_SDK_VERSION
 
@@ -55,7 +64,7 @@ dependencies {
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
-    implementation "androidx.appcompat:appcompat:1.2.0-beta01"
+    implementation "androidx.appcompat:appcompat:1.2.0-beta01" // Emulator with API22 WebView is failing with exception because of appcompat version. Fixed in newest version.
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     // Dependencies used for unit tests.
