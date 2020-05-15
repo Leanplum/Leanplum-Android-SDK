@@ -1,7 +1,7 @@
-Purpose
+Snapshot testing
 ------------
 
-How to execute and record snapshot tests (macOS).
+This file shows how to execute and record the snapshot tests (macOS).
 
 Tool used for snapshot testing is [screenshot-tests-for-android](https://facebook.github.io/screenshot-tests-for-android/).
 
@@ -28,6 +28,11 @@ Usage
 If tests are failing compare snapshots:
 - your snapshots - AndroidSDKTests/build/screenshotsDebugAndroidTest
 - reference snapshots - AndroidSDKTests/screenshots
+
+You could use [ImageMagick](https://imagemagick.org/).
+
+    $ brew install imagemagick
+    $ magick left.png right.png difference.png
 
 #### Recording tests
 
