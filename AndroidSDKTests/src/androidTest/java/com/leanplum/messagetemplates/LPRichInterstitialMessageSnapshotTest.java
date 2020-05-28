@@ -42,7 +42,7 @@ public class LPRichInterstitialMessageSnapshotTest {
       }
     });
 
-    Thread.sleep(2000); // wait until WebView is rendered
+    Thread.sleep(7000); // wait until WebView is rendered
 
     instrumentation.runOnMainSync(new Runnable() {
       @Override
