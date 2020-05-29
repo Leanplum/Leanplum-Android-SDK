@@ -14,16 +14,15 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
 
-public class LPCenterPopupMessageSnapshotTest extends BaseSnapshotTest {
-
+public class LPInterstitialMessageSnapshotTest extends BaseSnapshotTest {
   @Override
   public String getSnapshotName() {
-    return "centerPopup";
+    return "interstitial";
   }
 
   @Test
   @UiThreadTest
-  public void testCenterPopup() {
+  public void testInterstitial() {
     Activity mainActivity = getMainActivity();
     Leanplum.setApplicationContext(mainActivity);
 
@@ -31,33 +30,29 @@ public class LPCenterPopupMessageSnapshotTest extends BaseSnapshotTest {
 
     Map<String, Object> args = new HashMap<>();
     args.put(Args.TITLE_TEXT, appName);
-    args.put(Args.TITLE_COLOR, Color.RED);
-    args.put(Args.MESSAGE_TEXT, Values.POPUP_MESSAGE);
+    args.put(Args.TITLE_COLOR, Color.BLACK);
+    args.put(Args.MESSAGE_TEXT, Values.INTERSTITIAL_MESSAGE);
     args.put(Args.MESSAGE_COLOR, Color.BLACK);
     args.put(Args.BACKGROUND_COLOR, Color.WHITE);
     args.put(Args.ACCEPT_BUTTON_TEXT, Values.OK_TEXT);
     args.put(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, Color.WHITE);
     args.put(Args.ACCEPT_BUTTON_TEXT_COLOR, Color.BLACK);
-    args.put(Args.LAYOUT_WIDTH, Values.CENTER_POPUP_WIDTH);
-    args.put(Args.LAYOUT_HEIGHT, Values.CENTER_POPUP_HEIGHT);
     ActionContext realContext = new ActionContext(getSnapshotName(), args, null);
 
     ActionContext mockedContext = spy(realContext);
     when(mockedContext.stringNamed(Args.TITLE_TEXT)).thenReturn(appName);
-    when(mockedContext.numberNamed(Args.TITLE_COLOR)).thenReturn(Color.RED);
-    when(mockedContext.stringNamed(Args.MESSAGE_TEXT)).thenReturn(Values.POPUP_MESSAGE);
+    when(mockedContext.numberNamed(Args.TITLE_COLOR)).thenReturn(Color.BLACK);
+    when(mockedContext.stringNamed(Args.MESSAGE_TEXT)).thenReturn(Values.INTERSTITIAL_MESSAGE);
     when(mockedContext.numberNamed(Args.MESSAGE_COLOR)).thenReturn(Color.BLACK);
     when(mockedContext.numberNamed(Args.BACKGROUND_COLOR)).thenReturn(Color.WHITE);
     when(mockedContext.stringNamed(Args.ACCEPT_BUTTON_TEXT)).thenReturn(Values.OK_TEXT);
     when(mockedContext.numberNamed(Args.ACCEPT_BUTTON_BACKGROUND_COLOR)).thenReturn(Color.WHITE);
     when(mockedContext.numberNamed(Args.ACCEPT_BUTTON_TEXT_COLOR)).thenReturn(Color.BLACK);
-    when(mockedContext.numberNamed(Args.LAYOUT_WIDTH)).thenReturn(Values.CENTER_POPUP_WIDTH);
-    when(mockedContext.numberNamed(Args.LAYOUT_HEIGHT)).thenReturn(Values.CENTER_POPUP_HEIGHT);
 
-    CenterPopupOptions options = new CenterPopupOptions(mockedContext);
-    CenterPopup centerpopup = new CenterPopup(mainActivity, options);
+    InterstitialOptions options = new InterstitialOptions(mockedContext);
+    Interstitial interstitial = new Interstitial(mainActivity, options);
 
-    setupView(centerpopup.dialogView);
-    snapshotView(centerpopup.dialogView);
+    setupView(interstitial.dialogView);
+    snapshotView(interstitial.dialogView);
   }
 }

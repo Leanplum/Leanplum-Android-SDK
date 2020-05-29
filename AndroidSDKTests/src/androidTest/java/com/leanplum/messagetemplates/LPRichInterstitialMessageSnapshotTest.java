@@ -1,44 +1,54 @@
 package com.leanplum.messagetemplates;
 
-import android.app.Activity;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import android.app.Instrumentation;
 import android.view.View;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ActivityTestRule;
-import com.facebook.testing.screenshot.Screenshot;
-import com.facebook.testing.screenshot.ViewHelpers;
 import com.leanplum.ActionContext;
-import com.leanplum.FileUtils;
 import com.leanplum.Leanplum;
-import com.leanplum.internal.FileManager;
-import com.leanplum.tests.MainActivity;
+import com.leanplum.messagetemplates.MessageTemplates.Args;
+import com.leanplum.messagetemplates.MessageTemplates.Values;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
-import org.junit.Rule;
+import java.util.Map;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
-@RunWith(AndroidJUnit4.class)
-public class LPRichInterstitialMessageSnapshotTest {
-
-  @Rule
-  public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class);
+public class LPRichInterstitialMessageSnapshotTest extends BaseSnapshotTest {
 
   private View messageView;
+  private InputStream templateStream;
+
+  @Override
+  protected String getSnapshotName() {
+    return "richInterstitial";
+  }
+
+  @Before
+  public void setUp() {
+    templateStream = getClass().getResourceAsStream("/messages/richInterstitialTemplate.html");
+  }
+
+  @After
+  public void tearDown() throws IOException {
+    templateStream.close();
+  }
 
   @Test
-  public void testRichInterstitial() throws Exception {
+  public void testRichInterstitial() throws InterruptedException {
     Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
-    Leanplum.setApplicationContext(activityRule.getActivity());
-
-    final String templateName = "richInterstitialTemplate.html";
-    String templatePathOnDevice = FileManager.fileRelativeToDocuments(templateName);
-    FileUtils.uploadResource("/messages/" + templateName, templatePathOnDevice);
+    Leanplum.setApplicationContext(getMainActivity());
 
     instrumentation.runOnMainSync(new Runnable() {
       @Override
       public void run() {
-        messageView = createHtmlTemplateMessage(templateName);
+        messageView = createMessageView();
+        setupView(messageView);
       }
     });
 
@@ -47,37 +57,44 @@ public class LPRichInterstitialMessageSnapshotTest {
     instrumentation.runOnMainSync(new Runnable() {
       @Override
       public void run() {
-        Screenshot.snap(messageView).setName("richInterstitial").record();
+        snapshotView(messageView);
       }
     });
   }
 
-  private View createHtmlTemplateMessage(String htmlFileName)  {
+  private View createMessageView()  {
+    Map<String, Object> args = new HashMap<>();
+    args.put(Args.LAYOUT_WIDTH, Values.CENTER_POPUP_WIDTH);
+    args.put(Args.LAYOUT_HEIGHT, Values.CENTER_POPUP_HEIGHT);
+    args.put(Args.CLOSE_URL, Values.DEFAULT_CLOSE_URL);
+    args.put(Args.OPEN_URL, Values.DEFAULT_OPEN_URL);
+    args.put(Args.TRACK_URL, Values.DEFAULT_TRACK_URL);
+    args.put(Args.ACTION_URL, Values.DEFAULT_ACTION_URL);
+    args.put(Args.TRACK_ACTION_URL, Values.DEFAULT_TRACK_ACTION_URL);
+    args.put(Args.HTML_ALIGN, Values.DEFAULT_HTML_ALING);
+    args.put(Args.HTML_HEIGHT, Values.DEFAULT_HTML_HEIGHT);
+    args.put(Args.HTML_WIDTH, "100%");
+    args.put(Args.HTML_TAP_OUTSIDE_TO_CLOSE, false);
+    args.put(Args.HAS_DISMISS_BUTTON, false);
+    ActionContext realContext = new ActionContext(getSnapshotName(), args, null);
 
-    final Activity mainActivity = activityRule.getActivity();
+    ActionContext mockedContext = spy(realContext);
+    when(mockedContext.numberNamed(Args.LAYOUT_WIDTH)).thenReturn(Values.CENTER_POPUP_WIDTH);
+    when(mockedContext.numberNamed(Args.LAYOUT_HEIGHT)).thenReturn(Values.CENTER_POPUP_HEIGHT);
+    when(mockedContext.stringNamed(Args.CLOSE_URL)).thenReturn(Values.DEFAULT_CLOSE_URL);
+    when(mockedContext.stringNamed(Args.OPEN_URL)).thenReturn(Values.DEFAULT_OPEN_URL);
+    when(mockedContext.stringNamed(Args.TRACK_URL)).thenReturn(Values.DEFAULT_TRACK_URL);
+    when(mockedContext.stringNamed(Args.ACTION_URL)).thenReturn(Values.DEFAULT_ACTION_URL);
+    when(mockedContext.stringNamed(Args.TRACK_ACTION_URL)).thenReturn(Values.DEFAULT_TRACK_ACTION_URL);
+    when(mockedContext.stringNamed(Args.HTML_ALIGN)).thenReturn(Values.DEFAULT_HTML_ALING);
+    when(mockedContext.numberNamed(Args.HTML_HEIGHT)).thenReturn(Values.DEFAULT_HTML_HEIGHT);
+    when(mockedContext.stringNamed(Args.HTML_WIDTH)).thenReturn("100%");
+    when(mockedContext.booleanNamed(Args.HTML_TAP_OUTSIDE_TO_CLOSE)).thenReturn(false);
+    when(mockedContext.booleanNamed(Args.HAS_DISMISS_BUTTON)).thenReturn(false);
+    when(mockedContext.streamNamed(Mockito.anyString())).thenReturn(templateStream);
 
-    HashMap<String, Object> map = new HashMap<>();
-    map.put("Width", "100%");
-    map.put("Height", "100%");
-    map.put(MessageTemplates.Args.CLOSE_URL, "http://leanplum/close");
-    map.put(MessageTemplates.Args.OPEN_URL, "http://leanplum/loadFinished");
-    map.put(MessageTemplates.Args.TRACK_URL, "http://leanplum/track");
-    map.put(MessageTemplates.Args.ACTION_URL, "http://leanplum/runAction");
-    map.put(MessageTemplates.Args.TRACK_ACTION_URL, "http://leanplum/runTrackedAction");
-    map.put(MessageTemplates.Args.HTML_ALIGN, "Top");
-    map.put(MessageTemplates.Args.HTML_HEIGHT, 0);
-    map.put(MessageTemplates.Args.HTML_TAP_OUTSIDE_TO_CLOSE, false);
-    map.put(MessageTemplates.Values.HTML_TEMPLATE_PREFIX, htmlFileName);
-
-    ActionContext actionContext = new ActionContext("HTML", map, "message_id");
-    HTMLOptions options = new HTMLOptions(actionContext);
-    HTMLTemplate htmlTemplate = new HTMLTemplate(mainActivity, options);
-
-    ViewHelpers.setupView(htmlTemplate.dialogView)
-        .setExactWidthDp(480)
-        .setExactHeightDp(640)
-        .layout();
-
+    HTMLOptions options = new HTMLOptions(mockedContext);
+    HTMLTemplate htmlTemplate = new HTMLTemplate(getMainActivity(), options);
     return htmlTemplate.dialogView;
   }
 }
