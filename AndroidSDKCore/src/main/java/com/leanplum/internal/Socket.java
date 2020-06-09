@@ -53,7 +53,6 @@ public class Socket {
   private static final String TAG = "Leanplum";
   private static final String EVENT_CONTENT_RESPONSE = "getContentResponse";
   private static final String EVENT_UPDATE_VARS = "updateVars";
-  private static final String EVENT_PREVIEW_UPDATE_RULES = "previewUpdateRules";
   private static final String EVENT_TRIGGER = "trigger";
   private static final String EVENT_GET_VARIABLES = "getVariables";
   private static final String EVENT_GET_ACTIONS = "getActions";
@@ -124,9 +123,6 @@ public class Socket {
               break;
             case EVENT_TRIGGER:
               handleTriggerEvent(arguments);
-              break;
-            case EVENT_PREVIEW_UPDATE_RULES:
-              previewUpdateRules(arguments);
               break;
             case EVENT_GET_VARIABLES:
               handleGetVariablesEvent();
@@ -306,26 +302,11 @@ public class Socket {
         return;
       }
       VarCache.applyVariableDiffs(
-          JsonConverter.mapFromJson(object), null, null, null, null, null, null);
+          JsonConverter.mapFromJson(object), null, null, null, null);
     } catch (JSONException e) {
       Log.e("Couldn't applyVars for preview.", e);
     } catch (Throwable e) {
       Util.handleException(e);
-    }
-  }
-
-  void previewUpdateRules(JSONArray arguments) {
-    try {
-      JSONObject packetData = arguments.getJSONObject(0);
-      JSONArray rules = packetData.optJSONArray("rules");
-
-      if (rules != null) {
-        List<Map<String, Object>> ruleDiffs = JsonConverter.listFromJson(rules);
-        VarCache.applyUpdateRuleDiffs(ruleDiffs);
-      }
-    } catch (Exception e) {
-      Log.e("Error parsing data");
-      return;
     }
   }
 

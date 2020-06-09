@@ -287,8 +287,7 @@ public class LeanplumActionContextTest extends AbstractTest {
         // Add chained message to VarCache.
         VarCache.applyVariableDiffs(null, new HashMap<>(
                 ImmutableMap.<String, Object>of(Long.toString(chainedMessageId),
-                ImmutableMap.<String, Object>of())),
-                null, null, null, null, null);
+                ImmutableMap.<String, Object>of())), null, null, null);
         // Since it now exists locally, we should return false for forceContentUpdate.
         Assert.assertFalse(ActionContext.shouldForceContentUpdateForChainedMessage(
                 JsonConverter.fromJson(jsonData)));
