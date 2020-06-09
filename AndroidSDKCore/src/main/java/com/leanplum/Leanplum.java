@@ -102,6 +102,7 @@ public class Leanplum {
   private static RegisterDeviceFinishedCallback registerDeviceFinishedHandler;
   private static LeanplumDeviceIdMode deviceIdMode = LeanplumDeviceIdMode.MD5_MAC_ADDRESS;
   private static String customDeviceId;
+  private static String customAppVersion = null;
   private static boolean userSpecifiedDeviceId;
   private static boolean initializedMessageTemplates = false;
   private static boolean locationCollectionEnabled = true;
@@ -279,6 +280,16 @@ public class Leanplum {
    */
   public static boolean isScreenTrackingEnabled() {
     return LeanplumInternal.getIsScreenTrackingEnabled();
+  }
+
+  /**
+   * By default, Leanplum reports the version of your app using
+   * getPackageManager().getPackageInfo, which can be used for reporting and targeting
+   * on the Leanplum dashboard. If you wish to use any other string as the version,
+   * you can call this before your call to Leanplum.start()
+   */
+  public static void setAppVersion(String appVersion) {
+    customAppVersion = appVersion;
   }
 
   /**
@@ -634,6 +645,9 @@ public class Leanplum {
 
     // Setup parameters.
     String versionName = Util.getVersionName();
+    if (customAppVersion != null) {
+      versionName = customAppVersion;
+    }
     if (versionName == null) {
       versionName = "";
     }

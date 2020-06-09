@@ -1,0 +1,49 @@
+# compiler: R8
+# compiler_version: 1.5.68
+# pg_map_id: ac96c33
+com.leanplum.GeofenceStatus -> com.leanplum.GeofenceStatus:
+    1:1:void <init>():58:58 -> <init>
+    1:2:boolean shouldTriggerEnteredGeofence(java.lang.Number,java.lang.Number):64:65 -> shouldTriggerEnteredGeofence
+    1:2:boolean shouldTriggerExitedGeofence(java.lang.Number,java.lang.Number):69:70 -> shouldTriggerExitedGeofence
+com.leanplum.LocationManagerImplementation -> com.leanplum.LocationManagerImplementation:
+    1:8:void <init>():116:123 -> <init>
+    1:1:boolean access$002(com.leanplum.LocationManagerImplementation,boolean):79:79 -> access$002
+    1:1:com.leanplum.LeanplumLocationAccuracyType access$102(com.leanplum.LocationManagerImplementation,com.leanplum.LeanplumLocationAccuracyType):79:79 -> access$102
+    1:1:java.util.Date access$202(com.leanplum.LocationManagerImplementation,java.util.Date):79:79 -> access$202
+    1:10:com.google.android.gms.location.Geofence geofenceFromMap(java.util.Map,java.lang.String):208:217 -> geofenceFromMap
+    11:17:com.google.android.gms.location.Geofence geofenceFromMap(java.util.Map,java.lang.String):216:222 -> geofenceFromMap
+    1:1:java.lang.String geofenceID(java.lang.String,java.lang.Integer):226:226 -> geofenceID
+    1:2:java.lang.String getRegionName(java.lang.String):389:390 -> getRegionName
+    1:4:java.util.List getToBeTrackedGeofences():329:332 -> getToBeTrackedGeofences
+    1:3:android.app.PendingIntent getTransitionPendingIntent():396:398 -> getTransitionPendingIntent
+    1:5:com.leanplum.LocationManager instance():105:109 -> instance
+    1:4:boolean isMetaDataSet():257:260 -> isMetaDataSet
+    5:9:boolean isMetaDataSet():259:263 -> isMetaDataSet
+    1:3:boolean isPermissionGranted():248:250 -> isPermissionGranted
+    1:11:void loadLastKnownRegionState():181:191 -> loadLastKnownRegionState
+    1:8:void maybePerformActions(com.google.android.gms.location.Geofence,java.lang.String,boolean):368:375 -> maybePerformActions
+    1:3:boolean needToSendLocation(com.leanplum.LeanplumLocationAccuracyType):484:486 -> needToSendLocation
+    1:4:void onConnected(android.os.Bundle):404:407 -> onConnected
+    1:24:void onLocationChanged(android.location.Location):426:449 -> onLocationChanged
+    1:13:void requestLocation():461:473 -> requestLocation
+    1:9:void saveLastKnownRegionState():196:204 -> saveLastKnownRegionState
+    1:27:void setRegionsData(java.util.Map,java.util.Set,java.util.Set):129:155 -> setRegionsData
+    1:2:void setUserAttributesForLocationUpdate(android.location.Location,com.leanplum.LeanplumLocationAccuracyType):497:498 -> setUserAttributesForLocationUpdate
+    1:14:void startLocationClient():230:243 -> startLocationClient
+    15:15:void startLocationClient():231:231 -> startLocationClient
+    1:4:void updateGeofencing():172:175 -> updateGeofencing
+    1:15:void updateStatusForGeofences(java.util.List,int):337:351 -> updateStatusForGeofences
+    16:22:void updateStatusForGeofences(java.util.List,int):350:356 -> updateStatusForGeofences
+    23:30:void updateStatusForGeofences(java.util.List,int):355:362 -> updateStatusForGeofences
+    31:34:void updateStatusForGeofences(java.util.List,int):361:364 -> updateStatusForGeofences
+    1:19:void updateTrackedGeofences():279:297 -> updateTrackedGeofences
+    20:49:void updateTrackedGeofences():296:325 -> updateTrackedGeofences
+    1:3:void updateUserLocation():162:164 -> updateUserLocation
+com.leanplum.LocationManagerImplementation$1 -> com.leanplum.LocationManagerImplementation$1:
+    1:1:void <init>(com.leanplum.LocationManagerImplementation,com.leanplum.LeanplumLocationAccuracyType):499:499 -> <init>
+    1:5:void response(boolean):502:506 -> response
+com.leanplum.ReceiveTransitionsIntentService -> com.leanplum.ReceiveTransitionsIntentService:
+    1:1:void <init>():42:42 -> <init>
+    1:18:void onHandleIntent(android.content.Intent):48:65 -> onHandleIntent
+com.leanplum.location.BuildConfig -> com.leanplum.location.BuildConfig:
+    1:1:void <init>():6:6 -> <init>
