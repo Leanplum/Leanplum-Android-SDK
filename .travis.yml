@@ -3,8 +3,8 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-28.0.3
-    - android-28
+    - build-tools-29.0.3
+    - android-29
 
 before_install:
   - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-160.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-160.jar"
@@ -15,7 +15,7 @@ script:
 
 before_deploy:
   - ./Tools/verifyTag.sh
-  - ./gradlew assembleRelease makeJar generatePomFileForAarPublication
+  - ./gradlew assembleRelease generatePomFileForAarPublication
 
 after_deploy:
   - ./Tools/triggerRondo.sh
