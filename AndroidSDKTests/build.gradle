@@ -47,10 +47,10 @@ dependencies {
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
     implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
-    implementation 'com.google.android.gms:play-services-location:11.6.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 
     // Dependencies used for unit tests.
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     testImplementation('org.robolectric:robolectric:4.3.1') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
@@ -61,7 +61,7 @@ dependencies {
     testImplementation 'org.powermock:powermock-module-junit4-rule:1.6.6'
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
     testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
-    testImplementation 'org.bouncycastle:bcmail-jdk15on:1.54'
+    testImplementation 'org.bouncycastle:bcmail-jdk15on:1.65'
 }
 
 task jarTests(type: Jar, dependsOn: "assembleDebugUnitTest") {

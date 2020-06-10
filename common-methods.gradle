@@ -54,6 +54,9 @@ def publishing_task(libraryArtifactId) {
                     artifact androidJavadocsJar
                     artifact androidSourcesJar
 
+                    // publish jar
+                    artifact("$buildDir/intermediates/aar_main_jar/release/classes.jar")
+
                     pom {
                         name = libraryArtifactId
                         description = 'The Leanplum SDK messaging platform'
