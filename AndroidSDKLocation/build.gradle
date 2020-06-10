@@ -37,4 +37,4 @@ task generateJavadoc(type: Javadoc) {
     failOnError false
 }
 
-publishing_task(LEANPLUM_LOCATION_ARTIFACT_ID, 'AndroidSDKLocation')
+publishing_task(LEANPLUM_LOCATION_ARTIFACT_ID)

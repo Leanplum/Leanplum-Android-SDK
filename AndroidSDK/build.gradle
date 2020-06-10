@@ -19,7 +19,6 @@ dependencies {
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    //    publishNonDefault true
 
     defaultConfig {
         minSdkVersion MIN_SDK_VERSION

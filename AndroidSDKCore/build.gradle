@@ -9,8 +9,6 @@ android {
     compileSdkVersion COMPILE_SDK_VERSION
     useLibrary 'org.apache.http.legacy'
 
-    publishNonDefault true
-
     defaultConfig {
         minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
@@ -47,4 +45,4 @@ task generateJavadoc(type: Javadoc) {
     failOnError false
 }
 
-publishing_task(LEANPLUM_CORE_ARTIFACT_ID, 'AndroidSDKCore')
+publishing_task(LEANPLUM_CORE_ARTIFACT_ID)

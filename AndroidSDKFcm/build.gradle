@@ -40,4 +40,4 @@ task generateJavadoc(type: Javadoc) {
     failOnError false
 }
 
-publishing_task(LEANPLUM_FCM_ARTIFACT_ID, 'AndroidSDKFcm')
+publishing_task(LEANPLUM_FCM_ARTIFACT_ID)

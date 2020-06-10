@@ -51,7 +51,7 @@ dependencies {
 
     // Dependencies used for unit tests.
     testImplementation 'junit:junit:4.12'
-    testImplementation('org.robolectric:robolectric:4.1') {
+    testImplementation('org.robolectric:robolectric:4.3.1') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
@@ -65,7 +65,7 @@ dependencies {
 }
 
 task jarTests(type: Jar, dependsOn: "assembleDebugUnitTest") {
-    classifier = 'tests'
+    archiveClassifier = 'tests'
     from "$buildDir/intermediates/classes/test/debug"
 }
 configurations {

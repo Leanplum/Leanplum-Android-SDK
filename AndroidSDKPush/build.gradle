@@ -33,4 +33,4 @@ task generateJavadoc(type: Javadoc) {
     failOnError false
 }
 
-publishing_task(LEANPLUM_PUSH_ARTIFACT_ID, 'AndroidSDKPush')
+publishing_task(LEANPLUM_PUSH_ARTIFACT_ID)
