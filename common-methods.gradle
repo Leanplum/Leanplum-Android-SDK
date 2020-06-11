@@ -56,7 +56,7 @@ def publishing_task(libraryArtifactId) {
                     artifact androidSourcesJar
 
                     // publish jar
-                    artifact("$buildDir/intermediates/aar_main_jar/release/classes.jar")
+                    //artifact("$buildDir/intermediates/aar_main_jar/release/classes.jar")
 
                     pom {
                         packaging = 'aar'
