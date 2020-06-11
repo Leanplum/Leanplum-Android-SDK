@@ -32,6 +32,11 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility JAVA_VERSION
+        targetCompatibility JAVA_VERSION
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
