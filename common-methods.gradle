@@ -84,42 +84,45 @@ def publishing_task(libraryArtifactId) {
         }
     }
 
-    artifactory {
-        contextUrl = 'http://artifactory.leanplum.com'
-        publish {
-            repository {
-                repoKey = 'libs-release-local'
+    afterEvaluate {
+        artifactory {
+            contextUrl = 'http://artifactory.leanplum.com'
+            publish {
+                repository {
+                    repoKey = 'libs-release-local'
 
-                username = System.getenv('ARTIFACTORY_USER')
-                password = System.getenv('ARTIFACTORY_PASSWORD')
-            }
-            defaults {
-                publications('aar')
-                publishArtifacts = true
+                    username = System.getenv('ARTIFACTORY_USER')
+                    password = System.getenv('ARTIFACTORY_PASSWORD')
+                }
+                defaults {
+                    publications('aar')
+                    publishArtifacts = true
 
-                properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
-                publishPom = true
+                    properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
+                    publishPom = true
+                }
             }
         }
     }
 
-
-    bintray {
-        user = System.getenv('BINTRAY_USER')
-        key = System.getenv('BINTRAY_API_KEY')
-        publications = ['aar']
-        pkg {
-            repo = 'maven'
-            name = libraryArtifactId
-            userOrg = 'leanplum'
-            licenses = ['Apache-2.0']
-            vcsUrl = 'https://github.com/Leanplum/Leanplum-Android-SDK.git'
-            version {
-                name = LEANPLUM_SDK_VERSION
-                released  = new Date()
-                vcsTag = LEANPLUM_SDK_VERSION
+    afterEvaluate {
+        bintray {
+            user = System.getenv('BINTRAY_USER')
+            key = System.getenv('BINTRAY_API_KEY')
+            publications = ['aar']
+            pkg {
+                repo = 'maven'
+                name = libraryArtifactId
+                userOrg = 'leanplum'
+                licenses = ['Apache-2.0']
+                vcsUrl = 'https://github.com/Leanplum/Leanplum-Android-SDK.git'
+                version {
+                    name = LEANPLUM_SDK_VERSION
+                    released = new Date()
+                    vcsTag = LEANPLUM_SDK_VERSION
+                }
+                publish = true
             }
-            publish = true
         }
     }
 }
