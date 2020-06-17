@@ -30,6 +30,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 
 import org.json.JSONObject;
@@ -187,7 +188,7 @@ public class LeanplumInboxMessage {
         params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
         RequestOld req = RequestOld.post(Constants.Methods.MARK_INBOX_MESSAGE_AS_READ,
             params);
-        req.send();
+        RequestSender.getInstance().send(req);
       }
       this.context.runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
     } catch (Throwable t) {

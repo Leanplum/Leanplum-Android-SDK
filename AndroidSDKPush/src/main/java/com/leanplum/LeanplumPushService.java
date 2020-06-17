@@ -44,6 +44,7 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
@@ -214,7 +215,7 @@ public class LeanplumPushService {
                 onComplete.variablesChanged();
               }
             });
-            req.sendIfConnected();
+            RequestSender.getInstance().sendIfConnected(req);
           }
         } catch (Throwable t) {
           Util.handleException(t);

@@ -624,7 +624,8 @@ public class VarCache {
         params.put(Constants.Params.ACTION_DEFINITIONS, JsonConverter.toJson(actionDefinitions));
       }
       params.put(Constants.Params.FILE_ATTRIBUTES, JsonConverter.toJson(fileAttributes));
-      RequestOld.post(Constants.Methods.SET_VARS, params).sendIfConnected();
+      RequestOld request = RequestOld.post(Constants.Methods.SET_VARS, params);
+      RequestSender.getInstance().sendIfConnected(request);
     }
 
     return changed;

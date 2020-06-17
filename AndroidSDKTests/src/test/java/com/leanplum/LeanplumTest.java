@@ -43,6 +43,7 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.models.GeofenceEventType;
@@ -435,6 +436,8 @@ public class LeanplumTest extends AbstractTest {
     // Setup sdk first.
     setupSDK(mContext, "/responses/start_variables_response.json");
 
+    RequestSender.setInstance(new RequestSender()); // override the immediate sender from @before method
+
     Context currentCotext = Leanplum.getContext();
     assertNotNull(currentCotext);
     LeanplumEventDataManager.sharedInstance();
@@ -443,13 +446,13 @@ public class LeanplumTest extends AbstractTest {
     RequestOld request1 = new RequestOld("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
     RequestOld request2 = new RequestOld("POST", Constants.Methods.LOG, null);
 
-    request1.sendEventually();
-    request2.sendEventually();
+    RequestSender.getInstance().sendEventually(request1);
+    RequestSender.getInstance().sendEventually(request2);
 
     final double fraction = 1.0;
     // Get a number of events in the database.
     // Expectation: 2 events.
-    List unsentRequests = request1.getUnsentRequests(fraction);
+    List unsentRequests = RequestSender.getInstance().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -471,7 +474,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Checks if ours two events still here.
     // Expectation: 2 events.
-    unsentRequests = request1.getUnsentRequests(fraction);
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -485,10 +488,11 @@ public class LeanplumTest extends AbstractTest {
 
     // Call pause method.
     Leanplum.pauseState();
+    RequestSender.getInstance().sendRequests();
 
     // Get a number of events in the database. Make sure we sent all events.
     // Expectation: 0 events.
-    unsentRequests = request1.getUnsentRequests(fraction);
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 

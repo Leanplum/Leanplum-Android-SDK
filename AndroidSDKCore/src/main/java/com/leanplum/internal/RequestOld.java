@@ -23,7 +23,6 @@ package com.leanplum.internal;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
@@ -56,11 +55,6 @@ import java.util.UUID;
  */
 public class RequestOld implements Requesting {
 
-  private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
-  private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
-  private static final long PRODUCTION_DELAY = 60000;
-
-  static final int MAX_EVENTS_PER_API_CALL;
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
 
@@ -70,8 +64,6 @@ public class RequestOld implements Requesting {
   private static String userId;
   private String requestId = UUID.randomUUID().toString();
 
-  private static final LeanplumEventCallbackManager eventCallbackManager =
-      new LeanplumEventCallbackManager();
   private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
   private static int pendingDownloads;
   private static NoPendingDownloadsCallback noPendingDownloadsBlock;
@@ -82,25 +74,14 @@ public class RequestOld implements Requesting {
   private static final Map<File, Long> fileUploadSize = new HashMap<>();
   private static final Map<File, Double> fileUploadProgress = new HashMap<>();
   private static String fileUploadProgressString = "";
-  private static long lastSendTimeMs;
   private static final Object uploadFileLock = new Object();
 
   private final String httpMethod;
   private final String apiMethod;
   private final Map<String, Object> params;
-  private ResponseCallback response;
-  private ErrorCallback error;
-  private boolean sent;
-
-  private static List<Map<String, Object>> localErrors = new ArrayList<>();
-
-  static {
-    if (Build.VERSION.SDK_INT <= 17) {
-      MAX_EVENTS_PER_API_CALL = 5000;
-    } else {
-      MAX_EVENTS_PER_API_CALL = 10000;
-    }
-  }
+  ResponseCallback response;
+  ErrorCallback error;
+  private boolean saved;
 
   public static void setAppId(String appId, String accessKey) {
     if (!TextUtils.isEmpty(appId)) {
@@ -158,6 +139,10 @@ public class RequestOld implements Requesting {
     return appId;
   }
 
+  public static String accessKey() {
+    return accessKey;
+  }
+
   public static String deviceId() {
     return deviceId;
   }
@@ -172,7 +157,7 @@ public class RequestOld implements Requesting {
     this.params = params != null ? params : new HashMap<String, Object>();
     // Check if it is error and here was SQLite exception.
     if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
-      localErrors.add(createArgsDictionary());
+      RequestSender.getInstance().addLocalError(this);
     }
   }
 
@@ -218,119 +203,8 @@ public class RequestOld implements Requesting {
     return args;
   }
 
-  /**
-   * Saves requests into database.
-   * Saving will be executed on background thread serially.
-   * @param args json to save.
-   */
-  private void saveRequestForLater(final Map<String, Object> args) {
-    OperationQueue.sharedInstance().addOperation(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Context context = Leanplum.getContext();
-          if (context == null) {
-            return;
-          }
-
-          SharedPreferences preferences = context.getSharedPreferences(LEANPLUM,
-                  Context.MODE_PRIVATE);
-          SharedPreferences.Editor editor = preferences.edit();
-          long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
-          String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-            uuid = UUID.randomUUID().toString();
-            editor.putString(Constants.Defaults.UUID_KEY, uuid);
-            SharedPreferencesUtil.commitChanges(editor);
-          }
-          args.put(UUID_KEY, uuid);
-          LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
-
-          // Checks if here response and/or error callback for this request. We need to add callbacks to
-          // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
-          // will handle error callback for this event.
-          if (response != null || error != null && !Util.isConnected()) {
-            eventCallbackManager.addCallbacks(RequestOld.this, response, error);
-          }
-
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-      }
-    });
-  }
-
-  public void send() {
-    sendEventually();
-
-    if (Constants.isDevelopmentModeEnabled) {
-      long currentTimeMs = System.currentTimeMillis();
-      long delayMs;
-      if (lastSendTimeMs == 0 || currentTimeMs - lastSendTimeMs > DEVELOPMENT_MAX_DELAY_MS) {
-        delayMs = DEVELOPMENT_MIN_DELAY_MS;
-      } else {
-        delayMs = (lastSendTimeMs + DEVELOPMENT_MAX_DELAY_MS) - currentTimeMs;
-      }
-      OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            sendIfConnected();
-          } catch (Throwable t) {
-            Util.handleException(t);
-          }
-        }
-      }, delayMs);
-    }
-
-    Leanplum.countAggregator().incrementCount("send_request");
-  }
-
-  /**
-   * Wait 1 second for potential other API calls, and then sends the call synchronously if no other
-   * call has been sent within 1 minute.
-   */
-  public void sendIfDelayed() {
-    sendEventually();
-    OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          sendIfDelayedHelper();
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-      }
-    }, 1000);
-    Leanplum.countAggregator().incrementCount("send_if_delayed");
-  }
-
-  /**
-   * Sends the call synchronously if no other call has been sent within 1 minute.
-   */
-  private void sendIfDelayedHelper() {
-    if (Constants.isDevelopmentModeEnabled) {
-      send();
-    } else {
-      long currentTimeMs = System.currentTimeMillis();
-      if (lastSendTimeMs == 0 || currentTimeMs - lastSendTimeMs > PRODUCTION_DELAY) {
-        sendIfConnected();
-      }
-    }
-  }
-
-  public void sendIfConnected() {
-    if (Util.isConnected()) {
-      sendNow();
-    } else {
-      sendEventually();
-      Log.i("Device is offline, will send later");
-    }
-    Leanplum.countAggregator().incrementCount("send_if_connected");
-  }
-
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  private static boolean attachApiKeys(Map<String, Object> dict) {
+  static boolean attachApiKeys(Map<String, Object> dict) {
     if (appId == null || accessKey == null) {
       Log.e("API keys are not set. Please use Leanplum.setAppIdForDevelopmentMode or "
           + "Leanplum.setAppIdForProductionMode.");
@@ -355,60 +229,6 @@ public class RequestOld implements Requesting {
   }
 
   /**
-   * Parse response body from server.  Invoke potential error or response callbacks for all events
-   * of this request.
-   *
-   * @param responseBody JSONObject with response body from server.
-   * @param error Exception.
-   */
-  protected void parseResponseBody(JSONObject responseBody, Exception error) {
-    synchronized (RequestOld.class) {
-      if (responseBody == null && error != null) {
-        // Invoke potential error callbacks for all events of this request.
-        eventCallbackManager.invokeAllCallbacksWithError(error);
-        return;
-      } else if (responseBody == null) {
-        return;
-      }
-      eventCallbackManager.invokeCallbacks(responseBody);
-    }
-  }
-
-  private void sendNow() {
-    if (Constants.isTestMode) {
-      return;
-    }
-
-    // always save request first
-    sendEventually();
-
-    // in case appId and accessKey are set later, request is already saved and will be
-    // sent when variables are set.
-    if (appId == null) {
-      Log.e("Cannot send request. appId is not set.");
-      return;
-    }
-    if (accessKey == null) {
-      Log.e("Cannot send request. accessKey is not set.");
-      return;
-    }
-
-    Leanplum.countAggregator().incrementCount("send_now");
-
-    // Try to send all saved requests.
-    OperationQueue.sharedInstance().addOperation(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          sendRequests();
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-      }
-    });
-  }
-
-  /**
    * This class wraps the unsent requests, requests that we need to send
    * and the JSON encoded string. Wrapping it in the class allows us to
    * retain consistency in the requests we are sending and the actual
@@ -419,234 +239,6 @@ public class RequestOld implements Requesting {
     List<Map<String, Object>> requestsToSend;
     String jsonEncodedString;
   }
-
-  private RequestsWithEncoding getRequestsWithEncodedStringForErrors() {
-    List<Map<String, Object>> unsentRequests = new ArrayList<>();
-    List<Map<String, Object>> requestsToSend;
-    String jsonEncodedRequestsToSend;
-
-    String uuid = UUID.randomUUID().toString();
-    for (Map<String, Object> error : localErrors) {
-      error.put(UUID_KEY, uuid);
-      unsentRequests.add(error);
-    }
-    requestsToSend = unsentRequests;
-    jsonEncodedRequestsToSend = jsonEncodeRequests(unsentRequests);
-
-    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
-    // for errors, we send all unsent requests so they are identical
-    requestsWithEncoding.unsentRequests = unsentRequests;
-    requestsWithEncoding.requestsToSend = requestsToSend;
-    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
-
-    return requestsWithEncoding;
-  }
-
-  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
-    try {
-      List<Map<String, Object>> unsentRequests;
-      List<Map<String, Object>> requestsToSend;
-      String jsonEncodedRequestsToSend;
-      RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
-
-      if (fraction < 0.01) { //base case
-        unsentRequests = new ArrayList<>(0);
-        requestsToSend = new ArrayList<>(0);
-      } else {
-        unsentRequests = getUnsentRequests(fraction);
-        requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
-      }
-
-      jsonEncodedRequestsToSend = jsonEncodeRequests(requestsToSend);
-      requestsWithEncoding.unsentRequests = unsentRequests;
-      requestsWithEncoding.requestsToSend = requestsToSend;
-      requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
-
-      return requestsWithEncoding;
-    } catch (OutOfMemoryError E) {
-      // half the requests will need less memory, recursively
-      return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
-    }
-  }
-
-  private RequestsWithEncoding getRequestsWithEncodedString() {
-    RequestsWithEncoding requestsWithEncoding;
-    // Check if we have localErrors, if yes then we will send only errors to the server.
-    if (localErrors.size() != 0) {
-      requestsWithEncoding = getRequestsWithEncodedStringForErrors();
-    } else {
-      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests(1.0);
-    }
-
-    return requestsWithEncoding;
-  }
-
-  private void sendRequests() {
-    Leanplum.countAggregator().sendAllCounts();
-
-    RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
-
-    List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
-    List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
-    String jsonEncodedString = requestsWithEncoding.jsonEncodedString;
-
-    if (requestsToSend.isEmpty()) {
-      return;
-    }
-
-    final Map<String, Object> multiRequestArgs = new HashMap<>();
-    if (!RequestOld.attachApiKeys(multiRequestArgs)) {
-      return;
-    }
-
-    multiRequestArgs.put(Constants.Params.DATA, jsonEncodedString);
-    multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
-    multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
-    multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-
-    HttpURLConnection op = null;
-    try {
-      try {
-        op = Util.operation(
-            Constants.API_HOST_NAME,
-            Constants.API_SERVLET,
-            multiRequestArgs,
-            httpMethod,
-            Constants.API_SSL,
-            Constants.NETWORK_TIMEOUT_SECONDS);
-
-        JSONObject responseBody = Util.getJsonResponse(op);
-        int statusCode = op.getResponseCode();
-
-        if (statusCode >= 200 && statusCode <= 299) {
-          // Parse response body and trigger callbacks
-          parseResponseBody(responseBody, null);
-
-          // Clear localErrors list.
-          localErrors.clear();
-          deleteSentRequests(unsentRequests.size());
-
-          // Send another request if the last request had maximum events per api call.
-          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
-            sendRequests();
-          }
-        } else {
-          Exception errorException = new Exception("HTTP error " + statusCode);
-          if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
-            deleteSentRequests(unsentRequests.size());
-            parseResponseBody(responseBody, errorException);
-          }
-        }
-      } catch (JSONException e) {
-        Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
-        deleteSentRequests(unsentRequests.size());
-        parseResponseBody(null, e);
-      } catch (Exception e) {
-        Log.e("Unable to send request: " + e.toString() + "\n" + Log.getStackTraceString(e));
-      } finally {
-        if (op != null) {
-          op.disconnect();
-        }
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
-    }
-  }
-
-  public void sendEventually() {
-    if (Constants.isTestMode) {
-      return;
-    }
-
-    if (LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
-      return;
-    }
-
-    if (!sent) {
-      sent = true;
-      Map<String, Object> args = createArgsDictionary();
-      saveRequestForLater(args);
-    }
-    Leanplum.countAggregator().incrementCount("send_eventually");
-  }
-
-  static void deleteSentRequests(int requestsCount) {
-    if (requestsCount == 0) {
-      return;
-    }
-    synchronized (RequestOld.class) {
-      LeanplumEventDataManager.sharedInstance().deleteEvents(requestsCount);
-    }
-  }
-
-  public List<Map<String, Object>> getUnsentRequests(double fraction) {
-    List<Map<String, Object>> requestData;
-
-    synchronized (RequestOld.class) {
-      lastSendTimeMs = System.currentTimeMillis();
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-              LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
-      requestData = LeanplumEventDataManager.sharedInstance().getEvents(count);
-      editor.remove(Constants.Defaults.UUID_KEY);
-      SharedPreferencesUtil.commitChanges(editor);
-      // if we send less than 100% of requests, we need to reset the batch
-      // UUID for the next batch
-      if (fraction < 1) {
-        RequestOldUtil util = new RequestOldUtil();
-        util.setNewBatchUUID(requestData);
-      }
-    }
-    return requestData;
-  }
-
-  /**
-   * In various scenarios we can end up batching a big number of requests (e.g. device is offline,
-   * background sessions), which could make the stored API calls batch look something like:
-   * <p>
-   * <code>start(B), start(B), start(F), track, start(B), track, start(F), resumeSession</code>
-   * <p>
-   * where <code>start(B)</code> indicates a start in the background, and <code>start(F)</code>
-   * one in the foreground.
-   * <p>
-   * In this case the first two <code>start(B)</code> can be dropped because they don't contribute
-   * any relevant information for the batch call.
-   * <p>
-   * Essentially we drop every <code>start(B)</code> call, that is directly followed by any kind of
-   * a <code>start</code> call.
-   *
-   * @param requestData A list of the requests, stored on the device.
-   * @return A list of only these requests, which contain relevant information for the API call.
-   */
-  private static List<Map<String, Object>> removeIrrelevantBackgroundStartRequests(
-      List<Map<String, Object>> requestData) {
-    List<Map<String, Object>> relevantRequests = new ArrayList<>();
-
-    int requestCount = requestData.size();
-    if (requestCount > 0) {
-      for (int i = 0; i < requestCount; i++) {
-        Map<String, Object> currentRequest = requestData.get(i);
-        if (i < requestCount - 1
-            && Constants.Methods.START.equals(requestData.get(i + 1).get(Constants.Params.ACTION))
-            && Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))
-            && Boolean.TRUE.toString().equals(currentRequest.get(Constants.Params.BACKGROUND))) {
-          continue;
-        }
-        relevantRequests.add(currentRequest);
-      }
-    }
-
-    return relevantRequests;
-  }
-
-  protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {
-    Map<String, Object> data = new HashMap<>();
-    data.put(Constants.Params.DATA, requestData);
-    return JsonConverter.toJson(data);
-  }
-
 
   private static String getSizeAsString(int bytes) {
     if (bytes < (1 << 10)) {
@@ -986,5 +578,13 @@ public class RequestOld implements Requesting {
       errorMessage = "API error: " + errorMessage;
     }
     return errorMessage;
+  }
+
+  public void setSaved(boolean saved) {
+    this.saved = saved;
+  }
+
+  public boolean isSaved() {
+    return saved;
   }
 }

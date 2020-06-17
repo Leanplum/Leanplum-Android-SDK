@@ -29,10 +29,12 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumInbox;
 import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum._whitebox.utilities.ImmediateRequestSender;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.RequestFactory;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.VarCache;
 import com.leanplum.tests.BuildConfig;
 
@@ -85,6 +87,7 @@ public class LeanplumTestHelper {
         return new RequestHelper(httpMethod, apiMethod, params);
       }
     };
+    RequestSender.setInstance(new ImmediateRequestSender());
 
     if (BuildConfig.DEBUG) {
       Leanplum.setAppIdForDevelopmentMode(APP_ID, DEVELOPMENT_KEY);
@@ -96,7 +99,7 @@ public class LeanplumTestHelper {
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
     Leanplum.enableVerboseLoggingInDevelopmentMode();
 
-    TestClassUtil.setField(RequestOld.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
+    TestClassUtil.setField(RequestSender.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
   }
 
   /**

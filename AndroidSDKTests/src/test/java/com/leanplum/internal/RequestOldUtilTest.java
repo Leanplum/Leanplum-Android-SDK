@@ -4,7 +4,6 @@ import android.app.Application;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum._whitebox.utilities.SynchronousExecutor;
 
 import junit.framework.TestCase;
 
@@ -15,7 +14,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.util.ReflectionHelpers;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -50,17 +48,17 @@ public class RequestOldUtilTest extends TestCase {
         LeanplumEventDataManager.sharedInstance();
 
         RequestOld request1 = new RequestOld(this.POST, Constants.Methods.START, null);
-        request1.sendEventually();
+        RequestSender.getInstance().sendEventually(request1);
         RequestOld request2 = new RequestOld(this.POST, Constants.Methods.TRACK, null);
-        request2.sendEventually();
-        List<Map<String, Object>> unsentRequests1 = request1.getUnsentRequests(1.0);
-        String oldUUID1 = (String) unsentRequests1.get(0).get(request1.UUID_KEY);
+        RequestSender.getInstance().sendEventually(request2);
+        List<Map<String, Object>> unsentRequests1 = RequestSender.getInstance().getUnsentRequests(1.0);
+        String oldUUID1 = (String) unsentRequests1.get(0).get(RequestOld.UUID_KEY);
 
-        List<Map<String, Object>> unsentRequests2 = request1.getUnsentRequests(1.0);
-        String oldUUID2 = (String) unsentRequests2.get(0).get(request1.UUID_KEY);
+        List<Map<String, Object>> unsentRequests2 = RequestSender.getInstance().getUnsentRequests(1.0);
+        String oldUUID2 = (String) unsentRequests2.get(0).get(RequestOld.UUID_KEY);
 
-        List<Map<String, Object>> unsentRequests3 = request1.getUnsentRequests(0.5);
-        String newUUID = (String) unsentRequests3.get(0).get(request1.UUID_KEY);
+        List<Map<String, Object>> unsentRequests3 = RequestSender.getInstance().getUnsentRequests(0.5);
+        String newUUID = (String) unsentRequests3.get(0).get(RequestOld.UUID_KEY);
 
         assertTrue(oldUUID1.equals(oldUUID2));
         assertFalse(oldUUID1.equals(newUUID));

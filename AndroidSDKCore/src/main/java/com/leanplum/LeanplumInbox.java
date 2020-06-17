@@ -34,6 +34,7 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -256,7 +257,7 @@ public class LeanplumInbox {
     Map<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
     RequestOld req = RequestOld.post(Constants.Methods.DELETE_INBOX_MESSAGE, params);
-    req.send();
+    RequestSender.getInstance().send(req);
   }
 
   void triggerChanged() {
@@ -417,7 +418,7 @@ public class LeanplumInbox {
         triggerInboxSyncedWithStatus(false);
       }
     });
-    req.sendIfConnected();
+    RequestSender.getInstance().sendIfConnected(req);
   }
 
   /**

@@ -256,7 +256,7 @@ public class LeanplumEventDataManager {
 
         try {
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % RequestOld.MAX_EVENTS_PER_API_CALL == 0) {
+          if (uuid == null || count % RequestSender.MAX_EVENTS_PER_API_CALL == 0) {
             uuid = UUID.randomUUID().toString();
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
           }

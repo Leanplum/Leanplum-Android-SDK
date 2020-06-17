@@ -61,7 +61,7 @@ public class Registration {
         OperationQueue.sharedInstance().addUiOperation(callback);
       }
     });
-    request.sendIfConnected();
+    RequestSender.getInstance().sendIfConnected(request);
     Leanplum.countAggregator().incrementCount("register_device");
   }
 }

@@ -45,6 +45,7 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
 import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
@@ -706,9 +707,9 @@ public class Leanplum {
     });
 
     if (isBackground) {
-      request.sendEventually();
+      RequestSender.getInstance().sendEventually(request);
     } else {
-      request.sendIfConnected();
+      RequestSender.getInstance().sendIfConnected(request);
     }
 
     LeanplumInternal.triggerStartIssued();
@@ -961,7 +962,8 @@ public class Leanplum {
   }
 
   private static void pauseInternal() {
-    RequestOld.post(Constants.Methods.PAUSE_SESSION, null).sendIfConnected();
+    RequestOld request = RequestOld.post(Constants.Methods.PAUSE_SESSION, null);
+    RequestSender.getInstance().sendIfConnected(request);
     pauseHeartbeat();
     LeanplumInternal.setIsPaused(true);
   }
@@ -998,9 +1000,9 @@ public class Leanplum {
     RequestOld request = RequestOld.post(Constants.Methods.RESUME_SESSION, null);
     if (LeanplumInternal.hasStartedInBackground()) {
       LeanplumInternal.setStartedInBackground(false);
-      request.sendIfConnected();
+      RequestSender.getInstance().sendIfConnected(request);
     } else {
-      request.sendIfDelayed();
+      RequestSender.getInstance().sendIfDelayed(request);
       LeanplumInternal.maybePerformActions("resume", null,
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
     }
@@ -1037,7 +1039,8 @@ public class Leanplum {
     heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
       public void run() {
         try {
-          RequestOld.post(Constants.Methods.HEARTBEAT, null).sendIfDelayed();
+          RequestOld request = RequestOld.post(Constants.Methods.HEARTBEAT, null);
+          RequestSender.getInstance().sendIfDelayed(request);
         } catch (Throwable t) {
           Util.handleException(t);
         }
@@ -1075,7 +1078,8 @@ public class Leanplum {
   }
 
   private static void stopInternal() {
-    RequestOld.post(Constants.Methods.STOP, null).sendIfConnected();
+    RequestOld request = RequestOld.post(Constants.Methods.STOP, null);
+    RequestSender.getInstance().sendIfConnected(request);
   }
 
   /**
@@ -1493,7 +1497,8 @@ public class Leanplum {
 
   private static void setUserAttributesInternal(String userId,
       HashMap<String, Object> requestArgs) {
-    RequestOld.post(Constants.Methods.SET_USER_ATTRIBUTES, requestArgs).send();
+    RequestOld request = RequestOld.post(Constants.Methods.SET_USER_ATTRIBUTES, requestArgs);
+    RequestSender.getInstance().send(request);
     if (userId != null && userId.length() > 0) {
       RequestOld.setUserId(userId);
       if (LeanplumInternal.hasStarted()) {
@@ -1543,7 +1548,8 @@ public class Leanplum {
         try {
           HashMap<String, Object> params = new HashMap<>();
           params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
-          RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params).sendIfConnected();
+          RequestOld request = RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params);
+          RequestSender.getInstance().sendIfConnected(request);
         } catch (Throwable t) {
           Util.handleException(t);
         }
@@ -1594,7 +1600,8 @@ public class Leanplum {
   }
 
   private static void setTrafficSourceInfoInternal(HashMap<String, Object> params) {
-    RequestOld.post(Constants.Methods.SET_TRAFFIC_SOURCE_INFO, params).send();
+    RequestOld requets = RequestOld.post(Constants.Methods.SET_TRAFFIC_SOURCE_INFO, params);
+    RequestSender.getInstance().send(requets);
   }
 
   /**
@@ -1873,7 +1880,8 @@ public class Leanplum {
    */
   private static void advanceToInternal(String state, Map<String, ?> params,
       Map<String, Object> requestParams) {
-    RequestOld.post(Constants.Methods.ADVANCE, requestParams).send();
+    RequestOld request = RequestOld.post(Constants.Methods.ADVANCE, requestParams);
+    RequestSender.getInstance().send(request);
 
     ContextualValues contextualValues = new ContextualValues();
     contextualValues.parameters = params;
@@ -1953,7 +1961,8 @@ public class Leanplum {
   }
 
   private static void pauseStateInternal() {
-    RequestOld.post(Constants.Methods.PAUSE_STATE, new HashMap<String, Object>()).send();
+    RequestOld request = RequestOld.post(Constants.Methods.PAUSE_STATE, new HashMap<String, Object>());
+    RequestSender.getInstance().send(request);
   }
 
   /**
@@ -1989,7 +1998,8 @@ public class Leanplum {
   }
 
   private static void resumeStateInternal() {
-    RequestOld.post(Constants.Methods.RESUME_STATE, new HashMap<String, Object>()).send();
+    RequestOld request = RequestOld.post(Constants.Methods.RESUME_STATE, new HashMap<String, Object>());
+    RequestSender.getInstance().send(request);
   }
 
   /**
@@ -2056,7 +2066,7 @@ public class Leanplum {
           LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
         }
       });
-      req.sendIfConnected();
+      RequestSender.getInstance().sendIfConnected(req);
     } catch (Throwable t) {
       Util.handleException(t);
     }

@@ -345,7 +345,8 @@ public class LeanplumInternal {
 
     try {
       final Map<String, Object> requestParams = makeTrackArgs(event.getName(), value, info, params, args);
-      RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).sendIfConnected();
+      RequestOld request = RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams);
+      RequestSender.getInstance().sendIfConnected(request);
     } catch (Throwable t) {
       Util.handleException(t);
     }
@@ -386,7 +387,8 @@ public class LeanplumInternal {
    */
   private static void trackInternal(String event, Map<String, ?> params,
       Map<String, Object> requestArgs) {
-    RequestOld.post(Constants.Methods.TRACK, requestArgs).send();
+    RequestOld request = RequestOld.post(Constants.Methods.TRACK, requestArgs);
+    RequestSender.getInstance().send(request);
 
     String eventTriggerName = event;
     String messageId = null;
@@ -498,7 +500,7 @@ public class LeanplumInternal {
                     e.getMessage());
               }
             });
-            req.send();
+            RequestSender.getInstance().send(req);
           }
         });
       }
