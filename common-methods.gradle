@@ -17,9 +17,7 @@ ext {
     PROGUARD_FILES = 'proguard-rules.pro'
     CONSUMER_PROGUARD_FILES = 'consumer-proguard-rules.pro'
 
-    pomWithXml = this.&pomWithXml
     publishing_task = this.&publishing_task
-    pomConfig = this.&pomConfig
 }
 
 def publishing_task(libraryArtifactId) {
