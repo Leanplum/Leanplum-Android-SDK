@@ -199,7 +199,7 @@ public class LeanplumPushService {
                       messages = null;
                     }
                     if (values != null || messages != null) {
-                      VarCache.applyVariableDiffs(values, messages, null, null, regions, variants, null);
+                      VarCache.applyVariableDiffs(values, messages, regions, variants, null);
                     }
                   }
                   onComplete.variablesChanged();

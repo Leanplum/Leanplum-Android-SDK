@@ -72,15 +72,11 @@ public class VarCache {
   private static Map<String, Object> diffs = new HashMap<>();
   private static Map<String, Object> regions = new HashMap<>();
   private static Map<String, Object> messageDiffs = new HashMap<>();
-  private static List<Map<String, Object>> updateRuleDiffs;
-  private static List<Map<String, Object>> eventRuleDiffs;
   private static Map<String, Object> devModeValuesFromServer;
   private static Map<String, Object> devModeFileAttributesFromServer;
   private static Map<String, Object> devModeActionDefinitionsFromServer;
   private static List<Map<String, Object>> variants = new ArrayList<>();
   private static CacheUpdateBlock updateBlock;
-  private static CacheUpdateBlock interfaceUpdateBlock;
-  private static CacheUpdateBlock eventsUpdateBlock;
   private static boolean hasReceivedDiffs = false;
   private static Map<String, Object> messages = new HashMap<>();
   private static Object merged;
@@ -307,14 +303,6 @@ public class VarCache {
     return messageDiffs;
   }
 
-  public static List<Map<String, Object>> getUpdateRuleDiffs() {
-    return updateRuleDiffs;
-  }
-
-  public static List<Map<String, Object>> getEventRuleDiffs() {
-    return eventRuleDiffs;
-  }
-
   public static Map<String, Object> regions() {
     return regions;
   }
@@ -345,8 +333,6 @@ public class VarCache {
       applyVariableDiffs(
           new HashMap<String, Object>(),
           new HashMap<String, Object>(),
-          new ArrayList<Map<String, Object>>(),
-          new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>(),
           new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>());
@@ -359,18 +345,12 @@ public class VarCache {
           defaults, Constants.Defaults.VARIABLES_KEY, "{}");
       String messages = aesContext.decodePreference(
           defaults, Constants.Defaults.MESSAGES_KEY, "{}");
-      String updateRules = aesContext.decodePreference(
-          defaults, Constants.Defaults.UPDATE_RULES_KEY, "[]");
-      String eventRules = aesContext.decodePreference(
-          defaults, Constants.Defaults.EVENT_RULES_KEY, "[]");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
       String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
       applyVariableDiffs(
           JsonConverter.fromJson(variables),
           JsonConverter.fromJson(messages),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(updateRules)),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(eventRules)),
           JsonConverter.fromJson(regions),
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
           JsonConverter.fromJson(variantDebugInfo));
@@ -415,31 +395,12 @@ public class VarCache {
 
     // Crypt functions return input text if there was a problem.
     AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+
     String variablesCipher = aesContext.encrypt(JsonConverter.toJson(diffs));
     editor.putString(Constants.Defaults.VARIABLES_KEY, variablesCipher);
 
     String messagesCipher = aesContext.encrypt(JsonConverter.toJson(messages));
     editor.putString(Constants.Defaults.MESSAGES_KEY, messagesCipher);
-
-    try {
-      if (updateRuleDiffs != null && !updateRuleDiffs.isEmpty()) {
-        String updateRulesCipher = aesContext.encrypt(
-            JsonConverter.listToJsonArray(updateRuleDiffs).toString());
-        editor.putString(Constants.Defaults.UPDATE_RULES_KEY, updateRulesCipher);
-      }
-    } catch (JSONException e) {
-      Log.e("Error converting updateRuleDiffs to JSON", e);
-    }
-
-    try {
-      if (eventRuleDiffs != null && !eventRuleDiffs.isEmpty()) {
-        String eventRulesCipher = aesContext.encrypt(
-            JsonConverter.listToJsonArray(eventRuleDiffs).toString());
-        editor.putString(Constants.Defaults.EVENT_RULES_KEY, eventRulesCipher);
-      }
-    } catch (JSONException e) {
-      Log.e("Error converting eventRuleDiffs to JSON", e);
-    }
 
     String regionsCipher = aesContext.encrypt(JsonConverter.toJson(regions));
     editor.putString(Constants.Defaults.REGIONS_KEY, regionsCipher);
@@ -513,8 +474,6 @@ public class VarCache {
   public static void applyVariableDiffs(
       Map<String, Object> diffs,
       Map<String, Object> messages,
-      List<Map<String, Object>> updateRules,
-      List<Map<String, Object>> eventRules,
       Map<String, Object> regions,
       List<Map<String, Object>> variants,
       Map<String, Object> variantDebugInfo) {
@@ -526,7 +485,10 @@ public class VarCache {
       // Have to copy the dictionary because a dictionary variable may add a new sub-variable,
       // modifying the variable dictionary.
       for (String name : new HashMap<>(vars).keySet()) {
-        vars.get(name).update();
+        Var<?> var = vars.get(name);
+        if (var != null) {
+          var.update();
+        }
       }
       fileVariableFinish();
     }
@@ -577,19 +539,6 @@ public class VarCache {
       }
     }
 
-    boolean interfaceUpdated = false;
-    if (updateRules != null) {
-      interfaceUpdated = !(updateRules.equals(updateRuleDiffs));
-      updateRuleDiffs = new ArrayList<>(updateRules);
-      VarCache.downloadUpdateRulesImages();
-    }
-
-    boolean eventsUpdated = false;
-    if (eventRules != null) {
-      eventsUpdated = !(eventRules.equals(eventRuleDiffs));
-      eventRuleDiffs = new ArrayList<>(eventRules);
-    }
-
     if (variants != null) {
       VarCache.variants = variants;
     }
@@ -603,39 +552,8 @@ public class VarCache {
     if (!silent) {
       saveDiffs();
       triggerHasReceivedDiffs();
-
-      if (interfaceUpdated && interfaceUpdateBlock != null) {
-        interfaceUpdateBlock.updateCache();
-      }
-
-      if (eventsUpdated && eventsUpdateBlock != null) {
-        eventsUpdateBlock.updateCache();
-      }
     }
     Leanplum.countAggregator().incrementCount("apply_variable_diffs");
-  }
-
-  static void applyUpdateRuleDiffs(List<Map<String, Object>> updateRuleDiffs) {
-    VarCache.updateRuleDiffs = updateRuleDiffs;
-    VarCache.downloadUpdateRulesImages();
-    if (interfaceUpdateBlock != null) {
-      interfaceUpdateBlock.updateCache();
-    }
-    VarCache.saveDiffs();
-  }
-
-  private static void downloadUpdateRulesImages() {
-    for (Map value : VarCache.updateRuleDiffs) {
-      List changes = (List) value.get("changes");
-      for (Object change : changes) {
-        Map<String, String> castedChange = CollectionUtil.uncheckedCast(change);
-        String key = castedChange.get("key");
-        if (key != null && key.contains("image")) {
-          String name = castedChange.get("value");
-          FileManager.maybeDownloadFile(true, name, null, null, null);
-        }
-      }
-    }
   }
 
   public static int contentVersion() {
@@ -808,16 +726,6 @@ public class VarCache {
   public static void onUpdate(CacheUpdateBlock block) {
     updateBlock = block;
     Leanplum.countAggregator().incrementCount("on_update_varcache");
-  }
-
-  public static void onInterfaceUpdate(CacheUpdateBlock block) {
-    interfaceUpdateBlock = block;
-    Leanplum.countAggregator().incrementCount("on_interface_update");
-  }
-
-  public static void onEventsUpdate(CacheUpdateBlock block) {
-    eventsUpdateBlock = block;
-    Leanplum.countAggregator().incrementCount("on_events_update");
   }
 
   public static List<Map<String, Object>> variants() {

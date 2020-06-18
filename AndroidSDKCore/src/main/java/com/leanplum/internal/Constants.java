@@ -76,8 +76,6 @@ public class Constants {
     public static final String ATTRIBUTES_KEY = "__leanplum_attributes";
     public static final String TOKEN_KEY = "__leanplum_token";
     public static final String MESSAGES_KEY = "__leanplum_messages";
-    public static final String UPDATE_RULES_KEY = "__leanplum_update_rules";
-    public static final String EVENT_RULES_KEY = "__leanplum_event_rules";
     public static final String REGIONS_KEY = "regions";
     public static final String MESSAGE_TRIGGER_OCCURRENCES_KEY =
         "__leanplum_message_trigger_occurrences_%s";
@@ -194,8 +192,6 @@ public class Constants {
     public static final String LOCATION_ACCURACY_TYPE = "locationAccuracyType";
     public static final String MESSAGE_DATA = "messageData";
     public static final String MESSAGES = "messages";
-    public static final String UPDATE_RULES = "interfaceRules";
-    public static final String EVENT_RULES = "interfaceEvents";
     public static final String INBOX_MESSAGES = "newsfeedMessages";
     public static final String PUSH_MESSAGE_ACTION = "_lpx";
     public static final String PUSH_MESSAGE_ID_NO_MUTE_WITH_ACTION = "_lpm";
