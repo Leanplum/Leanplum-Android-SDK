@@ -304,7 +304,7 @@ public class RequestOldTest extends TestCase {
   // The list should try and get a smaller fraction of the available requests
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
-    RequestOld.RequestsWithEncoding requestsWithEncoding;
+    RequestSender.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     RequestSender requestSender = spy(new RequestSender());
     RequestOld request = new RequestOld("POST", Constants.Methods.START, null);
@@ -366,7 +366,7 @@ public class RequestOldTest extends TestCase {
     when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     when(requestSender.getUnsentRequests(0.25)).thenReturn(requests);
 
-    RequestOld.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestSender.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertEquals(4, requestsWithEncoding .unsentRequests.size());
     assertEquals(4, requestsWithEncoding .requestsToSend.size());
@@ -385,7 +385,7 @@ public class RequestOldTest extends TestCase {
     RequestSender requestSender = spy(new RequestSender());
     when(requestSender.getUnsentRequests(1.0)).thenReturn(requests);
 
-    RequestOld.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestSender.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertEquals(4, requestsWithEncoding.unsentRequests.size());
     assertEquals(4, requestsWithEncoding.requestsToSend.size());

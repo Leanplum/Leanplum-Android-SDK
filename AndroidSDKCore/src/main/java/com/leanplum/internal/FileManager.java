@@ -128,7 +128,7 @@ public class FileManager {
               }
             }
           });
-          downloadRequest.downloadFile(stringValue, urlValue);
+          FileTransferManager.getInstance().downloadFile(downloadRequest, stringValue, urlValue);
           return DownloadFileResult.DOWNLOADING;
         }
       }

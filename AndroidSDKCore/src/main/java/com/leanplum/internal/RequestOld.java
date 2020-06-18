@@ -32,20 +32,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.UUID;
 
 /**
@@ -64,17 +53,9 @@ public class RequestOld implements Requesting {
   private static String userId;
   private String requestId = UUID.randomUUID().toString();
 
-  private static final Map<String, Boolean> fileTransferStatus = new HashMap<>();
-  private static int pendingDownloads;
-  private static NoPendingDownloadsCallback noPendingDownloadsBlock;
-
   // The token is saved primarily for legacy SharedPreferences decryption. This could
   // likely be removed in the future.
   private static String token = null;
-  private static final Map<File, Long> fileUploadSize = new HashMap<>();
-  private static final Map<File, Double> fileUploadProgress = new HashMap<>();
-  private static String fileUploadProgressString = "";
-  private static final Object uploadFileLock = new Object();
 
   private final String httpMethod;
   private final String apiMethod;
@@ -224,267 +205,6 @@ public class RequestOld implements Requesting {
     void error(Exception e);
   }
 
-  public interface NoPendingDownloadsCallback {
-    void noPendingDownloads();
-  }
-
-  /**
-   * This class wraps the unsent requests, requests that we need to send
-   * and the JSON encoded string. Wrapping it in the class allows us to
-   * retain consistency in the requests we are sending and the actual
-   * JSON string.
-   */
-  static class RequestsWithEncoding {
-    List<Map<String, Object>> unsentRequests;
-    List<Map<String, Object>> requestsToSend;
-    String jsonEncodedString;
-  }
-
-  private static String getSizeAsString(int bytes) {
-    if (bytes < (1 << 10)) {
-      return bytes + " B";
-    } else if (bytes < (1 << 20)) {
-      return (bytes >> 10) + " KB";
-    } else {
-      return (bytes >> 20) + " MB";
-    }
-  }
-
-  private static void printUploadProgress() {
-    int totalFiles = fileUploadSize.size();
-    int sentFiles = 0;
-    int totalBytes = 0;
-    int sentBytes = 0;
-    for (Map.Entry<File, Long> entry : fileUploadSize.entrySet()) {
-      File file = entry.getKey();
-      long fileSize = entry.getValue();
-      double fileProgress = fileUploadProgress.get(file);
-      if (fileProgress == 1) {
-        sentFiles++;
-      }
-      sentBytes += (int) (fileSize * fileProgress);
-      totalBytes += fileSize;
-    }
-    String progressString = "Uploading resources. " +
-        sentFiles + '/' + totalFiles + " files completed; " +
-        getSizeAsString(sentBytes) + '/' + getSizeAsString(totalBytes) + " transferred.";
-    if (!fileUploadProgressString.equals(progressString)) {
-      fileUploadProgressString = progressString;
-      Log.i(progressString);
-    }
-  }
-
-  public void sendFilesNow(final List<String> filenames, final List<InputStream> streams) {
-    if (Constants.isTestMode) {
-      return;
-    }
-    final Map<String, Object> dict = createArgsDictionary();
-    if (!attachApiKeys(dict)) {
-      return;
-    }
-    final List<File> filesToUpload = new ArrayList<>();
-
-    // First set up the files for upload
-    for (int i = 0; i < filenames.size(); i++) {
-      String filename = filenames.get(i);
-      if (filename == null || Boolean.TRUE.equals(fileTransferStatus.get(filename))) {
-        continue;
-      }
-      File file = new File(filename);
-      long size;
-      try {
-        size = streams.get(i).available();
-      } catch (IOException e) {
-        size = file.length();
-      } catch (NullPointerException e) {
-        // Not good. Can't read asset.
-        Log.e("Unable to read file " + filename);
-        continue;
-      }
-      fileTransferStatus.put(filename, true);
-      filesToUpload.add(file);
-      fileUploadSize.put(file, size);
-      fileUploadProgress.put(file, 0.0);
-    }
-    if (filesToUpload.size() == 0) {
-      return;
-    }
-
-    Leanplum.countAggregator().incrementCount("send_files_now");
-
-    printUploadProgress();
-
-    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
-      @Override
-      public void run() {
-        synchronized (uploadFileLock) {  // Don't overload app and server with many upload tasks
-          JSONObject result;
-          HttpURLConnection op = null;
-
-          try {
-            op = Util.uploadFilesOperation(
-                Constants.Params.FILE,
-                filesToUpload,
-                streams,
-                Constants.API_HOST_NAME,
-                Constants.API_SERVLET,
-                dict,
-                httpMethod,
-                Constants.API_SSL,
-                60);
-
-            if (op != null) {
-              result = Util.getJsonResponse(op);
-              int statusCode = op.getResponseCode();
-              if (statusCode != 200) {
-                throw new Exception("Leanplum: Error sending request: " + statusCode);
-              }
-              if (RequestOld.this.response != null) {
-                RequestOld.this.response.response(result);
-              }
-            } else {
-              if (error != null) {
-                error.error(new Exception("Leanplum: Unable to read file."));
-              }
-            }
-          } catch (JSONException e) {
-            Log.e("Unable to convert to JSON.", e);
-            if (error != null) {
-              error.error(e);
-            }
-          } catch (SocketTimeoutException e) {
-            Log.e("Timeout uploading files. Try again or limit the number of files " +
-                "to upload with parameters to syncResourcesAsync.");
-            if (error != null) {
-              error.error(e);
-            }
-          } catch (Exception e) {
-            Log.e("Unable to send file.", e);
-            if (error != null) {
-              error.error(e);
-            }
-          } finally {
-            if (op != null) {
-              op.disconnect();
-            }
-          }
-
-          for (File file : filesToUpload) {
-            fileUploadProgress.put(file, 1.0);
-          }
-          printUploadProgress();
-        }
-      }
-    });
-  }
-
-  void downloadFile(final String path, final String url) {
-    if (Constants.isTestMode) {
-      return;
-    }
-    if (Boolean.TRUE.equals(fileTransferStatus.get(path))) {
-      return;
-    }
-    pendingDownloads++;
-    Log.i("Downloading resource " + path);
-    fileTransferStatus.put(path, true);
-    final Map<String, Object> dict = createArgsDictionary();
-    dict.put(Constants.Keys.FILENAME, path);
-    if (!attachApiKeys(dict)) {
-      return;
-    }
-
-    Leanplum.countAggregator().incrementCount("download_file");
-
-    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          downloadHelper(Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
-      }
-    });
-  }
-
-  private void downloadHelper(String hostName, String servlet, final String path, final String url,
-      final Map<String, Object> dict) {
-    HttpURLConnection op = null;
-    URL originalURL = null;
-    try {
-      if (url == null) {
-        op = Util.operation(
-            hostName,
-            servlet,
-            dict,
-            httpMethod,
-            Constants.API_SSL,
-            Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
-      } else {
-        op = Util.createHttpUrlConnection(url, httpMethod, url.startsWith("https://"),
-            Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
-      }
-      originalURL = op.getURL();
-      op.connect();
-      int statusCode = op.getResponseCode();
-      if (statusCode != 200) {
-        throw new Exception("Leanplum: Error sending request to: " + hostName +
-            ", HTTP status code: " + statusCode);
-      }
-      Stack<String> dirs = new Stack<>();
-      String currentDir = path;
-      while ((currentDir = new File(currentDir).getParent()) != null) {
-        dirs.push(currentDir);
-      }
-      while (!dirs.isEmpty()) {
-        String directory = FileManager.fileRelativeToDocuments(dirs.pop());
-        boolean isCreated = new File(directory).mkdir();
-        if (!isCreated) {
-          Log.w("Failed to create directory: ", directory);
-        }
-      }
-
-      FileOutputStream out = new FileOutputStream(
-          new File(FileManager.fileRelativeToDocuments(path)));
-      Util.saveResponse(op, out);
-      pendingDownloads--;
-      if (RequestOld.this.response != null) {
-        RequestOld.this.response.response(null);
-      }
-      if (pendingDownloads == 0 && noPendingDownloadsBlock != null) {
-        noPendingDownloadsBlock.noPendingDownloads();
-      }
-    } catch (Exception e) {
-      if (e instanceof EOFException) {
-        if (op != null && !op.getURL().equals(originalURL)) {
-          downloadHelper(null, op.getURL().toString(), path, url, new HashMap<String, Object>());
-          return;
-        }
-      }
-      Log.e("Error downloading resource:" + path, e);
-      pendingDownloads--;
-      if (error != null) {
-        error.error(e);
-      }
-      if (pendingDownloads == 0 && noPendingDownloadsBlock != null) {
-        noPendingDownloadsBlock.noPendingDownloads();
-      }
-    } finally {
-      if (op != null) {
-        op.disconnect();
-      }
-    }
-  }
-
-  public static int numPendingDownloads() {
-    return pendingDownloads;
-  }
-
-  public static void onNoPendingDownloads(NoPendingDownloadsCallback block) {
-    noPendingDownloadsBlock = block;
-  }
-
   /**
    * Get response json object for request Id
    *
@@ -586,5 +306,9 @@ public class RequestOld implements Requesting {
 
   public boolean isSaved() {
     return saved;
+  }
+
+  public String getHttpMethod() {
+    return httpMethod;
   }
 }

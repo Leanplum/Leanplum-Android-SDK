@@ -24,10 +24,8 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
-import com.leanplum.internal.RequestOld.RequestsWithEncoding;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -54,6 +52,18 @@ public class RequestSender {
     } else {
       MAX_EVENTS_PER_API_CALL = 10000;
     }
+  }
+
+  /**
+   * This class wraps the unsent requests, requests that we need to send
+   * and the JSON encoded string. Wrapping it in the class allows us to
+   * retain consistency in the requests we are sending and the actual
+   * JSON string.
+   */
+  static class RequestsWithEncoding {
+    List<Map<String, Object>> unsentRequests;
+    List<Map<String, Object>> requestsToSend;
+    String jsonEncodedString;
   }
 
   private final LeanplumEventCallbackManager eventCallbackManager =

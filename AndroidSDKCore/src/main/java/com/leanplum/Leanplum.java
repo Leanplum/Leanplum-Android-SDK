@@ -37,6 +37,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
 import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.FileManager;
+import com.leanplum.internal.FileTransferManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
@@ -571,16 +572,17 @@ public class Leanplum {
         @Override
         public void updateCache() {
           triggerVariablesChanged();
-          if (RequestOld.numPendingDownloads() == 0) {
+          if (FileTransferManager.getInstance().numPendingDownloads() == 0) {
             triggerVariablesChangedAndNoDownloadsPending();
           }
         }
       });
-      RequestOld.onNoPendingDownloads(new RequestOld.NoPendingDownloadsCallback() {
-        @Override
-        public void noPendingDownloads() {
-          triggerVariablesChangedAndNoDownloadsPending();
-        }
+      FileTransferManager.getInstance().onNoPendingDownloads(
+          new FileTransferManager.NoPendingDownloadsCallback() {
+            @Override
+            public void noPendingDownloads() {
+              triggerVariablesChangedAndNoDownloadsPending();
+            }
       });
 
       // Reduce latency by running the rest of the start call in a background thread.
@@ -1220,7 +1222,7 @@ public class Leanplum {
       noDownloadsHandlers.add(handler);
     }
     if (VarCache.hasReceivedDiffs()
-        && RequestOld.numPendingDownloads() == 0) {
+        && FileTransferManager.getInstance().numPendingDownloads() == 0) {
       handler.variablesChanged();
     }
   }
@@ -1330,7 +1332,7 @@ public class Leanplum {
     }
 
     if (VarCache.hasReceivedDiffs()
-        && RequestOld.numPendingDownloads() == 0) {
+        && FileTransferManager.getInstance().numPendingDownloads() == 0) {
       handler.variablesChanged();
     } else {
       synchronized (onceNoDownloadsHandlers) {

@@ -670,8 +670,8 @@ public class VarCache {
           Map<String, Object> params = new HashMap<>();
           params.put(Constants.Params.DATA, fileData.toString());
 
-          RequestOld.post(Constants.Methods.UPLOAD_FILE, params).sendFilesNow(filenames,
-              streams);
+          RequestOld request = RequestOld.post(Constants.Methods.UPLOAD_FILE, params);
+          FileTransferManager.getInstance().sendFilesNow(request, filenames, streams);
 
           filenames = new ArrayList<>();
           fileData = new ArrayList<>();
@@ -701,7 +701,8 @@ public class VarCache {
     if (filenames.size() > 0) {
       Map<String, Object> params = new HashMap<>();
       params.put(Constants.Params.DATA, fileData.toString());
-      RequestOld.post(Constants.Methods.UPLOAD_FILE, params).sendFilesNow(filenames, streams);
+      RequestOld request = RequestOld.post(Constants.Methods.UPLOAD_FILE, params);
+      FileTransferManager.getInstance().sendFilesNow(request, filenames, streams);
     }
   }
 
