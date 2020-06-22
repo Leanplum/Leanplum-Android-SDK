@@ -20,6 +20,7 @@
  */
 package com.leanplum;
 
+import android.os.Build.VERSION_CODES;
 import com.leanplum.internal.Constants;
 
 import org.junit.Test;
@@ -29,6 +30,7 @@ import org.robolectric.RobolectricTestRunner;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -41,6 +43,7 @@ import static org.junit.Assert.assertTrue;
  * @author Sayaan Saha
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = VERSION_CODES.P) // temporarily fix issue with Robolectric and Android SDK 29
 public class LeanplumInboxMessageTest {
   /**
    * Test creating a message from json.
