@@ -83,9 +83,9 @@ class LeanplumEventCallbackManager {
 
       if (reqId != null && callbacks != null) {
         // get the response for specified reqId
-        final JSONObject response = RequestOld.getResponseForId(body, reqId);
+        final JSONObject response = RequestOldUtil.getResponseForId(body, reqId);
         if (response != null) {
-          boolean isSuccess = RequestOld.isResponseSuccess(response);
+          boolean isSuccess = RequestOldUtil.isResponseSuccess(response);
 
           // if response for event is successful, execute success callback
           if (isSuccess) {
@@ -100,8 +100,8 @@ class LeanplumEventCallbackManager {
             });
           } else {
             // otherwise find the error message and execute error callback
-            final String responseError = RequestOld.getResponseError(response);
-            final String msg = RequestOld.getReadableErrorMessage(responseError);
+            final String responseError = RequestOldUtil.getResponseError(response);
+            final String msg = RequestOldUtil.getReadableErrorMessage(responseError);
 
             OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
               @Override

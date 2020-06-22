@@ -97,11 +97,14 @@ public class FileTransferManager {
 
     Leanplum.countAggregator().incrementCount("download_file");
 
-    OperationQueue.sharedInstance().addParallelOperation(() -> {
-      try {
-        downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
-      } catch (Throwable t) {
-        Util.handleException(t);
+    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
+        } catch (Throwable t) {
+          Util.handleException(t);
+        }
       }
     });
   }

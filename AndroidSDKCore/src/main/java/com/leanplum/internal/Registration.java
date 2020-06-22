@@ -39,11 +39,11 @@ public class Registration {
       @Override
       public void response(JSONObject response) {
         try {
-          boolean success = RequestOld.isResponseSuccess(response);
+          boolean success = RequestOldUtil.isResponseSuccess(response);
           callback.setSuccess(success);
 
           if (!success) {
-            String error = RequestOld.getResponseError(response);
+            String error = RequestOldUtil.getResponseError(response);
             Log.e(error);
           }
 
