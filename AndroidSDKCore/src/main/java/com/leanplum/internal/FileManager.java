@@ -30,8 +30,6 @@ import android.text.TextUtils;
 import com.leanplum.Leanplum;
 import com.leanplum.Var;
 
-import org.json.JSONObject;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -111,24 +109,10 @@ public class FileManager {
           if (FileManager.filenameToURLs != null && FileManager.filenameToURLs.containsKey(stringValue) && urlValue == null) {
             urlValue = FileManager.filenameToURLs.get(stringValue);
           }
-          RequestOld downloadRequest = RequestOld.get(Constants.Methods.DOWNLOAD_FILE, null);
-          downloadRequest.onResponse(new RequestOld.ResponseCallback() {
-            @Override
-            public void response(JSONObject response) {
-              if (onComplete != null) {
-                onComplete.run();
-              }
-            }
-          });
-          downloadRequest.onError(new RequestOld.ErrorCallback() {
-            @Override
-            public void error(Exception e) {
-              if (onComplete != null) {
-                onComplete.run();
-              }
-            }
-          });
-          FileTransferManager.getInstance().downloadFile(downloadRequest, stringValue, urlValue);
+
+          FileTransferManager.getInstance().downloadFile(
+              stringValue, urlValue, onComplete, onComplete);
+
           return DownloadFileResult.DOWNLOADING;
         }
       }

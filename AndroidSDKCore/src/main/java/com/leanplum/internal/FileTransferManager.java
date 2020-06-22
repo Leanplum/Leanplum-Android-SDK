@@ -63,13 +63,29 @@ public class FileTransferManager {
   private FileTransferManager() {
   }
 
-  void downloadFile(final RequestOld request, final String path, final String url) {
+  void downloadFile(
+      final String path,
+      final String url,
+      Runnable onResponse,
+      Runnable onError) {
+
     if (Constants.isTestMode) {
       return;
     }
     if (Boolean.TRUE.equals(fileTransferStatus.get(path))) {
       return;
     }
+
+    final RequestOld request = RequestOld.get(Constants.Methods.DOWNLOAD_FILE, null);
+    request.onResponse(responseJson -> {
+      if (onResponse != null)
+        onResponse.run();
+    });
+    request.onError(exception -> {
+      if (onError != null)
+        onError.run();
+    });
+
     pendingDownloads++;
     Log.i("Downloading resource " + path);
     fileTransferStatus.put(path, true);
@@ -81,14 +97,11 @@ public class FileTransferManager {
 
     Leanplum.countAggregator().incrementCount("download_file");
 
-    OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
-        } catch (Throwable t) {
-          Util.handleException(t);
-        }
+    OperationQueue.sharedInstance().addParallelOperation(() -> {
+      try {
+        downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
+      } catch (Throwable t) {
+        Util.handleException(t);
       }
     });
   }
@@ -179,9 +192,13 @@ public class FileTransferManager {
   }
 
   public void sendFilesNow(
-      final RequestOld request,
+      List<JSONObject> fileData,
       final List<String> filenames,
       final List<InputStream> streams) {
+
+    Map<String, Object> params = new HashMap<>();
+    params.put(Constants.Params.DATA, fileData.toString());
+    final RequestOld request = RequestOld.post(Constants.Methods.UPLOAD_FILE, params);
 
     if (Constants.isTestMode) {
       return;

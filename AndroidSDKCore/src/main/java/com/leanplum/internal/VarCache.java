@@ -667,11 +667,8 @@ public class VarCache {
         // Upload in batch if we can't put any more files in
         if ((totalSize > Constants.Files.MAX_UPLOAD_BATCH_SIZES && filenames.size() > 0)
             || filenames.size() >= Constants.Files.MAX_UPLOAD_BATCH_FILES) {
-          Map<String, Object> params = new HashMap<>();
-          params.put(Constants.Params.DATA, fileData.toString());
 
-          RequestOld request = RequestOld.post(Constants.Methods.UPLOAD_FILE, params);
-          FileTransferManager.getInstance().sendFilesNow(request, filenames, streams);
+          FileTransferManager.getInstance().sendFilesNow(fileData, filenames, streams);
 
           filenames = new ArrayList<>();
           fileData = new ArrayList<>();
@@ -699,10 +696,7 @@ public class VarCache {
     }
 
     if (filenames.size() > 0) {
-      Map<String, Object> params = new HashMap<>();
-      params.put(Constants.Params.DATA, fileData.toString());
-      RequestOld request = RequestOld.post(Constants.Methods.UPLOAD_FILE, params);
-      FileTransferManager.getInstance().sendFilesNow(request, filenames, streams);
+      FileTransferManager.getInstance().sendFilesNow(fileData, filenames, streams);
     }
   }
 
