@@ -19,6 +19,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JAVA_VERSION
+        targetCompatibility JAVA_VERSION
+    }
 }
 
 dependencies {
@@ -37,4 +42,4 @@ task generateJavadoc(type: Javadoc) {
     failOnError false
 }
 
-publishing_task(LEANPLUM_LOCATION_ARTIFACT_ID, 'AndroidSDKLocation')
+publishing_task(LEANPLUM_LOCATION_ARTIFACT_ID)

@@ -102,6 +102,7 @@ public class Leanplum {
   private static RegisterDeviceFinishedCallback registerDeviceFinishedHandler;
   private static LeanplumDeviceIdMode deviceIdMode = LeanplumDeviceIdMode.MD5_MAC_ADDRESS;
   private static String customDeviceId;
+  private static String customAppVersion = null;
   private static boolean userSpecifiedDeviceId;
   private static boolean initializedMessageTemplates = false;
   private static boolean locationCollectionEnabled = true;
@@ -282,13 +283,13 @@ public class Leanplum {
   }
 
   /**
-   * Whether interface editing is enabled or not.
-   *
-   * @return Boolean - true if enabled
+   * By default, Leanplum reports the version of your app using
+   * getPackageManager().getPackageInfo, which can be used for reporting and targeting
+   * on the Leanplum dashboard. If you wish to use any other string as the version,
+   * you can call this before your call to Leanplum.start()
    */
-  @Deprecated
-  public static boolean isInterfaceEditingEnabled() {
-    return false;
+  public static void setAppVersion(String appVersion) {
+    customAppVersion = appVersion;
   }
 
   /**
@@ -519,8 +520,6 @@ public class Leanplum {
         VarCache.applyVariableDiffs(
             new HashMap<String, Object>(),
             new HashMap<String, Object>(),
-            VarCache.getUpdateRuleDiffs(),
-            VarCache.getEventRuleDiffs(),
             new HashMap<String, Object>(),
             new ArrayList<Map<String, Object>>(),
             new HashMap<String, Object>());
@@ -646,6 +645,9 @@ public class Leanplum {
 
     // Setup parameters.
     String versionName = Util.getVersionName();
+    if (customAppVersion != null) {
+      versionName = customAppVersion;
+    }
     if (versionName == null) {
       versionName = "";
     }
@@ -905,10 +907,6 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.VARS));
     Map<String, Object> messages = JsonConverter.mapFromJsonOrDefault(
         response.optJSONObject(Constants.Keys.MESSAGES));
-    List<Map<String, Object>> updateRules = JsonConverter.listFromJsonOrDefault(
-        response.optJSONArray(Constants.Keys.UPDATE_RULES));
-    List<Map<String, Object>> eventRules = JsonConverter.listFromJsonOrDefault(
-        response.optJSONArray(Constants.Keys.EVENT_RULES));
     Map<String, Object> regions = JsonConverter.mapFromJsonOrDefault(
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
@@ -919,12 +917,9 @@ public class Leanplum {
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
         || !messages.equals(VarCache.getMessageDiffs())
-        || !updateRules.equals(VarCache.getUpdateRuleDiffs())
-        || !eventRules.equals(VarCache.getEventRuleDiffs())
         || !variants.equals(VarCache.variants())
         || !regions.equals(VarCache.regions())) {
-      VarCache.applyVariableDiffs(values, messages, updateRules,
-          eventRules, regions, variants, variantDebugInfo);
+      VarCache.applyVariableDiffs(values, messages, regions, variants, variantDebugInfo);
     }
   }
 
@@ -1814,11 +1809,9 @@ public class Leanplum {
    * choosing, and will show up in the dashboard. A state is a section of your app that the user is
    * currently in.
    *
-   * @param state Name of the state. State may be empty for message impression events.
+   * @param event Event type.
    * @param info Basic context associated with the state, such as the item purchased. info is
    * treated like a default parameter.
-   * @param params Key-value pairs with metrics or data associated with the state. Parameters can be
-   * strings or numbers. You can use up to 200 different parameter names in your app.
    */
 
   public static void trackGeofence(GeofenceEventType event, String info) {

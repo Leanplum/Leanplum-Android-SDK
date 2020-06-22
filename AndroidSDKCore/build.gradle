@@ -9,8 +9,6 @@ android {
     compileSdkVersion COMPILE_SDK_VERSION
     useLibrary 'org.apache.http.legacy'
 
-    publishNonDefault true
-
     defaultConfig {
         minSdkVersion MIN_SDK_VERSION
         consumerProguardFiles CONSUMER_PROGUARD_FILES
@@ -23,10 +21,16 @@ android {
         def buildNumber = System.getenv('BUILD_NUMBER') ?: '0'
         buildConfigField 'String', 'BUILD_NUMBER', "\"${buildNumber}\""
     }
+
     buildTypes {
         release {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), PROGUARD_FILES
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JAVA_VERSION
+        targetCompatibility JAVA_VERSION
     }
 }
 
@@ -47,4 +51,4 @@ task generateJavadoc(type: Javadoc) {
     failOnError false
 }
 
-publishing_task(LEANPLUM_CORE_ARTIFACT_ID, 'AndroidSDKCore')
+publishing_task(LEANPLUM_CORE_ARTIFACT_ID)

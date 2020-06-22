@@ -2,8 +2,8 @@ language: android
 
 env:
   global:
-    - BUILD_API=28
-    - BUILD_TOOLS=28.0.3
+    - BUILD_API=29
+    - BUILD_TOOLS=29.0.3
     - ABI=x86
     - EMU_API=22
     - EMU_FLAVOR=default
@@ -22,7 +22,7 @@ licenses:
   - 'google-gdk-license-.+'
 
 before_install:
-  - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-160.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-160.jar"
+  - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-165.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-165.jar"
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
   - python -m pip install Pillow --user # library for image manipulation in snapshot tests
 
@@ -49,7 +49,7 @@ script:
 
 before_deploy:
   - ./Tools/verifyTag.sh
-  - ./gradlew assembleRelease makeJar generatePomFileForAarPublication
+  - ./gradlew assembleRelease generatePomFileForAarPublication
 
 after_deploy:
   - ./Tools/triggerRondo.sh

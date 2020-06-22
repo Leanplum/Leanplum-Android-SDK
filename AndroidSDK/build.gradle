@@ -19,7 +19,6 @@ dependencies {
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
-    //    publishNonDefault true
 
     defaultConfig {
         minSdkVersion MIN_SDK_VERSION
@@ -31,6 +30,11 @@ android {
             minifyEnabled true
             proguardFiles PROGUARD_FILES
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JAVA_VERSION
+        targetCompatibility JAVA_VERSION
     }
 
     sourceSets {
