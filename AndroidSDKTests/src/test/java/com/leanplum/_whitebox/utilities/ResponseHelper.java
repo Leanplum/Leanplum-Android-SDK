@@ -24,11 +24,13 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import static org.mockito.Matchers.anyObject;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
 
 /**
  * @author Milos Jakovljevic
@@ -79,13 +81,26 @@ public class ResponseHelper {
    * Seeds the Null response to Util.getResponse method.
    *
    */
-
-
   public static void seedResponseNull() {
     try {
       doReturn(false).when(Util.class, Util.isConnected());
     } catch (Exception e) {
       Log.e("ResponseHelper", "Unable to seed response from file: ");
     }
+  }
+
+  /**
+   * Seeds Null response to Util.getJsonResponse method.
+   */
+  public static void seedJsonResponseNull() throws Exception{
+    doReturn(null).when(Util.class, "getJsonResponse", anyObject());
+  }
+
+  /**
+   * Seed response to throw an exception.
+   * Used for testing if request callbacks are invoked in case of exception.
+   */
+  public static void seedJsonResponseException() throws Exception {
+    doThrow(new IOException()).when(Util.class, "getJsonResponse", anyObject());
   }
 }
