@@ -134,6 +134,10 @@ public class LeanplumTestHelper {
     List onceNoDownloadsHandlers = (List) TestClassUtil.getField(Leanplum.class,
         "onceNoDownloadsHandlers");
     onceNoDownloadsHandlers.clear();
+    List messageDisplayedHandlers =
+        (List) TestClassUtil.getField(Leanplum.class, "messageDisplayedHandlers");
+    messageDisplayedHandlers.clear();
+
     LeanplumInternal.getActionHandlers().clear();
     LeanplumInternal.getUserAttributeChanges().clear();
     Leanplum.countAggregator().getAndClearCounts();
