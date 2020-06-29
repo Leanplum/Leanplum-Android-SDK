@@ -369,8 +369,7 @@ public class RequestSender {
       // if we send less than 100% of requests, we need to reset the batch
       // UUID for the next batch
       if (fraction < 1) {
-        RequestOldUtil util = new RequestOldUtil();
-        util.setNewBatchUUID(requestData);
+        RequestOldUtil.setNewBatchUUID(requestData);
       }
     }
     return requestData;
