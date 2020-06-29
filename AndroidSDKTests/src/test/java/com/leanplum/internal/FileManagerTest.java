@@ -77,7 +77,7 @@ public class FileManagerTest extends AbstractTest {
     FileManager.maybeDownloadFile(false, "test.png", "test_default.png", null, new Runnable() {
       @Override
       public void run() {
-        String path = FileManager.fileRelativeToAppBundle("test.png");
+        String path = FileManager.fileRelativeToDocuments("test.png");
         assertTrue(FileManager.fileExistsAtPath(path));
       }
     });

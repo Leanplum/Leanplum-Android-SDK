@@ -47,6 +47,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -190,7 +192,7 @@ public class LeanplumActionContextTest extends AbstractTest {
     }
 
     @Test
-    public void testValues() {
+    public void testValues() throws Exception {
         ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
             put("1", true);
             put("2", false);
@@ -215,6 +217,8 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         assertNotNull(actionContext.numberNamed("7"));
         assertNull(actionContext.numberNamed(null));
+
+        resumeLeanplumExceptionHandling();
         assertEquals(0.0, actionContext.numberNamed("6"));
     }
 
@@ -264,10 +268,26 @@ public class LeanplumActionContextTest extends AbstractTest {
             put("test_2", 10);
         }};
 
-        verifyStatic(times(1));
+        Map<String, String> requestArgs = new HashMap<>();
+        requestArgs.put(Constants.Params.MESSAGE_ID, "messageId");
+
         actionContext.track("test_event", 0.0, map);
-        verifyStatic(never());
+        verifyStatic(times(1));
+        LeanplumInternal.track(
+            eq("test_event"),
+            eq(0.0),
+            isNull(String.class),
+            eq(map),
+            eq(requestArgs));
+
         actionContext.track(null, 0.0, map);
+        verifyStatic(never());
+        LeanplumInternal.track(
+            isNull(String.class),
+            any(Double.class),
+            any(String.class),
+            any(Map.class),
+            any(Map.class));
     }
 
     @Test

@@ -1,15 +1,11 @@
 package com.leanplum.internal;
 
-import com.leanplum.__setup.LeanplumTestApp;
+import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.net.HttpURLConnection;
 
@@ -22,20 +18,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
  *
  * @author Hrishi Amravatkar
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(
-    sdk = 16,
-    application = LeanplumTestApp.class
-)
-@PowerMockIgnore({
-    "org.mockito.*",
-    "org.robolectric.*",
-    "org.json.*",
-    "org.powermock.*",
-    "android.*"
-})
-@PrepareForTest({Util.class})
-public class UtilTest {
+public class UtilTest extends AbstractTest {
 
   /**
    * Runs before every test case.
@@ -79,6 +62,25 @@ public class UtilTest {
     when(mockHttpUrlConnection.getResponseCode()).thenReturn(403);
     when(mockHttpUrlConnection.getHeaderField("content-encoding")).thenReturn("gzip");
     assertNotNull(Util.getJsonResponse(mockHttpUrlConnection));
+  }
+
+  /**
+   * Test that {@link Util#handleException(Throwable)} is successfully mocked to rethrow the
+   * argument exception.
+   */
+  @Test
+  public void testHandleExceptionMocked() {
+    Assert.assertThrows(Throwable.class, () -> Util.handleException(new Exception()));
+  }
+
+  /**
+   * Test that {@link AbstractTest#resumeLeanplumExceptionHandling()} is returning the default
+   * behaviour of {@link Util#handleException(Throwable)}.
+   */
+  @Test
+  public void testHandleExceptionDefault() throws Exception {
+    resumeLeanplumExceptionHandling();
+    Util.handleException(new Exception());
   }
 
 }
