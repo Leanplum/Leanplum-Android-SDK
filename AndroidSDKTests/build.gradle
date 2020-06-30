@@ -1,5 +1,15 @@
 apply plugin: 'com.android.application'
 apply from: "../common-methods.gradle"
+apply plugin: 'com.facebook.testing.screenshot'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.facebook.testing.screenshot:plugin:0.12.0'
+    }
+}
 
 android {
     compileSdkVersion COMPILE_SDK_VERSION
@@ -10,6 +20,8 @@ android {
         minSdkVersion MIN_SDK_VERSION
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "com.leanplum.ScreenshotTestRunner"
     }
     buildTypes {
         release {
@@ -50,7 +62,7 @@ dependencies {
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
-    implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
+    implementation "androidx.appcompat:appcompat:1.2.0-beta01" // WebView in Emulator with API22 is failing with exception because of appcompat version. In 1.2.0-beta01 it is not reproduced.
     implementation 'com.google.android.gms:play-services-location:17.0.0'
 
     // Dependencies used for unit tests.
@@ -66,6 +78,16 @@ dependencies {
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
     testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
     testImplementation 'org.bouncycastle:bcmail-jdk15on:1.65'
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
+    androidTestImplementation 'org.mockito:mockito-core:1.10.19'
+    androidTestImplementation "com.crittercism.dexmaker:dexmaker:1.4"
+    androidTestImplementation "com.crittercism.dexmaker:dexmaker-mockito:1.4"
+    androidTestImplementation "com.crittercism.dexmaker:dexmaker-dx:1.4"
+    implementation 'com.facebook.testing.screenshot:core:0.12.0'
 }
 
 task jarTests(type: Jar, dependsOn: "assembleDebugUnitTest") {
