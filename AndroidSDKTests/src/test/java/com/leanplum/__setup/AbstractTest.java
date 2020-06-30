@@ -34,12 +34,9 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LocationManager;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
-import com.leanplum._whitebox.utilities.SynchronousExecutor;
-import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.Operation;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.ShadowOperationQueue;
@@ -50,6 +47,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
@@ -66,14 +64,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -169,11 +166,40 @@ public abstract class AbstractTest {
     when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
         .seedInputStream("/responses/simple_start_response.json"));
 
+    stopLeanplumExceptionHandling();
+
     ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
 
     Field instance = OperationQueue.class.getDeclaredField("instance");
     instance.setAccessible(true);
     instance.set(instance, shadowOperationQueue);
+  }
+
+  /**
+   * Leanplum SDK is handling the uncaught exceptions in
+   * {@link Util#handleException(java.lang.Throwable)} but for test purposes uncaught exceptions
+   * need not to be caught. In a lot of tests there are assert statements in the callbacks that are
+   * added in the SDK.
+   */
+  protected void stopLeanplumExceptionHandling() throws Exception {
+    String message = "\n" + "com.leanplum.internal.Util.handleException(Throwable) is called and "
+        + "exception parameter is rethrown intentionally." + "\n"
+        + "Call AbstractTest.resumeLeanplumExceptionHandling() to allow "
+        + "Util.handleException(Throwable) to work normally." + "\n" + "\n"
+        + "Scroll down to see the original stacktrace.";
+
+    PowerMockito.doAnswer(invocation -> {
+      Object[] args = invocation.getArguments();
+      throw new Exception(message, (Throwable) args[0]);
+    }).when(Util.class, "handleException", any(Throwable.class));
+  }
+
+  /**
+   * Use this method to resume normal behaviour for
+   * {@link Util#handleException(java.lang.Throwable)} and catch all uncaught exceptions in SDK.
+   */
+  protected void resumeLeanplumExceptionHandling() throws Exception {
+    PowerMockito.doNothing().when(Util.class, "handleException", any(Throwable.class));
   }
 
   @After
