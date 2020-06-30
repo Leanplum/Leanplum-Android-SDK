@@ -39,12 +39,12 @@ public class BuildConfigTest extends AbstractTest {
 
     String[] parts = version.split("\\.");
 
-    assertEquals(4, parts.length);
+    assertEquals(3, parts.length);
     // Ensure we can parse and do not go down in major version.
     int major = Integer.parseInt(parts[0]);
     assert(major >= 4);
 
-    // Ensure minor and patch versions are parseable.
+    // Ensure minor and patch versions are parsable.
     int minor = Integer.parseInt(parts[1]);
     assert(minor >= 0);
 
