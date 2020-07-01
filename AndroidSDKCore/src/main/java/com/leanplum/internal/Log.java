@@ -188,7 +188,7 @@ public class Log {
       HashMap<String, Object> params = new HashMap<>();
       params.put(Constants.Params.TYPE, Constants.Values.SDK_LOG);
       params.put(Constants.Params.MESSAGE, message);
-      RequestOld request = RequestOld.post(Constants.Methods.LOG, params);
+      RequestOld request = RequestBuilder.withLogAction().andParams(params).create();
       RequestSender.getInstance().sendEventually(request);
     } catch (Throwable t) {
       android.util.Log.e("Leanplum", "Unable to send log.", t);

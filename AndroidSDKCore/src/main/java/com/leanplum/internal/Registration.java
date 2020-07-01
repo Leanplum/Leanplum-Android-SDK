@@ -31,9 +31,10 @@ import java.util.Map;
 
 public class Registration {
   public static void registerDevice(String email, final StartCallback callback) {
-    Map<String, Object> params = new HashMap<>();
-    params.put(Constants.Params.EMAIL, email);
-    RequestOld request = RequestOld.post(Constants.Methods.REGISTER_FOR_DEVELOPMENT, params);
+    RequestOld request = RequestBuilder
+        .withRegisterForDevelopmentAction()
+        .andParam(Constants.Params.EMAIL, email)
+        .create();
 
     request.onResponse(new RequestOld.ResponseCallback() {
       @Override

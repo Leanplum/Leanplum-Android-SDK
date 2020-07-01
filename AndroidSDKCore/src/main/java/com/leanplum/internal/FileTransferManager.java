@@ -76,7 +76,7 @@ public class FileTransferManager {
       return;
     }
 
-    final RequestOld request = RequestOld.get(Constants.Methods.DOWNLOAD_FILE, null);
+    final RequestOld request = RequestBuilder.withDownloadFileAction().create();
     request.onResponse(responseJson -> {
       if (onResponse != null)
         onResponse.run();
@@ -199,9 +199,10 @@ public class FileTransferManager {
       final List<String> filenames,
       final List<InputStream> streams) {
 
-    Map<String, Object> params = new HashMap<>();
-    params.put(Constants.Params.DATA, fileData.toString());
-    final RequestOld request = RequestOld.post(Constants.Methods.UPLOAD_FILE, params);
+    final RequestOld request = RequestBuilder
+        .withUploadFileAction()
+        .andParam(Constants.Params.DATA, fileData.toString())
+        .create();
 
     if (Constants.isTestMode) {
       return;

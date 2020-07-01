@@ -45,6 +45,7 @@ import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.RequestOldUtil;
 import com.leanplum.internal.RequestSender;
@@ -701,7 +702,7 @@ public class Leanplum {
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
-    final RequestOld request = RequestOld.post(Constants.Methods.START, params);
+    final RequestOld request = RequestBuilder.withStartAction().andParams(params).create();
     request.onResponse(new RequestOld.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
@@ -965,7 +966,7 @@ public class Leanplum {
   }
 
   private static void pauseInternal() {
-    RequestOld request = RequestOld.post(Constants.Methods.PAUSE_SESSION, null);
+    RequestOld request = RequestBuilder.withPauseSessionAction().create();
     RequestSender.getInstance().sendIfConnected(request);
     pauseHeartbeat();
     LeanplumInternal.setIsPaused(true);
@@ -1000,7 +1001,7 @@ public class Leanplum {
   }
 
   private static void resumeInternal() {
-    RequestOld request = RequestOld.post(Constants.Methods.RESUME_SESSION, null);
+    RequestOld request = RequestBuilder.withResumeSessionAction().create();
     if (LeanplumInternal.hasStartedInBackground()) {
       LeanplumInternal.setStartedInBackground(false);
       RequestSender.getInstance().sendIfConnected(request);
@@ -1042,7 +1043,7 @@ public class Leanplum {
     heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
       public void run() {
         try {
-          RequestOld request = RequestOld.post(Constants.Methods.HEARTBEAT, null);
+          RequestOld request = RequestBuilder.withHeartbeatAction().create();
           RequestSender.getInstance().sendIfDelayed(request);
         } catch (Throwable t) {
           Util.handleException(t);
@@ -1081,7 +1082,7 @@ public class Leanplum {
   }
 
   private static void stopInternal() {
-    RequestOld request = RequestOld.post(Constants.Methods.STOP, null);
+    RequestOld request = RequestBuilder.withStopAction().create();
     RequestSender.getInstance().sendIfConnected(request);
   }
 
@@ -1500,7 +1501,7 @@ public class Leanplum {
 
   private static void setUserAttributesInternal(String userId,
       HashMap<String, Object> requestArgs) {
-    RequestOld request = RequestOld.post(Constants.Methods.SET_USER_ATTRIBUTES, requestArgs);
+    RequestOld request = RequestBuilder.withSetUserAttributesAction().andParams(requestArgs).create();
     RequestSender.getInstance().send(request);
     if (userId != null && userId.length() > 0) {
       RequestOld.setUserId(userId);
@@ -1549,9 +1550,10 @@ public class Leanplum {
           return;
         }
         try {
-          HashMap<String, Object> params = new HashMap<>();
-          params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
-          RequestOld request = RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params);
+          RequestOld request = RequestBuilder
+              .withSetDeviceAttributesAction()
+              .andParam(Constants.Params.DEVICE_PUSH_TOKEN, registrationId)
+              .create();
           RequestSender.getInstance().sendIfConnected(request);
         } catch (Throwable t) {
           Util.handleException(t);
@@ -1603,7 +1605,7 @@ public class Leanplum {
   }
 
   private static void setTrafficSourceInfoInternal(HashMap<String, Object> params) {
-    RequestOld requets = RequestOld.post(Constants.Methods.SET_TRAFFIC_SOURCE_INFO, params);
+    RequestOld requets = RequestBuilder.withSetTrafficSourceInfoAction().andParams(params).create();
     RequestSender.getInstance().send(requets);
   }
 
@@ -1883,7 +1885,7 @@ public class Leanplum {
    */
   private static void advanceToInternal(String state, Map<String, ?> params,
       Map<String, Object> requestParams) {
-    RequestOld request = RequestOld.post(Constants.Methods.ADVANCE, requestParams);
+    RequestOld request = RequestBuilder.withAdvanceAction().andParams(requestParams).create();
     RequestSender.getInstance().send(request);
 
     ContextualValues contextualValues = new ContextualValues();
@@ -1964,7 +1966,7 @@ public class Leanplum {
   }
 
   private static void pauseStateInternal() {
-    RequestOld request = RequestOld.post(Constants.Methods.PAUSE_STATE, new HashMap<String, Object>());
+    RequestOld request = RequestBuilder.withPauseStateAction().create();
     RequestSender.getInstance().send(request);
   }
 
@@ -2001,7 +2003,7 @@ public class Leanplum {
   }
 
   private static void resumeStateInternal() {
-    RequestOld request = RequestOld.post(Constants.Methods.RESUME_STATE, new HashMap<String, Object>());
+    RequestOld request = RequestBuilder.withResumeStateAction().create();
     RequestSender.getInstance().send(request);
   }
 
@@ -2029,12 +2031,12 @@ public class Leanplum {
       return;
     }
     try {
-      Map<String, Object> params = new HashMap<>();
-      params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
-      params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
-      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
-
-      RequestOld req = RequestOld.post(Constants.Methods.GET_VARS, params);
+      RequestOld req = RequestBuilder
+          .withGetVarsAction()
+          .andParam(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false))
+          .andParam(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds())
+          .andParam(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled())
+          .create();
       req.onResponse(new RequestOld.ResponseCallback() {
         @Override
         public void response(JSONObject response) {

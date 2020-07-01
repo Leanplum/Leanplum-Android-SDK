@@ -140,7 +140,7 @@ public class RequestOld implements Requesting {
     }
   }
 
-  public static RequestOld get(String apiMethod, Map<String, Object> params) {
+  public static RequestOld get(String apiMethod, Map<String, Object> params) { // TODO remove
     Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
@@ -148,7 +148,7 @@ public class RequestOld implements Requesting {
     return RequestFactory.getInstance().createRequest("GET", apiMethod, params);
   }
 
-  public static RequestOld post(String apiMethod, Map<String, Object> params) {
+  public static RequestOld post(String apiMethod, Map<String, Object> params) { // TODO remove
     Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
         Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
     Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);

@@ -33,6 +33,7 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
@@ -254,9 +255,10 @@ public class LeanplumInbox {
       return;
     }
 
-    Map<String, Object> params = new HashMap<>();
-    params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
-    RequestOld req = RequestOld.post(Constants.Methods.DELETE_INBOX_MESSAGE, params);
+    RequestOld req = RequestBuilder
+        .withDeleteInboxMessageAction()
+        .andParam(Constants.Params.INBOX_MESSAGE_ID, messageId)
+        .create();
     RequestSender.getInstance().send(req);
   }
 
@@ -348,7 +350,7 @@ public class LeanplumInbox {
       return;
     }
 
-    final RequestOld req = RequestOld.post(Constants.Methods.GET_INBOX_MESSAGES, null);
+    RequestOld req = RequestBuilder.withGetInboxMessagesAction().create();
     req.onResponse(new RequestOld.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
