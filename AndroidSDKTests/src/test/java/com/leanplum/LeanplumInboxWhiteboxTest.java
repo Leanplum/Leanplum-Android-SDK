@@ -26,6 +26,7 @@ import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Util;
 
 import org.junit.Before;
@@ -63,7 +64,7 @@ public class LeanplumInboxWhiteboxTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.GET_INBOX_MESSAGES, apiMethod);
+        assertEquals(RequestBuilder.ACTION_GET_INBOX_MESSAGES, apiMethod);
       }
     });
 

@@ -93,32 +93,6 @@ public class Constants {
     public static final String NOTIFICATION_GROUPS_KEY = "__leanplum_notification_groups";
   }
 
-  public static class Methods {
-    public static final String ADVANCE = "advance";
-    public static final String DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
-    public static final String DOWNLOAD_FILE = "downloadFile";
-    public static final String GET_INBOX_MESSAGES = "getNewsfeedMessages";
-    public static final String GET_VARS = "getVars";
-    public static final String HEARTBEAT = "heartbeat";
-    public static final String LOG = "log";
-    public static final String MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
-    public static final String MULTI = "multi";
-    public static final String PAUSE_SESSION = "pauseSession";
-    public static final String PAUSE_STATE = "pauseState";
-    public static final String REGISTER_FOR_DEVELOPMENT = "registerDevice";
-    public static final String RESUME_SESSION = "resumeSession";
-    public static final String RESUME_STATE = "resumeState";
-    public static final String SET_DEVICE_ATTRIBUTES = "setDeviceAttributes";
-    public static final String SET_TRAFFIC_SOURCE_INFO = "setTrafficSourceInfo";
-    public static final String SET_USER_ATTRIBUTES = "setUserAttributes";
-    public static final String SET_VARS = "setVars";
-    public static final String START = "start";
-    public static final String STOP = "stop";
-    public static final String TRACK = "track";
-    public static final String TRACK_GEOFENCE = "trackGeofence";
-    public static final String UPLOAD_FILE = "uploadFile";
-  }
-
   public static class Params {
     public static final String RESPONSE = "response";
 

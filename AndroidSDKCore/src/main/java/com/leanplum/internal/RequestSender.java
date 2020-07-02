@@ -301,7 +301,7 @@ public class RequestSender {
 
     multiRequestArgs.put(Constants.Params.DATA, jsonEncodedString);
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
-    multiRequestArgs.put(Constants.Params.ACTION, Constants.Methods.MULTI);
+    multiRequestArgs.put(Constants.Params.ACTION, RequestBuilder.ACTION_MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
 
     HttpURLConnection op = null;
@@ -402,8 +402,8 @@ public class RequestSender {
       for (int i = 0; i < requestCount; i++) {
         Map<String, Object> currentRequest = requestData.get(i);
         if (i < requestCount - 1
-            && Constants.Methods.START.equals(requestData.get(i + 1).get(Constants.Params.ACTION))
-            && Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))
+            && RequestBuilder.ACTION_START.equals(requestData.get(i + 1).get(Constants.Params.ACTION))
+            && RequestBuilder.ACTION_START.equals(currentRequest.get(Constants.Params.ACTION))
             && Boolean.TRUE.toString().equals(currentRequest.get(Constants.Params.BACKGROUND))) {
           continue;
         }

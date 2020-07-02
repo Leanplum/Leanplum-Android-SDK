@@ -42,6 +42,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
@@ -114,7 +115,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         // Validate request.
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
@@ -146,7 +147,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
       }
@@ -186,7 +187,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
@@ -223,7 +224,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
@@ -255,7 +256,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
@@ -298,7 +299,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
@@ -345,7 +346,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
@@ -390,7 +391,7 @@ public class LeanplumTest extends AbstractTest {
                 "includeVariantDebugInfo", true
         );
 
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
 
         // Validate request.
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
@@ -443,8 +444,8 @@ public class LeanplumTest extends AbstractTest {
     LeanplumEventDataManager.sharedInstance();
 
     // Add two events to database.
-    RequestOld request1 = new RequestOld("POST", Constants.Methods.GET_INBOX_MESSAGES, null);
-    RequestOld request2 = new RequestOld("POST", Constants.Methods.LOG, null);
+    RequestOld request1 = new RequestOld("POST", RequestBuilder.ACTION_GET_INBOX_MESSAGES, null);
+    RequestOld request2 = new RequestOld("POST", RequestBuilder.ACTION_LOG, null);
 
     RequestSender.getInstance().sendEventually(request1);
     RequestSender.getInstance().sendEventually(request2);
@@ -482,7 +483,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.PAUSE_STATE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_PAUSE_STATE, apiMethod);
       }
     });
 
@@ -517,7 +518,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
 
@@ -530,7 +531,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventValue = (String) params.get("value");
@@ -545,7 +546,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventInfo = (String) params.get("info");
@@ -562,7 +563,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventValue = (String) params.get("value");
@@ -582,7 +583,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventParams = (String) params.get("params");
@@ -600,7 +601,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventInfo = (String) params.get("info");
@@ -615,7 +616,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventValue = (String) params.get("value");
@@ -637,7 +638,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestPurchaseData = (String) params.get("googlePlayPurchaseData");
@@ -656,7 +657,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestPurchaseData = (String) params.get("googlePlayPurchaseData");
@@ -675,7 +676,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventValue = (String) params.get("value");
@@ -692,7 +693,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK_GEOFENCE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK_GEOFENCE, apiMethod);
 
         String requestEventName = (String) params.get("event");
         String requestEventInfo = (String) params.get("info");
@@ -716,7 +717,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.TRACK, apiMethod);
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
         String requestEventName = (String) params.get("event");
         assertEquals(eventName, requestEventName);
       }
@@ -754,7 +755,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.ADVANCE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_ADVANCE, apiMethod);
 
         String requestStateName = (String) params.get("state");
 
@@ -767,7 +768,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.ADVANCE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_ADVANCE, apiMethod);
 
         String requestStateName = (String) params.get("state");
         String requestStateInfo = (String) params.get("info");
@@ -782,7 +783,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.ADVANCE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_ADVANCE, apiMethod);
 
         String requestStateName = (String) params.get("state");
         String requestStateParams = (String) params.get("params");
@@ -801,7 +802,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.ADVANCE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_ADVANCE, apiMethod);
 
         String requestStateName = (String) params.get("state");
         String requestStateInfo = (String) params.get("info");
@@ -912,7 +913,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.PAUSE_STATE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_PAUSE_STATE, apiMethod);
       }
     });
     Leanplum.pauseState();
@@ -921,7 +922,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.RESUME_STATE, apiMethod);
+        assertEquals(RequestBuilder.ACTION_RESUME_STATE, apiMethod);
       }
     });
     Leanplum.resumeState();
@@ -961,7 +962,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.SET_VARS, apiMethod);
+        assertEquals(RequestBuilder.ACTION_SET_VARS, apiMethod);
 
         String actionDefinitionsJson = (String) params.get("actionDefinitions");
         Map<String, Object> actionDefinitions = JsonConverter.fromJson(actionDefinitionsJson);
@@ -1071,7 +1072,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.SET_DEVICE_ATTRIBUTES, apiMethod);
+        assertEquals(RequestBuilder.ACTION_SET_DEVICE_ATTRIBUTES, apiMethod);
         assertNotNull(params);
       }
     });
@@ -1113,7 +1114,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.SET_USER_ATTRIBUTES, apiMethod);
+        assertEquals(RequestBuilder.ACTION_SET_USER_ATTRIBUTES, apiMethod);
         assertEquals("37.324708,-122.020799", params.get("location"));
         assertEquals("cell", params.get("locationAccuracyType"));
       }
@@ -1124,7 +1125,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(apiMethod, Constants.Methods.SET_USER_ATTRIBUTES);
+        assertEquals(apiMethod, RequestBuilder.ACTION_SET_USER_ATTRIBUTES);
         assertEquals(params.get("location"), "37.324708,-122.020799");
         assertEquals(params.get("locationAccuracyType"), "gps");
         assertEquals(params.get("city"), "San Francisco");
@@ -1241,7 +1242,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.SET_TRAFFIC_SOURCE_INFO, apiMethod);
+        assertEquals(RequestBuilder.ACTION_SET_TRAFFIC_SOURCE_INFO, apiMethod);
         String trafficJson = (String) params.get("trafficSource");
         Map<String, Object> trafficParams = JsonConverter.fromJson(trafficJson);
         assertEquals("pubid", trafficParams.get("publisherId"));
@@ -1542,7 +1543,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
       }
@@ -1567,7 +1568,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.GET_VARS, apiMethod);
+        assertEquals(RequestBuilder.ACTION_GET_VARS, apiMethod);
       }
     });
 
@@ -1603,7 +1604,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
         assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
         assertTrue(params.values().containsAll(expectedRequestParams.values()));
       }
@@ -1633,7 +1634,7 @@ public class LeanplumTest extends AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.GET_VARS, apiMethod);
+        assertEquals(RequestBuilder.ACTION_GET_VARS, apiMethod);
       }
     });
 

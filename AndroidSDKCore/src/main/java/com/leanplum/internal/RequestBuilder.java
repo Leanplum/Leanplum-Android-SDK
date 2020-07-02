@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,33 +26,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RequestBuilder {
-  private static final String GET = "GET";
-  private static final String POST = "POST";
+  public static final String GET = "GET";
+  public static final String POST = "POST";
 
-  private static final String API_METHOD_START = "start";
-  private static final String API_METHOD_GET_VARS = "getVars";
-  private static final String API_METHOD_SET_VARS = "setVars";
-  private static final String API_METHOD_STOP = "stop";
-  private static final String API_METHOD_RESTART = "restart"; // TODO remove?
-  private static final String API_METHOD_TRACK = "track";
-  private static final String API_METHOD_TRACK_GEOFENCE = "trackGeofence";
-  private static final String API_METHOD_ADVANCE = "advance";
-  private static final String API_METHOD_PAUSE_SESSION = "pauseSession";
-  private static final String API_METHOD_PAUSE_STATE = "pauseState";
-  private static final String API_METHOD_RESUME_SESSION = "resumeSession";
-  private static final String API_METHOD_RESUME_STATE = "resumeState";
-  private static final String API_METHOD_MULTI = "multi"; // TODO remove?
-  private static final String API_METHOD_REGISTER_FOR_DEVELOPMENT = "registerDevice";
-  private static final String API_METHOD_SET_USER_ATTRIBUTES = "setUserAttributes";
-  private static final String API_METHOD_SET_DEVICE_ATTRIBUTES = "setDeviceAttributes";
-  private static final String API_METHOD_SET_TRAFFIC_SOURCE_INFO = "setTrafficSourceInfo";
-  private static final String API_METHOD_UPLOAD_FILE = "uploadFile";
-  private static final String API_METHOD_DOWNLOAD_FILE = "downloadFile";
-  private static final String API_METHOD_HEARTBEAT = "heartbeat";
-  private static final String API_METHOD_LOG = "log";
-  private static final String API_METHOD_GET_INBOX_MESSAGES = "getNewsfeedMessages";
-  private static final String API_METHOD_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
-  private static final String API_METHOD_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
+  public static final String ACTION_START = "start";
+  public static final String ACTION_GET_VARS = "getVars";
+  public static final String ACTION_SET_VARS = "setVars";
+  public static final String ACTION_STOP = "stop";
+  public static final String ACTION_RESTART = "restart";
+  public static final String ACTION_TRACK = "track";
+  public static final String ACTION_TRACK_GEOFENCE = "trackGeofence";
+  public static final String ACTION_ADVANCE = "advance";
+  public static final String ACTION_PAUSE_SESSION = "pauseSession";
+  public static final String ACTION_PAUSE_STATE = "pauseState";
+  public static final String ACTION_RESUME_SESSION = "resumeSession";
+  public static final String ACTION_RESUME_STATE = "resumeState";
+  public static final String ACTION_MULTI = "multi";
+  public static final String ACTION_REGISTER_FOR_DEVELOPMENT = "registerDevice";
+  public static final String ACTION_SET_USER_ATTRIBUTES = "setUserAttributes";
+  public static final String ACTION_SET_DEVICE_ATTRIBUTES = "setDeviceAttributes";
+  public static final String ACTION_SET_TRAFFIC_SOURCE_INFO = "setTrafficSourceInfo";
+  public static final String ACTION_UPLOAD_FILE = "uploadFile";
+  public static final String ACTION_DOWNLOAD_FILE = "downloadFile";
+  public static final String ACTION_HEARTBEAT = "heartbeat";
+  public static final String ACTION_LOG = "log";
+  public static final String ACTION_GET_INBOX_MESSAGES = "getNewsfeedMessages";
+  public static final String ACTION_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
+  public static final String ACTION_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
 
   private String httpMethod;
   private String apiAction;
@@ -64,99 +64,99 @@ public class RequestBuilder {
   }
 
   public static RequestBuilder withStartAction() {
-    return new RequestBuilder(POST, API_METHOD_START);
+    return new RequestBuilder(POST, ACTION_START);
   }
 
   public static RequestBuilder withGetVarsAction() {
-    return new RequestBuilder(POST, API_METHOD_GET_VARS);
+    return new RequestBuilder(POST, ACTION_GET_VARS);
   }
 
   public static RequestBuilder withSetVarsAction() {
-    return new RequestBuilder(POST, API_METHOD_SET_VARS);
+    return new RequestBuilder(POST, ACTION_SET_VARS);
   }
 
   public static RequestBuilder withStopAction() {
-    return new RequestBuilder(POST, API_METHOD_STOP);
+    return new RequestBuilder(POST, ACTION_STOP);
   }
 
   public static RequestBuilder withRestartAction() {
-    return new RequestBuilder(POST, API_METHOD_RESTART);
+    return new RequestBuilder(POST, ACTION_RESTART);
   }
 
   public static RequestBuilder withTrackAction() {
-    return new RequestBuilder(POST, API_METHOD_TRACK);
+    return new RequestBuilder(POST, ACTION_TRACK);
   }
 
   public static RequestBuilder withTrackGeofenceAction() {
-    return new RequestBuilder(POST, API_METHOD_TRACK_GEOFENCE);
+    return new RequestBuilder(POST, ACTION_TRACK_GEOFENCE);
   }
 
   public static RequestBuilder withAdvanceAction() {
-    return new RequestBuilder(POST, API_METHOD_ADVANCE);
+    return new RequestBuilder(POST, ACTION_ADVANCE);
   }
 
   public static RequestBuilder withPauseSessionAction() {
-    return new RequestBuilder(POST, API_METHOD_PAUSE_SESSION);
+    return new RequestBuilder(POST, ACTION_PAUSE_SESSION);
   }
 
   public static RequestBuilder withPauseStateAction() {
-    return new RequestBuilder(POST, API_METHOD_PAUSE_STATE);
+    return new RequestBuilder(POST, ACTION_PAUSE_STATE);
   }
 
   public static RequestBuilder withResumeSessionAction() {
-    return new RequestBuilder(POST, API_METHOD_RESUME_SESSION);
+    return new RequestBuilder(POST, ACTION_RESUME_SESSION);
   }
 
   public static RequestBuilder withResumeStateAction() {
-    return new RequestBuilder(POST, API_METHOD_RESUME_STATE);
+    return new RequestBuilder(POST, ACTION_RESUME_STATE);
   }
 
   public static RequestBuilder withMultiAction() {
-    return new RequestBuilder(POST, API_METHOD_MULTI);
+    return new RequestBuilder(POST, ACTION_MULTI);
   }
 
   public static RequestBuilder withRegisterForDevelopmentAction() {
-    return new RequestBuilder(POST, API_METHOD_REGISTER_FOR_DEVELOPMENT);
+    return new RequestBuilder(POST, ACTION_REGISTER_FOR_DEVELOPMENT);
   }
 
   public static RequestBuilder withSetUserAttributesAction() {
-    return new RequestBuilder(POST, API_METHOD_SET_USER_ATTRIBUTES);
+    return new RequestBuilder(POST, ACTION_SET_USER_ATTRIBUTES);
   }
 
   public static RequestBuilder withSetDeviceAttributesAction() {
-    return new RequestBuilder(POST, API_METHOD_SET_DEVICE_ATTRIBUTES);
+    return new RequestBuilder(POST, ACTION_SET_DEVICE_ATTRIBUTES);
   }
 
   public static RequestBuilder withSetTrafficSourceInfoAction() {
-    return new RequestBuilder(POST, API_METHOD_SET_TRAFFIC_SOURCE_INFO);
+    return new RequestBuilder(POST, ACTION_SET_TRAFFIC_SOURCE_INFO);
   }
 
   public static RequestBuilder withUploadFileAction() {
-    return new RequestBuilder(POST, API_METHOD_UPLOAD_FILE);
+    return new RequestBuilder(POST, ACTION_UPLOAD_FILE);
   }
 
   public static RequestBuilder withDownloadFileAction() {
-    return new RequestBuilder(POST, API_METHOD_DOWNLOAD_FILE);
+    return new RequestBuilder(GET, ACTION_DOWNLOAD_FILE);
   }
 
   public static RequestBuilder withHeartbeatAction() {
-    return new RequestBuilder(POST, API_METHOD_HEARTBEAT);
+    return new RequestBuilder(POST, ACTION_HEARTBEAT);
   }
 
   public static RequestBuilder withLogAction() {
-    return new RequestBuilder(POST, API_METHOD_LOG);
+    return new RequestBuilder(POST, ACTION_LOG);
   }
 
   public static RequestBuilder withGetInboxMessagesAction() {
-    return new RequestBuilder(POST, API_METHOD_GET_INBOX_MESSAGES);
+    return new RequestBuilder(POST, ACTION_GET_INBOX_MESSAGES);
   }
 
   public static RequestBuilder withMarkInboxMessageAsReadAction() {
-    return new RequestBuilder(POST, API_METHOD_MARK_INBOX_MESSAGE_AS_READ);
+    return new RequestBuilder(POST, ACTION_MARK_INBOX_MESSAGE_AS_READ);
   }
 
   public static RequestBuilder withDeleteInboxMessageAction() {
-    return new RequestBuilder(POST, API_METHOD_DELETE_INBOX_MESSAGE);
+    return new RequestBuilder(POST, ACTION_DELETE_INBOX_MESSAGE);
   }
 
   public RequestBuilder andParam(String param, Object value) {
@@ -176,7 +176,7 @@ public class RequestBuilder {
 
   public RequestOld create() {
     Log.LeanplumLogType level = Log.LeanplumLogType.VERBOSE;
-    if (Constants.Methods.LOG.equals(apiAction))
+    if (ACTION_LOG.equals(apiAction))
         level = Log.LeanplumLogType.DEBUG;
     Log.log(level, "Will call API method " + apiAction + " with arguments " + params);
 
@@ -185,7 +185,6 @@ public class RequestBuilder {
     else if (POST.equals(this.httpMethod))
       Leanplum.countAggregator().incrementCount("post_request");
 
-    Leanplum.countAggregator().incrementCount("createRequest");
     return RequestFactory.getInstance().createRequest(httpMethod, apiAction, params);
   }
 }

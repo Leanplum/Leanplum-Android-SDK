@@ -40,7 +40,7 @@ import java.util.UUID;
  *
  * @author Andrew First
  */
-public class RequestOld implements Requesting {
+public class RequestOld {
 
   static final String LEANPLUM = "__leanplum__";
   static final String UUID_KEY = "uuid";
@@ -135,25 +135,9 @@ public class RequestOld implements Requesting {
     this.apiMethod = apiMethod;
     this.params = params != null ? params : new HashMap<String, Object>();
     // Check if it is error and here was SQLite exception.
-    if (Constants.Methods.LOG.equals(apiMethod) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+    if (RequestBuilder.ACTION_LOG.equals(apiMethod) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
       RequestSender.getInstance().addLocalError(this);
     }
-  }
-
-  public static RequestOld get(String apiMethod, Map<String, Object> params) { // TODO remove
-    Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
-        Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
-    Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
-    Leanplum.countAggregator().incrementCount("get_request");
-    return RequestFactory.getInstance().createRequest("GET", apiMethod, params);
-  }
-
-  public static RequestOld post(String apiMethod, Map<String, Object> params) { // TODO remove
-    Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
-        Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
-    Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
-    Leanplum.countAggregator().incrementCount("post_request");
-    return RequestFactory.getInstance().createRequest("POST", apiMethod, params);
   }
 
   public void onResponse(ResponseCallback response) {

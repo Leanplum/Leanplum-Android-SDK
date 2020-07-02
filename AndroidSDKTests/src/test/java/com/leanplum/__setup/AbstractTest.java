@@ -34,10 +34,10 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LocationManager;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
-import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
@@ -219,7 +219,7 @@ public abstract class AbstractTest {
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
       @Override
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(Constants.Methods.START, apiMethod);
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
       }
     });
 
