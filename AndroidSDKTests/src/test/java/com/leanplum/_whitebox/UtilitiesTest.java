@@ -25,6 +25,7 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum.__setup.LeanplumTestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.StartCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Registration;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
@@ -59,7 +60,7 @@ public class UtilitiesTest extends AbstractTest {
 
     // Start without user id and verify that it is properly encoded/decoded.
     Leanplum.start(mContext);
-    assertEquals(userId, RequestOld.userId());
+    assertEquals(userId, APIConfig.getInstance().userId());
   }
 
   @Test
@@ -69,14 +70,14 @@ public class UtilitiesTest extends AbstractTest {
     Leanplum.start(mContext);
 
     // Validate device id.
-    String deviceId = RequestOld.deviceId();
+    String deviceId = APIConfig.getInstance().deviceId();
     assertNotNull(deviceId);
 
     LeanplumTestHelper.reset();
 
     // Start again and verify device id.
     Leanplum.start(mContext);
-    assertEquals(deviceId, RequestOld.deviceId());
+    assertEquals(deviceId, APIConfig.getInstance().deviceId());
   }
 
   @Test

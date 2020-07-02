@@ -329,7 +329,7 @@ public class VarCache {
     }
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       applyVariableDiffs(
           new HashMap<String, Object>(),
           new HashMap<String, Object>(),
@@ -340,7 +340,7 @@ public class VarCache {
     }
     try {
       // Crypt functions return input text if there was a problem.
-      AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+      AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
       String variables = aesContext.decodePreference(
           defaults, Constants.Defaults.VARIABLES_KEY, "{}");
       String messages = aesContext.decodePreference(
@@ -357,7 +357,7 @@ public class VarCache {
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
         if (Util.isValidDeviceId(deviceId)) {
-          RequestOld.setDeviceId(deviceId);
+          APIConfig.getInstance().setDeviceId(deviceId);
         } else {
           Log.w("Invalid stored device id found: \"" + deviceId + "\"; discarding.");
         }
@@ -365,7 +365,7 @@ public class VarCache {
       String userId = aesContext.decodePreference(defaults, Constants.Params.USER_ID, null);
       if (userId != null) {
         if (Util.isValidUserId(userId)) {
-          RequestOld.setUserId(userId);
+          APIConfig.getInstance().setUserId(userId);
         } else {
           Log.w("Invalid stored user id found: \"" + userId + "\"; discarding.");
         }
@@ -386,7 +386,7 @@ public class VarCache {
     if (Constants.isNoop()) {
       return;
     }
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       return;
     }
     Context context = Leanplum.getContext();
@@ -394,7 +394,7 @@ public class VarCache {
     SharedPreferences.Editor editor = defaults.edit();
 
     // Crypt functions return input text if there was a problem.
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
 
     String variablesCipher = aesContext.encrypt(JsonConverter.toJson(diffs));
     editor.putString(Constants.Defaults.VARIABLES_KEY, variablesCipher);
@@ -420,8 +420,8 @@ public class VarCache {
           aesContext.encrypt(JsonConverter.toJson(variantDebugInfo)));
     }
 
-    editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(RequestOld.deviceId()));
-    editor.putString(Constants.Params.USER_ID, aesContext.encrypt(RequestOld.userId()));
+    editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(APIConfig.getInstance().deviceId()));
+    editor.putString(Constants.Params.USER_ID, aesContext.encrypt(APIConfig.getInstance().userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
         aesContext.encrypt(String.valueOf(Constants.loggingEnabled)));
     SharedPreferencesUtil.commitChanges(editor);
@@ -786,7 +786,7 @@ public class VarCache {
     if (userAttributes == null) {
       Context context = Leanplum.getContext();
       SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
-      AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+      AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
       try {
         userAttributes = JsonConverter.fromJson(
             aesContext.decodePreference(defaults, Constants.Defaults.ATTRIBUTES_KEY, "{}"));
@@ -799,7 +799,7 @@ public class VarCache {
   }
 
   public static void saveUserAttributes() {
-    if (Constants.isNoop() || RequestOld.appId() == null || userAttributes == null) {
+    if (Constants.isNoop() || APIConfig.getInstance().appId() == null || userAttributes == null) {
       return;
     }
     Context context = Leanplum.getContext();
@@ -807,7 +807,7 @@ public class VarCache {
     SharedPreferences.Editor editor = defaults.edit();
     // Crypt functions return input text if there was a problem.
     String plaintext = JsonConverter.toJson(userAttributes);
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
     editor.putString(Constants.Defaults.ATTRIBUTES_KEY, aesContext.encrypt(plaintext));
     SharedPreferencesUtil.commitChanges(editor);
 

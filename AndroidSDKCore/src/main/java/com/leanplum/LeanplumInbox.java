@@ -28,6 +28,7 @@ import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.AESCrypt;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
@@ -290,12 +291,12 @@ public class LeanplumInbox {
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(
         "__leanplum__", Context.MODE_PRIVATE);
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
       return;
     }
     int unreadCount = 0;
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
     String newsfeedString = aesContext.decodePreference(
         defaults, Constants.Defaults.INBOX_KEY, "{}");
     Map<String, Object> newsfeed = JsonConverter.fromJson(newsfeedString);
@@ -325,7 +326,7 @@ public class LeanplumInbox {
     if (Constants.isNoop()) {
       return;
     }
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       return;
     }
     Context context = Leanplum.getContext();
@@ -340,7 +341,7 @@ public class LeanplumInbox {
       messages.put(messageId, data);
     }
     String messagesJson = JsonConverter.toJson(messages);
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
     editor.putString(Constants.Defaults.INBOX_KEY, aesContext.encrypt(messagesJson));
     SharedPreferencesUtil.commitChanges(editor);
   }

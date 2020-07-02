@@ -35,6 +35,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
@@ -687,7 +688,7 @@ public class LeanplumPushService {
     if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
-    if (hasAppIDChanged(RequestOld.appId())) {
+    if (hasAppIDChanged(APIConfig.getInstance().appId())) {
       provider.unregister();
     }
     registerInBackground();

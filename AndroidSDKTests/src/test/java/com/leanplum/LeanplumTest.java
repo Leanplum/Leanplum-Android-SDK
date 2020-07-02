@@ -35,6 +35,7 @@ import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FeatureFlagManager;
@@ -233,7 +234,7 @@ public class LeanplumTest extends AbstractTest {
 
     Leanplum.start(mContext, userId);
     assertTrue(Leanplum.hasStarted());
-    assertTrue(RequestOld.userId().equals(userId));
+    assertTrue(APIConfig.getInstance().userId().equals(userId));
   }
 
   @Test
@@ -270,7 +271,7 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     assertTrue(Leanplum.hasStarted());
-    assertTrue(RequestOld.userId().equals(userId));
+    assertTrue(APIConfig.getInstance().userId().equals(userId));
   }
 
   @Test
@@ -315,7 +316,7 @@ public class LeanplumTest extends AbstractTest {
 
     Leanplum.start(mContext, userId, userAttributes);
     assertTrue(Leanplum.hasStarted());
-    assertTrue(RequestOld.userId().equals(userId));
+    assertTrue(APIConfig.getInstance().userId().equals(userId));
   }
 
   @Test
@@ -369,7 +370,7 @@ public class LeanplumTest extends AbstractTest {
     });
     countDownLatch.await(10, TimeUnit.SECONDS);
     assertTrue(Leanplum.hasStarted());
-    assertTrue(RequestOld.userId().equals(userId));
+    assertTrue(APIConfig.getInstance().userId().equals(userId));
   }
 
   @Test
@@ -1144,19 +1145,19 @@ public class LeanplumTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
     Leanplum.setAppIdForDevelopmentMode("appid", "accesskey");
-    assertEquals("appid", RequestOld.appId());
+    assertEquals("appid", APIConfig.getInstance().appId());
     assertEquals("accesskey", TestClassUtil.getField(RequestOld.class, "accessKey"));
 
     Leanplum.setAppIdForDevelopmentMode(null, null);
-    assertEquals("appid", RequestOld.appId());
+    assertEquals("appid", APIConfig.getInstance().appId());
     assertEquals("accesskey", TestClassUtil.getField(RequestOld.class, "accessKey"));
 
     Leanplum.setAppIdForProductionMode("appid_prod", "accesskey_prod");
-    assertEquals("appid_prod", RequestOld.appId());
+    assertEquals("appid_prod", APIConfig.getInstance().appId());
     assertEquals("accesskey_prod", TestClassUtil.getField(RequestOld.class, "accessKey"));
 
     Leanplum.setAppIdForProductionMode(null, null);
-    assertEquals("appid_prod", RequestOld.appId());
+    assertEquals("appid_prod", APIConfig.getInstance().appId());
     assertEquals("accesskey_prod", TestClassUtil.getField(RequestOld.class, "accessKey"));
   }
 
@@ -1226,7 +1227,7 @@ public class LeanplumTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
     Leanplum.setUserId("test_id");
-    assertEquals("test_id", RequestOld.userId());
+    assertEquals("test_id", APIConfig.getInstance().userId());
   }
 
   /**

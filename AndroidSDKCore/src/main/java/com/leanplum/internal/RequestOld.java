@@ -21,12 +21,7 @@
 
 package com.leanplum.internal;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.text.TextUtils;
-
 import com.leanplum.Leanplum;
-import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONObject;
 
@@ -42,18 +37,7 @@ import java.util.UUID;
  */
 public class RequestOld {
 
-  static final String LEANPLUM = "__leanplum__";
-  static final String UUID_KEY = "uuid";
-
-  private static String appId;
-  private static String accessKey;
-  private static String deviceId;
-  private static String userId;
   private String requestId = UUID.randomUUID().toString();
-
-  // The token is saved primarily for legacy SharedPreferences decryption. This could
-  // likely be removed in the future.
-  private static String token = null;
 
   private final String httpMethod;
   private final String apiAction;
@@ -62,72 +46,8 @@ public class RequestOld {
   ErrorCallback error;
   private boolean saved;
 
-  public static void setAppId(String appId, String accessKey) {
-    if (!TextUtils.isEmpty(appId)) {
-      RequestOld.appId = appId.trim();
-    }
-    if (!TextUtils.isEmpty(accessKey)) {
-      RequestOld.accessKey = accessKey.trim();
-    }
-    Leanplum.countAggregator().incrementCount("set_app_id");
-  }
-
-  public static void setDeviceId(String deviceId) {
-    RequestOld.deviceId = deviceId;
-  }
-
-  public static void setUserId(String userId) {
-    RequestOld.userId = userId;
-  }
-
-  public static void setToken(String token) {
-    RequestOld.token = token;
-    Leanplum.countAggregator().incrementCount("set_token");
-  }
-
-  public static String token() {
-    return token;
-  }
-
-  public static void loadToken() {
-    Context context = Leanplum.getContext();
-    SharedPreferences defaults = context.getSharedPreferences(
-        LEANPLUM, Context.MODE_PRIVATE);
-    String token = defaults.getString(Constants.Defaults.TOKEN_KEY, null);
-    if (token == null) {
-      return;
-    }
-    setToken(token);
-    Leanplum.countAggregator().incrementCount("load_token");
-  }
-
-  public static void saveToken() {
-    Context context = Leanplum.getContext();
-    SharedPreferences defaults = context.getSharedPreferences(
-        LEANPLUM, Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = defaults.edit();
-    editor.putString(Constants.Defaults.TOKEN_KEY, RequestOld.token());
-    SharedPreferencesUtil.commitChanges(editor);
-  }
-
   public String requestId() {
     return requestId;
-  }
-
-  public static String appId() {
-    return appId;
-  }
-
-  public static String accessKey() {
-    return accessKey;
-  }
-
-  public static String deviceId() {
-    return deviceId;
-  }
-
-  public static String userId() {
-    return RequestOld.userId;
   }
 
   public RequestOld(String httpMethod, String apiAction, Map<String, Object> params) {
@@ -152,31 +72,19 @@ public class RequestOld {
 
   public Map<String, Object> createArgsDictionary() {
     Map<String, Object> args = new HashMap<>();
-    args.put(Constants.Params.DEVICE_ID, deviceId);
-    args.put(Constants.Params.USER_ID, userId);
+    args.put(Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
+    args.put(Constants.Params.USER_ID, APIConfig.getInstance().userId());
     args.put(Constants.Params.ACTION, apiAction);
     args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
     args.put(Constants.Params.REQUEST_ID, requestId);
+    String token = APIConfig.getInstance().token();
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);
     }
     args.putAll(params);
     return args;
-  }
-
-  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  static boolean attachApiKeys(Map<String, Object> dict) {
-    if (appId == null || accessKey == null) {
-      Log.e("API keys are not set. Please use Leanplum.setAppIdForDevelopmentMode or "
-          + "Leanplum.setAppIdForProductionMode.");
-      return false;
-    }
-    dict.put(Constants.Params.APP_ID, appId);
-    dict.put(Constants.Params.CLIENT_KEY, accessKey);
-    dict.put(Constants.Params.CLIENT, Constants.CLIENT);
-    return true;
   }
 
   public interface ResponseCallback {

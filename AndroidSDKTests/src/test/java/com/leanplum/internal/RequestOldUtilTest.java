@@ -52,13 +52,13 @@ public class RequestOldUtilTest extends TestCase {
         RequestOld request2 = new RequestOld(this.POST, RequestBuilder.ACTION_TRACK, null);
         RequestSender.getInstance().sendEventually(request2);
         List<Map<String, Object>> unsentRequests1 = RequestSender.getInstance().getUnsentRequests(1.0);
-        String oldUUID1 = (String) unsentRequests1.get(0).get(RequestOld.UUID_KEY);
+        String oldUUID1 = (String) unsentRequests1.get(0).get(APIConfig.UUID_KEY);
 
         List<Map<String, Object>> unsentRequests2 = RequestSender.getInstance().getUnsentRequests(1.0);
-        String oldUUID2 = (String) unsentRequests2.get(0).get(RequestOld.UUID_KEY);
+        String oldUUID2 = (String) unsentRequests2.get(0).get(APIConfig.UUID_KEY);
 
         List<Map<String, Object>> unsentRequests3 = RequestSender.getInstance().getUnsentRequests(0.5);
-        String newUUID = (String) unsentRequests3.get(0).get(RequestOld.UUID_KEY);
+        String newUUID = (String) unsentRequests3.get(0).get(APIConfig.UUID_KEY);
 
         assertTrue(oldUUID1.equals(oldUUID2));
         assertFalse(oldUUID1.equals(newUUID));

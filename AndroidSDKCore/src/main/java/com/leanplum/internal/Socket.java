@@ -97,8 +97,8 @@ public class Socket {
           Log.i("Connected to development server");
           try {
             Map<String, String> args = Util.newMap(
-                Constants.Params.APP_ID, RequestOld.appId(),
-                Constants.Params.DEVICE_ID, RequestOld.deviceId());
+                Constants.Params.APP_ID, APIConfig.getInstance().appId(),
+                Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
             try {
               sio.emit("auth", new JSONArray(Collections.singletonList(new JSONObject(args))));
             } catch (JSONException e) {

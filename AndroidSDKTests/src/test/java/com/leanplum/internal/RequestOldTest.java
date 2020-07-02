@@ -103,7 +103,7 @@ public class RequestOldTest extends TestCase {
     params.put("data1", "value1");
     params.put("data2", "value2");
 
-    RequestOld.setAppId("appId", "accessKey");
+    APIConfig.getInstance().setAppId("appId", "accessKey");
 
     final CountDownLatch latch = new CountDownLatch(2);
 
@@ -436,7 +436,7 @@ public class RequestOldTest extends TestCase {
         semaphore.release();
       }
     });
-    request.setAppId("fskadfshdbfa", "wee5w4waer422323");
+    APIConfig.getInstance().setAppId("fskadfshdbfa", "wee5w4waer422323");
 
     // When the request is sent.
     RequestSender.getInstance().sendIfConnected(request);

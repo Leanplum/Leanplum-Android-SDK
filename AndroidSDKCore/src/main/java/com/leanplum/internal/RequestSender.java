@@ -100,7 +100,7 @@ public class RequestSender {
             return;
           }
 
-          SharedPreferences preferences = context.getSharedPreferences(RequestOld.LEANPLUM,
+          SharedPreferences preferences = context.getSharedPreferences(APIConfig.LEANPLUM_PREFS,
               Context.MODE_PRIVATE);
           SharedPreferences.Editor editor = preferences.edit();
           long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
@@ -110,7 +110,7 @@ public class RequestSender {
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
             SharedPreferencesUtil.commitChanges(editor);
           }
-          args.put(RequestOld.UUID_KEY, uuid);
+          args.put(APIConfig.UUID_KEY, uuid);
           LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
 
           // Checks if here response and/or error callback for this request. We need to add callbacks to
@@ -190,11 +190,11 @@ public class RequestSender {
 
     // in case appId and accessKey are set later, request is already saved and will be
     // sent when variables are set.
-    if (RequestOld.appId() == null) {
+    if (APIConfig.getInstance().appId() == null) {
       Log.e("Cannot send request. appId is not set.");
       return;
     }
-    if (RequestOld.accessKey() == null) {
+    if (APIConfig.getInstance().accessKey() == null) {
       Log.e("Cannot send request. accessKey is not set.");
       return;
     }
@@ -227,7 +227,7 @@ public class RequestSender {
 
     String uuid = UUID.randomUUID().toString();
     for (Map<String, Object> error : localErrors) {
-      error.put(RequestOld.UUID_KEY, uuid);
+      error.put(APIConfig.UUID_KEY, uuid);
       unsentRequests.add(error);
     }
     requestsToSend = unsentRequests;
@@ -295,7 +295,7 @@ public class RequestSender {
     }
 
     final Map<String, Object> multiRequestArgs = new HashMap<>();
-    if (!RequestOld.attachApiKeys(multiRequestArgs)) {
+    if (!APIConfig.getInstance().attachApiKeys(multiRequestArgs)) {
       return;
     }
 
@@ -360,7 +360,7 @@ public class RequestSender {
       lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
-          RequestOld.LEANPLUM, Context.MODE_PRIVATE);
+          APIConfig.LEANPLUM_PREFS, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
       requestData = LeanplumEventDataManager.sharedInstance().getEvents(count);

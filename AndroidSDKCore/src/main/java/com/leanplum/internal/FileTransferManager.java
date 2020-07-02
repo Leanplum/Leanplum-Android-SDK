@@ -91,7 +91,7 @@ public class FileTransferManager {
     fileTransferStatus.put(path, true);
     final Map<String, Object> dict = request.createArgsDictionary();
     dict.put(Constants.Keys.FILENAME, path);
-    if (!request.attachApiKeys(dict)) {
+    if (!APIConfig.getInstance().attachApiKeys(dict)) {
       return;
     }
 
@@ -208,7 +208,7 @@ public class FileTransferManager {
       return;
     }
     final Map<String, Object> dict = request.createArgsDictionary();
-    if (!request.attachApiKeys(dict)) {
+    if (!APIConfig.getInstance().attachApiKeys(dict)) {
       return;
     }
     final List<File> filesToUpload = new ArrayList<>();

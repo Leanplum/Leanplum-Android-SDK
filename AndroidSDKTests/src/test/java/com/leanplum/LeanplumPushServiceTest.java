@@ -33,6 +33,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.leanplum.__setup.LeanplumTestApp;
 import com.leanplum.__setup.TestClassUtil;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
@@ -139,7 +140,7 @@ public class LeanplumPushServiceTest {
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
 
-    RequestOld.setAppId("1", "1");
+    APIConfig.getInstance().setAppId("1", "1");
     when(LeanplumPushService.class, "hasAppIDChanged", "1").thenReturn(false);
 
     LeanplumPushService pushService = new LeanplumPushService();
@@ -180,7 +181,7 @@ public class LeanplumPushServiceTest {
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
 
-    RequestOld.setAppId("1", "1");
+    APIConfig.getInstance().setAppId("1", "1");
     when(LeanplumPushService.class, "hasAppIDChanged", "1").thenReturn(false);
 
     LeanplumPushService pushService = new LeanplumPushService();
@@ -240,7 +241,7 @@ public class LeanplumPushServiceTest {
   @Test
   public void testHasAppIDChanged() throws Exception {
     mockStatic(SharedPreferencesUtil.class);
-    RequestOld.setAppId("1", "1");
+    APIConfig.getInstance().setAppId("1", "1");
     doNothing().when(SharedPreferencesUtil.class, "setString", context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.APP_ID, "1");
     LeanplumPushService pushService = new LeanplumPushService();
@@ -379,7 +380,7 @@ public class LeanplumPushServiceTest {
   public void testRegister() throws Exception {
     Context mock = mock(Context.class);
     Leanplum.setApplicationContext(mock);
-    RequestOld.setAppId(null, null);
+    APIConfig.getInstance().setAppId(null, null);
 
     PowerMockito.doReturn(true).when(Util.class, "hasPlayServices");
     PowerMockito.doReturn(false).when(LeanplumPushService.class, "hasAppIDChanged", any());

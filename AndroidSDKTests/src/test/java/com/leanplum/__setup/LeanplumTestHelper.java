@@ -30,6 +30,7 @@ import com.leanplum.LeanplumInbox;
 import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ImmediateRequestSender;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.RequestOld;
@@ -108,10 +109,10 @@ public class LeanplumTestHelper {
   public static void tearDown() {
     reset();
     clear();
-    RequestOld.setAppId(null, null);
-    RequestOld.setDeviceId(null);
-    RequestOld.setToken(null);
-    RequestOld.setUserId(null);
+    APIConfig.getInstance().setAppId(null, null);
+    APIConfig.getInstance().setDeviceId(null);
+    APIConfig.getInstance().setToken(null);
+    APIConfig.getInstance().setUserId(null);
     Leanplum.setApplicationContext(null);
   }
 

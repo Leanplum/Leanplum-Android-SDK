@@ -32,6 +32,7 @@ import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
@@ -236,7 +237,7 @@ public class Leanplum {
     }
 
     Constants.isDevelopmentModeEnabled = true;
-    RequestOld.setAppId(appId, accessKey);
+    APIConfig.getInstance().setAppId(appId, accessKey);
   }
 
   /**
@@ -257,7 +258,7 @@ public class Leanplum {
     }
 
     Constants.isDevelopmentModeEnabled = false;
-    RequestOld.setAppId(appId, accessKey);
+    APIConfig.getInstance().setAppId(appId, accessKey);
   }
 
   /**
@@ -333,7 +334,7 @@ public class Leanplum {
       Log.e("Leanplum.start() must be called before calling getDeviceId.");
       return null;
     }
-    return RequestOld.deviceId();
+    return APIConfig.getInstance().deviceId();
   }
 
   /**
@@ -563,7 +564,7 @@ public class Leanplum {
         LeanplumInternal.getUserAttributeChanges().add(validAttributes);
       }
 
-      RequestOld.loadToken();
+      APIConfig.getInstance().loadToken();
       VarCache.setSilent(true);
       VarCache.loadDiffs();
       VarCache.setSilent(false);
@@ -626,7 +627,7 @@ public class Leanplum {
     LeanplumEventDataManager.sharedInstance();
     checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
-    String deviceId = RequestOld.deviceId();
+    String deviceId = APIConfig.getInstance().deviceId();
     if (deviceId == null) {
       if (!userSpecifiedDeviceId && Constants.defaultDeviceId != null) {
         deviceId = Constants.defaultDeviceId;
@@ -637,16 +638,16 @@ public class Leanplum {
         deviceId = deviceIdInfo.id;
         limitAdTracking = deviceIdInfo.limitAdTracking;
       }
-      RequestOld.setDeviceId(deviceId);
+      APIConfig.getInstance().setDeviceId(deviceId);
     }
 
     if (userId == null) {
-      userId = RequestOld.userId();
+      userId = APIConfig.getInstance().userId();
       if (userId == null) {
-        userId = RequestOld.deviceId();
+        userId = APIConfig.getInstance().deviceId();
       }
     }
-    RequestOld.setUserId(userId);
+    APIConfig.getInstance().setUserId(userId);
 
     // Setup parameters.
     String versionName = Util.getVersionName();
@@ -780,8 +781,8 @@ public class Leanplum {
         }
 
         String token = response.optString(Constants.Keys.TOKEN, null);
-        RequestOld.setToken(token);
-        RequestOld.saveToken();
+        APIConfig.getInstance().setToken(token);
+        APIConfig.getInstance().saveToken();
 
         applyContentInResponse(response, true);
 
@@ -1099,7 +1100,7 @@ public class Leanplum {
    */
   public static String getUserId() {
     if (hasStarted()) {
-      return RequestOld.userId();
+      return APIConfig.getInstance().userId();
     } else {
       Log.e("Leanplum.start() must be called before calling getUserId()");
     }
@@ -1504,7 +1505,7 @@ public class Leanplum {
     RequestOld request = RequestBuilder.withSetUserAttributesAction().andParams(requestArgs).create();
     RequestSender.getInstance().send(request);
     if (userId != null && userId.length() > 0) {
-      RequestOld.setUserId(userId);
+      APIConfig.getInstance().setUserId(userId);
       if (LeanplumInternal.hasStarted()) {
         VarCache.saveDiffs();
       }
