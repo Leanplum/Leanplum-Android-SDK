@@ -56,7 +56,7 @@ public class RequestOld {
   private static String token = null;
 
   private final String httpMethod;
-  private final String apiMethod;
+  private final String apiAction;
   private final Map<String, Object> params;
   ResponseCallback response;
   ErrorCallback error;
@@ -130,12 +130,12 @@ public class RequestOld {
     return RequestOld.userId;
   }
 
-  public RequestOld(String httpMethod, String apiMethod, Map<String, Object> params) {
+  public RequestOld(String httpMethod, String apiAction, Map<String, Object> params) {
     this.httpMethod = httpMethod;
-    this.apiMethod = apiMethod;
+    this.apiAction = apiAction;
     this.params = params != null ? params : new HashMap<String, Object>();
     // Check if it is error and here was SQLite exception.
-    if (RequestBuilder.ACTION_LOG.equals(apiMethod) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+    if (RequestBuilder.ACTION_LOG.equals(apiAction) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
       RequestSender.getInstance().addLocalError(this);
     }
   }
@@ -154,7 +154,7 @@ public class RequestOld {
     Map<String, Object> args = new HashMap<>();
     args.put(Constants.Params.DEVICE_ID, deviceId);
     args.put(Constants.Params.USER_ID, userId);
-    args.put(Constants.Params.ACTION, apiMethod);
+    args.put(Constants.Params.ACTION, apiAction);
     args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
@@ -197,5 +197,13 @@ public class RequestOld {
 
   public String getHttpMethod() {
     return httpMethod;
+  }
+
+  public String getApiAction() {
+    return apiAction;
+  }
+
+  public Map<String, Object> getParams() {
+    return params;
   }
 }

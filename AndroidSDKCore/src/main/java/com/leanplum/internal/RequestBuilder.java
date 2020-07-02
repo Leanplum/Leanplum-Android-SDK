@@ -21,6 +21,7 @@
 
 package com.leanplum.internal;
 
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +59,8 @@ public class RequestBuilder {
   private String apiAction;
   private Map<String, Object> params;
 
-  private RequestBuilder(String httpMethod, String apiAction) {
+  @VisibleForTesting
+  protected RequestBuilder(String httpMethod, String apiAction) {
     this.httpMethod = httpMethod;
     this.apiAction = apiAction;
   }
@@ -177,7 +179,7 @@ public class RequestBuilder {
   public RequestOld create() {
     Log.LeanplumLogType level = Log.LeanplumLogType.VERBOSE;
     if (ACTION_LOG.equals(apiAction))
-        level = Log.LeanplumLogType.DEBUG;
+      level = Log.LeanplumLogType.DEBUG;
     Log.log(level, "Will call API method " + apiAction + " with arguments " + params);
 
     if (GET.equals(this.httpMethod))
@@ -186,5 +188,20 @@ public class RequestBuilder {
       Leanplum.countAggregator().incrementCount("post_request");
 
     return RequestFactory.getInstance().createRequest(httpMethod, apiAction, params);
+  }
+
+  @VisibleForTesting
+  public String getHttpMethod() {
+    return httpMethod;
+  }
+
+  @VisibleForTesting
+  public String getApiAction() {
+    return apiAction;
+  }
+
+  @VisibleForTesting
+  public Map<String, Object> getParams() {
+    return params;
   }
 }
