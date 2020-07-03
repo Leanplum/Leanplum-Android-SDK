@@ -100,8 +100,8 @@ public class RequestSender {
             return;
           }
 
-          SharedPreferences preferences = context.getSharedPreferences(APIConfig.LEANPLUM_PREFS,
-              Context.MODE_PRIVATE);
+          SharedPreferences preferences = context.getSharedPreferences(
+              Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
           SharedPreferences.Editor editor = preferences.edit();
           long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
           String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
@@ -110,7 +110,7 @@ public class RequestSender {
             editor.putString(Constants.Defaults.UUID_KEY, uuid);
             SharedPreferencesUtil.commitChanges(editor);
           }
-          args.put(APIConfig.UUID_KEY, uuid);
+          args.put(Constants.Params.UUID, uuid);
           LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
 
           // Checks if here response and/or error callback for this request. We need to add callbacks to
@@ -227,7 +227,7 @@ public class RequestSender {
 
     String uuid = UUID.randomUUID().toString();
     for (Map<String, Object> error : localErrors) {
-      error.put(APIConfig.UUID_KEY, uuid);
+      error.put(Constants.Params.UUID, uuid);
       unsentRequests.add(error);
     }
     requestsToSend = unsentRequests;
@@ -361,7 +361,7 @@ public class RequestSender {
       lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
-          APIConfig.LEANPLUM_PREFS, Context.MODE_PRIVATE);
+          Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
       requestData = LeanplumEventDataManager.sharedInstance().getEvents(count);

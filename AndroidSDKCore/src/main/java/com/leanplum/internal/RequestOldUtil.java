@@ -13,7 +13,7 @@ public class RequestOldUtil {
     public static void setNewBatchUUID(List<Map<String, Object>> requests) {
         String uuid = UUID.randomUUID().toString();
         for (Map<String, Object> request : requests) {
-            request.put(APIConfig.UUID_KEY, uuid);
+            request.put(Constants.Params.UUID, uuid);
         }
     }
 

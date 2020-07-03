@@ -143,6 +143,7 @@ public class Constants {
     public static final String UPDATE_DATE = "updateDate";
     public static final String USER_ID = "userId";
     public static final String USER_ATTRIBUTES = "userAttributes";
+    public static final String UUID = "uuid";
     public static final String VALUE = "value";
     public static final String VARS = "vars";
     public static final String VERSION_NAME = "versionName";

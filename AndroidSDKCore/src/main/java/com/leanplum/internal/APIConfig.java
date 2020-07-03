@@ -30,8 +30,6 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.Map;
 
 public class APIConfig {
-  static final String LEANPLUM_PREFS = "__leanplum__";
-  static final String UUID_KEY = "uuid";
   private static final APIConfig INSTANCE = new APIConfig();
 
   private String appId;
@@ -100,7 +98,7 @@ public class APIConfig {
   public void loadToken() {
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(
-        LEANPLUM_PREFS, Context.MODE_PRIVATE);
+        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
     String token = defaults.getString(Constants.Defaults.TOKEN_KEY, null);
     if (token == null) {
       return;
@@ -112,7 +110,7 @@ public class APIConfig {
   public void saveToken() {
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(
-        LEANPLUM_PREFS, Context.MODE_PRIVATE);
+        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = defaults.edit();
     editor.putString(Constants.Defaults.TOKEN_KEY, APIConfig.getInstance().token());
     SharedPreferencesUtil.commitChanges(editor);
