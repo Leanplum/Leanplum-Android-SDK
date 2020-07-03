@@ -44,7 +44,7 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
@@ -173,12 +173,12 @@ public class LeanplumPushService {
           } else {
             // Try downloading the messages again if it doesn't exist.
             // Maybe the message was created while the app was running.
-            RequestOld req = RequestBuilder
+            Request req = RequestBuilder
                 .withGetVarsAction()
                 .andParam(Params.INCLUDE_DEFAULTS, Boolean.toString(false))
                 .andParam(Params.INCLUDE_MESSAGE_ID, messageId)
                 .create();
-            req.onResponse(new RequestOld.ResponseCallback() {
+            req.onResponse(new Request.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 try {
@@ -211,7 +211,7 @@ public class LeanplumPushService {
                 }
               }
             });
-            req.onError(new RequestOld.ErrorCallback() {
+            req.onError(new Request.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 onComplete.variablesChanged();

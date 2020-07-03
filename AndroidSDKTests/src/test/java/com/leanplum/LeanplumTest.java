@@ -44,24 +44,18 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.Method;
@@ -543,8 +537,8 @@ public class LeanplumTest extends AbstractTest {
     LeanplumEventDataManager.sharedInstance();
 
     // Add two events to database.
-    RequestOld request1 = new RequestOld("POST", RequestBuilder.ACTION_GET_INBOX_MESSAGES, null);
-    RequestOld request2 = new RequestOld("POST", RequestBuilder.ACTION_LOG, null);
+    Request request1 = new Request("POST", RequestBuilder.ACTION_GET_INBOX_MESSAGES, null);
+    Request request2 = new Request("POST", RequestBuilder.ACTION_LOG, null);
 
     RequestSender.getInstance().sendEventually(request1);
     RequestSender.getInstance().sendEventually(request2);

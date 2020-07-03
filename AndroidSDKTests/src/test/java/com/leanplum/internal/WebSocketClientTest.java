@@ -57,7 +57,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
     "org.powermock.*",
     "android.*"
 })
-@PrepareForTest({Leanplum.class, Util.class, WebSocketClient.class, RequestOld.class})
+@PrepareForTest({Leanplum.class, Util.class, WebSocketClient.class, Request.class})
 public class WebSocketClientTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();

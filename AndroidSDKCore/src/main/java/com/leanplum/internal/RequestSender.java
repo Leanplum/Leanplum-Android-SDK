@@ -90,7 +90,7 @@ public class RequestSender {
    * Saving will be executed on background thread serially.
    * @param args json to save.
    */
-  private void saveRequestForLater(final RequestOld request, final Map<String, Object> args) {
+  private void saveRequestForLater(final Request request, final Map<String, Object> args) {
     OperationQueue.sharedInstance().addOperation(new Runnable() {
       @Override
       public void run() {
@@ -127,7 +127,7 @@ public class RequestSender {
     });
   }
 
-  public void send(final RequestOld request) {
+  public void send(final Request request) {
     sendEventually(request);
 
     if (Constants.isDevelopmentModeEnabled) {
@@ -153,7 +153,7 @@ public class RequestSender {
     Leanplum.countAggregator().incrementCount("send_request");
   }
 
-  public void sendEventually(RequestOld request) {
+  public void sendEventually(Request request) {
     if (Constants.isTestMode) {
       return;
     }
@@ -170,7 +170,7 @@ public class RequestSender {
     Leanplum.countAggregator().incrementCount("send_eventually");
   }
 
-  public void sendIfConnected(RequestOld request) {
+  public void sendIfConnected(Request request) {
     if (Util.isConnected()) {
       sendNow(request);
     } else {
@@ -180,7 +180,7 @@ public class RequestSender {
     Leanplum.countAggregator().incrementCount("send_if_connected");
   }
 
-  private void sendNow(final RequestOld request) {
+  private void sendNow(final Request request) {
     if (Constants.isTestMode) {
       return;
     }
@@ -357,7 +357,7 @@ public class RequestSender {
   public List<Map<String, Object>> getUnsentRequests(double fraction) {
     List<Map<String, Object>> requestData;
 
-    synchronized (RequestOld.class) {
+    synchronized (Request.class) {
       lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
@@ -423,7 +423,7 @@ public class RequestSender {
    * @param error Exception.
    */
   protected void triggerCallbackManager(JSONObject responseBody, Exception error) {
-    synchronized (RequestOld.class) {
+    synchronized (Request.class) {
       if (responseBody == null && error != null) {
         // Invoke potential error callbacks for all events of this request.
         eventCallbackManager.invokeAllCallbacksWithError(error);
@@ -439,7 +439,7 @@ public class RequestSender {
     if (requestsCount == 0) {
       return;
     }
-    synchronized (RequestOld.class) {
+    synchronized (Request.class) {
       LeanplumEventDataManager.sharedInstance().deleteEvents(requestsCount);
     }
   }
@@ -448,7 +448,7 @@ public class RequestSender {
    * Wait 1 second for potential other API calls, and then sends the call synchronously if no other
    * call has been sent within 1 minute.
    */
-  public void sendIfDelayed(final RequestOld request) {
+  public void sendIfDelayed(final Request request) {
     sendEventually(request);
     OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
       @Override
@@ -466,7 +466,7 @@ public class RequestSender {
   /**
    * Sends the call synchronously if no other call has been sent within 1 minute.
    */
-  private void sendIfDelayedHelper(RequestOld request) {
+  private void sendIfDelayedHelper(Request request) {
     if (Constants.isDevelopmentModeEnabled) {
       send(request);
     } else {
@@ -477,12 +477,12 @@ public class RequestSender {
     }
   }
 
-  public void addLocalError(RequestOld request) {
+  public void addLocalError(Request request) {
     Map<String, Object> dict = createArgsDictionary(request);
     localErrors.add(dict);
   }
 
-  static Map<String, Object> createArgsDictionary(RequestOld request) {
+  static Map<String, Object> createArgsDictionary(Request request) {
     Map<String, Object> args = new HashMap<>();
     args.put(Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
     args.put(Constants.Params.USER_ID, APIConfig.getInstance().userId());

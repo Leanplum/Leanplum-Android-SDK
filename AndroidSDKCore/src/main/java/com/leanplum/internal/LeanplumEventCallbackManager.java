@@ -46,8 +46,8 @@ class LeanplumEventCallbackManager {
    * @param responseCallback Response callback.
    * @param errorCallback Error callback.
    */
-  void addCallbacks(RequestOld request, RequestOld.ResponseCallback responseCallback,
-      RequestOld.ErrorCallback errorCallback) {
+  void addCallbacks(Request request, Request.ResponseCallback responseCallback,
+      Request.ErrorCallback errorCallback) {
     if (request == null) {
       return;
     }
@@ -165,10 +165,10 @@ class LeanplumEventCallbackManager {
   }
 
   private static class LeanplumEventCallbacks {
-    private RequestOld.ResponseCallback responseCallback;
-    private RequestOld.ErrorCallback errorCallback;
+    private Request.ResponseCallback responseCallback;
+    private Request.ErrorCallback errorCallback;
 
-    LeanplumEventCallbacks(RequestOld.ResponseCallback responseCallback, RequestOld.ErrorCallback
+    LeanplumEventCallbacks(Request.ResponseCallback responseCallback, Request.ErrorCallback
         errorCallback) {
       this.responseCallback = responseCallback;
       this.errorCallback = errorCallback;

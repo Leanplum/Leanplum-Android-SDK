@@ -30,7 +30,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 
@@ -185,7 +185,7 @@ public class LeanplumInboxMessage {
         int unreadCount = LeanplumInbox.getInstance().unreadCount() - 1;
         LeanplumInbox.getInstance().updateUnreadCount(unreadCount);
 
-        RequestOld req = RequestBuilder
+        Request req = RequestBuilder
             .withMarkInboxMessageAsReadAction()
             .andParam(Constants.Params.INBOX_MESSAGE_ID, messageId)
             .create();

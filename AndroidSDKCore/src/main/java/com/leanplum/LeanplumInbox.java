@@ -35,7 +35,7 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -256,7 +256,7 @@ public class LeanplumInbox {
       return;
     }
 
-    RequestOld req = RequestBuilder
+    Request req = RequestBuilder
         .withDeleteInboxMessageAction()
         .andParam(Constants.Params.INBOX_MESSAGE_ID, messageId)
         .create();
@@ -351,8 +351,8 @@ public class LeanplumInbox {
       return;
     }
 
-    RequestOld req = RequestBuilder.withGetInboxMessagesAction().create();
-    req.onResponse(new RequestOld.ResponseCallback() {
+    Request req = RequestBuilder.withGetInboxMessagesAction().create();
+    req.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
         try {
@@ -415,7 +415,7 @@ public class LeanplumInbox {
         }
       }
     });
-    req.onError(new RequestOld.ErrorCallback() {
+    req.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
         triggerInboxSyncedWithStatus(false);

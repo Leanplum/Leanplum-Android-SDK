@@ -28,12 +28,12 @@ import org.json.JSONObject;
 
 public class Registration {
   public static void registerDevice(String email, final StartCallback callback) {
-    RequestOld request = RequestBuilder
+    Request request = RequestBuilder
         .withRegisterForDevelopmentAction()
         .andParam(Constants.Params.EMAIL, email)
         .create();
 
-    request.onResponse(new RequestOld.ResponseCallback() {
+    request.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
         try {
@@ -52,7 +52,7 @@ public class Registration {
       }
     });
 
-    request.onError(new RequestOld.ErrorCallback() {
+    request.onError(new Request.ErrorCallback() {
       @Override
       public void error(final Exception e) {
         callback.setSuccess(false);

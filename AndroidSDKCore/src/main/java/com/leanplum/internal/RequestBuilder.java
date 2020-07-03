@@ -176,7 +176,7 @@ public class RequestBuilder {
     return this;
   }
 
-  public RequestOld create() {
+  public Request create() {
     Log.LeanplumLogType level = Log.LeanplumLogType.VERBOSE;
     if (ACTION_LOG.equals(apiAction))
       level = Log.LeanplumLogType.DEBUG;

@@ -39,9 +39,9 @@ public class RequestFactory {
     return defaultFactory;
   }
 
-  public RequestOld createRequest(
+  public Request createRequest(
       String httpMethod, String apiMethod, Map<String, Object> params) {
     Leanplum.countAggregator().incrementCount("createRequest");
-    return new RequestOld(httpMethod, apiMethod, params);
+    return new Request(httpMethod, apiMethod, params);
   }
 }

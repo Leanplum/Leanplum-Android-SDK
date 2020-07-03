@@ -905,7 +905,7 @@ public class Util {
       params.put("stackTrace", stringWriter.toString());
 
       params.put(Params.VERSION_NAME, versionName);
-      RequestOld request = RequestBuilder.withLogAction().andParams(params).create();
+      Request request = RequestBuilder.withLogAction().andParams(params).create();
       RequestSender.getInstance().send(request);
     } catch (Throwable t2) {
       Log.e("Unable to send error report.", t2);

@@ -27,7 +27,6 @@ import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Registration;
-import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.tests.R;
 

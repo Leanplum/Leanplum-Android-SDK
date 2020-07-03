@@ -43,7 +43,7 @@ public class RequestBuilderTest {
     String action = "action";
     Map<String, Object> emptyParams = new HashMap<>();
     RequestBuilder builder = new RequestBuilder(method, action);
-    RequestOld request = builder.create();
+    Request request = builder.create();
     assertEquals(action, request.getApiAction());
     assertEquals(method, request.getHttpMethod());
     assertEquals(emptyParams, request.getParams());

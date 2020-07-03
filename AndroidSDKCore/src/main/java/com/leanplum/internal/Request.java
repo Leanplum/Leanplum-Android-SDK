@@ -34,7 +34,7 @@ import java.util.UUID;
  *
  * @author Andrew First
  */
-public class RequestOld {
+public class Request {
 
   private String requestId = UUID.randomUUID().toString();
 
@@ -49,7 +49,7 @@ public class RequestOld {
     return requestId;
   }
 
-  public RequestOld(String httpMethod, String apiAction, Map<String, Object> params) {
+  public Request(String httpMethod, String apiAction, Map<String, Object> params) {
     this.httpMethod = httpMethod;
     this.apiAction = apiAction;
     this.params = params != null ? params : new HashMap<>();

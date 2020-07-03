@@ -37,7 +37,6 @@ import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
-import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.tests.MainActivity;
 import com.leanplum.utils.SharedPreferencesUtil;

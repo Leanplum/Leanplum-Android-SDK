@@ -76,7 +76,7 @@ public class FileTransferManager {
       return;
     }
 
-    final RequestOld request = RequestBuilder.withDownloadFileAction().create();
+    final Request request = RequestBuilder.withDownloadFileAction().create();
     request.onResponse(responseJson -> {
       if (onResponse != null)
         onResponse.run();
@@ -110,7 +110,7 @@ public class FileTransferManager {
   }
 
   private void downloadHelper(
-      RequestOld request,
+      Request request,
       String hostName,
       String servlet,
       final String path,
@@ -199,7 +199,7 @@ public class FileTransferManager {
       final List<String> filenames,
       final List<InputStream> streams) {
 
-    final RequestOld request = RequestBuilder
+    final Request request = RequestBuilder
         .withUploadFileAction()
         .andParam(Constants.Params.DATA, fileData.toString())
         .create();

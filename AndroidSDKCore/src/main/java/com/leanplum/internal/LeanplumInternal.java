@@ -345,7 +345,7 @@ public class LeanplumInternal {
 
     try {
       final Map<String, Object> requestParams = makeTrackArgs(event.getName(), value, info, params, args);
-      RequestOld request = RequestBuilder.withTrackGeofenceAction().andParams(requestParams).create();
+      Request request = RequestBuilder.withTrackGeofenceAction().andParams(requestParams).create();
       RequestSender.getInstance().sendIfConnected(request);
     } catch (Throwable t) {
       Util.handleException(t);
@@ -387,7 +387,7 @@ public class LeanplumInternal {
    */
   private static void trackInternal(String event, Map<String, ?> params,
       Map<String, Object> requestArgs) {
-    RequestOld request = RequestBuilder.withTrackAction().andParams(requestArgs).create();
+    Request request = RequestBuilder.withTrackAction().andParams(requestArgs).create();
     RequestSender.getInstance().send(request);
 
     String eventTriggerName = event;
@@ -485,14 +485,14 @@ public class LeanplumInternal {
               } catch (Throwable ignored) {
               }
             }
-            RequestOld req = RequestBuilder.withSetUserAttributesAction().andParams(params).create();
-            req.onResponse(new RequestOld.ResponseCallback() {
+            Request req = RequestBuilder.withSetUserAttributesAction().andParams(params).create();
+            req.onResponse(new Request.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 callback.response(true);
               }
             });
-            req.onError(new RequestOld.ErrorCallback() {
+            req.onError(new Request.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 callback.response(false);

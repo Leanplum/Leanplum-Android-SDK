@@ -33,7 +33,7 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -74,7 +74,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     LeanplumActivityHelper.class,
     URL.class,
     LocationManagerImplementation.class,
-    RequestOld.class,
+    Request.class,
     LocationServices.class,
     FusedLocationProviderApi.class,
     VarCache.class,

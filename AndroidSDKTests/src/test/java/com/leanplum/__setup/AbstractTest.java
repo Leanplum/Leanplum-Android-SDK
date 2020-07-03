@@ -38,7 +38,7 @@ import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
@@ -105,7 +105,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     LeanplumActivityHelper.class,
     URL.class,
     LocationManager.class,
-    RequestOld.class,
+    Request.class,
     LocationServices.class,
     FusedLocationProviderApi.class,
     VarCache.class,
@@ -129,7 +129,7 @@ public abstract class AbstractTest {
     spy(LeanplumEventDataManager.class);
     spy(Leanplum.class);
     spy(LeanplumActivityHelper.class);
-    spy(RequestOld.class);
+    spy(Request.class);
     spy(OperationQueue.class);
 
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);

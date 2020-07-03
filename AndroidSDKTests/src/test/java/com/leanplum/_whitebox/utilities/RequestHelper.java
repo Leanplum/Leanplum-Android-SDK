@@ -20,14 +20,14 @@
  */
 package com.leanplum._whitebox.utilities;
 
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request;
 
 import java.util.Map;
 
 /**
  * @author Milos Jakovljevic
  */
-public class RequestHelper extends RequestOld {
+public class RequestHelper extends Request {
   private static RequestHandler sRequestHandler = null;
 
   public RequestHelper(String httpMethod, String apiMethod, Map<String, Object> params) {

@@ -226,7 +226,7 @@ public class LeanplumEventDataManager {
      * Migrate data from shared preferences to SQLite.
      */
     private static void migrateFromSharedPreferences(SQLiteDatabase db) {
-      synchronized (RequestOld.class) {
+      synchronized (Request.class) {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
             Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);

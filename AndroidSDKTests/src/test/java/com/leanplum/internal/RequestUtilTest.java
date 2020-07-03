@@ -47,9 +47,9 @@ public class RequestUtilTest extends TestCase {
     public void testSetNewBatchUUID() {
         LeanplumEventDataManager.sharedInstance();
 
-        RequestOld request1 = new RequestOld(this.POST, RequestBuilder.ACTION_START, null);
+        Request request1 = new Request(this.POST, RequestBuilder.ACTION_START, null);
         RequestSender.getInstance().sendEventually(request1);
-        RequestOld request2 = new RequestOld(this.POST, RequestBuilder.ACTION_TRACK, null);
+        Request request2 = new Request(this.POST, RequestBuilder.ACTION_TRACK, null);
         RequestSender.getInstance().sendEventually(request2);
         List<Map<String, Object>> unsentRequests1 = RequestSender.getInstance().getUnsentRequests(1.0);
         String oldUUID1 = (String) unsentRequests1.get(0).get(Constants.Params.UUID);
