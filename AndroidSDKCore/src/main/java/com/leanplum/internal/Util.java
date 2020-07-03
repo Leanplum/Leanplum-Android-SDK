@@ -469,7 +469,7 @@ public class Util {
     Uri.Builder builder = new Uri.Builder();
     for (Map.Entry<String, Object> pair : params.entrySet()) {
       if (pair.getValue() == null) {
-        Log.w("RequestOld parameter for key: " + pair.getKey() + " is null.");
+        Log.w("Request parameter for key: " + pair.getKey() + " is null.");
         continue;
       }
       builder.appendQueryParameter(pair.getKey(), pair.getValue().toString());
