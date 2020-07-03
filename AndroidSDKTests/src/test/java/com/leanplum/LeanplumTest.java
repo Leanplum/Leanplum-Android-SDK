@@ -1244,19 +1244,19 @@ public class LeanplumTest extends AbstractTest {
 
     Leanplum.setAppIdForDevelopmentMode("appid", "accesskey");
     assertEquals("appid", APIConfig.getInstance().appId());
-    assertEquals("accesskey", TestClassUtil.getField(RequestOld.class, "accessKey"));
+    assertEquals("accesskey", APIConfig.getInstance().accessKey());
 
     Leanplum.setAppIdForDevelopmentMode(null, null);
     assertEquals("appid", APIConfig.getInstance().appId());
-    assertEquals("accesskey", TestClassUtil.getField(RequestOld.class, "accessKey"));
+    assertEquals("accesskey", APIConfig.getInstance().accessKey());
 
     Leanplum.setAppIdForProductionMode("appid_prod", "accesskey_prod");
     assertEquals("appid_prod", APIConfig.getInstance().appId());
-    assertEquals("accesskey_prod", TestClassUtil.getField(RequestOld.class, "accessKey"));
+    assertEquals("accesskey_prod", APIConfig.getInstance().accessKey());
 
     Leanplum.setAppIdForProductionMode(null, null);
     assertEquals("appid_prod", APIConfig.getInstance().appId());
-    assertEquals("accesskey_prod", TestClassUtil.getField(RequestOld.class, "accessKey"));
+    assertEquals("accesskey_prod", APIConfig.getInstance().accessKey());
   }
 
   /**

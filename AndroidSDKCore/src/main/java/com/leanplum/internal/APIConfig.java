@@ -24,6 +24,7 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.Map;
@@ -41,7 +42,8 @@ public class APIConfig {
   // likely be removed in the future.
   private String token;
 
-  private APIConfig() {
+  @VisibleForTesting
+  APIConfig() {
   }
 
   public static APIConfig getInstance() {
