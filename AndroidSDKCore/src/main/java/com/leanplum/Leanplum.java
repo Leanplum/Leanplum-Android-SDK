@@ -710,6 +710,12 @@ public class Leanplum {
         handleStartResponse(response);
       }
     });
+    request.onError(new RequestOld.ErrorCallback() {
+      @Override
+      public void error(Exception e) {
+        handleStartResponse(null);
+      }
+    });
 
     if (isBackground) {
       RequestSender.getInstance().sendEventually(request);
@@ -731,9 +737,10 @@ public class Leanplum {
         // Load the variables that were stored on the device from the last session.
         VarCache.loadDiffs();
 
-        triggerStartResponse(false);
       } catch (Throwable t) {
         Util.handleException(t);
+      } finally {
+        triggerStartResponse(success);
       }
     } else {
       try {
@@ -787,7 +794,6 @@ public class Leanplum {
         applyContentInResponse(response, true);
 
         VarCache.saveUserAttributes();
-        triggerStartResponse(true);
 
         if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
           LeanplumInbox.getInstance().downloadMessages();
@@ -898,6 +904,8 @@ public class Leanplum {
         startHeartbeat();
       } catch (Throwable t) {
         Util.handleException(t);
+      } finally {
+        triggerStartResponse(success);
       }
     }
   }

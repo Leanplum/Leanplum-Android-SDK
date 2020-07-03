@@ -41,7 +41,7 @@ public class ImmediateRequestSender extends RequestSender {
   }
 
   @Override
-  protected void parseResponseBody(JSONObject responseBody, Exception error) {
+  protected void triggerCallbackManager(JSONObject responseBody, Exception error) {
     try {
       // attach the uuid we generated
       JSONArray jsonArray = responseBody.getJSONArray(Params.RESPONSE);
@@ -52,6 +52,6 @@ public class ImmediateRequestSender extends RequestSender {
     } catch (Exception e) {
       // ignore
     }
-    super.parseResponseBody(responseBody, error);
+    super.triggerCallbackManager(responseBody, error);
   }
 }

@@ -150,21 +150,9 @@ public abstract class AbstractTest {
     // Setup the sdk.
     LeanplumTestHelper.setUp();
 
-    // Mock url connection to work offline.
-    URL mockedURL = mock(URL.class);
-    HttpsURLConnection httpsURLConnection = mock(HttpsURLConnection.class);
-
     // To be able to run tests offline and not depend on a server we have to mock URLConnection to
     // return proper status code.
-    whenNew(URL.class).withParameterTypes(String.class).withArguments(anyString())
-        .thenReturn(mockedURL);
-    when(mockedURL.openConnection()).thenReturn(httpsURLConnection);
-    when(httpsURLConnection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    when(httpsURLConnection.getResponseCode()).thenReturn(200);
-    // We are just seeding a random file as a InputStream of a mocked httpConnection which will be
-    // used in FileManager tests other tests depends on Util.getResponse() to mock response.
-    when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
-        .seedInputStream("/responses/simple_start_response.json"));
+    prepareHttpsURLConnection(200);
 
     stopLeanplumExceptionHandling();
 
@@ -200,6 +188,22 @@ public abstract class AbstractTest {
    */
   protected void resumeLeanplumExceptionHandling() throws Exception {
     PowerMockito.doNothing().when(Util.class, "handleException", any(Throwable.class));
+  }
+
+  protected void prepareHttpsURLConnection(int responseCode) throws Exception {
+    // Mock url connection to work offline.
+    URL mockedURL = mock(URL.class);
+    HttpsURLConnection httpsURLConnection = mock(HttpsURLConnection.class);
+
+    whenNew(URL.class).withParameterTypes(String.class).withArguments(anyString())
+        .thenReturn(mockedURL);
+    when(mockedURL.openConnection()).thenReturn(httpsURLConnection);
+    when(httpsURLConnection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
+    when(httpsURLConnection.getResponseCode()).thenReturn(responseCode);
+    // We are just seeding a random file as a InputStream of a mocked httpConnection which will be
+    // used in FileManager tests other tests depends on Util.getResponse() to mock response.
+    when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
+        .seedInputStream("/responses/simple_start_response.json"));
   }
 
   @After

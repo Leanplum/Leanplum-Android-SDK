@@ -51,11 +51,17 @@ import com.leanplum.internal.VarCache;
 import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.Method;
@@ -84,6 +90,7 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -162,6 +169,97 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     assertTrue(Leanplum.hasStarted());
+  }
+
+  /**
+   * Test to verify that callbacks are invoked when Exception is thrown after https request.
+   */
+  @Test
+  public void testStartFailWithException() throws Exception {
+    // Seed response to throw exception.
+    ResponseHelper.seedJsonResponseException();
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
+    );
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    class TestStartCallback extends StartCallback {
+      private boolean onResponseCalled;
+      private boolean startSuccessfull;
+      @Override
+      public void onResponse(boolean success) {
+        onResponseCalled = true;
+        startSuccessfull = success;
+      }
+    }
+
+    TestStartCallback callback = new TestStartCallback();
+    Leanplum.start(mContext, callback);
+
+    assertTrue(Leanplum.hasStarted());
+    assertTrue(callback.onResponseCalled);
+    assertFalse(callback.startSuccessfull);
+  }
+
+  /**
+   * Test to verify that callbacks are invoked when responseCode is 500 after https request.
+   */
+  @Test
+  public void testStartFailWithInternalServerError() throws Exception {
+    prepareHttpsURLConnection(500);
+
+    ResponseHelper.seedJsonResponseNull();
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
+    );
+
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+    class TestStartCallback extends StartCallback {
+      private boolean onResponseCalled;
+      private boolean startSuccessfull;
+      @Override
+      public void onResponse(boolean success) {
+        onResponseCalled = true;
+        startSuccessfull = success;
+      }
+    }
+
+    TestStartCallback callback = new TestStartCallback();
+    Leanplum.start(mContext, callback);
+
+    assertTrue(Leanplum.hasStarted());
+    assertTrue(callback.onResponseCalled);
+    assertFalse(callback.startSuccessfull);
   }
 
   @Test

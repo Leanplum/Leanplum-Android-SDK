@@ -320,7 +320,7 @@ public class RequestSender {
 
         if (statusCode >= 200 && statusCode <= 299) {
           // Parse response body and trigger callbacks
-          parseResponseBody(responseBody, null);
+          triggerCallbackManager(responseBody, null);
 
           // Clear localErrors list.
           localErrors.clear();
@@ -334,15 +334,16 @@ public class RequestSender {
           Exception errorException = new Exception("HTTP error " + statusCode);
           if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
             deleteSentRequests(unsentRequests.size());
-            parseResponseBody(responseBody, errorException);
           }
+          triggerCallbackManager(responseBody, errorException);
         }
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
         deleteSentRequests(unsentRequests.size());
-        parseResponseBody(null, e);
+        triggerCallbackManager(null, e);
       } catch (Exception e) {
         Log.e("Unable to send request: " + e.toString() + "\n" + Log.getStackTraceString(e));
+        triggerCallbackManager(null, e);
       } finally {
         if (op != null) {
           op.disconnect();
@@ -421,7 +422,7 @@ public class RequestSender {
    * @param responseBody JSONObject with response body from server.
    * @param error Exception.
    */
-  protected void parseResponseBody(JSONObject responseBody, Exception error) {
+  protected void triggerCallbackManager(JSONObject responseBody, Exception error) {
     synchronized (RequestOld.class) {
       if (responseBody == null && error != null) {
         // Invoke potential error callbacks for all events of this request.
