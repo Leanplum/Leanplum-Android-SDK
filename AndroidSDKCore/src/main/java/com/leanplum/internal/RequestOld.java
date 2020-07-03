@@ -25,7 +25,6 @@ import com.leanplum.Leanplum;
 
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -44,7 +43,7 @@ public class RequestOld {
   private final Map<String, Object> params;
   ResponseCallback response;
   ErrorCallback error;
-  private boolean saved;
+  private boolean sent;
 
   public String requestId() {
     return requestId;
@@ -53,7 +52,7 @@ public class RequestOld {
   public RequestOld(String httpMethod, String apiAction, Map<String, Object> params) {
     this.httpMethod = httpMethod;
     this.apiAction = apiAction;
-    this.params = params != null ? params : new HashMap<String, Object>();
+    this.params = params != null ? params : new HashMap<>();
     // Check if it is error and here was SQLite exception.
     if (RequestBuilder.ACTION_LOG.equals(apiAction) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
       RequestSender.getInstance().addLocalError(this);
@@ -70,23 +69,6 @@ public class RequestOld {
     Leanplum.countAggregator().incrementCount("on_error");
   }
 
-  public Map<String, Object> createArgsDictionary() {
-    Map<String, Object> args = new HashMap<>();
-    args.put(Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
-    args.put(Constants.Params.USER_ID, APIConfig.getInstance().userId());
-    args.put(Constants.Params.ACTION, apiAction);
-    args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
-    args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
-    args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
-    args.put(Constants.Params.REQUEST_ID, requestId);
-    String token = APIConfig.getInstance().token();
-    if (token != null) {
-      args.put(Constants.Params.TOKEN, token);
-    }
-    args.putAll(params);
-    return args;
-  }
-
   public interface ResponseCallback {
     void response(JSONObject response);
   }
@@ -95,12 +77,12 @@ public class RequestOld {
     void error(Exception e);
   }
 
-  public void setSaved(boolean saved) {
-    this.saved = saved;
+  public void setSent(boolean sent) {
+    this.sent = sent;
   }
 
-  public boolean isSaved() {
-    return saved;
+  public boolean isSent() {
+    return sent;
   }
 
   public String getHttpMethod() {
@@ -109,6 +91,10 @@ public class RequestOld {
 
   public String getApiAction() {
     return apiAction;
+  }
+
+  public String getRequestId() {
+    return requestId;
   }
 
   public Map<String, Object> getParams() {

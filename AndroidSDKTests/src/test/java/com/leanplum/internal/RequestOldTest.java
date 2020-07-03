@@ -92,7 +92,7 @@ public class RequestOldTest extends TestCase {
   @Test
   public void testCreateArgsDictionaryShouldIncludeRequestId() {
       RequestOld request = new RequestOld(POST, RequestBuilder.ACTION_START, null);
-      Map<String, Object> args = request.createArgsDictionary();
+      Map<String, Object> args = RequestSender.createArgsDictionary(request);
       assertTrue(args.containsKey(Constants.Params.REQUEST_ID));
   }
 

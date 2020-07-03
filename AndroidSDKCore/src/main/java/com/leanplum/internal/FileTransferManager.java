@@ -89,7 +89,7 @@ public class FileTransferManager {
     pendingDownloads++;
     Log.i("Downloading resource " + path);
     fileTransferStatus.put(path, true);
-    final Map<String, Object> dict = request.createArgsDictionary();
+    final Map<String, Object> dict = RequestSender.createArgsDictionary(request);
     dict.put(Constants.Keys.FILENAME, path);
     if (!APIConfig.getInstance().attachApiKeys(dict)) {
       return;
@@ -207,7 +207,7 @@ public class FileTransferManager {
     if (Constants.isTestMode) {
       return;
     }
-    final Map<String, Object> dict = request.createArgsDictionary();
+    final Map<String, Object> dict = RequestSender.createArgsDictionary(request);
     if (!APIConfig.getInstance().attachApiKeys(dict)) {
       return;
     }

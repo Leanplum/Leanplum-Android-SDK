@@ -162,9 +162,9 @@ public class RequestSender {
       return;
     }
 
-    if (!request.isSaved()) {
-      request.setSaved(true);
-      Map<String, Object> args = request.createArgsDictionary();
+    if (!request.isSent()) {
+      request.setSent(true);
+      Map<String, Object> args = createArgsDictionary(request);
       saveRequestForLater(request, args);
     }
     Leanplum.countAggregator().incrementCount("send_eventually");
@@ -478,7 +478,24 @@ public class RequestSender {
   }
 
   public void addLocalError(RequestOld request) {
-    Map<String, Object> dict = request.createArgsDictionary();
+    Map<String, Object> dict = createArgsDictionary(request);
     localErrors.add(dict);
+  }
+
+  static Map<String, Object> createArgsDictionary(RequestOld request) {
+    Map<String, Object> args = new HashMap<>();
+    args.put(Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
+    args.put(Constants.Params.USER_ID, APIConfig.getInstance().userId());
+    args.put(Constants.Params.ACTION, request.getApiAction());
+    args.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
+    args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
+    args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
+    args.put(Constants.Params.REQUEST_ID, request.getRequestId());
+    String token = APIConfig.getInstance().token();
+    if (token != null) {
+      args.put(Constants.Params.TOKEN, token);
+    }
+    args.putAll(request.getParams());
+    return args;
   }
 }
