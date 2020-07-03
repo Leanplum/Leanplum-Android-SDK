@@ -25,7 +25,7 @@ import java.util.Map;
         application = LeanplumTestApp.class
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
-public class RequestOldUtilTest extends TestCase {
+public class RequestUtilTest extends TestCase {
     private final String POST = "POST";
     /**
      * Runs before every test case.

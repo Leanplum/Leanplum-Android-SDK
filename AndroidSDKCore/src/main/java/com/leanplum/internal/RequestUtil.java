@@ -8,7 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RequestOldUtil {
+public class RequestUtil {
 
     public static void setNewBatchUUID(List<Map<String, Object>> requests) {
         String uuid = UUID.randomUUID().toString();

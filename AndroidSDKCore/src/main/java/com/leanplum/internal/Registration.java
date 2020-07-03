@@ -26,9 +26,6 @@ import com.leanplum.callbacks.StartCallback;
 
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Registration {
   public static void registerDevice(String email, final StartCallback callback) {
     RequestOld request = RequestBuilder
@@ -40,11 +37,11 @@ public class Registration {
       @Override
       public void response(JSONObject response) {
         try {
-          boolean success = RequestOldUtil.isResponseSuccess(response);
+          boolean success = RequestUtil.isResponseSuccess(response);
           callback.setSuccess(success);
 
           if (!success) {
-            String error = RequestOldUtil.getResponseError(response);
+            String error = RequestUtil.getResponseError(response);
             Log.e(error);
           }
 

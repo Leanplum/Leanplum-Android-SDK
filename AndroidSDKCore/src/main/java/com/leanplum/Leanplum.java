@@ -48,7 +48,7 @@ import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestOld;
-import com.leanplum.internal.RequestOldUtil;
+import com.leanplum.internal.RequestUtil;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
@@ -727,7 +727,7 @@ public class Leanplum {
   }
 
   private static void handleStartResponse(final JSONObject response) {
-    boolean success = RequestOldUtil.isResponseSuccess(response);
+    boolean success = RequestUtil.isResponseSuccess(response);
     Leanplum.countAggregator().incrementCount("on_start_response");
     if (!success) {
       try {
