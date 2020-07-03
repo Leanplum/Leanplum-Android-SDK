@@ -76,7 +76,7 @@ public class RequestHelper extends RequestOld {
   }
 
   @Override
-  protected void parseResponseBody(JSONObject responseBody, Exception error) {
+  protected void triggerCallbackManager(JSONObject responseBody, Exception error) {
     try {
       // attach the uuid we generated
       JSONArray jsonArray = responseBody.getJSONArray("response");
@@ -87,7 +87,7 @@ public class RequestHelper extends RequestOld {
     } catch (Exception e) {
       // ignore
     }
-    super.parseResponseBody(responseBody, error);
+    super.triggerCallbackManager(responseBody, error);
   }
 
   /**
