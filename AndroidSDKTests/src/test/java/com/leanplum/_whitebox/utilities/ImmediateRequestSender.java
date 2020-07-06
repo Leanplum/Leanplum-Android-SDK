@@ -34,10 +34,12 @@ public class ImmediateRequestSender extends RequestSender {
   @Override
   public void sendEventually(Request request) {
     currentRequestId = request.requestId();
-    super.sendEventually(request);
 
     // immediately send current request
-    sendRequests();
+    if (!request.isSent()) {
+      super.sendEventually(request);
+      super.sendIfConnected(request);
+    }
   }
 
   @Override
