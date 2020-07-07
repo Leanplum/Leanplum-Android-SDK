@@ -90,16 +90,16 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
   }
 
   /**
-   * Tests message triggers on start or resume, and impression is recorded. Starts in background.
+   * Tests message triggers on start or resume, and impression is recorded.
    */
   @Test
-  public void testTriggerOnStartOrResumeBackground() throws Exception {
+  public void testTriggerOnStartOrResume() {
     final String messageId = "Trigger on start or resume";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
 
-    // Start in background.
+    // Start
     setupSDK(mContext, "/responses/resume_message_response.json");
 
     // Assert the trigger and message impression occurred after start.
@@ -109,48 +109,14 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
 
     Leanplum.pause();
     Leanplum.resume();
-    // Assert the trigger and message impression didn't occur after first resume.
-    assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
-    assertEquals(3, actionManager.getMessageImpressionOccurrences(messageId).size());
-    assertEquals(0L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
+    // Assert the trigger and message impression occurred after first resume.
+    assertEquals(2, actionManager.getMessageTriggerOccurrences(messageId));
+    assertEquals(4, actionManager.getMessageImpressionOccurrences(messageId).size());
+    assertEquals(1L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
 
     Leanplum.pause();
     Leanplum.resume();
     // Assert the trigger and message impression occurred after second resume.
-    assertEquals(2, actionManager.getMessageTriggerOccurrences(messageId));
-    assertEquals(4, actionManager.getMessageImpressionOccurrences(messageId).size());
-    assertEquals(1L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
-  }
-
-  /**
-   * Tests message triggers on start or resume, and impression is recorded. Starts in foreground.
-   */
-  @Test
-  public void testTriggerOnStartOrResumeForeground() throws Exception {
-    final String messageId = "Trigger on start or resume";
-    ActionManager actionManager = ActionManager.getInstance();
-    assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));
-    assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
-
-    ResponseHelper.seedResponse("/responses/resume_message_response.json");
-    // Start in foreground so that the message can be triggered on resumeSession.
-    Leanplum.start(mContext, null, null, null, false);
-
-    // Assert the trigger and message impression occurred after start.
-    assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
-    assertEquals(3, actionManager.getMessageImpressionOccurrences(messageId).size());
-    assertEquals(0L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
-
-    Leanplum.pause();
-    Leanplum.resume();
-    // Assert the trigger and message impression occurred after resume after resume.
-    assertEquals(2, actionManager.getMessageTriggerOccurrences(messageId));
-    assertEquals(4, actionManager.getMessageImpressionOccurrences(messageId).size());
-    assertEquals(1L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
-
-    Leanplum.pause();
-    Leanplum.resume();
-    // Assert the trigger and message impression occurrence incremented after resume.
     assertEquals(3, actionManager.getMessageTriggerOccurrences(messageId));
     assertEquals(5, actionManager.getMessageImpressionOccurrences(messageId).size());
     assertEquals(2L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));

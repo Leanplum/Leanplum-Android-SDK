@@ -445,7 +445,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context) {
-    start(context, null, null, null, null);
+    start(context, null, null, null);
   }
 
   /**
@@ -453,7 +453,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, StartCallback callback) {
-    start(context, null, null, callback, null);
+    start(context, null, null, callback);
   }
 
   /**
@@ -461,7 +461,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, Map<String, ?> userAttributes) {
-    start(context, null, userAttributes, null, null);
+    start(context, null, userAttributes, null);
   }
 
   /**
@@ -469,7 +469,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, String userId) {
-    start(context, userId, null, null, null);
+    start(context, userId, null, null);
   }
 
   /**
@@ -477,7 +477,7 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, String userId, StartCallback callback) {
-    start(context, userId, null, callback, null);
+    start(context, userId, null, callback);
   }
 
   /**
@@ -485,31 +485,17 @@ public class Leanplum {
    * the values of the variables used in your app.
    */
   public static void start(Context context, String userId, Map<String, ?> userAttributes) {
-    start(context, userId, userAttributes, null, null);
+    start(context, userId, userAttributes, null);
   }
 
   /**
    * Call this when your application starts. This will initiate a call to Leanplum's servers to get
    * the values of the variables used in your app.
    */
-  public static synchronized void start(final Context context, String userId,
-      Map<String, ?> attributes, StartCallback response) {
-    start(context, userId, attributes, response, null);
-  }
-
-  static synchronized void start(final Context context, final String userId,
-      final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
+  public static synchronized void start(final Context context, final String userId,
+      final Map<String, ?> attributes, StartCallback response) {
     try {
       LeanplumActivityHelper.setCurrentActivity(context);
-
-      // Detect if app is in background automatically if isBackground is not set.
-      final boolean actuallyInBackground;
-      if (isBackground == null) {
-        actuallyInBackground = LeanplumActivityHelper.getCurrentActivity() == null ||
-            LeanplumActivityHelper.isActivityPaused();
-      } else {
-        actuallyInBackground = isBackground;
-      }
 
       if (Constants.isNoop()) {
         LeanplumInternal.setHasStarted(true);
@@ -536,20 +522,12 @@ public class Leanplum {
       }
 
       if (LeanplumInternal.hasCalledStart()) {
-        if (!actuallyInBackground && LeanplumInternal.hasStartedInBackground()) {
-          // Move to foreground.
-          LeanplumInternal.setStartedInBackground(false);
-          LeanplumInternal.moveToForeground();
-        } else {
-          Log.i("Already called start");
-        }
+        Log.i("Already called start");
         return;
       }
 
       initializedMessageTemplates = true;
       MessageTemplates.register(Leanplum.getContext());
-
-      LeanplumInternal.setStartedInBackground(actuallyInBackground);
 
       final Map<String, ?> validAttributes = LeanplumInternal.validateAttributes(attributes,
           "userAttributes", true);
@@ -587,7 +565,7 @@ public class Leanplum {
         @Override
         public void run() {
           try {
-            startHelper(userId, validAttributes, actuallyInBackground);
+            startHelper(userId, validAttributes);
           } catch (Throwable t) {
             Util.handleException(t);
           }
@@ -617,7 +595,7 @@ public class Leanplum {
   }
 
   private static void startHelper(
-      String userId, final Map<String, ?> attributes, final boolean isBackground) {
+      String userId, final Map<String, ?> attributes) {
     LeanplumEventDataManager.sharedInstance();
     checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
@@ -661,9 +639,6 @@ public class Leanplum {
 
     HashMap<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
-    if (isBackground) {
-      params.put(Constants.Params.BACKGROUND, Boolean.toString(true));
-    }
     params.put(Constants.Params.VERSION_NAME, versionName);
     params.put(Constants.Params.DEVICE_NAME, Util.getDeviceName());
     params.put(Constants.Params.DEVICE_MODEL, Util.getDeviceModel());
@@ -711,11 +686,7 @@ public class Leanplum {
       }
     });
 
-    if (isBackground) {
-      request.sendEventually();
-    } else {
-      request.sendIfConnected();
-    }
+    request.sendIfConnected();
 
     LeanplumInternal.triggerStartIssued();
   }
@@ -894,7 +865,7 @@ public class Leanplum {
             LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
           }
         }
-        LeanplumInternal.moveToForeground();
+        LeanplumInternal.scheduleActionsOnStart();
         startHeartbeat();
       } catch (Throwable t) {
         Util.handleException(t);
@@ -1004,14 +975,11 @@ public class Leanplum {
 
   private static void resumeInternal() {
     RequestOld request = RequestOld.post(Constants.Methods.RESUME_SESSION, null);
-    if (LeanplumInternal.hasStartedInBackground()) {
-      LeanplumInternal.setStartedInBackground(false);
-      request.sendIfConnected();
-    } else {
-      request.sendIfDelayed();
-      LeanplumInternal.maybePerformActions("resume", null,
-          LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
-    }
+    request.sendIfDelayed();
+
+    LeanplumInternal.maybePerformActions("resume", null,
+        LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
+
     resumeHeartbeat();
     LeanplumInternal.setIsPaused(false);
   }

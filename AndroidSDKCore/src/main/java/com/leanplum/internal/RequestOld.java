@@ -454,7 +454,7 @@ public class RequestOld implements Requesting {
         requestsToSend = new ArrayList<>(0);
       } else {
         unsentRequests = getUnsentRequests(fraction);
-        requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+        requestsToSend = new ArrayList<>(unsentRequests);
       }
 
       jsonEncodedRequestsToSend = jsonEncodeRequests(requestsToSend);
@@ -601,45 +601,6 @@ public class RequestOld implements Requesting {
       }
     }
     return requestData;
-  }
-
-  /**
-   * In various scenarios we can end up batching a big number of requests (e.g. device is offline,
-   * background sessions), which could make the stored API calls batch look something like:
-   * <p>
-   * <code>start(B), start(B), start(F), track, start(B), track, start(F), resumeSession</code>
-   * <p>
-   * where <code>start(B)</code> indicates a start in the background, and <code>start(F)</code>
-   * one in the foreground.
-   * <p>
-   * In this case the first two <code>start(B)</code> can be dropped because they don't contribute
-   * any relevant information for the batch call.
-   * <p>
-   * Essentially we drop every <code>start(B)</code> call, that is directly followed by any kind of
-   * a <code>start</code> call.
-   *
-   * @param requestData A list of the requests, stored on the device.
-   * @return A list of only these requests, which contain relevant information for the API call.
-   */
-  private static List<Map<String, Object>> removeIrrelevantBackgroundStartRequests(
-      List<Map<String, Object>> requestData) {
-    List<Map<String, Object>> relevantRequests = new ArrayList<>();
-
-    int requestCount = requestData.size();
-    if (requestCount > 0) {
-      for (int i = 0; i < requestCount; i++) {
-        Map<String, Object> currentRequest = requestData.get(i);
-        if (i < requestCount - 1
-            && Constants.Methods.START.equals(requestData.get(i + 1).get(Constants.Params.ACTION))
-            && Constants.Methods.START.equals(currentRequest.get(Constants.Params.ACTION))
-            && Boolean.TRUE.toString().equals(currentRequest.get(Constants.Params.BACKGROUND))) {
-          continue;
-        }
-        relevantRequests.add(currentRequest);
-      }
-    }
-
-    return relevantRequests;
   }
 
   protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {

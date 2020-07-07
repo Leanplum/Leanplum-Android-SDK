@@ -67,9 +67,6 @@ public class LeanplumInternal {
   private static boolean calledStart;
   private static boolean isPaused;
 
-  private static boolean startedInBackground;
-  private static boolean inForeground;
-  private static final Object inForegroundLock = new Object();
   private static final Queue<Map<String, ?>> userAttributeChanges = new ConcurrentLinkedQueue<>();
   private static final ArrayList<Runnable> startIssuedHandlers = new ArrayList<>();
   private static boolean isScreenTrackingEnabled = false;
@@ -317,7 +314,7 @@ public class LeanplumInternal {
       params = validateAttributes(params, "params", false);
       requestParams.put(Constants.Params.PARAMS, JsonConverter.toJson(params));
     }
-    if (!inForeground || LeanplumActivityHelper.isActivityPaused()) {
+    if (LeanplumActivityHelper.isActivityPaused()) {
       requestParams.put("allowOffline", Boolean.TRUE.toString());
     }
     return requestParams;
@@ -533,14 +530,7 @@ public class LeanplumInternal {
     }
   }
 
-  public static void moveToForeground() {
-    synchronized (inForegroundLock) {
-      if (inForeground) {
-        return;
-      }
-      inForeground = true;
-    }
-
+  public static void scheduleActionsOnStart() {
     Leanplum.addStartResponseHandler(new StartCallback() {
       @Override
       public void onResponse(boolean success) {
@@ -705,14 +695,6 @@ public class LeanplumInternal {
 
   public static void setIsPaused(boolean isPaused) {
     LeanplumInternal.isPaused = isPaused;
-  }
-
-  public static boolean hasStartedInBackground() {
-    return startedInBackground;
-  }
-
-  public static void setStartedInBackground(boolean startedInBackground) {
-    LeanplumInternal.startedInBackground = startedInBackground;
   }
 
   public static Queue<Map<String, ?>> getUserAttributeChanges() {

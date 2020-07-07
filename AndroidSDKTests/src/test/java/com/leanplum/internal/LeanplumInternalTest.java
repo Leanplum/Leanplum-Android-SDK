@@ -75,11 +75,11 @@ public class LeanplumInternalTest {
   }
 
   /**
-   * Test for {@link LeanplumInternal#moveToForeground()} that should connect to Socket in
+   * Test for {@link LeanplumInternal#scheduleActionsOnStart()} that should connect to Socket in
    * development mode only after successful connection to Leanplum.
    */
   @Test
-  public void testMoveToForeground() throws Exception {
+  public void testScheduleActionsOnStart() throws Exception {
     mockStatic(Constants.class);
     mockStatic(Socket.class);
     Constants.isDevelopmentModeEnabled = true;
@@ -88,7 +88,7 @@ public class LeanplumInternalTest {
 
     // Test for failed connection to Leanplum.
     when(LeanplumInternal.class, "isStartSuccessful").thenReturn(false);
-    LeanplumInternal.moveToForeground();
+    LeanplumInternal.scheduleActionsOnStart();
     verifyStatic(never());
     Socket.getInstance();
 
@@ -96,10 +96,6 @@ public class LeanplumInternalTest {
     when(LeanplumInternal.class, "isStartSuccessful").thenReturn(true);
     assertTrue(LeanplumInternal.isStartSuccessful());
     when(Socket.getInstance()).thenReturn(null);
-    Field inForegroundField = LeanplumInternal.class.getDeclaredField("inForeground");
-    assertNotNull(inForegroundField);
-    inForegroundField.setAccessible(true);
-    inForegroundField.set(LeanplumInternal.class, false);
 
     // Stubbing the recordAttributeChanges method to do nothing when its called.
     PowerMockito.doNothing().when(LeanplumInternal.class);
@@ -110,7 +106,7 @@ public class LeanplumInternalTest {
     LeanplumInternal.maybePerformActions(new String[] {"start", "resume"}, null,
         LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
 
-    LeanplumInternal.moveToForeground();
+    LeanplumInternal.scheduleActionsOnStart();
     verifyStatic();
     Socket.getInstance();
   }

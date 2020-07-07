@@ -125,7 +125,6 @@ public class Constants {
     public static final String ACTION = "action";
     public static final String ACTION_DEFINITIONS = "actionDefinitions";
     public static final String APP_ID = "appId";
-    public static final String BACKGROUND = "background";
     public static final String CLIENT = "client";
     public static final String CLIENT_KEY = "clientKey";
     public static final String DATA = "data";

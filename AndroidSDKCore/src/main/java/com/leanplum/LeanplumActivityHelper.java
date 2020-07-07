@@ -211,7 +211,7 @@ public class LeanplumActivityHelper {
   private static void onResume(Activity activity) {
     isActivityPaused = false;
     currentActivity = activity;
-    if (LeanplumInternal.isPaused() || LeanplumInternal.hasStartedInBackground()) {
+    if (LeanplumInternal.isPaused()) {
       Leanplum.resume();
       LocationManager locationManager = ActionManager.getLocationManager();
       if (locationManager != null) {
