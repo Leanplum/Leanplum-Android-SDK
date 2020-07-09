@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
         }
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
-public class RequestTest extends TestCase {
+public class RequestSenderTest extends TestCase {
   public final String POST = "POST";
   /**
    * Runs before every test case.
