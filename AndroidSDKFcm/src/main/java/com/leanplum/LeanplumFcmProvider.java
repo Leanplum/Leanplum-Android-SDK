@@ -56,7 +56,8 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
           @Override
           public void onComplete(@NonNull Task<InstanceIdResult> task) {
             if (!task.isSuccessful()) {
-              Log.e("getInstanceId failed");
+              Exception exc = task.getException();
+              Log.e("getInstanceId failed:\n" + Log.getStackTraceString(exc));
               return;
             }
             // Get new Instance ID token
