@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,51 +23,81 @@ package com.leanplum.internal;
 
 import com.leanplum.Leanplum;
 
-import java.util.Map;
+import org.json.JSONObject;
 
-public class Request implements Requesting {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Leanplum request class.
+ *
+ * @author Andrew First
+ */
+public class Request {
+
+  private String requestId = UUID.randomUUID().toString();
 
   private final String httpMethod;
-  private final String apiMethod;
+  private final String apiAction;
   private final Map<String, Object> params;
-  private ResponseCallback response = null;
-  private ErrorCallback error = null;
-  private final CountAggregator countAggregator;
+  ResponseCallback response;
+  ErrorCallback error;
+  private boolean sent;
 
-  public Request(String httpMethod, String apiMethod, Map<String, Object> params) {
+  public String requestId() {
+    return requestId;
+  }
+
+  public Request(String httpMethod, String apiAction, Map<String, Object> params) {
     this.httpMethod = httpMethod;
-    this.apiMethod = apiMethod;
-    this.params = params;
-    this.countAggregator = Leanplum.countAggregator();
-  }
-
-  public static Request get(String apiMethod, Map<String, Object> params) {
-    Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
-        Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
-    Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
-
-    Leanplum.countAggregator().incrementCount("get_lprequest");
-
-    return new Request("GET", apiMethod, params);
-  }
-
-  public static Request post(String apiMethod, Map<String, Object> params) {
-    Log.LeanplumLogType level = Constants.Methods.LOG.equals(apiMethod) ?
-        Log.LeanplumLogType.DEBUG : Log.LeanplumLogType.VERBOSE;
-    Log.log(level, "Will call API method " + apiMethod + " with arguments " + params);
-
-    Leanplum.countAggregator().incrementCount("post_lprequest");
-
-    return new Request("POST", apiMethod, params);
+    this.apiAction = apiAction;
+    this.params = params != null ? params : new HashMap<>();
+    // Check if it is error and here was SQLite exception.
+    if (RequestBuilder.ACTION_LOG.equals(apiAction) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+      RequestSender.getInstance().addLocalError(this);
+    }
   }
 
   public void onResponse(ResponseCallback response) {
     this.response = response;
-    this.countAggregator.incrementCount("on_response_lprequest");
+    Leanplum.countAggregator().incrementCount("on_response");
   }
 
   public void onError(ErrorCallback error) {
     this.error = error;
-    this.countAggregator.incrementCount("on_error_lprequest");
+    Leanplum.countAggregator().incrementCount("on_error");
+  }
+
+  public interface ResponseCallback {
+    void response(JSONObject response);
+  }
+
+  public interface ErrorCallback {
+    void error(Exception e);
+  }
+
+  public void setSent(boolean sent) {
+    this.sent = sent;
+  }
+
+  public boolean isSent() {
+    return sent;
+  }
+
+  public String getHttpMethod() {
+    return httpMethod;
+  }
+
+  public String getApiAction() {
+    return apiAction;
+  }
+
+  public String getRequestId() {
+    return requestId;
+  }
+
+  public Map<String, Object> getParams() {
+    return params;
   }
 }

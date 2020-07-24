@@ -29,7 +29,9 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 
 import org.json.JSONObject;
@@ -183,11 +185,11 @@ public class LeanplumInboxMessage {
         int unreadCount = LeanplumInbox.getInstance().unreadCount() - 1;
         LeanplumInbox.getInstance().updateUnreadCount(unreadCount);
 
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
-        RequestOld req = RequestOld.post(Constants.Methods.MARK_INBOX_MESSAGE_AS_READ,
-            params);
-        req.send();
+        Request req = RequestBuilder
+            .withMarkInboxMessageAsReadAction()
+            .andParam(Constants.Params.INBOX_MESSAGE_ID, messageId)
+            .create();
+        RequestSender.getInstance().send(req);
       }
       this.context.runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
     } catch (Throwable t) {
