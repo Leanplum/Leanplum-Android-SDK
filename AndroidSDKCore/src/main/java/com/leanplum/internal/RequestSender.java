@@ -311,7 +311,7 @@ public class RequestSender {
             Constants.API_HOST_NAME,
             Constants.API_SERVLET,
             multiRequestArgs,
-            "POST",
+            RequestBuilder.POST,
             Constants.API_SSL,
             Constants.NETWORK_TIMEOUT_SECONDS);
 
