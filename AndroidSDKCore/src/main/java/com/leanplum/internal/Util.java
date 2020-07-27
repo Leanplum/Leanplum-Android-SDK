@@ -43,7 +43,6 @@ import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumException;
-import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.monitoring.ExceptionHandler;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -470,7 +469,7 @@ public class Util {
     Uri.Builder builder = new Uri.Builder();
     for (Map.Entry<String, Object> pair : params.entrySet()) {
       if (pair.getValue() == null) {
-        Log.w("RequestOld parameter for key: " + pair.getKey() + " is null.");
+        Log.w("Request parameter for key: " + pair.getKey() + " is null.");
         continue;
       }
       builder.appendQueryParameter(pair.getKey(), pair.getValue().toString());
@@ -577,7 +576,7 @@ public class Util {
     */
 
     urlConnection.setRequestProperty("User-Agent",
-        getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
+        getApplicationName(context) + "/" + getVersionName() + "/" + APIConfig.getInstance().appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
             getSystemVersion() + "/" + Constants.LEANPLUM_SUPPORTED_ENCODING + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
     urlConnection.setRequestProperty("Accept-Encoding", Constants.LEANPLUM_SUPPORTED_ENCODING);
@@ -906,7 +905,8 @@ public class Util {
       params.put("stackTrace", stringWriter.toString());
 
       params.put(Params.VERSION_NAME, versionName);
-      RequestOld.post(Methods.LOG, params).send();
+      Request request = RequestBuilder.withLogAction().andParams(params).create();
+      RequestSender.getInstance().send(request);
     } catch (Throwable t2) {
       Log.e("Unable to send error report.", t2);
     }

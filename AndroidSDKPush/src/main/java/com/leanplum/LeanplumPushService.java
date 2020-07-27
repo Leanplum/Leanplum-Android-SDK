@@ -35,15 +35,17 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
-import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
@@ -171,11 +173,12 @@ public class LeanplumPushService {
           } else {
             // Try downloading the messages again if it doesn't exist.
             // Maybe the message was created while the app was running.
-            Map<String, Object> params = new HashMap<>();
-            params.put(Params.INCLUDE_DEFAULTS, Boolean.toString(false));
-            params.put(Params.INCLUDE_MESSAGE_ID, messageId);
-            RequestOld req = RequestOld.post(Methods.GET_VARS, params);
-            req.onResponse(new RequestOld.ResponseCallback() {
+            Request req = RequestBuilder
+                .withGetVarsAction()
+                .andParam(Params.INCLUDE_DEFAULTS, Boolean.toString(false))
+                .andParam(Params.INCLUDE_MESSAGE_ID, messageId)
+                .create();
+            req.onResponse(new Request.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 try {
@@ -208,13 +211,13 @@ public class LeanplumPushService {
                 }
               }
             });
-            req.onError(new RequestOld.ErrorCallback() {
+            req.onError(new Request.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 onComplete.variablesChanged();
               }
             });
-            req.sendIfConnected();
+            RequestSender.getInstance().sendIfConnected(req);
           }
         } catch (Throwable t) {
           Util.handleException(t);
@@ -685,7 +688,7 @@ public class LeanplumPushService {
     if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
-    if (hasAppIDChanged(RequestOld.appId())) {
+    if (hasAppIDChanged(APIConfig.getInstance().appId())) {
       provider.unregister();
     }
     registerInBackground();

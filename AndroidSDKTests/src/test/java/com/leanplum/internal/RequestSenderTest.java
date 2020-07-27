@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
         }
 )
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
-public class RequestOldTest extends TestCase {
+public class RequestSenderTest extends TestCase {
   public final String POST = "POST";
   /**
    * Runs before every test case.
@@ -91,8 +91,8 @@ public class RequestOldTest extends TestCase {
   /** Test that request include a generated request id **/
   @Test
   public void testCreateArgsDictionaryShouldIncludeRequestId() {
-      RequestOld request = new RequestOld(POST, Constants.Methods.START, null);
-      Map<String, Object> args = request.createArgsDictionary();
+      Request request = new Request(POST, RequestBuilder.ACTION_START, null);
+      Map<String, Object> args = RequestSender.createArgsDictionary(request);
       assertTrue(args.containsKey(Constants.Params.REQUEST_ID));
   }
 
@@ -103,7 +103,7 @@ public class RequestOldTest extends TestCase {
     params.put("data1", "value1");
     params.put("data2", "value2");
 
-    RequestOld.setAppId("appId", "accessKey");
+    APIConfig.getInstance().setAppId("appId", "accessKey");
 
     final CountDownLatch latch = new CountDownLatch(2);
 
@@ -111,8 +111,8 @@ public class RequestOldTest extends TestCase {
     operationQueue.addOperation(new Runnable() {
       @Override
       public void run() {
-        RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
-        request.sendIfConnected();
+        Request request = new Request(POST, RequestBuilder.ACTION_START, params);
+        RequestSender.getInstance().sendIfConnected(request);
 
         latch.countDown();
       }
@@ -121,8 +121,8 @@ public class RequestOldTest extends TestCase {
     operationQueue.addOperation(new Runnable() {
       @Override
       public void run() {
-        RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
-        request.sendIfConnected();
+        Request request = new Request(POST, RequestBuilder.ACTION_START, params);
+        RequestSender.getInstance().sendIfConnected(request);
 
         latch.countDown();
       }
@@ -149,127 +149,153 @@ public class RequestOldTest extends TestCase {
   @Test
   public void testRemoveIrrelevantBackgroundStartRequests() throws Exception {
     // Prepare testable objects and method.
-    RequestOld request = new RequestOld("POST", Constants.Methods.START, null);
+    Request request = new Request("POST", RequestBuilder.ACTION_START, null);
     Method removeIrrelevantBackgroundStartRequests =
-        RequestOld.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
+        RequestSender.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
     removeIrrelevantBackgroundStartRequests.setAccessible(true);
 
     // Invoke method with specific test data.
     // Expectation: No request returned.
-    List unsentRequests = request.getUnsentRequests(1.0);
+    List unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
     // Regular start request.
     // Expectation: One request returned.
-    request.sendEventually();
+    RequestSender.getInstance().sendEventually(request);
 
     // loop to complete all tasks
     ShadowLooper.idleMainLooperConstantly(true);
 
-    unsentRequests = request.getUnsentRequests(1.0);
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
-    RequestOld.deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
 
     // Two foreground start requests.
     // Expectation: Both foreground start request returned.
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    Request req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "2");
-    }}).sendEventually();
-    unsentRequests = request.getUnsentRequests(1.0);
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
-    RequestOld.deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
 
     // One background start request followed by a foreground start request.
     // Expectation: Only one foreground start request returned.
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}).sendEventually();
-    unsentRequests = request.getUnsentRequests(1.0);
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     List unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(RequestOld.class, unsentRequests);
+        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
     assertEquals(1, unsentRequestsData.size());
     assertEquals("1", ((Map) unsentRequestsData.get(0)).get("fg"));
-    RequestOld.deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
 
     // Two background start request followed by a foreground start requests.
     // Expectation: Only one foreground start request returned.
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}).sendEventually();
-    unsentRequests = request.getUnsentRequests(1.0);
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
 
     assertNotNull(unsentRequests);
     unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(RequestOld.class, unsentRequests);
+        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertEquals(1, unsentRequestsData.size());
     assertEquals("1", ((Map) unsentRequestsData.get(0)).get("fg"));
-    RequestOld.deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
-    }}).sendEventually();
-    unsentRequests = request.getUnsentRequests(1.0);
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(RequestOld.class, unsentRequests);
+        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertEquals(2, unsentRequestsData.size());
     assertEquals("2", ((Map) unsentRequestsData.get(1)).get("bg"));
-    RequestOld.deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("bg", "1");
-    }}).sendEventually();
-    new RequestOld("POST", Constants.Methods.START, new HashMap<String, Object>() {{
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
-    }}).sendEventually();
-    unsentRequests = request.getUnsentRequests(1.0);
+    }});
+    RequestSender.getInstance().sendEventually(req);
+
+    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(RequestOld.class, unsentRequests);
+        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
     assertEquals(3, unsentRequestsData.size());
-    RequestOld.deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
@@ -278,17 +304,19 @@ public class RequestOldTest extends TestCase {
   // The list should try and get a smaller fraction of the available requests
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
-    RequestOld.RequestsWithEncoding requestsWithEncoding;
+    RequestSender.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
-    RequestOld request = spy(new RequestOld("POST", Constants.Methods.START, null));
-    request.sendEventually(); // first request added
+    RequestSender requestSender = spy(new RequestSender());
+    Request request = new Request("POST", RequestBuilder.ACTION_START, null);
+    requestSender.sendEventually(request); // first request added
 
-    for (int i = 0;i < 5000; i++) { // remaininsg requests to make up 5000
-      new RequestOld("POST", Constants.Methods.START, null).sendEventually();
+    for (int i = 0; i < 5000; i++) { // remaining requests to make up 5000
+      Request startRequest = new Request("POST", RequestBuilder.ACTION_START, null);
+      requestSender.sendEventually(startRequest);
     }
 
     // Expectation: 5000 requests returned.
-    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertNotNull(requestsWithEncoding.unsentRequests);
     assertNotNull(requestsWithEncoding.requestsToSend);
@@ -297,8 +325,8 @@ public class RequestOldTest extends TestCase {
 
     // Throw OOM on 5000 requests
     // Expectation: 2500 requests returned.
-    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    when(requestSender.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertNotNull(requestsWithEncoding.unsentRequests);
     assertNotNull(requestsWithEncoding.requestsToSend);
@@ -307,14 +335,14 @@ public class RequestOldTest extends TestCase {
 
     // Throw OOM on 2500, 5000 requests
     // Expectation: 1250 requests returned.
-    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
     assertEquals(1250, requestsWithEncoding.unsentRequests.size());
 
     // Throw OOM on serializing any finite number of requests (extreme condition)
     // Expectation: Determine only 0 requests to be sent
-    when(request.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
-    requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    when(requestSender.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
+    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertNotNull(requestsWithEncoding.unsentRequests);
     assertNotNull(requestsWithEncoding.requestsToSend);
@@ -332,13 +360,13 @@ public class RequestOldTest extends TestCase {
   public void testJsonEncodeUnsentRequestsWithException() {
     List<Map<String, Object>> requests = mockRequests(4);
 
-    RequestOld realRequest = new RequestOld("POST", Constants.Methods.START, null);
-    RequestOld request = spy(realRequest);
-    when(request.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-    when(request.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-    when(request.getUnsentRequests(0.25)).thenReturn(requests);
+    RequestSender realRequestSender = new RequestSender();
+    RequestSender requestSender = spy(realRequestSender);
+    when(requestSender.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    when(requestSender.getUnsentRequests(0.25)).thenReturn(requests);
 
-    RequestOld.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestSender.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
     assertEquals(4, requestsWithEncoding .unsentRequests.size());
     assertEquals(4, requestsWithEncoding .requestsToSend.size());
@@ -354,14 +382,13 @@ public class RequestOldTest extends TestCase {
   public void testJsonEncodeUnsentRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
 
-    RequestOld realRequest = new RequestOld("POST", Constants.Methods.START, null);
-    RequestOld request = spy(realRequest);
-    when(request.getUnsentRequests(1.0)).thenReturn(requests);
+    RequestSender requestSender = spy(new RequestSender());
+    when(requestSender.getUnsentRequests(1.0)).thenReturn(requests);
 
-    RequestOld.RequestsWithEncoding requestsWithEncoding = request.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestSender.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
-    assertEquals(4, requestsWithEncoding .unsentRequests.size());
-    assertEquals(4, requestsWithEncoding .requestsToSend.size());
+    assertEquals(4, requestsWithEncoding.unsentRequests.size());
+    assertEquals(4, requestsWithEncoding.requestsToSend.size());
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
   }
@@ -372,7 +399,7 @@ public class RequestOldTest extends TestCase {
   @Test
   public void testGetRequestsWithEncodedStringStoredRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
-    String json = RequestOld.jsonEncodeRequests(requests);
+    String json = RequestSender.getInstance().jsonEncodeRequests(requests);
 
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(json, expectedJson);
@@ -401,18 +428,18 @@ public class RequestOldTest extends TestCase {
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    RequestOld request = new RequestOld(POST, Constants.Methods.START, params);
-    request.onError(new RequestOld.ErrorCallback() {
+    Request request = new Request(POST, RequestBuilder.ACTION_START, params);
+    request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
         assertNotNull(e);
         semaphore.release();
       }
     });
-    request.setAppId("fskadfshdbfa", "wee5w4waer422323");
+    APIConfig.getInstance().setAppId("fskadfshdbfa", "wee5w4waer422323");
 
     // When the request is sent.
-    request.sendIfConnected();
+    RequestSender.getInstance().sendIfConnected(request);
 
     Leanplum.setApplicationContext(context);
   }

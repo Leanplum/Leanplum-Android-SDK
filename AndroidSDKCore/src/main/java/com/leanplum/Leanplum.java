@@ -32,11 +32,13 @@ import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
 import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.FileManager;
+import com.leanplum.internal.FileTransferManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
@@ -44,7 +46,10 @@ import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestUtil;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
@@ -232,7 +237,7 @@ public class Leanplum {
     }
 
     Constants.isDevelopmentModeEnabled = true;
-    RequestOld.setAppId(appId, accessKey);
+    APIConfig.getInstance().setAppId(appId, accessKey);
   }
 
   /**
@@ -253,7 +258,7 @@ public class Leanplum {
     }
 
     Constants.isDevelopmentModeEnabled = false;
-    RequestOld.setAppId(appId, accessKey);
+    APIConfig.getInstance().setAppId(appId, accessKey);
   }
 
   /**
@@ -329,7 +334,7 @@ public class Leanplum {
       Log.e("Leanplum.start() must be called before calling getDeviceId.");
       return null;
     }
-    return RequestOld.deviceId();
+    return APIConfig.getInstance().deviceId();
   }
 
   /**
@@ -559,7 +564,7 @@ public class Leanplum {
         LeanplumInternal.getUserAttributeChanges().add(validAttributes);
       }
 
-      RequestOld.loadToken();
+      APIConfig.getInstance().loadToken();
       VarCache.setSilent(true);
       VarCache.loadDiffs();
       VarCache.setSilent(false);
@@ -570,16 +575,17 @@ public class Leanplum {
         @Override
         public void updateCache() {
           triggerVariablesChanged();
-          if (RequestOld.numPendingDownloads() == 0) {
+          if (FileTransferManager.getInstance().numPendingDownloads() == 0) {
             triggerVariablesChangedAndNoDownloadsPending();
           }
         }
       });
-      RequestOld.onNoPendingDownloads(new RequestOld.NoPendingDownloadsCallback() {
-        @Override
-        public void noPendingDownloads() {
-          triggerVariablesChangedAndNoDownloadsPending();
-        }
+      FileTransferManager.getInstance().onNoPendingDownloads(
+          new FileTransferManager.NoPendingDownloadsCallback() {
+            @Override
+            public void noPendingDownloads() {
+              triggerVariablesChangedAndNoDownloadsPending();
+            }
       });
 
       // Reduce latency by running the rest of the start call in a background thread.
@@ -621,7 +627,7 @@ public class Leanplum {
     LeanplumEventDataManager.sharedInstance();
     checkAndStartNotificationsModules();
     Boolean limitAdTracking = null;
-    String deviceId = RequestOld.deviceId();
+    String deviceId = APIConfig.getInstance().deviceId();
     if (deviceId == null) {
       if (!userSpecifiedDeviceId && Constants.defaultDeviceId != null) {
         deviceId = Constants.defaultDeviceId;
@@ -632,16 +638,16 @@ public class Leanplum {
         deviceId = deviceIdInfo.id;
         limitAdTracking = deviceIdInfo.limitAdTracking;
       }
-      RequestOld.setDeviceId(deviceId);
+      APIConfig.getInstance().setDeviceId(deviceId);
     }
 
     if (userId == null) {
-      userId = RequestOld.userId();
+      userId = APIConfig.getInstance().userId();
       if (userId == null) {
-        userId = RequestOld.deviceId();
+        userId = APIConfig.getInstance().deviceId();
       }
     }
-    RequestOld.setUserId(userId);
+    APIConfig.getInstance().setUserId(userId);
 
     // Setup parameters.
     String versionName = Util.getVersionName();
@@ -697,14 +703,14 @@ public class Leanplum {
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
-    final RequestOld request = RequestOld.post(Constants.Methods.START, params);
-    request.onResponse(new RequestOld.ResponseCallback() {
+    final Request request = RequestBuilder.withStartAction().andParams(params).create();
+    request.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
         handleStartResponse(response);
       }
     });
-    request.onError(new RequestOld.ErrorCallback() {
+    request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
         handleStartResponse(null);
@@ -712,16 +718,16 @@ public class Leanplum {
     });
 
     if (isBackground) {
-      request.sendEventually();
+      RequestSender.getInstance().sendEventually(request);
     } else {
-      request.sendIfConnected();
+      RequestSender.getInstance().sendIfConnected(request);
     }
 
     LeanplumInternal.triggerStartIssued();
   }
 
   private static void handleStartResponse(final JSONObject response) {
-    boolean success = RequestOld.isResponseSuccess(response);
+    boolean success = RequestUtil.isResponseSuccess(response);
     Leanplum.countAggregator().incrementCount("on_start_response");
     if (!success) {
       try {
@@ -782,8 +788,8 @@ public class Leanplum {
         }
 
         String token = response.optString(Constants.Keys.TOKEN, null);
-        RequestOld.setToken(token);
-        RequestOld.saveToken();
+        APIConfig.getInstance().setToken(token);
+        APIConfig.getInstance().saveToken();
 
         applyContentInResponse(response, true);
 
@@ -969,7 +975,8 @@ public class Leanplum {
   }
 
   private static void pauseInternal() {
-    RequestOld.post(Constants.Methods.PAUSE_SESSION, null).sendIfConnected();
+    Request request = RequestBuilder.withPauseSessionAction().create();
+    RequestSender.getInstance().sendIfConnected(request);
     pauseHeartbeat();
     LeanplumInternal.setIsPaused(true);
   }
@@ -1003,12 +1010,12 @@ public class Leanplum {
   }
 
   private static void resumeInternal() {
-    RequestOld request = RequestOld.post(Constants.Methods.RESUME_SESSION, null);
+    Request request = RequestBuilder.withResumeSessionAction().create();
     if (LeanplumInternal.hasStartedInBackground()) {
       LeanplumInternal.setStartedInBackground(false);
-      request.sendIfConnected();
+      RequestSender.getInstance().sendIfConnected(request);
     } else {
-      request.sendIfDelayed();
+      RequestSender.getInstance().sendIfDelayed(request);
       LeanplumInternal.maybePerformActions("resume", null,
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
     }
@@ -1045,7 +1052,8 @@ public class Leanplum {
     heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
       public void run() {
         try {
-          RequestOld.post(Constants.Methods.HEARTBEAT, null).sendIfDelayed();
+          Request request = RequestBuilder.withHeartbeatAction().create();
+          RequestSender.getInstance().sendIfDelayed(request);
         } catch (Throwable t) {
           Util.handleException(t);
         }
@@ -1083,7 +1091,8 @@ public class Leanplum {
   }
 
   private static void stopInternal() {
-    RequestOld.post(Constants.Methods.STOP, null).sendIfConnected();
+    Request request = RequestBuilder.withStopAction().create();
+    RequestSender.getInstance().sendIfConnected(request);
   }
 
   /**
@@ -1099,7 +1108,7 @@ public class Leanplum {
    */
   public static String getUserId() {
     if (hasStarted()) {
-      return RequestOld.userId();
+      return APIConfig.getInstance().userId();
     } else {
       Log.e("Leanplum.start() must be called before calling getUserId()");
     }
@@ -1224,7 +1233,7 @@ public class Leanplum {
       noDownloadsHandlers.add(handler);
     }
     if (VarCache.hasReceivedDiffs()
-        && RequestOld.numPendingDownloads() == 0) {
+        && FileTransferManager.getInstance().numPendingDownloads() == 0) {
       handler.variablesChanged();
     }
   }
@@ -1334,7 +1343,7 @@ public class Leanplum {
     }
 
     if (VarCache.hasReceivedDiffs()
-        && RequestOld.numPendingDownloads() == 0) {
+        && FileTransferManager.getInstance().numPendingDownloads() == 0) {
       handler.variablesChanged();
     } else {
       synchronized (onceNoDownloadsHandlers) {
@@ -1501,9 +1510,10 @@ public class Leanplum {
 
   private static void setUserAttributesInternal(String userId,
       HashMap<String, Object> requestArgs) {
-    RequestOld.post(Constants.Methods.SET_USER_ATTRIBUTES, requestArgs).send();
+    Request request = RequestBuilder.withSetUserAttributesAction().andParams(requestArgs).create();
+    RequestSender.getInstance().send(request);
     if (userId != null && userId.length() > 0) {
-      RequestOld.setUserId(userId);
+      APIConfig.getInstance().setUserId(userId);
       if (LeanplumInternal.hasStarted()) {
         VarCache.saveDiffs();
       }
@@ -1549,9 +1559,11 @@ public class Leanplum {
           return;
         }
         try {
-          HashMap<String, Object> params = new HashMap<>();
-          params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
-          RequestOld.post(Constants.Methods.SET_DEVICE_ATTRIBUTES, params).sendIfConnected();
+          Request request = RequestBuilder
+              .withSetDeviceAttributesAction()
+              .andParam(Constants.Params.DEVICE_PUSH_TOKEN, registrationId)
+              .create();
+          RequestSender.getInstance().sendIfConnected(request);
         } catch (Throwable t) {
           Util.handleException(t);
         }
@@ -1602,7 +1614,8 @@ public class Leanplum {
   }
 
   private static void setTrafficSourceInfoInternal(HashMap<String, Object> params) {
-    RequestOld.post(Constants.Methods.SET_TRAFFIC_SOURCE_INFO, params).send();
+    Request requets = RequestBuilder.withSetTrafficSourceInfoAction().andParams(params).create();
+    RequestSender.getInstance().send(requets);
   }
 
   /**
@@ -1881,7 +1894,8 @@ public class Leanplum {
    */
   private static void advanceToInternal(String state, Map<String, ?> params,
       Map<String, Object> requestParams) {
-    RequestOld.post(Constants.Methods.ADVANCE, requestParams).send();
+    Request request = RequestBuilder.withAdvanceAction().andParams(requestParams).create();
+    RequestSender.getInstance().send(request);
 
     ContextualValues contextualValues = new ContextualValues();
     contextualValues.parameters = params;
@@ -1961,7 +1975,8 @@ public class Leanplum {
   }
 
   private static void pauseStateInternal() {
-    RequestOld.post(Constants.Methods.PAUSE_STATE, new HashMap<String, Object>()).send();
+    Request request = RequestBuilder.withPauseStateAction().create();
+    RequestSender.getInstance().send(request);
   }
 
   /**
@@ -1997,7 +2012,8 @@ public class Leanplum {
   }
 
   private static void resumeStateInternal() {
-    RequestOld.post(Constants.Methods.RESUME_STATE, new HashMap<String, Object>()).send();
+    Request request = RequestBuilder.withResumeStateAction().create();
+    RequestSender.getInstance().send(request);
   }
 
   /**
@@ -2024,13 +2040,13 @@ public class Leanplum {
       return;
     }
     try {
-      Map<String, Object> params = new HashMap<>();
-      params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
-      params.put(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds());
-      params.put(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled());
-
-      RequestOld req = RequestOld.post(Constants.Methods.GET_VARS, params);
-      req.onResponse(new RequestOld.ResponseCallback() {
+      Request req = RequestBuilder
+          .withGetVarsAction()
+          .andParam(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false))
+          .andParam(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds())
+          .andParam(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled())
+          .create();
+      req.onResponse(new Request.ResponseCallback() {
         @Override
         public void response(JSONObject response) {
           try {
@@ -2057,14 +2073,14 @@ public class Leanplum {
           }
         }
       });
-      req.onError(new RequestOld.ErrorCallback() {
+      req.onError(new Request.ErrorCallback() {
         @Override
         public void error(Exception e) {
           OperationQueue.sharedInstance().addUiOperation(callback);
           LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
         }
       });
-      req.sendIfConnected();
+      RequestSender.getInstance().sendIfConnected(req);
     } catch (Throwable t) {
       Util.handleException(t);
     }
