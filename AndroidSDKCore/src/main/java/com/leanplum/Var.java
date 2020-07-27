@@ -350,7 +350,7 @@ public class Var<T> {
   /**
    * Updates variable with values from server.
    */
-  public void update() {
+  public synchronized void update() {
     // TODO: Clean up memory for resource variables.
     //data = null;
 
