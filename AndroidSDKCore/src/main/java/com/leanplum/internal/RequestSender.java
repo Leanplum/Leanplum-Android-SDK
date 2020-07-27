@@ -164,6 +164,13 @@ public class RequestSender {
 
     if (!request.isSent()) {
       request.setSent(true);
+
+      // Check if it's error and there was SQLite exception.
+      if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())
+          && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+        addLocalError(request);
+      }
+
       Map<String, Object> args = createArgsDictionary(request);
       saveRequestForLater(request, args);
     }
@@ -477,7 +484,7 @@ public class RequestSender {
     }
   }
 
-  public void addLocalError(Request request) {
+  private void addLocalError(Request request) {
     Map<String, Object> dict = createArgsDictionary(request);
     localErrors.add(dict);
   }
