@@ -45,7 +45,7 @@ public class CenterPopup extends PopupMessageTemplate {
   private static final String NAME = "Center Popup";
 
   private CenterPopup(Activity activity, CenterPopupOptions options) {
-    super(activity, options, false);//activity, fullscreen=false, options, webOptions=null, htmlOptions=null);
+    super(activity, options, false);
   }
 
   @Override

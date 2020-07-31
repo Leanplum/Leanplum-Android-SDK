@@ -24,7 +24,6 @@ package com.leanplum.messagetemplates;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
-import android.graphics.drawable.ShapeDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -32,11 +31,11 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import androidx.core.view.ViewCompat;
 import com.leanplum.core.R;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
+import com.leanplum.views.ViewUtils;
 
 /**
  * Base class for CenterPopup and Interstitial messages.
@@ -81,18 +80,9 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
   private ImageView createBackgroundImageView(Context context, boolean fullscreen) {
     BackgroundImageView view = new BackgroundImageView(context, fullscreen);
     view.setScaleType(ImageView.ScaleType.CENTER_CROP);
-    int cornerRadius;
-    if (!fullscreen) {
-      cornerRadius = SizeUtil.dp20;
-    } else {
-      cornerRadius = 0;
-    }
     view.setImageBitmap(options.getBackgroundImage());
 
-    ShapeDrawable footerBackground = new ShapeDrawable();
-    footerBackground.setShape(createRoundRect(cornerRadius));
-    footerBackground.getPaint().setColor(options.getBackgroundColor());
-    ViewCompat.setBackground(view, footerBackground);
+    ViewUtils.applyBackground(view, options.getBackgroundColor(), !fullscreen);
 
     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
         LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);

@@ -24,24 +24,16 @@ package com.leanplum.messagetemplates;
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RoundRectShape;
-import android.graphics.drawable.shapes.Shape;
-import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import androidx.core.view.ViewCompat;
 import com.leanplum.core.R;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.CloseButton;
+import com.leanplum.views.ViewUtils;
 
 /**
  * Base dialog used to display the Center Popup, Interstitial, Web Interstitial, HTML template.
@@ -56,7 +48,7 @@ abstract class BaseMessageDialog extends Dialog {
   protected boolean isClosing = false;
 
   protected BaseMessageDialog(Activity activity) {
-    super(activity, getTheme(activity));
+    super(activity, ViewUtils.getThemeId(activity));
     this.activity = activity;
     SizeUtil.init(activity);
   }
@@ -73,7 +65,7 @@ abstract class BaseMessageDialog extends Dialog {
     }
     setContentView(contentView, contentView.getLayoutParams());
 
-    contentView.setAnimation(createFadeInAnimation());
+    contentView.setAnimation(ViewUtils.createFadeInAnimation(350));
 
     if (!fullscreen) {
       applyWindowDecoration();
@@ -97,10 +89,7 @@ abstract class BaseMessageDialog extends Dialog {
     RelativeLayout.LayoutParams layoutParams = createLayoutParams(fullscreen);
     view.setLayoutParams(layoutParams);
 
-    ShapeDrawable footerBackground = new ShapeDrawable();
-    footerBackground.setShape(createRoundRect(fullscreen ? 0 : SizeUtil.dp20));
-    footerBackground.getPaint().setColor(Color.TRANSPARENT);
-    ViewCompat.setBackground(view, footerBackground);
+    ViewUtils.applyBackground(view, Color.TRANSPARENT, !fullscreen);
 
     addMessageChildViews(view, fullscreen);
     return view;
@@ -108,17 +97,11 @@ abstract class BaseMessageDialog extends Dialog {
 
   /**
    * Positions the message view inside the dialog content view
-   *
-   * @param fullscreen
-   * @return
    */
   abstract RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen);
 
   /**
    * Creates and adds all message specific child views.
-   *
-   * @param parent
-   * @param fullscreen
    */
   abstract void addMessageChildViews(RelativeLayout parent, boolean fullscreen);
 
@@ -127,21 +110,7 @@ abstract class BaseMessageDialog extends Dialog {
   }
 
   protected void applyWindowDecoration() {
-    // no default implemetation
-  }
-
-  private Animation createFadeInAnimation() {
-    Animation fadeIn = new AlphaAnimation(0, 1);
-    fadeIn.setInterpolator(new DecelerateInterpolator());
-    fadeIn.setDuration(350);
-    return fadeIn;
-  }
-
-  private Animation createFadeOutAnimation() {
-    Animation fadeOut = new AlphaAnimation(1, 0);
-    fadeOut.setInterpolator(new AccelerateInterpolator());
-    fadeOut.setDuration(350);
-    return fadeOut;
+    // no default implementation
   }
 
   protected void onFadeOutAnimationEnd() {
@@ -154,7 +123,7 @@ abstract class BaseMessageDialog extends Dialog {
       return;
     }
     isClosing = true;
-    Animation animation = createFadeOutAnimation();
+    Animation animation = ViewUtils.createFadeOutAnimation(350);
     animation.setAnimationListener(new Animation.AnimationListener() {
       @Override
       public void onAnimationStart(Animation animation) {
@@ -185,28 +154,8 @@ abstract class BaseMessageDialog extends Dialog {
       closeLayout.setMargins(0, -SizeUtil.dp7, -SizeUtil.dp7, 0);
     }
     closeButton.setLayoutParams(closeLayout);
-    closeButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View arg0) {
-        cancel();
-      }
-    });
+    closeButton.setOnClickListener(clickedView -> cancel());
     return closeButton;
   }
 
-  protected Shape createRoundRect(int cornerRadius) {
-    int c = cornerRadius;
-    float[] outerRadii = new float[] {c, c, c, c, c, c, c, c};
-    return new RoundRectShape(outerRadii, null, null);
-  }
-
-  private static int getTheme(Activity activity) {
-    boolean full = (activity.getWindow().getAttributes().flags &
-        WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN;
-    if (full) {
-      return android.R.style.Theme_Translucent_NoTitleBar_Fullscreen;
-    } else {
-      return android.R.style.Theme_Translucent_NoTitleBar;
-    }
-  }
 }

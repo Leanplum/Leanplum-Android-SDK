@@ -41,7 +41,7 @@ public class Interstitial extends PopupMessageTemplate {
   private static final String NAME = "Interstitial";
 
   public Interstitial(Activity activity, InterstitialOptions options) {
-    super(activity, options, true); //super(activity, true, options, null, null);
+    super(activity, options, true);
   }
 
   @Override
