@@ -49,7 +49,7 @@ public class CenterPopup extends PopupMessageTemplate {
   }
 
   @Override
-  protected void initWindowDecoration() {
+  protected void applyWindowDecoration() {
     Window window = getWindow();
     if (window == null) {
       return;
@@ -61,7 +61,7 @@ public class CenterPopup extends PopupMessageTemplate {
   }
 
   @Override
-  protected RelativeLayout.LayoutParams createLayoutParams() {
+  protected RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
     RelativeLayout.LayoutParams layoutParams;
 
     // Make sure the dialog fits on screen.

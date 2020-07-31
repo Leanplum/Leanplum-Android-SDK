@@ -25,10 +25,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ShapeDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.view.ViewGroup.LayoutParams;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -39,9 +36,6 @@ import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
-import com.leanplum.core.R;
-import com.leanplum.utils.SizeUtil;
-import com.leanplum.views.CloseButton;
 
 /**
  * Registers a Leanplum action that displays a fullscreen Web Interstitial.
@@ -51,61 +45,31 @@ import com.leanplum.views.CloseButton;
 public class WebInterstitial extends BaseMessageDialog {
   private static final String NAME = "Web Interstitial";
 
-  private @NonNull WebInterstitialOptions webOptions; // TODO rename to options?
+  private @NonNull WebInterstitialOptions webOptions;
 
   public WebInterstitial(Activity activity, @NonNull WebInterstitialOptions options) {
-    super(activity);//, true, null, options, null);
+    super(activity);
     this.webOptions = options;
 
-    init(activity, true);
+    init(true);
   }
 
-  private void init(Activity activity, boolean fullscreen) {
-
-    SizeUtil.init(activity);
-    dialogView = new RelativeLayout(activity);
-    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    dialogView.setBackgroundColor(Color.TRANSPARENT);
-    dialogView.setLayoutParams(layoutParams);
-
-    RelativeLayout view = createContainerView(activity, fullscreen);
-    view.setId(R.id.container_view);
-    dialogView.addView(view, view.getLayoutParams());
-
-    if (webOptions.hasDismissButton()) {
-      CloseButton closeButton = createCloseButton(activity, fullscreen, view);
-      dialogView.addView(closeButton, closeButton.getLayoutParams());
-    }
-    setContentView(dialogView, dialogView.getLayoutParams());
-
-    dialogView.setAnimation(createFadeInAnimation());
+  @Override
+  protected boolean hasDismissButton() {
+    return webOptions.hasDismissButton();
   }
 
-  @SuppressWarnings("deprecation")
-  private RelativeLayout createContainerView(Activity context, boolean fullscreen) {
-    RelativeLayout view = new RelativeLayout(context);
+  @Override
+  RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
+    return new RelativeLayout.LayoutParams(
+        LayoutParams.MATCH_PARENT,
+        LayoutParams.MATCH_PARENT);
+  }
 
-    // Positions the dialog.
-    RelativeLayout.LayoutParams layoutParams;
-    layoutParams = new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-
-    view.setLayoutParams(layoutParams);
-
-    ShapeDrawable footerBackground = new ShapeDrawable();
-    footerBackground.setShape(createRoundRect(fullscreen ? 0 : SizeUtil.dp20));
-    footerBackground.getPaint().setColor(0x00000000);
-    if (Build.VERSION.SDK_INT >= 16) {
-      view.setBackground(footerBackground);
-    } else {
-      view.setBackgroundDrawable(footerBackground);
-    }
-
-    WebView webView = createWebView(context);
-    view.addView(webView, webView.getLayoutParams());
-
-    return view;
+  @Override
+  void addMessageChildViews(RelativeLayout parent, boolean fullscreen) {
+    WebView webView = createWebView(activity);
+    parent.addView(webView, webView.getLayoutParams());
   }
 
   private WebView createWebView(Context context) {

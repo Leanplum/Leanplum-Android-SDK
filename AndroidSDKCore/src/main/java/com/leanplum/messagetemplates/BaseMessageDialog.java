@@ -23,8 +23,11 @@ package com.leanplum.messagetemplates;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
@@ -35,6 +38,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
+import androidx.core.view.ViewCompat;
 import com.leanplum.core.R;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.CloseButton;
@@ -44,8 +48,8 @@ import com.leanplum.views.CloseButton;
  *
  * @author Martin Yanakiev, Anna Orlova
  */
-public class BaseMessageDialog extends Dialog {
-  protected RelativeLayout dialogView;
+abstract class BaseMessageDialog extends Dialog {
+  protected RelativeLayout contentView;
   protected Activity activity;
   protected WebView webView;
 
@@ -54,9 +58,79 @@ public class BaseMessageDialog extends Dialog {
   protected BaseMessageDialog(Activity activity) {
     super(activity, getTheme(activity));
     this.activity = activity;
+    SizeUtil.init(activity);
   }
 
-  protected Animation createFadeInAnimation() {
+  protected void init(boolean fullscreen) {
+    contentView = createContentView();
+
+    RelativeLayout messageView = createMessageView(fullscreen);
+    contentView.addView(messageView);
+
+    if (hasDismissButton()) {
+      CloseButton closeButton = createCloseButton(fullscreen, messageView);
+      contentView.addView(closeButton);
+    }
+    setContentView(contentView, contentView.getLayoutParams());
+
+    contentView.setAnimation(createFadeInAnimation());
+
+    if (!fullscreen) {
+      applyWindowDecoration();
+    }
+  }
+
+  private RelativeLayout createContentView() {
+    RelativeLayout view = new RelativeLayout(activity);
+    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+    view.setBackgroundColor(Color.TRANSPARENT);
+    view.setLayoutParams(layoutParams);
+    return view;
+  }
+
+  private RelativeLayout createMessageView(boolean fullscreen) {
+    RelativeLayout view = new RelativeLayout(activity);
+    view.setId(R.id.container_view);
+
+    // Position the message
+    RelativeLayout.LayoutParams layoutParams = createLayoutParams(fullscreen);
+    view.setLayoutParams(layoutParams);
+
+    ShapeDrawable footerBackground = new ShapeDrawable();
+    footerBackground.setShape(createRoundRect(fullscreen ? 0 : SizeUtil.dp20));
+    footerBackground.getPaint().setColor(Color.TRANSPARENT);
+    ViewCompat.setBackground(view, footerBackground);
+
+    addMessageChildViews(view, fullscreen);
+    return view;
+  }
+
+  /**
+   * Positions the message view inside the dialog content view
+   *
+   * @param fullscreen
+   * @return
+   */
+  abstract RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen);
+
+  /**
+   * Creates and adds all message specific child views.
+   *
+   * @param parent
+   * @param fullscreen
+   */
+  abstract void addMessageChildViews(RelativeLayout parent, boolean fullscreen);
+
+  protected boolean hasDismissButton() {
+    return false;
+  }
+
+  protected void applyWindowDecoration() {
+    // no default implemetation
+  }
+
+  private Animation createFadeInAnimation() {
     Animation fadeIn = new AlphaAnimation(0, 1);
     fadeIn.setInterpolator(new DecelerateInterpolator());
     fadeIn.setDuration(350);
@@ -70,7 +144,7 @@ public class BaseMessageDialog extends Dialog {
     return fadeOut;
   }
 
-  protected void onFadeOutAnimationEnded() {
+  protected void onFadeOutAnimationEnd() {
     super.cancel();
   }
 
@@ -90,24 +164,24 @@ public class BaseMessageDialog extends Dialog {
       }
       @Override
       public void onAnimationEnd(Animation animation) {
-        onFadeOutAnimationEnded();
+        onFadeOutAnimationEnd();
       }
     });
-    dialogView.startAnimation(animation);
+    contentView.startAnimation(animation);
   }
 
-  protected CloseButton createCloseButton(Activity context, boolean fullscreen, View parent) {
-    CloseButton closeButton = new CloseButton(context);
+  private CloseButton createCloseButton(boolean fullscreen, View alignView) {
+    CloseButton closeButton = new CloseButton(activity);
     closeButton.setId(R.id.close_button);
     RelativeLayout.LayoutParams closeLayout = new RelativeLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     if (fullscreen) {
-      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_TOP, dialogView.getId());
-      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, dialogView.getId());
+      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_TOP, contentView.getId());
+      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, contentView.getId());
       closeLayout.setMargins(0, SizeUtil.dp5, SizeUtil.dp5, 0);
     } else {
-      closeLayout.addRule(RelativeLayout.ALIGN_TOP, parent.getId());
-      closeLayout.addRule(RelativeLayout.ALIGN_RIGHT, parent.getId());
+      closeLayout.addRule(RelativeLayout.ALIGN_TOP, alignView.getId());
+      closeLayout.addRule(RelativeLayout.ALIGN_RIGHT, alignView.getId());
       closeLayout.setMargins(0, -SizeUtil.dp7, -SizeUtil.dp7, 0);
     }
     closeButton.setLayoutParams(closeLayout);

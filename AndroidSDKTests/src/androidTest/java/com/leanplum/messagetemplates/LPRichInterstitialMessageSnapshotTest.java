@@ -95,6 +95,6 @@ public class LPRichInterstitialMessageSnapshotTest extends BaseSnapshotTest {
 
     HTMLOptions options = new HTMLOptions(mockedContext);
     HTMLTemplate htmlTemplate = new HTMLTemplate(getMainActivity(), options);
-    return htmlTemplate.dialogView;
+    return htmlTemplate.contentView;
   }
 }

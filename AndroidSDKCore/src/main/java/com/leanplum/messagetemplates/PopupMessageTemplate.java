@@ -23,10 +23,8 @@ package com.leanplum.messagetemplates;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ShapeDrawable;
-import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -34,14 +32,14 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import androidx.core.view.ViewCompat;
 import com.leanplum.core.R;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
-import com.leanplum.views.CloseButton;
 
 /**
- * Base class for popup messages.
+ * Base class for CenterPopup and Interstitial messages.
  */
 abstract class PopupMessageTemplate extends BaseMessageDialog {
 
@@ -51,76 +49,36 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
     super(activity);
     this.options = options;
 
-    init(activity, fullscreen); // TODO fullscreen shouldnt be a param
+    init(fullscreen);
   }
 
-  abstract void initWindowDecoration();
-
-  abstract RelativeLayout.LayoutParams createLayoutParams();
-
-  private void init(Activity activity, boolean fullscreen) {
-
-    SizeUtil.init(activity);
-    dialogView = new RelativeLayout(activity);
-    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    dialogView.setBackgroundColor(Color.TRANSPARENT);
-    dialogView.setLayoutParams(layoutParams);
-
-    RelativeLayout view = createContainerView(activity, fullscreen);
-    view.setId(R.id.container_view);
-    dialogView.addView(view, view.getLayoutParams());
-
-    CloseButton closeButton = createCloseButton(activity, fullscreen, view);
-    dialogView.addView(closeButton, closeButton.getLayoutParams());
-    setContentView(dialogView, dialogView.getLayoutParams());
-
-    dialogView.setAnimation(createFadeInAnimation());
-
-    initWindowDecoration();
+  @Override
+  protected boolean hasDismissButton() {
+    return true;
   }
 
-  @SuppressWarnings("deprecation")
-  private RelativeLayout createContainerView(Activity context, boolean fullscreen) {
-    RelativeLayout view = new RelativeLayout(context);
+  @Override
+  void addMessageChildViews(RelativeLayout parent, boolean fullscreen) {
+    ImageView image = createBackgroundImageView(activity, fullscreen);
+    parent.addView(image);
 
-    // Positions the dialog.
-    RelativeLayout.LayoutParams layoutParams = createLayoutParams();
-    view.setLayoutParams(layoutParams);
-
-    ShapeDrawable footerBackground = new ShapeDrawable();
-    footerBackground.setShape(createRoundRect(fullscreen ? 0 : SizeUtil.dp20));
-    footerBackground.getPaint().setColor(0x00000000);
-    if (Build.VERSION.SDK_INT >= 16) {
-      view.setBackground(footerBackground);
-    } else {
-      view.setBackgroundDrawable(footerBackground);
-    }
-
-    ImageView image = createBackgroundImageView(context, fullscreen);
-    view.addView(image, image.getLayoutParams());
-
-    View title = createTitleView(context);
+    View title = createTitleView(activity);
     title.setId(R.id.title_view);
-    view.addView(title, title.getLayoutParams());
+    parent.addView(title);
 
-    View button = createAcceptButton(context);
+    View button = createAcceptButton(activity);
     button.setId(R.id.accept_button);
-    view.addView(button, button.getLayoutParams());
+    parent.addView(button);
 
-    View message = createMessageView(context);
+    View message = createMessageView(activity);
     ((RelativeLayout.LayoutParams) message.getLayoutParams())
         .addRule(RelativeLayout.BELOW, title.getId());
     ((RelativeLayout.LayoutParams) message.getLayoutParams())
         .addRule(RelativeLayout.ABOVE, button.getId());
-    view.addView(message, message.getLayoutParams());
-
-    return view;
+    parent.addView(message);
   }
 
-  // setBackgroundDrawable was deprecated at API 16.
-  @SuppressWarnings("deprecation")
-  protected ImageView createBackgroundImageView(Context context, boolean fullscreen) {
+  private ImageView createBackgroundImageView(Context context, boolean fullscreen) {
     BackgroundImageView view = new BackgroundImageView(context, fullscreen);
     view.setScaleType(ImageView.ScaleType.CENTER_CROP);
     int cornerRadius;
@@ -130,14 +88,12 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
       cornerRadius = 0;
     }
     view.setImageBitmap(options.getBackgroundImage());
+
     ShapeDrawable footerBackground = new ShapeDrawable();
     footerBackground.setShape(createRoundRect(cornerRadius));
     footerBackground.getPaint().setColor(options.getBackgroundColor());
-    if (Build.VERSION.SDK_INT >= 16) {
-      view.setBackground(footerBackground);
-    } else {
-      view.setBackgroundDrawable(footerBackground);
-    }
+    ViewCompat.setBackground(view, footerBackground);
+
     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
         LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     view.setLayoutParams(layoutParams);
@@ -162,7 +118,7 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
     layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
     title.setLayoutParams(layoutParams);
 
-    view.addView(title, title.getLayoutParams());
+    view.addView(title);
     return view;
   }
 

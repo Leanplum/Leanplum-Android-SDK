@@ -45,12 +45,7 @@ public class Interstitial extends PopupMessageTemplate {
   }
 
   @Override
-  protected void initWindowDecoration() {
-    // no implementation
-  }
-
-  @Override
-  protected RelativeLayout.LayoutParams createLayoutParams() {
+  protected RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
     return new RelativeLayout.LayoutParams(
         LayoutParams.MATCH_PARENT,
         LayoutParams.MATCH_PARENT);

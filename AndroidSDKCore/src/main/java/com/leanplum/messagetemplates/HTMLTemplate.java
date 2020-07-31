@@ -27,7 +27,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -49,7 +48,6 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
-import com.leanplum.core.R;
 import com.leanplum.internal.Log;
 import com.leanplum.utils.SizeUtil;
 import java.io.UnsupportedEncodingException;
@@ -69,78 +67,58 @@ public class HTMLTemplate extends BaseMessageDialog {
   private @NonNull HTMLOptions htmlOptions;
 
   public HTMLTemplate(Activity activity, @NonNull HTMLOptions htmlOptions) {
-    super(activity);//, htmlOptions.isFullScreen(), null, null, htmlOptions);
+    super(activity);
     this.htmlOptions = htmlOptions;
 
-    init(activity, htmlOptions.isFullScreen());
+    init(htmlOptions.isFullScreen());
   }
 
-  private void init(Activity activity, boolean fullscreen) {
+  @Override
+  protected void applyWindowDecoration() {
+    Window window = getWindow();
+    if (window == null) {
+      return;
+    }
 
-    SizeUtil.init(activity);
-    dialogView = new RelativeLayout(activity);
-    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    dialogView.setBackgroundColor(Color.TRANSPARENT);
-    dialogView.setLayoutParams(layoutParams);
+    window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-    RelativeLayout view = createContainerView(activity, fullscreen);
-    view.setId(R.id.container_view);
-    dialogView.addView(view, view.getLayoutParams());
+    if (htmlOptions.isBannerWithTapOutsideFalse()) {
+      // banners need to be positioned at the top manually
+      // (unless they get repositioned to the bottom later)
+      window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+      window.setGravity(Gravity.TOP);
 
-    setContentView(dialogView, dialogView.getLayoutParams());
+      // use the html y offset to determine the y location of the window; this is different
+      // from non-banners because we don't want to make the window too big (e.g. via a margin
+      // in the layout) and block other things on the screen (e.g. dialogs)
+      WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
+      windowLayoutParams.y = htmlOptions.getHtmlYOffset(activity);
+      window.setAttributes(windowLayoutParams);
 
-    dialogView.setAnimation(createFadeInAnimation());
+      window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+          WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+    } else {
+      window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+          WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+    }
 
-    if (!fullscreen) {
-      Window window = getWindow();
-      if (window == null) {
-        return;
-      }
-
-      window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-
+    if (htmlOptions.isHtmlAlignBottom()) {
       if (htmlOptions.isBannerWithTapOutsideFalse()) {
-        // banners need to be positioned at the top manually
-        // (unless they get repositioned to the bottom later)
-        window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        window.setGravity(Gravity.TOP);
-
-        // use the html y offset to determine the y location of the window; this is different
-        // from non-banners because we don't want to make the window too big (e.g. via a margin
-        // in the layout) and block other things on the screen (e.g. dialogs)
-        WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
-        windowLayoutParams.y = htmlOptions.getHtmlYOffset(activity);
-        window.setAttributes(windowLayoutParams);
-
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        window.setGravity(Gravity.BOTTOM);
       } else {
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
-      }
-
-      if (htmlOptions.isHtmlAlignBottom()) {
-        if (htmlOptions.isBannerWithTapOutsideFalse()) {
-          window.setGravity(Gravity.BOTTOM);
-        } else {
-          dialogView.setGravity(Gravity.BOTTOM);
-        }
+        contentView.setGravity(Gravity.BOTTOM);
       }
     }
   }
 
-  @SuppressWarnings("deprecation")
-  private RelativeLayout createContainerView(Activity context, boolean fullscreen) {
-    RelativeLayout view = new RelativeLayout(context);
-
-    // Positions the dialog.
+  @Override
+  RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
     RelativeLayout.LayoutParams layoutParams;
     if (fullscreen) {
       layoutParams = new RelativeLayout.LayoutParams(
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else {
-      int height = SizeUtil.dpToPx(context, htmlOptions.getHtmlHeight());
+      int height = SizeUtil.dpToPx(activity, htmlOptions.getHtmlHeight());
       HTMLOptions.Size htmlWidth = htmlOptions.getHtmlWidth();
       if (htmlWidth == null || TextUtils.isEmpty(htmlWidth.type)) {
         layoutParams = new RelativeLayout.LayoutParams(
@@ -148,16 +126,16 @@ public class HTMLTemplate extends BaseMessageDialog {
       } else {
         int width = htmlWidth.value;
         if ("%".equals(htmlWidth.type)) {
-          Point size = SizeUtil.getDisplaySize(context);
+          Point size = SizeUtil.getDisplaySize(activity);
           width = size.x * width / 100;
         } else {
-          width = SizeUtil.dpToPx(context, width);
+          width = SizeUtil.dpToPx(activity, width);
         }
         layoutParams = new RelativeLayout.LayoutParams(width, height);
       }
 
       layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-      int htmlYOffset = htmlOptions.getHtmlYOffset(context);
+      int htmlYOffset = htmlOptions.getHtmlYOffset(activity);
       if (!htmlOptions.isBannerWithTapOutsideFalse()) {
         if (htmlOptions.isHtmlAlignBottom()) {
           layoutParams.bottomMargin = htmlYOffset;
@@ -166,22 +144,13 @@ public class HTMLTemplate extends BaseMessageDialog {
         }
       }
     }
+    return layoutParams;
+  }
 
-    view.setLayoutParams(layoutParams);
-
-    ShapeDrawable footerBackground = new ShapeDrawable();
-    footerBackground.setShape(createRoundRect(fullscreen ? 0 : SizeUtil.dp20));
-    footerBackground.getPaint().setColor(0x00000000);
-    if (Build.VERSION.SDK_INT >= 16) {
-      view.setBackground(footerBackground);
-    } else {
-      view.setBackgroundDrawable(footerBackground);
-    }
-
-    webView = createHtml(context);
-    view.addView(webView, webView.getLayoutParams());
-
-    return view;
+  @Override
+  void addMessageChildViews(RelativeLayout parent, boolean fullscreen) {
+    webView = createHtml(activity);
+    parent.addView(webView, webView.getLayoutParams());
   }
 
   /**
@@ -192,7 +161,7 @@ public class HTMLTemplate extends BaseMessageDialog {
    */
   @SuppressLint("SetJavaScriptEnabled")
   private WebView createHtml(Context context) {
-    dialogView.setVisibility(View.GONE);
+    contentView.setVisibility(View.GONE);
     final WebView webView = new WebView(context);
     webView.setBackgroundColor(Color.TRANSPARENT);
     // Disable long click.
@@ -241,7 +210,7 @@ public class HTMLTemplate extends BaseMessageDialog {
 
         // Open URL event.
         if (url.contains(htmlOptions.getOpenUrl())) {
-          dialogView.setVisibility(View.VISIBLE);
+          contentView.setVisibility(View.VISIBLE);
           if (activity != null && !activity.isFinishing()) {
             currentDialog.show();
           }
@@ -356,8 +325,8 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   @Override
-  protected void onFadeOutAnimationEnded() {
-    super.onFadeOutAnimationEnded();
+  protected void onFadeOutAnimationEnd() {
+    super.onFadeOutAnimationEnd();
 
     Handler handler = new Handler();
     handler.postDelayed(new Runnable() {
@@ -366,8 +335,8 @@ public class HTMLTemplate extends BaseMessageDialog {
         if (webView != null) {
           webView.stopLoading();
           webView.loadUrl("");
-          if (dialogView != null) {
-            dialogView.removeAllViews();
+          if (contentView != null) {
+            contentView.removeAllViews();
           }
           webView.removeAllViews();
           webView.destroy();
