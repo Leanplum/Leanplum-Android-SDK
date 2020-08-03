@@ -27,11 +27,11 @@ public class ViewUtils {
     }
   }
 
-  public static void applyBackground(@NonNull View view, int color, boolean roundCorners) {
+  public static void applyBackground(@NonNull View view, int color, boolean roundedCorners) {
     SizeUtil.init(view.getContext()); // just in case
 
     ShapeDrawable footerBackground = new ShapeDrawable();
-    int cornerRadius = roundCorners ? SizeUtil.dp20 : 0;
+    int cornerRadius = roundedCorners ? SizeUtil.dp20 : 0;
     footerBackground.setShape(createRoundRect(cornerRadius));
     footerBackground.getPaint().setColor(color);
     ViewCompat.setBackground(view, footerBackground);

@@ -64,17 +64,31 @@ import org.json.JSONObject;
 public class HTMLTemplate extends BaseMessageDialog {
   private static final String NAME = "HTML";
 
+  private WebView webView;
   private @NonNull HTMLOptions htmlOptions;
 
   public HTMLTemplate(Activity activity, @NonNull HTMLOptions htmlOptions) {
     super(activity);
     this.htmlOptions = htmlOptions;
 
-    init(htmlOptions.isFullScreen());
+    init();
+  }
+
+  @Override
+  boolean hasDismissButton() {
+    return false;
+  }
+
+  @Override
+  boolean isFullscreen() {
+    return htmlOptions.isFullScreen();
   }
 
   @Override
   protected void applyWindowDecoration() {
+    if (isFullscreen())
+      return;
+
     Window window = getWindow();
     if (window == null) {
       return;
@@ -112,9 +126,9 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   @Override
-  RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
+  RelativeLayout.LayoutParams createLayoutParams() {
     RelativeLayout.LayoutParams layoutParams;
-    if (fullscreen) {
+    if (isFullscreen()) {
       layoutParams = new RelativeLayout.LayoutParams(
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else {
@@ -148,7 +162,7 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   @Override
-  void addMessageChildViews(RelativeLayout parent, boolean fullscreen) {
+  void addMessageChildViews(RelativeLayout parent) {
     webView = createHtml(activity);
     parent.addView(webView, webView.getLayoutParams());
   }

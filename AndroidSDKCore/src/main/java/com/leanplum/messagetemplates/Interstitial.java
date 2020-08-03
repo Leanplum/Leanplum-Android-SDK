@@ -41,11 +41,21 @@ public class Interstitial extends PopupMessageTemplate {
   private static final String NAME = "Interstitial";
 
   public Interstitial(Activity activity, InterstitialOptions options) {
-    super(activity, options, true);
+    super(activity, options);
   }
 
   @Override
-  protected RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
+  boolean isFullscreen() {
+    return true;
+  }
+
+  @Override
+  void applyWindowDecoration() {
+    // no implementation
+  }
+
+  @Override
+  protected RelativeLayout.LayoutParams createLayoutParams() {
     return new RelativeLayout.LayoutParams(
         LayoutParams.MATCH_PARENT,
         LayoutParams.MATCH_PARENT);

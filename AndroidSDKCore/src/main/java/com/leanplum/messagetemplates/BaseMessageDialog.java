@@ -27,7 +27,6 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
-import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.leanplum.core.R;
@@ -43,7 +42,6 @@ import com.leanplum.views.ViewUtils;
 abstract class BaseMessageDialog extends Dialog {
   protected RelativeLayout contentView;
   protected Activity activity;
-  protected WebView webView;
 
   protected boolean isClosing = false;
 
@@ -53,23 +51,21 @@ abstract class BaseMessageDialog extends Dialog {
     SizeUtil.init(activity);
   }
 
-  protected void init(boolean fullscreen) {
+  protected void init() {
     contentView = createContentView();
 
-    RelativeLayout messageView = createMessageView(fullscreen);
+    RelativeLayout messageView = createMessageView();
     contentView.addView(messageView);
 
     if (hasDismissButton()) {
-      CloseButton closeButton = createCloseButton(fullscreen, messageView);
+      CloseButton closeButton = createCloseButton(messageView);
       contentView.addView(closeButton);
     }
     setContentView(contentView, contentView.getLayoutParams());
 
     contentView.setAnimation(ViewUtils.createFadeInAnimation(350));
 
-    if (!fullscreen) {
-      applyWindowDecoration();
-    }
+    applyWindowDecoration();
   }
 
   private RelativeLayout createContentView() {
@@ -81,41 +77,39 @@ abstract class BaseMessageDialog extends Dialog {
     return view;
   }
 
-  private RelativeLayout createMessageView(boolean fullscreen) {
+  private RelativeLayout createMessageView() {
     RelativeLayout view = new RelativeLayout(activity);
     view.setId(R.id.container_view);
 
     // Position the message
-    RelativeLayout.LayoutParams layoutParams = createLayoutParams(fullscreen);
+    RelativeLayout.LayoutParams layoutParams = createLayoutParams();
     view.setLayoutParams(layoutParams);
 
-    ViewUtils.applyBackground(view, Color.TRANSPARENT, !fullscreen);
+    boolean roundedCorners = !isFullscreen();
+    ViewUtils.applyBackground(view, Color.TRANSPARENT, roundedCorners);
 
-    addMessageChildViews(view, fullscreen);
+    addMessageChildViews(view);
     return view;
   }
 
   /**
    * Positions the message view inside the dialog content view
    */
-  abstract RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen);
+  abstract RelativeLayout.LayoutParams createLayoutParams();
 
   /**
    * Creates and adds all message specific child views.
    */
-  abstract void addMessageChildViews(RelativeLayout parent, boolean fullscreen);
+  abstract void addMessageChildViews(RelativeLayout parent);
 
-  protected boolean hasDismissButton() {
-    return false;
-  }
+  abstract boolean hasDismissButton();
 
-  protected void applyWindowDecoration() {
-    // no default implementation
-  }
+  abstract boolean isFullscreen();
 
-  protected void onFadeOutAnimationEnd() {
-    super.cancel();
-  }
+  /**
+   * Sets decoration of the Window object for the activity.
+   */
+  abstract void applyWindowDecoration();
 
   @Override
   public void cancel() {
@@ -139,12 +133,16 @@ abstract class BaseMessageDialog extends Dialog {
     contentView.startAnimation(animation);
   }
 
-  private CloseButton createCloseButton(boolean fullscreen, View alignView) {
+  protected void onFadeOutAnimationEnd() {
+    super.cancel();
+  }
+
+  private CloseButton createCloseButton(View alignView) {
     CloseButton closeButton = new CloseButton(activity);
     closeButton.setId(R.id.close_button);
     RelativeLayout.LayoutParams closeLayout = new RelativeLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-    if (fullscreen) {
+    if (isFullscreen()) {
       closeLayout.addRule(RelativeLayout.ALIGN_PARENT_TOP, contentView.getId());
       closeLayout.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, contentView.getId());
       closeLayout.setMargins(0, SizeUtil.dp5, SizeUtil.dp5, 0);

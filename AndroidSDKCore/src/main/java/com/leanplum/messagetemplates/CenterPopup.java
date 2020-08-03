@@ -45,7 +45,12 @@ public class CenterPopup extends PopupMessageTemplate {
   private static final String NAME = "Center Popup";
 
   private CenterPopup(Activity activity, CenterPopupOptions options) {
-    super(activity, options, false);
+    super(activity, options);
+  }
+
+  @Override
+  boolean isFullscreen() {
+    return false;
   }
 
   @Override
@@ -61,7 +66,7 @@ public class CenterPopup extends PopupMessageTemplate {
   }
 
   @Override
-  protected RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
+  protected RelativeLayout.LayoutParams createLayoutParams() {
     RelativeLayout.LayoutParams layoutParams;
 
     // Make sure the dialog fits on screen.

@@ -51,7 +51,7 @@ public class WebInterstitial extends BaseMessageDialog {
     super(activity);
     this.webOptions = options;
 
-    init(true);
+    init();
   }
 
   @Override
@@ -60,14 +60,24 @@ public class WebInterstitial extends BaseMessageDialog {
   }
 
   @Override
-  RelativeLayout.LayoutParams createLayoutParams(boolean fullscreen) {
+  boolean isFullscreen() {
+    return true;
+  }
+
+  @Override
+  void applyWindowDecoration() {
+    // no implementation
+  }
+
+  @Override
+  RelativeLayout.LayoutParams createLayoutParams() {
     return new RelativeLayout.LayoutParams(
         LayoutParams.MATCH_PARENT,
         LayoutParams.MATCH_PARENT);
   }
 
   @Override
-  void addMessageChildViews(RelativeLayout parent, boolean fullscreen) {
+  void addMessageChildViews(RelativeLayout parent) {
     WebView webView = createWebView(activity);
     parent.addView(webView, webView.getLayoutParams());
   }

@@ -35,7 +35,6 @@ import com.leanplum.core.R;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
-import com.leanplum.views.ViewUtils;
 
 /**
  * Base class for CenterPopup and Interstitial messages.
@@ -44,11 +43,11 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
 
   protected BaseMessageOptions options;
 
-  protected PopupMessageTemplate(Activity activity, BaseMessageOptions options, boolean fullscreen) {
+  protected PopupMessageTemplate(Activity activity, BaseMessageOptions options) {
     super(activity);
     this.options = options;
 
-    init(fullscreen);
+    init();
   }
 
   @Override
@@ -57,8 +56,8 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
   }
 
   @Override
-  void addMessageChildViews(RelativeLayout parent, boolean fullscreen) {
-    ImageView image = createBackgroundImageView(activity, fullscreen);
+  void addMessageChildViews(RelativeLayout parent) {
+    ImageView image = createBackgroundImageView(activity);
     parent.addView(image);
 
     View title = createTitleView(activity);
@@ -77,12 +76,13 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
     parent.addView(message);
   }
 
-  private ImageView createBackgroundImageView(Context context, boolean fullscreen) {
-    BackgroundImageView view = new BackgroundImageView(context, fullscreen);
-    view.setScaleType(ImageView.ScaleType.CENTER_CROP);
-    view.setImageBitmap(options.getBackgroundImage());
-
-    ViewUtils.applyBackground(view, options.getBackgroundColor(), !fullscreen);
+  private ImageView createBackgroundImageView(Context context) {
+    boolean roundedCorners = !isFullscreen();
+    BackgroundImageView view = new BackgroundImageView(
+        context,
+        options.getBackgroundColor(),
+        options.getBackgroundImage(),
+        roundedCorners);
 
     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
         LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
