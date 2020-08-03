@@ -61,11 +61,9 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
     parent.addView(image);
 
     View title = createTitleView(activity);
-    title.setId(R.id.title_view);
     parent.addView(title);
 
     View button = createAcceptButton(activity);
-    button.setId(R.id.accept_button);
     parent.addView(button);
 
     View message = createMessageView(activity);
@@ -92,6 +90,7 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
 
   private RelativeLayout createTitleView(Context context) {
     RelativeLayout view = new RelativeLayout(context);
+    view.setId(R.id.title_view);
     view.setLayoutParams(new LayoutParams(
         LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
@@ -114,6 +113,7 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
 
   private TextView createAcceptButton(Context context) {
     TextView view = new TextView(context);
+    view.setId(R.id.accept_button);
     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
@@ -130,13 +130,10 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
         options.getAcceptButtonBackgroundColor(), 30);
 
     view.setTextSize(TypedValue.COMPLEX_UNIT_SP, SizeUtil.textSize0_1);
-    view.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View arg0) {
-        if (!isClosing) {
-          options.accept();
-          cancel();
-        }
+    view.setOnClickListener(clickedView -> {
+      if (!isClosing) {
+        options.accept();
+        cancel();
       }
     });
     return view;

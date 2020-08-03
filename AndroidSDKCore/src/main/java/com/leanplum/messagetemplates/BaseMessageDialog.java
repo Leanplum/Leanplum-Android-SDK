@@ -143,8 +143,8 @@ abstract class BaseMessageDialog extends Dialog {
     RelativeLayout.LayoutParams closeLayout = new RelativeLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     if (isFullscreen()) {
-      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_TOP, contentView.getId());
-      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, contentView.getId());
+      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+      closeLayout.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
       closeLayout.setMargins(0, SizeUtil.dp5, SizeUtil.dp5, 0);
     } else {
       closeLayout.addRule(RelativeLayout.ALIGN_TOP, alignView.getId());
