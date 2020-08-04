@@ -416,6 +416,11 @@ public class HTMLTemplate extends BaseMessageDialog {
     return super.dispatchTouchEvent(ev);
   }
 
+  @NonNull
+  public HTMLOptions getHtmlOptions() {
+    return htmlOptions;
+  }
+
   public static void register() {
     Leanplum.defineAction(NAME, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION,
         HTMLOptions.toArgs(), new ActionCallback() {

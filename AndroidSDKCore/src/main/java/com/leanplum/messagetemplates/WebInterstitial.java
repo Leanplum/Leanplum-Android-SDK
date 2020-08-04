@@ -127,6 +127,11 @@ public class WebInterstitial extends BaseMessageDialog {
     return view;
   }
 
+  @NonNull
+  public WebInterstitialOptions getWebOptions() {
+    return webOptions;
+  }
+
   public static void register() {
     Leanplum.defineAction(NAME, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION,
         WebInterstitialOptions.toArgs(), new ActionCallback() {

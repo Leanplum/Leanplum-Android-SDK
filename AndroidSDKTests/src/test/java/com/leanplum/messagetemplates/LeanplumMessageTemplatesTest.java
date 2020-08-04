@@ -109,7 +109,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     HTMLOptions options = new HTMLOptions(actionContext);
     HTMLTemplate htmlTemplate = new HTMLTemplate(activity, options);
     assertNotNull(htmlTemplate);
-    assertEquals(options, htmlTemplate.htmlOptions);
+    assertEquals(options, htmlTemplate.getHtmlOptions());
   }
 
   @Test
@@ -179,6 +179,6 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     WebInterstitialOptions options = new WebInterstitialOptions(actionContext);
     WebInterstitial interstitial = new WebInterstitial(activity, options);
     assertNotNull(interstitial);
-    assertEquals(options, interstitial.webOptions);
+    assertEquals(options, interstitial.getWebOptions());
   }
 }

@@ -44,7 +44,7 @@ import com.leanplum.utils.SizeUtil;
 public class CenterPopup extends PopupMessageTemplate {
   private static final String NAME = "Center Popup";
 
-  private CenterPopup(Activity activity, CenterPopupOptions options) {
+  CenterPopup(Activity activity, CenterPopupOptions options) {
     super(activity, options);
   }
 
