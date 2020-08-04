@@ -179,7 +179,7 @@ public class AESCrypt {
     Pair<EncryptionType, String> encryptionSpec = EncryptionType.parseCipherText(cipherText);
     String result = null;
     if (encryptionSpec == null) {
-      Log.v("Got null encryptionSpec for encrypted: " + cipherText);
+      Log.d("Got null encryptionSpec for encrypted: " + cipherText);
     } else {
       switch (encryptionSpec.first) {
         case LEGACY_TOKEN:

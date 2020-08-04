@@ -98,7 +98,7 @@ public class FileManager {
           try {
             inputStream.close();
           } catch (IOException e) {
-            Log.v("Failed to close InputStream.", e.getMessage());
+            Log.d("Failed to close InputStream.", e.getMessage());
           }
         }
       }
@@ -137,7 +137,7 @@ public class FileManager {
           try {
             is.close();
           } catch (IOException e) {
-            Log.v("Failed to close InputStream.", e.getMessage());
+            Log.d("Failed to close InputStream.", e.getMessage());
           }
         }
       }
@@ -309,14 +309,14 @@ public class FileManager {
         }
       }
     } catch (IOException e) {
-      Log.v("Error occurred when trying " +
+      Log.d("Error occurred when trying " +
           "to enable resource syncing." + e.getMessage());
     } finally {
       if (apk != null) {
         try {
           apk.close();
         } catch (IOException e) {
-          Log.v("Failed to close ZipInputStream.", e.getMessage());
+          Log.d("Failed to close ZipInputStream.", e.getMessage());
         }
       }
     }
@@ -410,7 +410,7 @@ public class FileManager {
           try {
             inputStream.close();
           } catch (Exception e) {
-            Log.v("Failed to close InputStream: " + e);
+            Log.d("Failed to close InputStream: " + e);
           }
         }
       }
@@ -485,7 +485,7 @@ public class FileManager {
       }
       return new FileInputStream(new File(value));
     } catch (IOException e) {
-      Log.v("Failed to load a stream." + e.getMessage());
+      Log.d("Failed to load a stream." + e.getMessage());
       return null;
     }
   }

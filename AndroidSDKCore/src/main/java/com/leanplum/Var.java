@@ -70,9 +70,9 @@ public class Var<T> {
 
   private void warnIfNotStarted() {
     if (!isInternal && !Leanplum.hasStarted() && !printedCallbackWarning) {
-      Log.i("Leanplum hasn't finished retrieving values from the server. "
-          + "You should use a callback to make sure the value for '" + name +
-          "' is ready. Otherwise, your app may not use the most up-to-date value.");
+      Log.i("Leanplum hasn't finished retrieving values from the server. " +
+          "You should use a callback to make sure the value for '%s' is ready. " +
+          "Otherwise, your app may not use the most up-to-date value.", name);
       printedCallbackWarning = true;
     }
   }

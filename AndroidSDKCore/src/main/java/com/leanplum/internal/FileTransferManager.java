@@ -87,7 +87,7 @@ public class FileTransferManager {
     });
 
     pendingDownloads++;
-    Log.i("Downloading resource " + path);
+    Log.d("Downloading resource: %s", path);
     fileTransferStatus.put(path, true);
     final Map<String, Object> dict = RequestSender.createArgsDictionary(request);
     dict.put(Constants.Keys.FILENAME, path);
@@ -327,7 +327,7 @@ public class FileTransferManager {
         getSizeAsString(sentBytes) + '/' + getSizeAsString(totalBytes) + " transferred.";
     if (!fileUploadProgressString.equals(progressString)) {
       fileUploadProgressString = progressString;
-      Log.i(progressString);
+      Log.d(progressString);
     }
   }
 

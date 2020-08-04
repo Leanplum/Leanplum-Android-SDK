@@ -46,10 +46,10 @@ import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
-import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
-import com.leanplum.internal.RequestUtil;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestSender;
+import com.leanplum.internal.RequestUtil;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
@@ -196,11 +196,12 @@ public class Leanplum {
   /**
    * Sets log level to one of the following
    * <ul>
-   *   <li>{@link Log.Level#ERROR} - enabled by default, logs only errors</li>
-   *   <li>{@link Log.Level#INFO} - logs info messages as well as errors</li>
-   *   <li>{@link Log.Level#VERBOSE} - verbose logging</li>
-   *   <li>{@link Log.Level#DEBUG} - debug logging</li>
+   *   <li>{@link Log.Level#ERROR} - logs only SDK errors to console.</li>
+   *   <li>{@link Log.Level#INFO} - logs general informational messages including all errors,
+   *   enabled by default.</li>
+   *   <li>{@link Log.Level#DEBUG} - logs SDK debug messages, including info and errors.</li>
    * </ul>
+   *
    * @param level level to set
    */
   public static void setLogLevel(int level) {
@@ -560,8 +561,6 @@ public class Leanplum {
           // Move to foreground.
           LeanplumInternal.setStartedInBackground(false);
           LeanplumInternal.moveToForeground();
-        } else {
-          Log.i("Start was already called. Skipping");
         }
         return;
       }
@@ -627,12 +626,16 @@ public class Leanplum {
   private static void checkAndStartNotificationsModules() {
     if (Util.hasPlayServices()) {
       try {
-        Class.forName(LEANPLUM_PUSH_SERVICE).getDeclaredMethod("onStart")
+        Log.d("Trying to starting LeanplumPushService");
+
+        Class.forName(LEANPLUM_PUSH_SERVICE)
+            .getDeclaredMethod("onStart")
             .invoke(null);
       } catch (Throwable ignored) {
+        // ignored
       }
     } else {
-      Log.i("No valid Google Play Services APK found.");
+      Log.d("No valid Google Play Services APK found.");
     }
   }
 
@@ -888,11 +891,11 @@ public class Leanplum {
 
           boolean isRegistered = response.optBoolean(Constants.Keys.IS_REGISTERED);
 
-          // Check for updates.
-          final String latestVersion = response.optString(Constants.Keys.LATEST_VERSION, null);
-          if (isRegistered && latestVersion != null) {
-            Log.i("An update to Leanplum Android SDK, " + latestVersion +
-                ", is available. Go to leanplum.com to download it.");
+          // Check for SDK updates.
+          String latestVersion = response.optString(Constants.Keys.LATEST_VERSION);
+          if (isRegistered && !TextUtils.isEmpty(latestVersion)) {
+            Log.i("Version %s of Leanplum SDK is available. " +
+                "Update your gradle dependencies to use it.", latestVersion);
           }
 
           JSONObject valuesFromCode = response.optJSONObject(Constants.Keys.VARS_FROM_CODE);
@@ -1675,7 +1678,7 @@ public class Leanplum {
       Map<String, ?> params) {
     try {
       if (TextUtils.isEmpty(event)) {
-        Log.i("Failed to trackPurchase, event name is null");
+        Log.d("Failed to trackPurchase, event name is null");
       }
 
       final Map<String, String> requestArgs = new HashMap<>();
@@ -1736,7 +1739,7 @@ public class Leanplum {
   public static void trackGooglePlayPurchase(String eventName, String item, long priceMicros,
       String currencyCode, String purchaseData, String dataSignature, Map<String, ?> params) {
     if (TextUtils.isEmpty(eventName)) {
-      Log.i("Failed to trackGooglePlayPurchase, event name is null");
+      Log.d("Failed to trackGooglePlayPurchase, event name is null");
     }
 
     final Map<String, String> requestArgs = new HashMap<>();
@@ -2131,7 +2134,7 @@ public class Leanplum {
    */
   public static String pathForResource(String filename) {
     if (TextUtils.isEmpty(filename)) {
-      Log.i("pathForResource - Empty filename parameter provided.");
+      Log.d("pathForResource - Empty filename parameter provided.");
       return null;
     }
 

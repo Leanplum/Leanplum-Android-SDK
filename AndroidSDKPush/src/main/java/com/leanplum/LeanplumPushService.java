@@ -468,7 +468,7 @@ public class LeanplumPushService {
 
       return arguments;
     } catch (Throwable ignored) {
-      Log.i("Failed to parse notification bundle.");
+      Log.d("Failed to parse notification bundle.");
     }
     return null;
   }
@@ -483,12 +483,12 @@ public class LeanplumPushService {
    */
   public static Bundle preHandlePushNotification(Context context, Intent intent) {
     if (intent == null) {
-      Log.i("Unable to pre handle push notification, Intent is null.");
+      Log.d("Unable to pre handle push notification, Intent is null.");
       return null;
     }
     Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.i("Unable to pre handle push notification, extras are null.");
+      Log.d("Unable to pre handle push notification, extras are null.");
       return null;
     }
     return notification;
@@ -504,7 +504,7 @@ public class LeanplumPushService {
   public static void postHandlePushNotification(Context context, Intent intent) {
     final Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.i("Could not post handle push notification, extras are null.");
+      Log.d("Could not post handle push notification, extras are null.");
       return;
     }
     // Perform action.
@@ -713,7 +713,7 @@ public class LeanplumPushService {
     String storedAppId = SharedPreferencesUtil.getString(context, Constants.Defaults.LEANPLUM_PUSH,
         Constants.Defaults.APP_ID);
     if (!currentAppId.equals(storedAppId)) {
-      Log.v("Saving the application id in the shared preferences.");
+      Log.d("Saving the application id in the shared preferences.");
       SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
           Constants.Defaults.APP_ID, currentAppId);
       // Check application id was stored before.
@@ -731,7 +731,7 @@ public class LeanplumPushService {
    * @param context The application context.
    * @param currentContext Current application context.
    */
-  static void showDeviceRegistedPush(Context context, Context currentContext) {
+  static void showDeviceRegisteredPush(Context context, Context currentContext) {
     try {
       NotificationCompat.Builder builder =
           LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context,
@@ -750,7 +750,7 @@ public class LeanplumPushService {
       // mId allows you to update the notification later on.
       mNotificationManager.notify(0, builder.build());
     } catch (Throwable t) {
-      Log.i("Device is registered.");
+      // ignore
     }
   }
 }

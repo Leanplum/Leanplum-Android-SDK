@@ -33,7 +33,7 @@ import java.io.StringWriter;
  */
 public class Log {
 
-  private static int level = Level.ERROR;
+  private static int level = Level.INFO;
 
   /**
    * Sets log level.
@@ -49,10 +49,6 @@ public class Log {
 
   public static void i(String msg, Object... args) {
     log(LogType.INFO, msg, args);
-  }
-
-  public static void v(String msg, Object... args) {
-    log(LogType.VERBOSE, msg, args);
   }
 
   public static void d(String msg, Object... args) {
@@ -138,18 +134,13 @@ public class Log {
             android.util.Log.i(tag, msg);
           }
           break;
-        case VERBOSE:
-          if (level >= Level.VERBOSE) {
-            android.util.Log.d(tag, msg);
-          }
-          break;
         case DEBUG:
           if (level >= Level.DEBUG) {
             android.util.Log.d(tag, msg);
           }
           break;
       }
-      handleLog(tag, msg);
+      handleLogMessage(tag, msg);
     } catch (Throwable t) {
       // ignored
     }
@@ -164,7 +155,7 @@ public class Log {
    * @param tag message tag
    * @param msg message to log
    */
-  private static void handleLog(String tag, String msg) {
+  private static void handleLogMessage(String tag, String msg) {
     if (Constants.loggingEnabled) {
       Request request = RequestBuilder.withLogAction()
           .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
@@ -185,9 +176,8 @@ public class Log {
 
   public enum LogType {
     DEBUG,
-    VERBOSE,
     INFO,
-    ERROR,
+    ERROR
   }
 
   public static class Level {
@@ -200,12 +190,8 @@ public class Log {
      */
     public static final int INFO = 1;
     /**
-     * Logs verbose messages including info and errors.
-     */
-    public static final int VERBOSE = 2;
-    /**
      * Enables all levels including DEBUG logging of the SDK.
      */
-    public static final int DEBUG = 3;
+    public static final int DEBUG = 2;
   }
 }

@@ -130,7 +130,7 @@ class LeanplumLocalPushHelper {
       editor.putLong(String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), eta);
       SharedPreferencesUtil.commitChanges(editor);
 
-      Log.i("Scheduled notification.");
+      Log.d("Scheduling local notification.");
       return true;
     } catch (Throwable t) {
       Log.exception(t);

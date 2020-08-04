@@ -224,7 +224,7 @@ public class Util {
             boolean limitTracking = (Boolean) adInfo.getClass()
                 .getMethod("isLimitAdTrackingEnabled")
                 .invoke(adInfo);
-            Log.v("Using advertising device id: " + id);
+            Log.d("Using advertising device id: " + id);
             return new DeviceIdInfo(id, limitTracking);
           }
         } catch (Throwable t) {
@@ -241,14 +241,14 @@ public class Util {
     @SuppressLint("HardwareIds")
     String androidId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
     if (androidId == null || androidId.isEmpty()) {
-      Log.i("Skipping Android device id; no id returned.");
+      Log.d("Skipping Android device id; no id returned.");
       return null;
     }
     if (Constants.INVALID_ANDROID_ID.equals(androidId)) {
-      Log.v("Skipping Android device id; got invalid " + "device id: " + androidId);
+      Log.d("Skipping Android device id; got invalid " + "device id: " + androidId);
       return null;
     }
-    Log.v("Using Android device id: " + androidId);
+    Log.d("Using Android device id: " + androidId);
     return checkDeviceId("android id", androidId);
   }
 
@@ -258,7 +258,7 @@ public class Util {
   private static String generateRandomDeviceId() {
     // Mark random IDs to be able to identify them.
     String randomId = UUID.randomUUID().toString() + "-LP";
-    Log.v("Using generated device id: " + randomId);
+    Log.d("Using generated device id: " + randomId);
     return randomId;
   }
 
@@ -268,10 +268,10 @@ public class Util {
       Charset charset = Charset.forName(charsetName);
       encoder = charset.newEncoder();
     } catch (UnsupportedCharsetException e) {
-      Log.v("Unsupported charset: " + charsetName);
+      Log.d("Unsupported charset: " + charsetName);
     }
     if (encoder != null && !encoder.canEncode(id)) {
-      Log.v("Invalid id (contains invalid characters): " + id);
+      Log.d("Invalid id (contains invalid characters): " + id);
       return false;
     }
     return true;
@@ -280,19 +280,19 @@ public class Util {
   public static boolean isValidUserId(String userId) {
     String logPrefix = "Invalid user id ";
     if (userId == null || userId.isEmpty()) {
-      Log.v(logPrefix + "(sentinel): " + userId);
+      Log.d(logPrefix + "(sentinel): " + userId);
       return false;
     }
     if (userId.length() > Constants.MAX_USER_ID_LENGTH) {
-      Log.v(logPrefix + "(too long): " + userId);
+      Log.d(logPrefix + "(too long): " + userId);
       return false;
     }
     if (userId.contains("\n")) {
-      Log.v(logPrefix + "(contains newline): " + userId);
+      Log.d(logPrefix + "(contains newline): " + userId);
       return false;
     }
     if (userId.contains("\"") || userId.contains("\'")) {
-      Log.v(logPrefix + "(contains quotes): " + userId);
+      Log.d(logPrefix + "(contains quotes): " + userId);
       return false;
     }
     return isValidForCharset(userId, "UTF-8");
@@ -304,27 +304,27 @@ public class Util {
         Constants.INVALID_ANDROID_ID.equals(deviceId) ||
         Constants.INVALID_MAC_ADDRESS_HASH.equals(deviceId) ||
         Constants.OLD_INVALID_MAC_ADDRESS_HASH.equals(deviceId)) {
-      Log.v(logPrefix + "(sentinel): " + deviceId);
+      Log.d(logPrefix + "(sentinel): " + deviceId);
       return false;
     }
     if (deviceId.length() > Constants.MAX_DEVICE_ID_LENGTH) {
-      Log.v(logPrefix + "(too long): " + deviceId);
+      Log.d(logPrefix + "(too long): " + deviceId);
       return false;
     }
     if (deviceId.contains("[")) {
-      Log.v(logPrefix + "(contains brackets): " + deviceId);
+      Log.d(logPrefix + "(contains brackets): " + deviceId);
       return false;
     }
     if (deviceId.contains("\n")) {
-      Log.v(logPrefix + "(contains newline): " + deviceId);
+      Log.d(logPrefix + "(contains newline): " + deviceId);
       return false;
     }
     if (deviceId.contains(",")) {
-      Log.v(logPrefix + "(contains comma): " + deviceId);
+      Log.d(logPrefix + "(contains comma): " + deviceId);
       return false;
     }
     if (deviceId.contains("\"") || deviceId.contains("\'")) {
-      Log.v(logPrefix + "(contains quotes): " + deviceId);
+      Log.d(logPrefix + "(contains quotes): " + deviceId);
       return false;
     }
     return isValidForCharset(deviceId, "US-ASCII");
@@ -377,7 +377,7 @@ public class Util {
         versionName = pInfo.versionName;
       }
     } catch (Exception e) {
-      Log.v("Could not extract versionName from Manifest or PackageInfo.");
+      Log.d("Could not extract versionName from Manifest or PackageInfo.");
     }
     return versionName;
   }
@@ -469,7 +469,7 @@ public class Util {
     Uri.Builder builder = new Uri.Builder();
     for (Map.Entry<String, Object> pair : params.entrySet()) {
       if (pair.getValue() == null) {
-        Log.v("Request parameter for key: " + pair.getKey() + " is null.");
+        Log.d("Request parameter for key: " + pair.getKey() + " is null.");
         continue;
       }
       builder.appendQueryParameter(pair.getKey(), pair.getValue().toString());
@@ -645,14 +645,14 @@ public class Util {
           outputStream.write(buffer, 0, bytesRead);
         }
       } catch (NullPointerException e) {
-        Log.i("Unable to read file while uploading " + filesToUpload.get(i));
+        Log.d("Unable to read file while uploading " + filesToUpload.get(i));
         return null;
       } finally {
         if (is != null) {
           try {
             is.close();
           } catch (IOException e) {
-            Log.i("Failed to close InputStream: " + e);
+            Log.d("Failed to close InputStream: " + e);
           }
         }
       }
@@ -880,7 +880,7 @@ public class Util {
   public static String generateResourceNameFromId(int resourceId) {
     try {
       if (resourceId <= 0) {
-        Log.i("Provided resource id is invalid.");
+        Log.d("Provided resource id is invalid.");
         return null;
       }
       Resources resources = Leanplum.getContext().getResources();

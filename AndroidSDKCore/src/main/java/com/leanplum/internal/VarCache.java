@@ -654,7 +654,7 @@ public class VarCache {
       Map<String, Object> serverAttributes = CollectionUtil.uncheckedCast(
           (serverVariationAttributes != null ? serverVariationAttributes.get("") : null));
       if (FileManager.isNewerLocally(localAttributes, serverAttributes)) {
-        Log.v("Will upload file " + name + ". Local attributes: " +
+        Log.d("Will upload file " + name + ". Local attributes: " +
             localAttributes + "; server attributes: " + serverAttributes);
 
         String hash = (String) localAttributes.get(Constants.Keys.HASH);

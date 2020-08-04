@@ -170,7 +170,7 @@ public class ActionManager {
                 .invoke(new Object(), context, messageId);
             boolean didCancel = existingEta > System.currentTimeMillis();
             if (didCancel) {
-              Log.i("Cancelled notification");
+              Log.d("Cancelled notification");
             }
             return didCancel;
           } catch (Throwable throwable) {

@@ -114,7 +114,7 @@ abstract class LeanplumCloudMessagingProvider {
    * @param context The application context.
    */
   public void storePreferences(Context context) {
-    Log.v("Saving the registration ID in the shared preferences.");
+    Log.d("Saving the registration ID in the shared preferences.");
     SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
         Constants.Defaults.PROPERTY_TOKEN_ID, tokenId);
   }
@@ -126,7 +126,7 @@ abstract class LeanplumCloudMessagingProvider {
    * @param context The application context.
    */
   public void storePreferences(Context context, String registrationIdValue) {
-    Log.v("Saving the registration ID in the shared preferences.");
+    Log.d("Saving the registration ID in the shared preferences.");
     SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
         Constants.Defaults.PROPERTY_TOKEN_ID, registrationIdValue);
   }
@@ -137,7 +137,7 @@ abstract class LeanplumCloudMessagingProvider {
    * @param context The application context.
    */
   public String getStoredRegistrationPreferences(Context context) {
-    Log.v("Return the registration ID in the shared preferences.");
+    Log.d("Return the registration ID in the shared preferences.");
     return SharedPreferencesUtil.getString(
         context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID);
   }

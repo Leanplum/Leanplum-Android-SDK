@@ -85,7 +85,7 @@ public class Socket {
 
       @Override
       public void onDisconnect(int code, String reason) {
-        Log.i("Disconnected from development server");
+        Log.d("Disconnected from development server");
         connected = false;
         connecting = false;
         authSent = false;
@@ -94,7 +94,7 @@ public class Socket {
       @Override
       public void onConnect() {
         if (!authSent) {
-          Log.i("Connected to development server");
+          Log.d("Connected to development server");
           try {
             Map<String, String> args = Util.newMap(
                 Constants.Params.APP_ID, APIConfig.getInstance().appId(),
@@ -263,7 +263,7 @@ public class Socket {
     try {
       emailArg = arguments.getJSONObject(0).getString("email");
     } catch (JSONException e) {
-      Log.v("Socket - No developer e-mail provided.");
+      Log.d("Socket - No developer e-mail provided.");
     }
     final String email = (emailArg == null) ? "a Leanplum account" : emailArg;
     OperationQueue.sharedInstance().addUiOperation(new Runnable() {
