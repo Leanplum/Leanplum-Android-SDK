@@ -82,7 +82,7 @@ public class LeanplumInboxMessage {
       return new File(path).getAbsolutePath();
     }
     if (!LeanplumInbox.getInstance().isInboxImagePrefetchingEnabled()) {
-      Log.w("Inbox Message image path is null because you're calling disableImagePrefetching. " +
+      Log.v("Inbox Message image path is null because you're calling disableImagePrefetching. " +
           "Consider using imageURL method or remove disableImagePrefetching.");
     }
     return null;
@@ -115,7 +115,7 @@ public class LeanplumInboxMessage {
           CollectionUtil.uncheckedCast(getContext().objectNamed(Constants.Keys.DATA));
       object = JsonConverter.mapToJsonObject(mapData);
     } catch (Throwable t) {
-      Log.w("Unable to parse JSONObject for Data field of inbox message.");
+      Log.v("Unable to parse JSONObject for Data field of inbox message.");
     }
     return object;
   }
@@ -193,7 +193,7 @@ public class LeanplumInboxMessage {
       }
       this.context.runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -204,7 +204,7 @@ public class LeanplumInboxMessage {
     try {
       LeanplumInbox.getInstance().removeMessage(messageId);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 

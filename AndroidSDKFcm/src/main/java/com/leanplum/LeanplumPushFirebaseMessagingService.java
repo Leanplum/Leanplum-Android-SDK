@@ -73,7 +73,7 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
       }
       Log.i("Received: " + messageMap.toString());
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 

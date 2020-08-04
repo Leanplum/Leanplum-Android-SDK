@@ -93,11 +93,11 @@ abstract class LeanplumCloudMessagingProvider {
    */
   void onRegistrationIdReceived(Context context, String tokenId) {
     if (tokenId == null) {
-      Log.w("Registration ID is undefined.");
+      Log.d("Registration ID is undefined.");
       return;
     }
     LeanplumCloudMessagingProvider.tokenId = tokenId;
-    Log.i("Device registered for push notifications with registration token", tokenId);
+    Log.d("Device registered for push notifications with registration token", tokenId);
     // Check if received push notification token is different from stored one and send new one to
     // server.
     if (!LeanplumCloudMessagingProvider.tokenId.equals(SharedPreferencesUtil.getString(

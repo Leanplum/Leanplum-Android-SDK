@@ -47,7 +47,7 @@ public class Registration {
 
           OperationQueue.sharedInstance().addUiOperation(callback);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });

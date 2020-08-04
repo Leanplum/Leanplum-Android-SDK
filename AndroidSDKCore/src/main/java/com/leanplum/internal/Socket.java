@@ -105,7 +105,7 @@ public class Socket {
               e.printStackTrace();
             }
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
           authSent = true;
           connected = true;
@@ -140,7 +140,7 @@ public class Socket {
               break;
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     };
@@ -159,7 +159,7 @@ public class Socket {
         try {
           reconnect();
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     }, 0, 5000);
@@ -190,11 +190,11 @@ public class Socket {
    */
   public <T> void sendEvent(String eventName, Map<String, T> data) {
     try {
-      Log.p("Sending event: " + eventName + " & data over socket:\n" + data);
+      Log.d("Sending event: %s with data: %s over socket", eventName, data);
       sio.emit(eventName,
           new JSONArray(Collections.singletonList(JsonConverter.mapToJsonObject(data))));
     } catch (JSONException e) {
-      Log.e("Failed to create JSON data object: " + e.getMessage());
+      Log.d("Failed to create JSON data object: " + e.getMessage());
     }
     Leanplum.countAggregator().incrementCount("send_event_socket");
   }
@@ -306,7 +306,7 @@ public class Socket {
     } catch (JSONException e) {
       Log.e("Couldn't applyVars for preview.", e);
     } catch (Throwable e) {
-      Util.handleException(e);
+      Log.exception(e);
     }
   }
 

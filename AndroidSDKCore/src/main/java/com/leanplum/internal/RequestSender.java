@@ -121,7 +121,7 @@ public class RequestSender {
           }
 
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -144,7 +144,7 @@ public class RequestSender {
           try {
             sendIfConnected(request);
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       }, delayMs);
@@ -215,7 +215,7 @@ public class RequestSender {
         try {
           sendRequests();
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -357,7 +357,7 @@ public class RequestSender {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -463,7 +463,7 @@ public class RequestSender {
         try {
           sendIfDelayedHelper(request);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     }, 1000);

@@ -95,7 +95,7 @@ class LeanplumNotificationChannel {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -113,7 +113,7 @@ class LeanplumNotificationChannel {
       }
       storeDefaultNotificationChannel(context, channel);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -157,7 +157,7 @@ class LeanplumNotificationChannel {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -391,7 +391,7 @@ class LeanplumNotificationChannel {
 
         notificationManager.createNotificationChannel(notificationChannel);
       } catch (Throwable t) {
-        Util.handleException(t);
+        Log.exception(t);
       }
     }
   }
@@ -417,7 +417,7 @@ class LeanplumNotificationChannel {
 
         notificationManager.deleteNotificationChannel(channelId);
       } catch (Throwable t) {
-        Util.handleException(t);
+        Log.exception(t);
       }
     }
   }
@@ -461,7 +461,7 @@ class LeanplumNotificationChannel {
         notificationManager.createNotificationChannelGroup(new NotificationChannelGroup(groupId,
             groupName));
       } catch (Throwable t) {
-        Util.handleException(t);
+        Log.exception(t);
       }
     }
   }
@@ -487,7 +487,7 @@ class LeanplumNotificationChannel {
 
         notificationManager.deleteNotificationChannelGroup(groupId);
       } catch (Throwable t) {
-        Util.handleException(t);
+        Log.exception(t);
       }
     }
   }
@@ -593,7 +593,7 @@ class LeanplumNotificationChannel {
           }
         }
       } catch (Exception e) {
-        Log.w("Failed to parse vibration pattern.");
+        Log.d("Failed to parse vibration pattern.");
       }
 
       // Sanity checks.

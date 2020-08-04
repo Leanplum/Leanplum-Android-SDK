@@ -207,7 +207,7 @@ public class LeanplumPushService {
                   }
                   onComplete.variablesChanged();
                 } catch (Throwable t) {
-                  Util.handleException(t);
+                  Log.exception(t);
                 }
               }
             });
@@ -220,7 +220,7 @@ public class LeanplumPushService {
             RequestSender.getInstance().sendIfConnected(req);
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -401,7 +401,7 @@ public class LeanplumPushService {
       Log.e("Unable to show push notification.", e);
     } catch (Throwable t) {
       Log.e("Unable to show push notification.", t);
-      Util.handleException(t);
+      Log.exception(t);
     }
     Leanplum.countAggregator().incrementCount("show_with_title");
   }
@@ -539,19 +539,19 @@ public class LeanplumPushService {
                                 try {
                                   LeanplumInternal.performTrackedAction(actionName, messageId);
                                 } catch (Throwable t) {
-                                  Util.handleException(t);
+                                  Log.exception(t);
                                 }
                               }
                             });
                       } catch (Throwable t) {
-                        Util.handleException(t);
+                        Log.exception(t);
                       }
                     }
                   });
             }
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -640,7 +640,7 @@ public class LeanplumPushService {
       unregisterIntent.setPackage("com.google.android.gms");
       context.startService(unregisterIntent);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 

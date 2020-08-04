@@ -133,7 +133,7 @@ class LeanplumLocalPushHelper {
       Log.i("Scheduled notification.");
       return true;
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return false;
     }
   }
