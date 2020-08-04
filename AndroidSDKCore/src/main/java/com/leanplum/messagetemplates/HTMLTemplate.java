@@ -23,7 +23,6 @@ package com.leanplum.messagetemplates;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -164,7 +163,7 @@ public class HTMLTemplate extends BaseMessageDialog {
   @Override
   void addMessageChildViews(RelativeLayout parent) {
     webView = createHtml(activity);
-    parent.addView(webView, webView.getLayoutParams());
+    parent.addView(webView);
   }
 
   /**
@@ -173,21 +172,131 @@ public class HTMLTemplate extends BaseMessageDialog {
    * @param context Current context.
    * @return WebVew WebVew with HTML template.
    */
-  @SuppressLint("SetJavaScriptEnabled")
   private WebView createHtml(Context context) {
     contentView.setVisibility(View.GONE);
-    final WebView webView = new WebView(context);
+    WebView webView = new WebView(context);
+    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+    webView.setLayoutParams(layoutParams);
+
+    initWebSettings(webView);
     webView.setBackgroundColor(Color.TRANSPARENT);
-    // Disable long click.
-    webView.setLongClickable(false);
+    webView.setLongClickable(false); // Disable long click
     webView.setHapticFeedbackEnabled(false);
-    webView.setOnLongClickListener(new View.OnLongClickListener() {
+    webView.setOnLongClickListener(v -> true);
+    webView.setWebChromeClient(new WebChromeClient());
+    webView.setWebViewClient(new WebViewClient() {
+      // shouldOverrideUrlLoading(WebView wView, String url) was deprecated at API 24.
+      @SuppressWarnings("deprecation")
       @Override
-      public boolean onLongClick(View v) {
-        return true;
+      public boolean shouldOverrideUrlLoading(WebView wView, String url) {
+        if (isClosing) // prevent multiple clicks on same button
+          return true;
+
+        // Open URL event.
+        if (handleOpenEvent(url)){
+          return true;
+        }
+
+        // Close URL event.
+        if (handleCloseEvent(url)) {
+          return true;
+        }
+
+        // Track URL event.
+        if (handleTrackEvent(url)) {
+          return true;
+        }
+
+        // Action URL or track action URL event.
+        if (handleActionEvent(url)) {
+          return true;
+        }
+
+        return false;
       }
     });
+    String html = htmlOptions.getHtmlTemplate();
 
+    webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+
+    return webView;
+  }
+
+  private boolean handleOpenEvent(String url) {
+    if (url.contains(htmlOptions.getOpenUrl())) {
+      contentView.setVisibility(View.VISIBLE);
+      if (activity != null && !activity.isFinishing()) {
+        show();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private boolean handleCloseEvent(String url) {
+    if (url.contains(htmlOptions.getCloseUrl())) {
+      cancel();
+      String queryComponentsFromUrl = queryComponentsFromUrl(url, "result");
+      if (!TextUtils.isEmpty(queryComponentsFromUrl)) {
+        Leanplum.track(queryComponentsFromUrl);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private boolean handleTrackEvent(String url) {
+    if (url.contains(htmlOptions.getTrackUrl())) {
+      String eventName = queryComponentsFromUrl(url, "event");
+      if (!TextUtils.isEmpty(eventName)) {
+        Double value = Double.parseDouble(queryComponentsFromUrl(url, "value"));
+        String info = queryComponentsFromUrl(url, "info");
+        Map<String, Object> paramsMap = null;
+
+        try {
+          paramsMap = ActionContext.mapFromJson(new JSONObject(queryComponentsFromUrl(url,
+              "parameters")));
+        } catch (Exception ignored) {
+        }
+
+        if (queryComponentsFromUrl(url, "isMessageEvent").equals("true")) {
+          ActionContext actionContext = htmlOptions.getActionContext();
+          actionContext.trackMessageEvent(eventName, value, info, paramsMap);
+        } else {
+          Leanplum.track(eventName, value, info, paramsMap);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private boolean handleActionEvent(String url) {
+    if (url.contains(htmlOptions.getActionUrl()) ||
+        url.contains(htmlOptions.getTrackActionUrl())) {
+      cancel();
+      String queryComponentsFromUrl = queryComponentsFromUrl(url, "action");
+      try {
+        queryComponentsFromUrl = URLDecoder.decode(queryComponentsFromUrl, "UTF-8");
+      } catch (UnsupportedEncodingException ignored) {
+      }
+
+      ActionContext actionContext = htmlOptions.getActionContext();
+      if (!TextUtils.isEmpty(queryComponentsFromUrl) && actionContext != null) {
+        if (url.contains(htmlOptions.getActionUrl())) {
+          actionContext.runActionNamed(queryComponentsFromUrl);
+        } else {
+          actionContext.runTrackedActionNamed(queryComponentsFromUrl);
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @SuppressLint("SetJavaScriptEnabled")
+  private void initWebSettings(WebView webView) {
     WebSettings webViewSettings = webView.getSettings();
     if (Build.VERSION.SDK_INT >= 17) {
       webViewSettings.setMediaPlaybackRequiresUserGesture(false);
@@ -208,92 +317,6 @@ public class HTMLTemplate extends BaseMessageDialog {
     webViewSettings.setBuiltInZoomControls(false);
     webViewSettings.setDisplayZoomControls(false);
     webViewSettings.setSupportZoom(false);
-
-    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    webView.setLayoutParams(layoutParams);
-    final Dialog currentDialog = this;
-    webView.setWebChromeClient(new WebChromeClient());
-    webView.setWebViewClient(new WebViewClient() {
-      // shouldOverrideUrlLoading(WebView wView, String url) was deprecated at API 24.
-      @SuppressWarnings("deprecation")
-      @Override
-      public boolean shouldOverrideUrlLoading(WebView wView, String url) {
-        if (isClosing) // prevent multiple clicks on same button
-          return true;
-
-        // Open URL event.
-        if (url.contains(htmlOptions.getOpenUrl())) {
-          contentView.setVisibility(View.VISIBLE);
-          if (activity != null && !activity.isFinishing()) {
-            currentDialog.show();
-          }
-          return true;
-        }
-
-        // Close URL event.
-        if (url.contains(htmlOptions.getCloseUrl())) {
-          cancel();
-          String queryComponentsFromUrl = queryComponentsFromUrl(url, "result");
-          if (!TextUtils.isEmpty(queryComponentsFromUrl)) {
-            Leanplum.track(queryComponentsFromUrl);
-          }
-          return true;
-        }
-
-        // Track URL event.
-        if (url.contains(htmlOptions.getTrackUrl())) {
-          String eventName = queryComponentsFromUrl(url, "event");
-          if (!TextUtils.isEmpty(eventName)) {
-            Double value = Double.parseDouble(queryComponentsFromUrl(url, "value"));
-            String info = queryComponentsFromUrl(url, "info");
-            Map<String, Object> paramsMap = null;
-
-            try {
-              paramsMap = ActionContext.mapFromJson(new JSONObject(queryComponentsFromUrl(url,
-                  "parameters")));
-            } catch (Exception ignored) {
-            }
-
-            if (queryComponentsFromUrl(url, "isMessageEvent").equals("true")) {
-              ActionContext actionContext = htmlOptions.getActionContext();
-              actionContext.trackMessageEvent(eventName, value, info, paramsMap);
-            } else {
-              Leanplum.track(eventName, value, info, paramsMap);
-            }
-          }
-          return true;
-        }
-
-        // Action URL or track action URL event.
-        if (url.contains(htmlOptions.getActionUrl()) ||
-            url.contains(htmlOptions.getTrackActionUrl())) {
-          cancel();
-          String queryComponentsFromUrl = queryComponentsFromUrl(url, "action");
-          try {
-            queryComponentsFromUrl = URLDecoder.decode(queryComponentsFromUrl, "UTF-8");
-          } catch (UnsupportedEncodingException ignored) {
-          }
-
-          ActionContext actionContext = htmlOptions.getActionContext();
-          if (!TextUtils.isEmpty(queryComponentsFromUrl) && actionContext != null) {
-            if (url.contains(htmlOptions.getActionUrl())) {
-              actionContext.runActionNamed(queryComponentsFromUrl);
-            } else {
-              actionContext.runTrackedActionNamed(queryComponentsFromUrl);
-            }
-          }
-          return true;
-        }
-
-        return false;
-      }
-    });
-    String html = htmlOptions.getHtmlTemplate();
-
-    webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
-
-    return webView;
   }
 
   /**
