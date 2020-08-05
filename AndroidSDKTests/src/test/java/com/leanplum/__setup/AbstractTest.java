@@ -173,10 +173,10 @@ public abstract class AbstractTest {
    * added in the SDK.
    */
   protected void stopLeanplumExceptionHandling() throws Exception {
-    String message = "\n" + "com.leanplum.internal.Util.handleException(Throwable) is called and "
+    String message = "\n" + "com.leanplum.internal.Log.exception(Throwable) is called and "
         + "exception parameter is rethrown intentionally." + "\n"
         + "Call AbstractTest.resumeLeanplumExceptionHandling() to allow "
-        + "Util.handleException(Throwable) to work normally." + "\n" + "\n"
+        + "Log.exception(Throwable) to work normally." + "\n" + "\n"
         + "Scroll down to see the original stacktrace.";
 
     PowerMockito.doAnswer(invocation -> {

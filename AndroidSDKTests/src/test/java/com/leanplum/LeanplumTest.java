@@ -551,11 +551,11 @@ public class LeanplumTest extends AbstractTest {
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
-    // Verify handleException method is never called.
+    // Verify Log.exception method is never called.
     verifyStatic(never());
     Log.exception(any(Throwable.class));
 
-    doNothing().when(Util.class, "handleException", any(Throwable.class));
+    doNothing().when(Log.class, "exception", any(Throwable.class));
 
     // Crash SDK.
     ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
@@ -563,7 +563,7 @@ public class LeanplumTest extends AbstractTest {
     }}, "messageId");
     actionContext.numberNamed("1");
 
-    // Verify handleException method is called 1 time.
+    // Verify Log.exception method is called 1 time.
     verifyStatic(times(1));
     Log.exception(any(Throwable.class));
 

@@ -96,7 +96,7 @@ public class LeanplumActionContextTest extends AbstractTest {
         assertFalse(actionContext.booleanNamed("9"));
         assertFalse(actionContext.booleanNamed("10"));
 
-        // Verify handleException method is never called.
+        // Verify Log.exception method is never called.
         verifyStatic(never());
         Log.exception(any(Throwable.class));
     }
@@ -114,7 +114,7 @@ public class LeanplumActionContextTest extends AbstractTest {
         }}, "messageId");
         assertFalse(actionContext.booleanNamed(""));
 
-        // Verify handleException method is never called.
+        // Verify Log.exception method is never called.
         verifyStatic(never());
         Log.exception(any(Throwable.class));
     }
