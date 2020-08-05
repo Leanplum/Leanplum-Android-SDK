@@ -70,7 +70,7 @@ public class UtilTest extends AbstractTest {
    */
   @Test
   public void testHandleExceptionMocked() {
-    Assert.assertThrows(Throwable.class, () -> Util.handleException(new Exception()));
+    Assert.assertThrows(Throwable.class, () -> Log.exception(new Exception()));
   }
 
   /**
@@ -80,7 +80,7 @@ public class UtilTest extends AbstractTest {
   @Test
   public void testHandleExceptionDefault() throws Exception {
     resumeLeanplumExceptionHandling();
-    Util.handleException(new Exception());
+    Log.exception(new Exception());
   }
 
 }

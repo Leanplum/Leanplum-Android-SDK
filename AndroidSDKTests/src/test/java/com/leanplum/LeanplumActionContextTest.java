@@ -28,6 +28,7 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -97,7 +98,7 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         // Verify handleException method is never called.
         verifyStatic(never());
-        Util.handleException(any(Throwable.class));
+        Log.exception(any(Throwable.class));
     }
 
     /**
@@ -115,7 +116,7 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         // Verify handleException method is never called.
         verifyStatic(never());
-        Util.handleException(any(Throwable.class));
+        Log.exception(any(Throwable.class));
     }
 
     /**

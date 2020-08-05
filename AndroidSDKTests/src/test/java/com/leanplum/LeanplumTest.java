@@ -43,6 +43,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
@@ -552,7 +553,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Verify handleException method is never called.
     verifyStatic(never());
-    Util.handleException(any(Throwable.class));
+    Log.exception(any(Throwable.class));
 
     doNothing().when(Util.class, "handleException", any(Throwable.class));
 
@@ -564,7 +565,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Verify handleException method is called 1 time.
     verifyStatic(times(1));
-    Util.handleException(any(Throwable.class));
+    Log.exception(any(Throwable.class));
 
     // Get a number of events in the database. Checks if ours two events still here.
     // Expectation: 2 events.

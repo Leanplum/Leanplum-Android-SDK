@@ -127,8 +127,10 @@ public class Log {
 
       switch (type) {
         case ERROR:
-          android.util.Log.e(tag, msg);
-          break;
+          if (level >= Level.ERROR) {
+            android.util.Log.e(tag, msg);
+            break;
+          }
         case INFO:
           if (level >= Level.INFO) {
             android.util.Log.i(tag, msg);
@@ -182,16 +184,20 @@ public class Log {
 
   public static class Level {
     /**
+     * Disables logging.
+     */
+    public static final int OFF = 0;
+    /**
      * Logs only errors, enabled by default.
      */
-    public static final int ERROR = 0;
+    public static final int ERROR = 1;
     /**
      * Logs informational messages including errors.
      */
-    public static final int INFO = 1;
+    public static final int INFO = 2;
     /**
      * Enables all levels including DEBUG logging of the SDK.
      */
-    public static final int DEBUG = 2;
+    public static final int DEBUG = 3;
   }
 }
