@@ -102,7 +102,7 @@ public class LeanplumInflater {
       }
     } catch (Throwable t) {
       if (!(t instanceof InflateException)) {
-        Util.handleException(t);
+        Log.exception(t);
       }
       return LayoutInflater.from(context).inflate(layoutResID, root, attachToRoot);
     }

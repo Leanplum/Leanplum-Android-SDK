@@ -87,7 +87,7 @@ public class FileTransferManager {
     });
 
     pendingDownloads++;
-    Log.i("Downloading resource " + path);
+    Log.d("Downloading resource: %s", path);
     fileTransferStatus.put(path, true);
     final Map<String, Object> dict = RequestSender.createArgsDictionary(request);
     dict.put(Constants.Keys.FILENAME, path);
@@ -103,7 +103,7 @@ public class FileTransferManager {
         try {
           downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -149,7 +149,7 @@ public class FileTransferManager {
         String directory = FileManager.fileRelativeToDocuments(dirs.pop());
         boolean isCreated = new File(directory).mkdir();
         if (!isCreated) {
-          Log.w("Failed to create directory: ", directory);
+          Log.d("Failed to create directory: ", directory);
         }
       }
 
@@ -327,7 +327,7 @@ public class FileTransferManager {
         getSizeAsString(sentBytes) + '/' + getSizeAsString(totalBytes) + " transferred.";
     if (!fileUploadProgressString.equals(progressString)) {
       fileUploadProgressString = progressString;
-      Log.i(progressString);
+      Log.d(progressString);
     }
   }
 

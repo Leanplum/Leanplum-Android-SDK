@@ -65,22 +65,22 @@ public class UtilTest extends AbstractTest {
   }
 
   /**
-   * Test that {@link Util#handleException(Throwable)} is successfully mocked to rethrow the
+   * Test that {@link Log#exception(Throwable)} is successfully mocked to rethrow the
    * argument exception.
    */
   @Test
   public void testHandleExceptionMocked() {
-    Assert.assertThrows(Throwable.class, () -> Util.handleException(new Exception()));
+    Assert.assertThrows(Throwable.class, () -> Log.exception(new Exception()));
   }
 
   /**
    * Test that {@link AbstractTest#resumeLeanplumExceptionHandling()} is returning the default
-   * behaviour of {@link Util#handleException(Throwable)}.
+   * behaviour of {@link Log#exception(Throwable)}.
    */
   @Test
   public void testHandleExceptionDefault() throws Exception {
     resumeLeanplumExceptionHandling();
-    Util.handleException(new Exception());
+    Log.exception(new Exception());
   }
 
 }

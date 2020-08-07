@@ -33,6 +33,7 @@ import com.leanplum._whitebox.utilities.ImmediateRequestSender;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.RequestSender;
@@ -98,7 +99,7 @@ public class LeanplumTestHelper {
     Leanplum.setDeviceId("leanplum-unit-test-20527411-BF1E-4E84-91AE-2E98CBCF30AF");
     Leanplum.setApiConnectionSettings(API_HOST_NAME, "api", API_SSL);
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
-    Leanplum.enableVerboseLoggingInDevelopmentMode();
+    Leanplum.setLogLevel(Log.Level.DEBUG);
 
     TestClassUtil.setField(RequestSender.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
   }

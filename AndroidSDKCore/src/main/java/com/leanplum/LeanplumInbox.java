@@ -135,7 +135,7 @@ public class LeanplumInbox {
         }
       });
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return messageIds;
   }
@@ -238,7 +238,7 @@ public class LeanplumInbox {
       }
       triggerChanged();
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -411,7 +411,7 @@ public class LeanplumInbox {
               });
         } catch (Throwable t) {
           triggerInboxSyncedWithStatus(false);
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -440,7 +440,7 @@ public class LeanplumInbox {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     Leanplum.countAggregator().incrementCount("all_messages_inbox");
     return messages;

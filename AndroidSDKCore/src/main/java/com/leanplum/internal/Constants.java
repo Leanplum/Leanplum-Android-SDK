@@ -148,6 +148,7 @@ public class Constants {
     public static final String VARS = "vars";
     public static final String VERSION_NAME = "versionName";
     public static final String REQUEST_ID = "reqId";
+    public static final String STACK_TRACE = "stackTrace";
   }
 
   public static class Keys {

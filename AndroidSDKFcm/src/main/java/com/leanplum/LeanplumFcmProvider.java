@@ -103,7 +103,7 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
         return true;
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     Log.e("Failed to setup Firebase Messaging, check your manifest configuration.");
     return false;

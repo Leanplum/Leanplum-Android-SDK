@@ -121,7 +121,7 @@ public class RequestSender {
           }
 
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -144,7 +144,7 @@ public class RequestSender {
           try {
             sendIfConnected(request);
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       }, delayMs);
@@ -164,6 +164,13 @@ public class RequestSender {
 
     if (!request.isSent()) {
       request.setSent(true);
+
+      // Check if it's error and there was SQLite exception.
+      if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())
+          && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+        addLocalError(request);
+      }
+
       Map<String, Object> args = createArgsDictionary(request);
       saveRequestForLater(request, args);
     }
@@ -172,10 +179,11 @@ public class RequestSender {
 
   public void sendIfConnected(Request request) {
     if (Util.isConnected()) {
+      Log.d("Sending request");
       sendNow(request);
     } else {
       sendEventually(request);
-      Log.i("Device is offline, will send later");
+      Log.d("Device is offline, saving request and will try again later.");
     }
     Leanplum.countAggregator().incrementCount("send_if_connected");
   }
@@ -208,7 +216,7 @@ public class RequestSender {
         try {
           sendRequests();
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -350,7 +358,7 @@ public class RequestSender {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -456,7 +464,7 @@ public class RequestSender {
         try {
           sendIfDelayedHelper(request);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     }, 1000);
@@ -477,7 +485,7 @@ public class RequestSender {
     }
   }
 
-  public void addLocalError(Request request) {
+  private void addLocalError(Request request) {
     Map<String, Object> dict = createArgsDictionary(request);
     localErrors.add(dict);
   }

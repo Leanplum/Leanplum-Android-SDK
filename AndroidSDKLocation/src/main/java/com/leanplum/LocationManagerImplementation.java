@@ -404,7 +404,7 @@ class LocationManagerImplementation implements
       updateTrackedGeofences();
       requestLocation();
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -440,7 +440,7 @@ class LocationManagerImplementation implements
         try {
           setUserAttributesForLocationUpdate(location, locationAccuracyType);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
 

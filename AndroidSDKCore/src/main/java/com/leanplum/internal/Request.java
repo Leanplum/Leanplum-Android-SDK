@@ -53,10 +53,6 @@ public class Request {
     this.httpMethod = httpMethod;
     this.apiAction = apiAction;
     this.params = params != null ? params : new HashMap<>();
-    // Check if it is error and here was SQLite exception.
-    if (RequestBuilder.ACTION_LOG.equals(apiAction) && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
-      RequestSender.getInstance().addLocalError(this);
-    }
   }
 
   public void onResponse(ResponseCallback response) {

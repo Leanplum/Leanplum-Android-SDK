@@ -110,20 +110,20 @@ class WebSocketClient {
           try {
             origin = new URI(mURI.getScheme(), "//" + mURI.getHost(), null);
           } catch (URISyntaxException e) {
-            Util.handleException(e);
+            Log.exception(e);
           }
 
           SocketFactory factory;
           try {
             factory = isSecure() ? getSSLSocketFactory() : SocketFactory.getDefault();
           } catch (GeneralSecurityException e) {
-            Util.handleException(e);
+            Log.exception(e);
             return;
           }
           try {
             mSocket = factory.createSocket(mURI.getHost(), port);
           } catch (IOException e) {
-            Util.handleException(e);
+            Log.exception(e);
           }
 
           PrintWriter out = new PrintWriter(mSocket.getOutputStream());

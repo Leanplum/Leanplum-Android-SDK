@@ -46,10 +46,10 @@ import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
-import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
-import com.leanplum.internal.RequestUtil;
+import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestSender;
+import com.leanplum.internal.RequestUtil;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
@@ -131,11 +131,11 @@ public class Leanplum {
    */
   public static void setApiConnectionSettings(String hostName, String servletName, boolean ssl) {
     if (TextUtils.isEmpty(hostName)) {
-      Log.e("setApiConnectionSettings - Empty hostname parameter provided.");
+      Log.i("setApiConnectionSettings - Empty hostname parameter provided.");
       return;
     }
     if (TextUtils.isEmpty(servletName)) {
-      Log.e("setApiConnectionSettings - Empty servletName parameter provided.");
+      Log.i("setApiConnectionSettings - Empty servletName parameter provided.");
       return;
     }
 
@@ -152,11 +152,11 @@ public class Leanplum {
    */
   public static void setSocketConnectionSettings(String hostName, int port) {
     if (TextUtils.isEmpty(hostName)) {
-      Log.e("setSocketConnectionSettings - Empty hostName parameter provided.");
+      Log.i("setSocketConnectionSettings - Empty hostName parameter provided.");
       return;
     }
     if (port < 1 || port > 65535) {
-      Log.e("setSocketConnectionSettings - Invalid port parameter provided.");
+      Log.i("setSocketConnectionSettings - Invalid port parameter provided.");
       return;
     }
 
@@ -186,10 +186,27 @@ public class Leanplum {
   }
 
   /**
-   * Optional. Enables verbose logging in development mode.
+   * Please use setLogLevel to enable logging.
    */
+  @Deprecated
   public static void enableVerboseLoggingInDevelopmentMode() {
-    Constants.enableVerboseLoggingInDevelopmentMode = true;
+    setLogLevel(Log.Level.DEBUG);
+  }
+
+  /**
+   * Sets log level to one of the following
+   * <ul>
+   *   <li>{@link Log.Level#OFF} - disables logging.</li>
+   *   <li>{@link Log.Level#ERROR} - logs only SDK errors to console.</li>
+   *   <li>{@link Log.Level#INFO} - logs general informational messages including all errors,
+   *   enabled by default.</li>
+   *   <li>{@link Log.Level#DEBUG} - logs SDK debug messages, including info and errors.</li>
+   * </ul>
+   *
+   * @param level level to set
+   */
+  public static void setLogLevel(int level) {
+    Log.setLogLevel(level);
   }
 
   /**
@@ -198,11 +215,11 @@ public class Leanplum {
    */
   public static void setNetworkTimeout(int seconds, int downloadSeconds) {
     if (seconds < 0) {
-      Log.e("setNetworkTimeout - Invalid seconds parameter provided.");
+      Log.i("setNetworkTimeout - Invalid seconds parameter provided.");
       return;
     }
     if (downloadSeconds < 0) {
-      Log.e("setNetworkTimeout - Invalid downloadSeconds parameter provided.");
+      Log.i("setNetworkTimeout - Invalid downloadSeconds parameter provided.");
       return;
     }
 
@@ -302,7 +319,7 @@ public class Leanplum {
    */
   public static void setDeviceIdMode(LeanplumDeviceIdMode mode) {
     if (mode == null) {
-      Log.e("setDeviceIdMode - Invalid mode parameter provided.");
+      Log.i("setDeviceIdMode - Invalid mode parameter provided.");
       return;
     }
 
@@ -316,7 +333,7 @@ public class Leanplum {
    */
   public static void setDeviceId(String deviceId) {
     if (TextUtils.isEmpty(deviceId)) {
-      Log.w("setDeviceId - Empty deviceId parameter provided.");
+      Log.i("setDeviceId - Empty deviceId parameter provided.");
     }
 
     customDeviceId = deviceId;
@@ -331,7 +348,7 @@ public class Leanplum {
    */
   public static String getDeviceId() {
     if (!LeanplumInternal.hasCalledStart()) {
-      Log.e("Leanplum.start() must be called before calling getDeviceId.");
+      Log.i("Leanplum.start() must be called before calling getDeviceId.");
       return null;
     }
     return APIConfig.getInstance().deviceId();
@@ -342,7 +359,7 @@ public class Leanplum {
    */
   public static void setApplicationContext(Context context) {
     if (context == null) {
-      Log.w("setApplicationContext - Null context parameter provided.");
+      Log.i("setApplicationContext - Null context parameter provided.");
     }
 
     Leanplum.context = context;
@@ -373,7 +390,7 @@ public class Leanplum {
     try {
       FileManager.enableResourceSyncing(null, null, false);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("sync_resources");
   }
@@ -389,7 +406,7 @@ public class Leanplum {
     try {
       FileManager.enableResourceSyncing(null, null, true);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("sync_resources");
   }
@@ -411,7 +428,7 @@ public class Leanplum {
     try {
       FileManager.enableResourceSyncing(patternsToInclude, patternsToExclude, false);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("sync_resource_paths");
   }
@@ -433,7 +450,7 @@ public class Leanplum {
     try {
       FileManager.enableResourceSyncing(patternsToInclude, patternsToExclude, true);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("sync_resource_paths");
   }
@@ -523,12 +540,12 @@ public class Leanplum {
         triggerVariablesChanged();
         triggerVariablesChangedAndNoDownloadsPending();
         VarCache.applyVariableDiffs(
-            new HashMap<String, Object>(),
-            new HashMap<String, Object>(),
-            new HashMap<String, Object>(),
-            new ArrayList<Map<String, Object>>(),
-            new HashMap<String, Object>());
-        LeanplumInbox.getInstance().update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
+            new HashMap<>(),
+            new HashMap<>(),
+            new HashMap<>(),
+            new ArrayList<>(),
+            new HashMap<>());
+        LeanplumInbox.getInstance().update(new HashMap<>(), 0, false);
         return;
       }
 
@@ -545,8 +562,6 @@ public class Leanplum {
           // Move to foreground.
           LeanplumInternal.setStartedInBackground(false);
           LeanplumInternal.moveToForeground();
-        } else {
-          Log.i("Already called start");
         }
         return;
       }
@@ -595,14 +610,13 @@ public class Leanplum {
           try {
             startHelper(userId, validAttributes, actuallyInBackground);
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });
-
       Util.initExceptionHandling(context);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("start_with_user_id");
   }
@@ -613,12 +627,16 @@ public class Leanplum {
   private static void checkAndStartNotificationsModules() {
     if (Util.hasPlayServices()) {
       try {
-        Class.forName(LEANPLUM_PUSH_SERVICE).getDeclaredMethod("onStart")
+        Log.d("Trying to starting LeanplumPushService");
+
+        Class.forName(LEANPLUM_PUSH_SERVICE)
+            .getDeclaredMethod("onStart")
             .invoke(null);
       } catch (Throwable ignored) {
+        // ignored
       }
     } else {
-      Log.i("No valid Google Play Services APK found.");
+      Log.d("No valid Google Play Services APK found.");
     }
   }
 
@@ -630,10 +648,13 @@ public class Leanplum {
     String deviceId = APIConfig.getInstance().deviceId();
     if (deviceId == null) {
       if (!userSpecifiedDeviceId && Constants.defaultDeviceId != null) {
+        Log.d("Using default deviceID");
         deviceId = Constants.defaultDeviceId;
       } else if (customDeviceId != null) {
+        Log.d("Using custom deviceID");
         deviceId = customDeviceId;
       } else {
+        Log.d("Using deviceID for mode: %s", deviceIdMode);
         DeviceIdInfo deviceIdInfo = Util.getDeviceId(deviceIdMode);
         deviceId = deviceIdInfo.id;
         limitAdTracking = deviceIdInfo.limitAdTracking;
@@ -644,6 +665,7 @@ public class Leanplum {
     if (userId == null) {
       userId = APIConfig.getInstance().userId();
       if (userId == null) {
+        Log.d("setting deviceID as userID");
         userId = APIConfig.getInstance().deviceId();
       }
     }
@@ -707,12 +729,14 @@ public class Leanplum {
     request.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
+        Log.d("Received start response: %s", response);
         handleStartResponse(response);
       }
     });
     request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
+        Log.d("Failed to receive start response");
         handleStartResponse(null);
       }
     });
@@ -738,7 +762,7 @@ public class Leanplum {
         VarCache.loadDiffs();
 
       } catch (Throwable t) {
-        Util.handleException(t);
+        Log.exception(t);
       } finally {
         triggerStartResponse(success);
       }
@@ -837,14 +861,14 @@ public class Leanplum {
                           try {
                             LeanplumInternal.onHasStartedAndRegisteredAsDeveloper();
                           } catch (Throwable t) {
-                            Util.handleException(t);
+                            Log.exception(t);
                           }
                         }
                       }
                     });
                   }
                 } catch (Throwable t) {
-                  Util.handleException(t);
+                  Log.exception(t);
                 }
               }
             });
@@ -868,11 +892,11 @@ public class Leanplum {
 
           boolean isRegistered = response.optBoolean(Constants.Keys.IS_REGISTERED);
 
-          // Check for updates.
-          final String latestVersion = response.optString(Constants.Keys.LATEST_VERSION, null);
-          if (isRegistered && latestVersion != null) {
-            Log.i("An update to Leanplum Android SDK, " + latestVersion +
-                ", is available. Go to leanplum.com to download it.");
+          // Check for SDK updates.
+          String latestVersion = response.optString(Constants.Keys.LATEST_VERSION);
+          if (isRegistered && !TextUtils.isEmpty(latestVersion)) {
+            Log.i("Version %s of Leanplum SDK is available. " +
+                "Update your gradle dependencies to use it.", latestVersion);
           }
 
           JSONObject valuesFromCode = response.optJSONObject(Constants.Keys.VARS_FROM_CODE);
@@ -903,7 +927,7 @@ public class Leanplum {
         LeanplumInternal.moveToForeground();
         startHeartbeat();
       } catch (Throwable t) {
-        Util.handleException(t);
+        Log.exception(t);
       } finally {
         triggerStartResponse(success);
       }
@@ -967,7 +991,7 @@ public class Leanplum {
           try {
             pauseInternal();
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });
@@ -1002,7 +1026,7 @@ public class Leanplum {
           try {
             resumeInternal();
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });
@@ -1055,7 +1079,7 @@ public class Leanplum {
           Request request = RequestBuilder.withHeartbeatAction().create();
           RequestSender.getInstance().sendIfDelayed(request);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     }, 15, 15, TimeUnit.MINUTES);
@@ -1083,7 +1107,7 @@ public class Leanplum {
           try {
             stopInternal();
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });
@@ -1303,7 +1327,7 @@ public class Leanplum {
     try {
       messageBody = messageBodyFromContext(actionContext);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     String recipientUserID = Leanplum.getUserId();
     Date deliveryDateTime = new Date();
@@ -1437,7 +1461,7 @@ public class Leanplum {
         onAction(name, responder);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     Leanplum.countAggregator().incrementCount("define_action");
   }
@@ -1498,13 +1522,13 @@ public class Leanplum {
             try {
               setUserAttributesInternal(userId, params);
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -1565,7 +1589,7 @@ public class Leanplum {
               .create();
           RequestSender.getInstance().sendIfConnected(request);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     };
@@ -1603,13 +1627,13 @@ public class Leanplum {
             try {
               setTrafficSourceInfoInternal(params);
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -1655,7 +1679,7 @@ public class Leanplum {
       Map<String, ?> params) {
     try {
       if (TextUtils.isEmpty(event)) {
-        Log.w("trackPurchase - Empty event parameter provided.");
+        Log.d("Failed to trackPurchase, event name is null");
       }
 
       final Map<String, String> requestArgs = new HashMap<>();
@@ -1665,8 +1689,7 @@ public class Leanplum {
 
       LeanplumInternal.track(event, value, null, params, requestArgs);
     } catch (Throwable t) {
-      Log.e("trackPurchase - Failed to track purchase event.");
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -1717,7 +1740,7 @@ public class Leanplum {
   public static void trackGooglePlayPurchase(String eventName, String item, long priceMicros,
       String currencyCode, String purchaseData, String dataSignature, Map<String, ?> params) {
     if (TextUtils.isEmpty(eventName)) {
-      Log.w("trackGooglePlayPurchase - Empty eventName parameter provided.");
+      Log.d("Failed to trackGooglePlayPurchase, event name is null");
     }
 
     final Map<String, String> requestArgs = new HashMap<>();
@@ -1874,13 +1897,13 @@ public class Leanplum {
             try {
               advanceToInternal(state, validatedParams, requestParams);
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("advance_to");
   }
@@ -1964,13 +1987,13 @@ public class Leanplum {
             try {
               pauseStateInternal();
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -2001,13 +2024,13 @@ public class Leanplum {
             try {
               resumeStateInternal();
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -2069,7 +2092,7 @@ public class Leanplum {
             }
             OperationQueue.sharedInstance().addUiOperation(callback);
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });
@@ -2082,7 +2105,7 @@ public class Leanplum {
       });
       RequestSender.getInstance().sendIfConnected(req);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     countAggregator.incrementCount("force_content_update");
   }
@@ -2112,7 +2135,7 @@ public class Leanplum {
    */
   public static String pathForResource(String filename) {
     if (TextUtils.isEmpty(filename)) {
-      Log.e("pathForResource - Empty filename parameter provided.");
+      Log.d("pathForResource - Empty filename parameter provided.");
       return null;
     }
 
@@ -2136,7 +2159,7 @@ public class Leanplum {
     try {
       return VarCache.getMergedValueFromComponentArray(pathComponents);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return null;
   }
@@ -2192,7 +2215,7 @@ public class Leanplum {
    */
   public static void setDeviceLocation(Location location, LeanplumLocationAccuracyType type) {
     if (locationCollectionEnabled) {
-      Log.w("Leanplum is automatically collecting device location, so there is no need to " +
+      Log.i("Leanplum is automatically collecting device location, so there is no need to " +
           "call setDeviceLocation. If you prefer to always set location manually, " +
           "then call disableLocationCollection.");
     }

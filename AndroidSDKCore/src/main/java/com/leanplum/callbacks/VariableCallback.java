@@ -36,7 +36,9 @@ public abstract class VariableCallback<T> implements Runnable {
   }
 
   public void run() {
-    this.handle(variable);
+    synchronized (variable) {
+      this.handle(variable);
+    }
   }
 
   public abstract void handle(Var<T> variable);

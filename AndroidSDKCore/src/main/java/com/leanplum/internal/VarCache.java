@@ -359,7 +359,7 @@ public class VarCache {
         if (Util.isValidDeviceId(deviceId)) {
           APIConfig.getInstance().setDeviceId(deviceId);
         } else {
-          Log.w("Invalid stored device id found: \"" + deviceId + "\"; discarding.");
+          Log.d("Invalid stored device id found: \"" + deviceId + "\"; discarding.");
         }
       }
       String userId = aesContext.decodePreference(defaults, Constants.Params.USER_ID, null);
@@ -367,7 +367,7 @@ public class VarCache {
         if (Util.isValidUserId(userId)) {
           APIConfig.getInstance().setUserId(userId);
         } else {
-          Log.w("Invalid stored user id found: \"" + userId + "\"; discarding.");
+          Log.d("Invalid stored user id found: \"" + userId + "\"; discarding.");
         }
       }
       String loggingEnabled = aesContext.decodePreference(defaults, Constants.Keys.LOGGING_ENABLED,
@@ -654,7 +654,7 @@ public class VarCache {
       Map<String, Object> serverAttributes = CollectionUtil.uncheckedCast(
           (serverVariationAttributes != null ? serverVariationAttributes.get("") : null));
       if (FileManager.isNewerLocally(localAttributes, serverAttributes)) {
-        Log.v("Will upload file " + name + ". Local attributes: " +
+        Log.d("Will upload file " + name + ". Local attributes: " +
             localAttributes + "; server attributes: " + serverAttributes);
 
         String hash = (String) localAttributes.get(Constants.Keys.HASH);
