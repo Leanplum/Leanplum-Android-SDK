@@ -192,7 +192,7 @@ public class LeanplumEventDataManager {
     // Send error log. Using willSendErrorLog to prevent infinte loop.
     if (!sendErrorLogs) {
       sendErrorLogs = true;
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -213,7 +213,7 @@ public class LeanplumEventDataManager {
         migrateFromSharedPreferences(db);
       } catch (Throwable t) {
         Log.e("Cannot move old data from shared preferences to SQLite table.", t);
-        Util.handleException(t);
+        Log.exception(t);
       }
     }
 
@@ -269,7 +269,7 @@ public class LeanplumEventDataManager {
           SharedPreferencesUtil.commitChanges(editor);
         } catch (Throwable t) {
           Log.e("Failed on migration data from shared preferences.", t);
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     }

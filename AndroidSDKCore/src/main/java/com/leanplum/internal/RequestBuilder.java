@@ -177,10 +177,7 @@ public class RequestBuilder {
   }
 
   public Request create() {
-    Log.LeanplumLogType level = Log.LeanplumLogType.VERBOSE;
-    if (ACTION_LOG.equals(apiAction))
-      level = Log.LeanplumLogType.DEBUG;
-    Log.log(level, "Will call API method " + apiAction + " with arguments " + params);
+    Log.d("Will call API method: %s with params: %s", apiAction, params);
 
     if (GET.equals(this.httpMethod))
       Leanplum.countAggregator().incrementCount("get_request");

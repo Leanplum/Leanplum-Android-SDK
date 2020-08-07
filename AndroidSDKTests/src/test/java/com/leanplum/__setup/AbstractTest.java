@@ -36,6 +36,7 @@ import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
@@ -101,6 +102,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @PrepareForTest(value = {
     Leanplum.class,
     LeanplumInternal.class,
+    Log.class,
     Util.class,
     LeanplumActivityHelper.class,
     URL.class,
@@ -125,6 +127,7 @@ public abstract class AbstractTest {
   @SuppressWarnings("WeakerAccess")
   @Before
   public void before() throws Exception {
+    spy(Log.class);
     spy(Util.class);
     spy(LeanplumEventDataManager.class);
     spy(Leanplum.class);
@@ -165,29 +168,29 @@ public abstract class AbstractTest {
 
   /**
    * Leanplum SDK is handling the uncaught exceptions in
-   * {@link Util#handleException(java.lang.Throwable)} but for test purposes uncaught exceptions
+   * {@link Log#exception(Throwable)} but for test purposes uncaught exceptions
    * need not to be caught. In a lot of tests there are assert statements in the callbacks that are
    * added in the SDK.
    */
   protected void stopLeanplumExceptionHandling() throws Exception {
-    String message = "\n" + "com.leanplum.internal.Util.handleException(Throwable) is called and "
+    String message = "\n" + "com.leanplum.internal.Log.exception(Throwable) is called and "
         + "exception parameter is rethrown intentionally." + "\n"
         + "Call AbstractTest.resumeLeanplumExceptionHandling() to allow "
-        + "Util.handleException(Throwable) to work normally." + "\n" + "\n"
+        + "Log.exception(Throwable) to work normally." + "\n" + "\n"
         + "Scroll down to see the original stacktrace.";
 
     PowerMockito.doAnswer(invocation -> {
       Object[] args = invocation.getArguments();
       throw new Exception(message, (Throwable) args[0]);
-    }).when(Util.class, "handleException", any(Throwable.class));
+    }).when(Log.class, "exception", any(Throwable.class));
   }
 
   /**
    * Use this method to resume normal behaviour for
-   * {@link Util#handleException(java.lang.Throwable)} and catch all uncaught exceptions in SDK.
+   * {@link Log#exception(java.lang.Throwable)} and catch all uncaught exceptions in SDK.
    */
   protected void resumeLeanplumExceptionHandling() throws Exception {
-    PowerMockito.doNothing().when(Util.class, "handleException", any(Throwable.class));
+    PowerMockito.doNothing().when(Log.class, "exception", any(Throwable.class));
   }
 
   protected void prepareHttpsURLConnection(int responseCode) throws Exception {

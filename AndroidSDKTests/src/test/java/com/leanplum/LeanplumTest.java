@@ -43,6 +43,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
@@ -550,11 +551,11 @@ public class LeanplumTest extends AbstractTest {
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
-    // Verify handleException method is never called.
+    // Verify Log.exception method is never called.
     verifyStatic(never());
-    Util.handleException(any(Throwable.class));
+    Log.exception(any(Throwable.class));
 
-    doNothing().when(Util.class, "handleException", any(Throwable.class));
+    doNothing().when(Log.class, "exception", any(Throwable.class));
 
     // Crash SDK.
     ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
@@ -562,9 +563,9 @@ public class LeanplumTest extends AbstractTest {
     }}, "messageId");
     actionContext.numberNamed("1");
 
-    // Verify handleException method is called 1 time.
+    // Verify Log.exception method is called 1 time.
     verifyStatic(times(1));
-    Util.handleException(any(Throwable.class));
+    Log.exception(any(Throwable.class));
 
     // Get a number of events in the database. Checks if ours two events still here.
     // Expectation: 2 events.
@@ -1516,7 +1517,7 @@ public class LeanplumTest extends AbstractTest {
    * Test trigger message displayed calls callback
    */
   @Test
-  public void testTriggerMessageDisplayedCallbackCalled() {
+  public void testTriggerMessageDisplayedCallbackCalled() throws Exception {
     final String messageID = "testMessageID";
     final String messageBody = "testMessageBody";
     final String userID = "testUserID";
@@ -1525,7 +1526,7 @@ public class LeanplumTest extends AbstractTest {
     args.put("Message", messageBody);
     final ActionContext testActionContext = new ActionContext("test", args, messageID);
 
-    when(Leanplum.getUserId()).thenReturn(userID);
+    doReturn(userID).when(Leanplum.class, "getUserId");
 
     class CallbackTest {
       public boolean callbackCalled = false;
@@ -1557,7 +1558,7 @@ public class LeanplumTest extends AbstractTest {
    * Test messageBody gets correct body from context for string.
    */
   @Test
-  public void testMessageBodyFromContextGetsCorrectBodyForString() {
+  public void testMessageBodyFromContextGetsCorrectBodyForString() throws Exception {
     final String messageID = "testMessageID";
     final String messageBody = "testMessageBody";
     final String userID = "testUserID";
@@ -1566,7 +1567,7 @@ public class LeanplumTest extends AbstractTest {
     args.put("Message", messageBody);
     final ActionContext testActionContext = new ActionContext("test", args, messageID);
 
-    when(Leanplum.getUserId()).thenReturn(userID);
+    doReturn(userID).when(Leanplum.class, "getUserId");
     String body = Leanplum.messageBodyFromContext(testActionContext);
     assertEquals(body, messageBody);
   }
@@ -1575,7 +1576,7 @@ public class LeanplumTest extends AbstractTest {
    * Test messageBody gets correct body from context for key text.
    */
   @Test
-  public void testMessageBodyFromContextGetsCorrectBodyForKeyText() {
+  public void testMessageBodyFromContextGetsCorrectBodyForKeyText() throws Exception {
     final String messageID = "testMessageID";
     final String messageBody = "testMessageBody";
     final String userID = "testUserID";
@@ -1588,7 +1589,7 @@ public class LeanplumTest extends AbstractTest {
 
     final ActionContext testActionContext = new ActionContext("test", args, messageID);
 
-    when(Leanplum.getUserId()).thenReturn(userID);
+    doReturn(userID).when(Leanplum.class, "getUserId");
     String body = Leanplum.messageBodyFromContext(testActionContext);
     assertEquals(body, messageBody);
   }
@@ -1597,7 +1598,7 @@ public class LeanplumTest extends AbstractTest {
    * Test messageBody gets correct body from context for key text value.
    */
   @Test
-  public void testMessageBodyFromContextGetsCorrectBodyForKeyTextValue() {
+  public void testMessageBodyFromContextGetsCorrectBodyForKeyTextValue() throws Exception {
     final String messageID = "testMessageID";
     final String messageBody = "testMessageBody";
     final String userID = "testUserID";
@@ -1610,7 +1611,7 @@ public class LeanplumTest extends AbstractTest {
 
     final ActionContext testActionContext = new ActionContext("test", args, messageID);
 
-    when(Leanplum.getUserId()).thenReturn(userID);
+    doReturn(userID).when(Leanplum.class, "getUserId");
     String body = Leanplum.messageBodyFromContext(testActionContext);
     assertEquals(body, messageBody);
   }

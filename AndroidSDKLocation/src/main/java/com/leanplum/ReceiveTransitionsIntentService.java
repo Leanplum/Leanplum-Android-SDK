@@ -62,7 +62,7 @@ public class ReceiveTransitionsIntentService extends IntentService {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 }

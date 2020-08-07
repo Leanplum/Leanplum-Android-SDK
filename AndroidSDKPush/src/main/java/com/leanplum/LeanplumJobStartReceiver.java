@@ -44,7 +44,7 @@ public class LeanplumJobStartReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         try {
             if (intent.getExtras() == null) {
-                Log.w("Cannot enqueue work on JobIntentService, no extras in intent.");
+                Log.d("Cannot enqueue work on JobIntentService, no extras in intent.");
                 return;
             }
 
@@ -53,7 +53,7 @@ public class LeanplumJobStartReceiver extends BroadcastReceiver {
 
             Class service = Class.forName(serviceName);
             if (!JobIntentService.class.isAssignableFrom(service)) {
-                Log.w("The service provided is not a type of JobIntentService.");
+                Log.d("The service provided is not a type of JobIntentService.");
                 return;
             }
 
@@ -61,7 +61,7 @@ public class LeanplumJobStartReceiver extends BroadcastReceiver {
 
             JobIntentService.enqueueWork(context, service, jobId, intent);
         } catch (Exception e) {
-            Util.handleException(e);
+            Log.exception(e);
         }
     }
 }

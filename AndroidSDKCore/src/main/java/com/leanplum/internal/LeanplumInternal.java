@@ -93,7 +93,7 @@ public class LeanplumInternal {
             try {
               onHasStartedAndRegisteredAsDeveloperAndFinishedSyncing();
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
@@ -201,7 +201,7 @@ public class LeanplumInternal {
                   requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
                   track("Cancel", 0.0, null, null, requestArgs);
                 } catch (Throwable t) {
-                  Util.handleException(t);
+                  Log.exception(t);
                 }
               }
             });
@@ -269,7 +269,7 @@ public class LeanplumInternal {
               try {
                 Leanplum.triggerMessageDisplayed(actionContext);
               } catch (Throwable t) {
-                Util.handleException(t);
+                Log.exception(t);
               }
             }
           });
@@ -333,7 +333,7 @@ public class LeanplumInternal {
       final Map<String, Object> requestParams = makeTrackArgs(event, value, info, params, args);
       trackInternalWhenStarted(event, params, requestParams);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -348,7 +348,7 @@ public class LeanplumInternal {
       Request request = RequestBuilder.withTrackGeofenceAction().andParams(requestParams).create();
       RequestSender.getInstance().sendIfConnected(request);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -371,7 +371,7 @@ public class LeanplumInternal {
           try {
             trackInternal(event, params, requestArgs);
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });

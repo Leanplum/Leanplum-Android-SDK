@@ -83,7 +83,7 @@ public class LeanplumManifestHelper {
     try {
       context.startService(new Intent(context, clazz));
     } catch (Throwable t) {
-      Log.w("Could not start service " + clazz.getName());
+      Log.d("Could not start service for class: %s", clazz.getName());
       return false;
     }
     return true;
@@ -107,7 +107,7 @@ public class LeanplumManifestHelper {
       packageManager.setComponentEnabledSetting(new ComponentName(context, clazz),
           PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     } catch (Throwable t) {
-      Log.w("Could not enable component " + clazz.getName());
+      Log.d("Could not enable component: %s", clazz.getName());
       return false;
     }
     return true;

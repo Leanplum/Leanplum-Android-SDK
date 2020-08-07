@@ -70,9 +70,9 @@ public class Var<T> {
 
   private void warnIfNotStarted() {
     if (!isInternal && !Leanplum.hasStarted() && !printedCallbackWarning) {
-      Log.w("Leanplum hasn't finished retrieving values from the server. "
-          + "You should use a callback to make sure the value for '" + name +
-          "' is ready. Otherwise, your app may not use the most up-to-date value.");
+      Log.i("Leanplum hasn't finished retrieving values from the server. " +
+          "You should use a callback to make sure the value for '%s' is ready. " +
+          "Otherwise, your app may not use the most up-to-date value.", name);
       printedCallbackWarning = true;
     }
   }
@@ -93,7 +93,7 @@ public class Var<T> {
     }
     if (LeanplumInternal.hasCalledStart() &&
         !name.startsWith(Constants.Values.RESOURCES_VARIABLE)) {
-      Log.w("You should not create new variables after calling start (name=" + name + ")");
+      Log.i("You should not create new variables after calling start (name=" + name + ")");
     }
     Var<T> var = new Var<>();
     try {
@@ -117,7 +117,7 @@ public class Var<T> {
       }
       var.update();
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return var;
   }
@@ -499,7 +499,7 @@ public class Var<T> {
         return FileManager.fileValue(stringValue, (String) defaultValue, valueIsInAssets);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return null;
   }
@@ -522,7 +522,7 @@ public class Var<T> {
       return VarCache.getMergedValueFromComponentArray(
           components.toArray(new Object[components.size()]));
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return null;
     }
   }
@@ -540,7 +540,7 @@ public class Var<T> {
         return ((List<?>) result).size();
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return 0;
     }
     LeanplumInternal.maybeThrowException(new UnsupportedOperationException(
@@ -587,7 +587,7 @@ public class Var<T> {
       }
       return stream;
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return null;
     }
   }
@@ -606,7 +606,7 @@ public class Var<T> {
       return FileManager.stream(isResource, isAsset, valueIsInAssets,
           (String) defaultValue, (String) defaultValue, data);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return null;
     }
   }
