@@ -196,6 +196,7 @@ public class Leanplum {
   /**
    * Sets log level to one of the following
    * <ul>
+   *   <li>{@link Log.Level#OFF} - disables logging.</li>
    *   <li>{@link Log.Level#ERROR} - logs only SDK errors to console.</li>
    *   <li>{@link Log.Level#INFO} - logs general informational messages including all errors,
    *   enabled by default.</li>
