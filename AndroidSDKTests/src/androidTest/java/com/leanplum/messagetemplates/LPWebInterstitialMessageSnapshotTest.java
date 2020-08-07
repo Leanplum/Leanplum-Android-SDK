@@ -60,6 +60,6 @@ public class LPWebInterstitialMessageSnapshotTest extends BaseSnapshotTest {
 
     WebInterstitialOptions options = new WebInterstitialOptions(mockedContext);
     WebInterstitial webInterstitial = new WebInterstitial(getMainActivity(), options);
-    return webInterstitial.dialogView;
+    return webInterstitial.contentView;
   }
 }

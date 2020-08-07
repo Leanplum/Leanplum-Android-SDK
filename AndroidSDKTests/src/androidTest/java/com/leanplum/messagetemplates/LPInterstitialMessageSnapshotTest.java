@@ -52,7 +52,7 @@ public class LPInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     InterstitialOptions options = new InterstitialOptions(mockedContext);
     Interstitial interstitial = new Interstitial(mainActivity, options);
 
-    setupView(interstitial.dialogView);
-    snapshotView(interstitial.dialogView);
+    setupView(interstitial.contentView);
+    snapshotView(interstitial.contentView);
   }
 }

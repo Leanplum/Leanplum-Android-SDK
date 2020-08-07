@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,8 @@ package com.leanplum.messagetemplates;
 
 import android.app.Activity;
 import android.content.Context;
-
+import android.view.ViewGroup.LayoutParams;
+import android.widget.RelativeLayout;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
@@ -36,12 +37,28 @@ import com.leanplum.callbacks.VariablesChangedCallback;
  *
  * @author Andrew First
  */
-public class Interstitial extends BaseMessageDialog {
+public class Interstitial extends PopupMessageTemplate {
   private static final String NAME = "Interstitial";
 
   public Interstitial(Activity activity, InterstitialOptions options) {
-    super(activity, true, options, null, null);
-    this.options = options;
+    super(activity, options);
+  }
+
+  @Override
+  boolean isFullscreen() {
+    return true;
+  }
+
+  @Override
+  void applyWindowDecoration() {
+    // no implementation
+  }
+
+  @Override
+  protected RelativeLayout.LayoutParams createLayoutParams() {
+    return new RelativeLayout.LayoutParams(
+        LayoutParams.MATCH_PARENT,
+        LayoutParams.MATCH_PARENT);
   }
 
   public static void register(Context currentContext) {

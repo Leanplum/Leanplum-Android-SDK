@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -273,6 +273,10 @@ class HTMLOptions {
     return htmlAlign;
   }
 
+  boolean isHtmlAlignBottom() {
+    return MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(getHtmlAlign());
+  }
+
   private void setHtmlAlign(String htmlAlign) {
     this.htmlAlign = htmlAlign;
   }
@@ -349,5 +353,17 @@ class HTMLOptions {
   static class Size {
     int value;
     String type;
+  }
+
+  /**
+   * Banners with property TabOutsideToClose = false need to be treated differently
+   * so they do not block interaction with other dialogs and the keyboard.
+   * Banners with property TabOutsideToClose = true do not need to be treated this way.
+   * The original way banners worked was fine because they need to be aware of any touch events
+   * in its container window
+   */
+  public boolean isBannerWithTapOutsideFalse() {
+    String templateName = getActionContext().getArgs().get("__file__Template").toString();
+    return templateName.toLowerCase().contains("banner") && !isHtmlTabOutsideToClose();
   }
 }
