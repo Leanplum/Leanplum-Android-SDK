@@ -41,10 +41,10 @@ import com.leanplum.LeanplumActivityHelper;
  *
  * @author Atanas Dobrev
  */
-public class WebInterstitial extends BaseMessageDialog {
+public class WebInterstitialMessage extends BaseMessage {
   private @NonNull WebInterstitialOptions webOptions;
 
-  public WebInterstitial(Activity activity, @NonNull WebInterstitialOptions options) {
+  public WebInterstitialMessage(Activity activity, @NonNull WebInterstitialOptions options) {
     super(activity);
     this.webOptions = options;
 
@@ -152,7 +152,7 @@ public class WebInterstitial extends BaseMessageDialog {
     }
 
     WebInterstitialOptions options = new WebInterstitialOptions(context);
-    WebInterstitial webInterstitial = new WebInterstitial(activity, options);
+    WebInterstitialMessage webInterstitial = new WebInterstitialMessage(activity, options);
     webInterstitial.show();
   }
 }

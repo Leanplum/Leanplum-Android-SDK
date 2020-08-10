@@ -39,11 +39,11 @@ import com.leanplum.views.BackgroundImageView;
 /**
  * Base class for CenterPopup and Interstitial messages.
  */
-abstract class PopupMessageTemplate extends BaseMessageDialog {
+abstract class AbstractPopupMessage extends BaseMessage {
 
   protected BaseMessageOptions options;
 
-  protected PopupMessageTemplate(Activity activity, BaseMessageOptions options) {
+  protected AbstractPopupMessage(Activity activity, BaseMessageOptions options) {
     super(activity);
     this.options = options;
 

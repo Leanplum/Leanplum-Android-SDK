@@ -50,7 +50,7 @@ public class LPInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.numberNamed(Args.ACCEPT_BUTTON_TEXT_COLOR)).thenReturn(Color.BLACK);
 
     InterstitialOptions options = new InterstitialOptions(mockedContext);
-    Interstitial interstitial = new Interstitial(mainActivity, options);
+    InterstitialMessage interstitial = new InterstitialMessage(mainActivity, options);
 
     setupView(interstitial.contentView);
     snapshotView(interstitial.contentView);

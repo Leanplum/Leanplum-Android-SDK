@@ -38,9 +38,9 @@ import com.leanplum.utils.SizeUtil;
  *
  * @author Andrew First
  */
-public class CenterPopup extends PopupMessageTemplate {
+public class CenterPopupMessage extends AbstractPopupMessage {
 
-  CenterPopup(Activity activity, CenterPopupOptions options) {
+  CenterPopupMessage(Activity activity, CenterPopupOptions options) {
     super(activity, options);
   }
 
@@ -98,7 +98,7 @@ public class CenterPopup extends PopupMessageTemplate {
     }
 
     CenterPopupOptions options = new CenterPopupOptions(context);
-    CenterPopup popup = new CenterPopup(activity, options);
+    CenterPopupMessage popup = new CenterPopupMessage(activity, options);
     popup.show();
   }
 }

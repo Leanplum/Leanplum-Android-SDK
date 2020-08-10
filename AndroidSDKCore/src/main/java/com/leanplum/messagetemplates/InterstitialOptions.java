@@ -27,7 +27,7 @@ import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 
 /**
- * Options used by {@link Interstitial}.
+ * Options used by {@link InterstitialMessage}.
  *
  * @author Martin Yanakiev
  */

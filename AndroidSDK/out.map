@@ -1724,19 +1724,19 @@ com.leanplum.callbacks.VariablesChangedCallback -> com.leanplum.callbacks.Variab
     9:9:void <init>() -> <init>
     11:12:void run() -> run
     void variablesChanged() -> variablesChanged
-com.leanplum.messagetemplates.Alert -> com.leanplum.messagetemplates.a:
-com.leanplum.messagetemplates.Alert$1 -> com.leanplum.messagetemplates.b:
+com.leanplum.messagetemplates.AlertMessage -> com.leanplum.messagetemplates.a:
+com.leanplum.messagetemplates.AlertMessage$1 -> com.leanplum.messagetemplates.b:
     34:34:void <init>() -> <init>
     38:58:boolean onResponse(com.leanplum.ActionContext) -> onResponse
-com.leanplum.messagetemplates.Alert$1$1 -> com.leanplum.messagetemplates.c:
+com.leanplum.messagetemplates.AlertMessage$1$1 -> com.leanplum.messagetemplates.c:
     com.leanplum.ActionContext val$context -> a
-    38:38:void <init>(com.leanplum.messagetemplates.Alert$1,com.leanplum.ActionContext) -> <init>
+    38:38:void <init>(com.leanplum.messagetemplates.AlertMessage$1,com.leanplum.ActionContext) -> <init>
     41:56:void variablesChanged() -> variablesChanged
-com.leanplum.messagetemplates.Alert$1$1$1 -> com.leanplum.messagetemplates.d:
-    com.leanplum.messagetemplates.Alert$1$1 this$1 -> a
-    49:49:void <init>(com.leanplum.messagetemplates.Alert$1$1) -> <init>
+com.leanplum.messagetemplates.AlertMessage$1$1$1 -> com.leanplum.messagetemplates.d:
+    com.leanplum.messagetemplates.AlertMessage$1$1 this$1 -> a
+    49:49:void <init>(com.leanplum.messagetemplates.AlertMessage$1$1) -> <init>
     51:52:void onClick(android.content.DialogInterface,int) -> onClick
-com.leanplum.messagetemplates.BaseMessageDialog -> com.leanplum.messagetemplates.BaseMessageDialog:
+com.leanplum.messagetemplates.BaseMessage -> com.leanplum.messagetemplates.BaseMessage:
     android.widget.RelativeLayout dialogView -> a
     com.leanplum.messagetemplates.BaseMessageOptions options -> options
     com.leanplum.messagetemplates.WebInterstitialOptions webOptions -> webOptions
@@ -1770,29 +1770,29 @@ com.leanplum.messagetemplates.BaseMessageDialog -> com.leanplum.messagetemplates
     5091:5094:android.view.animation.Animation createFadeOutAnimation():91:94 -> cancel
     5091:5094:void cancel():103 -> cancel
     219:221:android.graphics.drawable.shapes.Shape createRoundRect(int) -> a
-    41:41:void access$001(com.leanplum.messagetemplates.BaseMessageDialog) -> a
-    41:41:boolean access$100(com.leanplum.messagetemplates.BaseMessageDialog) -> b
-com.leanplum.messagetemplates.BaseMessageDialog$1 -> com.leanplum.messagetemplates.e:
-    com.leanplum.messagetemplates.BaseMessageDialog this$0 -> a
-    104:104:void <init>(com.leanplum.messagetemplates.BaseMessageDialog) -> <init>
+    41:41:void access$001(com.leanplum.messagetemplates.BaseMessage) -> a
+    41:41:boolean access$100(com.leanplum.messagetemplates.BaseMessage) -> b
+com.leanplum.messagetemplates.BaseMessage$1 -> com.leanplum.messagetemplates.e:
+    com.leanplum.messagetemplates.BaseMessage this$0 -> a
+    104:104:void <init>(com.leanplum.messagetemplates.BaseMessage) -> <init>
     105:105:void onAnimationStart(android.view.animation.Animation) -> onAnimationStart
     106:106:void onAnimationRepeat(android.view.animation.Animation) -> onAnimationRepeat
     109:116:void onAnimationEnd(android.view.animation.Animation) -> onAnimationEnd
-com.leanplum.messagetemplates.BaseMessageDialog$1$1 -> com.leanplum.messagetemplates.f:
-    com.leanplum.messagetemplates.BaseMessageDialog$1 this$1 -> a
-    110:110:void <init>(com.leanplum.messagetemplates.BaseMessageDialog$1) -> <init>
+com.leanplum.messagetemplates.BaseMessage$1$1 -> com.leanplum.messagetemplates.f:
+    com.leanplum.messagetemplates.BaseMessage$1 this$1 -> a
+    110:110:void <init>(com.leanplum.messagetemplates.BaseMessage$1) -> <init>
     113:114:void run() -> run
-com.leanplum.messagetemplates.BaseMessageDialog$2 -> com.leanplum.messagetemplates.g:
-    com.leanplum.messagetemplates.BaseMessageDialog this$0 -> a
-    136:136:void <init>(com.leanplum.messagetemplates.BaseMessageDialog) -> <init>
+com.leanplum.messagetemplates.BaseMessage$2 -> com.leanplum.messagetemplates.g:
+    com.leanplum.messagetemplates.BaseMessage this$0 -> a
+    136:136:void <init>(com.leanplum.messagetemplates.BaseMessage) -> <init>
     139:140:void onClick(android.view.View) -> onClick
-com.leanplum.messagetemplates.BaseMessageDialog$3 -> com.leanplum.messagetemplates.h:
-    com.leanplum.messagetemplates.BaseMessageDialog this$0 -> a
-    288:288:void <init>(com.leanplum.messagetemplates.BaseMessageDialog) -> <init>
+com.leanplum.messagetemplates.BaseMessage$3 -> com.leanplum.messagetemplates.h:
+    com.leanplum.messagetemplates.BaseMessage this$0 -> a
+    288:288:void <init>(com.leanplum.messagetemplates.BaseMessage) -> <init>
     291:306:boolean shouldOverrideUrlLoading(android.webkit.WebView,java.lang.String) -> shouldOverrideUrlLoading
-com.leanplum.messagetemplates.BaseMessageDialog$4 -> com.leanplum.messagetemplates.i:
-    com.leanplum.messagetemplates.BaseMessageDialog this$0 -> a
-    331:331:void <init>(com.leanplum.messagetemplates.BaseMessageDialog) -> <init>
+com.leanplum.messagetemplates.BaseMessage$4 -> com.leanplum.messagetemplates.i:
+    com.leanplum.messagetemplates.BaseMessage this$0 -> a
+    331:331:void <init>(com.leanplum.messagetemplates.BaseMessage) -> <init>
     334:338:void onClick(android.view.View) -> onClick
 com.leanplum.messagetemplates.BaseMessageOptions -> com.leanplum.messagetemplates.BaseMessageOptions:
     com.leanplum.ActionContext context -> context
@@ -1827,19 +1827,19 @@ com.leanplum.messagetemplates.BaseMessageOptions -> com.leanplum.messagetemplate
     129:130:void setAcceptButtonTextColor(int) -> setAcceptButtonTextColor
     133:134:void accept() -> accept
     137:148:com.leanplum.ActionArgs toArgs(android.content.Context) -> toArgs
-com.leanplum.messagetemplates.CenterPopup -> com.leanplum.messagetemplates.CenterPopup:
+com.leanplum.messagetemplates.CenterPopupMessage -> com.leanplum.messagetemplates.CenterPopupMessage:
     22:24:void <init>(android.app.Activity,com.leanplum.messagetemplates.CenterPopupOptions) -> <init>
     27:49:void register(android.content.Context) -> register
-com.leanplum.messagetemplates.CenterPopup$1 -> com.leanplum.messagetemplates.j:
+com.leanplum.messagetemplates.CenterPopupMessage$1 -> com.leanplum.messagetemplates.j:
     28:28:void <init>() -> <init>
     31:46:boolean onResponse(com.leanplum.ActionContext) -> onResponse
-com.leanplum.messagetemplates.CenterPopup$1$1 -> com.leanplum.messagetemplates.k:
+com.leanplum.messagetemplates.CenterPopupMessage$1$1 -> com.leanplum.messagetemplates.k:
     com.leanplum.ActionContext val$context -> a
-    32:32:void <init>(com.leanplum.messagetemplates.CenterPopup$1,com.leanplum.ActionContext) -> <init>
+    32:32:void <init>(com.leanplum.messagetemplates.CenterPopupMessage$1,com.leanplum.ActionContext) -> <init>
     35:44:void variablesChanged() -> variablesChanged
-com.leanplum.messagetemplates.CenterPopup$1$1$1 -> com.leanplum.messagetemplates.l:
-    com.leanplum.messagetemplates.CenterPopup$1$1 this$1 -> a
-    35:35:void <init>(com.leanplum.messagetemplates.CenterPopup$1$1) -> <init>
+com.leanplum.messagetemplates.CenterPopupMessage$1$1$1 -> com.leanplum.messagetemplates.l:
+    com.leanplum.messagetemplates.CenterPopupMessage$1$1 this$1 -> a
+    35:35:void <init>(com.leanplum.messagetemplates.CenterPopupMessage$1$1) -> <init>
     38:42:void variablesChanged() -> variablesChanged
 com.leanplum.messagetemplates.CenterPopupOptions -> com.leanplum.messagetemplates.CenterPopupOptions:
     int width -> a
@@ -1863,35 +1863,35 @@ com.leanplum.messagetemplates.CenterPopupOptions -> com.leanplum.messagetemplate
     15:15:java.lang.String getTitle() -> getTitle
     15:15:java.lang.String getAcceptButtonText() -> getAcceptButtonText
     15:15:int getBackgroundColor() -> getBackgroundColor
-com.leanplum.messagetemplates.Confirm -> com.leanplum.messagetemplates.m:
-com.leanplum.messagetemplates.Confirm$1 -> com.leanplum.messagetemplates.n:
+com.leanplum.messagetemplates.ConfirmMessage -> com.leanplum.messagetemplates.m:
+com.leanplum.messagetemplates.ConfirmMessage$1 -> com.leanplum.messagetemplates.n:
     36:36:void <init>() -> <init>
     40:66:boolean onResponse(com.leanplum.ActionContext) -> onResponse
-com.leanplum.messagetemplates.Confirm$1$1 -> com.leanplum.messagetemplates.o:
+com.leanplum.messagetemplates.ConfirmMessage$1$1 -> com.leanplum.messagetemplates.o:
     com.leanplum.ActionContext val$context -> a
-    40:40:void <init>(com.leanplum.messagetemplates.Confirm$1,com.leanplum.ActionContext) -> <init>
+    40:40:void <init>(com.leanplum.messagetemplates.ConfirmMessage$1,com.leanplum.ActionContext) -> <init>
     43:64:void variablesChanged() -> variablesChanged
-com.leanplum.messagetemplates.Confirm$1$1$1 -> com.leanplum.messagetemplates.p:
-    com.leanplum.messagetemplates.Confirm$1$1 this$1 -> a
-    57:57:void <init>(com.leanplum.messagetemplates.Confirm$1$1) -> <init>
+com.leanplum.messagetemplates.ConfirmMessage$1$1$1 -> com.leanplum.messagetemplates.p:
+    com.leanplum.messagetemplates.ConfirmMessage$1$1 this$1 -> a
+    57:57:void <init>(com.leanplum.messagetemplates.ConfirmMessage$1$1) -> <init>
     59:60:void onClick(android.content.DialogInterface,int) -> onClick
-com.leanplum.messagetemplates.Confirm$1$1$2 -> com.leanplum.messagetemplates.q:
-    com.leanplum.messagetemplates.Confirm$1$1 this$1 -> a
-    51:51:void <init>(com.leanplum.messagetemplates.Confirm$1$1) -> <init>
+com.leanplum.messagetemplates.ConfirmMessage$1$1$2 -> com.leanplum.messagetemplates.q:
+    com.leanplum.messagetemplates.ConfirmMessage$1$1 this$1 -> a
+    51:51:void <init>(com.leanplum.messagetemplates.ConfirmMessage$1$1) -> <init>
     53:54:void onClick(android.content.DialogInterface,int) -> onClick
-com.leanplum.messagetemplates.Interstitial -> com.leanplum.messagetemplates.Interstitial:
+com.leanplum.messagetemplates.InterstitialMessage -> com.leanplum.messagetemplates.InterstitialMessage:
     22:24:void <init>(android.app.Activity,com.leanplum.messagetemplates.InterstitialOptions) -> <init>
     27:50:void register(android.content.Context) -> register
-com.leanplum.messagetemplates.Interstitial$1 -> com.leanplum.messagetemplates.r:
+com.leanplum.messagetemplates.InterstitialMessage$1 -> com.leanplum.messagetemplates.r:
     29:29:void <init>() -> <init>
     32:47:boolean onResponse(com.leanplum.ActionContext) -> onResponse
-com.leanplum.messagetemplates.Interstitial$1$1 -> com.leanplum.messagetemplates.s:
+com.leanplum.messagetemplates.InterstitialMessage$1$1 -> com.leanplum.messagetemplates.s:
     com.leanplum.ActionContext val$context -> a
-    33:33:void <init>(com.leanplum.messagetemplates.Interstitial$1,com.leanplum.ActionContext) -> <init>
+    33:33:void <init>(com.leanplum.messagetemplates.InterstitialMessage$1,com.leanplum.ActionContext) -> <init>
     36:45:void variablesChanged() -> variablesChanged
-com.leanplum.messagetemplates.Interstitial$1$1$1 -> com.leanplum.messagetemplates.t:
-    com.leanplum.messagetemplates.Interstitial$1$1 this$1 -> a
-    36:36:void <init>(com.leanplum.messagetemplates.Interstitial$1$1) -> <init>
+com.leanplum.messagetemplates.InterstitialMessage$1$1$1 -> com.leanplum.messagetemplates.t:
+    com.leanplum.messagetemplates.InterstitialMessage$1$1 this$1 -> a
+    36:36:void <init>(com.leanplum.messagetemplates.InterstitialMessage$1$1) -> <init>
     39:43:void variablesChanged() -> variablesChanged
 com.leanplum.messagetemplates.InterstitialOptions -> com.leanplum.messagetemplates.InterstitialOptions:
     16:18:void <init>(com.leanplum.ActionContext) -> <init>
@@ -1912,25 +1912,25 @@ com.leanplum.messagetemplates.MessageTemplates -> com.leanplum.messagetemplates.
     11:44:void <init>() -> <init>
     66:70:java.lang.String getApplicationName(android.content.Context) -> a
     74:84:void register(android.content.Context) -> register
-    1031:1056:void com.leanplum.messagetemplates.OpenURL.register():31:56 -> register
+    1031:1056:void com.leanplum.messagetemplates.OpenUrlAction.register():31:56 -> register
     1031:1056:void register(android.content.Context):78 -> register
-    2028:2061:void com.leanplum.messagetemplates.Alert.register(android.content.Context):28:61 -> register
+    2028:2061:void com.leanplum.messagetemplates.AlertMessage.register(android.content.Context):28:61 -> register
     2028:2061:void register(android.content.Context):79 -> register
-    3028:3069:void com.leanplum.messagetemplates.Confirm.register(android.content.Context):28:69 -> register
+    3028:3069:void com.leanplum.messagetemplates.ConfirmMessage.register(android.content.Context):28:69 -> register
     3028:3069:void register(android.content.Context):80 -> register
     63:63:void <clinit>() -> <clinit>
-com.leanplum.messagetemplates.OpenURL$1 -> com.leanplum.messagetemplates.u:
+com.leanplum.messagetemplates.OpenUrlAction$1 -> com.leanplum.messagetemplates.u:
     33:33:void <init>() -> <init>
     36:52:boolean onResponse(com.leanplum.ActionContext) -> onResponse
-com.leanplum.messagetemplates.WebInterstitial -> com.leanplum.messagetemplates.WebInterstitial:
+com.leanplum.messagetemplates.WebInterstitialMessage -> com.leanplum.messagetemplates.WebInterstitialMessage:
     23:25:void <init>(android.app.Activity,com.leanplum.messagetemplates.WebInterstitialOptions) -> <init>
     28:44:void register(android.content.Context) -> register
-com.leanplum.messagetemplates.WebInterstitial$1 -> com.leanplum.messagetemplates.v:
+com.leanplum.messagetemplates.WebInterstitialMessage$1 -> com.leanplum.messagetemplates.v:
     29:29:void <init>() -> <init>
     32:41:boolean onResponse(com.leanplum.ActionContext) -> onResponse
-com.leanplum.messagetemplates.WebInterstitial$1$1 -> com.leanplum.messagetemplates.w:
+com.leanplum.messagetemplates.WebInterstitialMessage$1$1 -> com.leanplum.messagetemplates.w:
     com.leanplum.ActionContext val$context -> a
-    32:32:void <init>(com.leanplum.messagetemplates.WebInterstitial$1,com.leanplum.ActionContext) -> <init>
+    32:32:void <init>(com.leanplum.messagetemplates.WebInterstitialMessage$1,com.leanplum.ActionContext) -> <init>
     35:39:void variablesChanged() -> variablesChanged
 com.leanplum.messagetemplates.WebInterstitialOptions -> com.leanplum.messagetemplates.WebInterstitialOptions:
     java.lang.String url -> a

@@ -21,15 +21,13 @@
 
 package com.leanplum.messagetemplates;
 
-import android.content.Context;
-
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
 /**
- * Options used by {@link WebInterstitial}.
+ * Options used by {@link WebInterstitialMessage}.
  *
  * @author Atanas Dobrev
  */

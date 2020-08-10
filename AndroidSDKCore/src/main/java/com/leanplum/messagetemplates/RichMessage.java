@@ -58,13 +58,14 @@ import org.json.JSONObject;
  * @author Anna Orlova
  */
 @SuppressWarnings("WeakerAccess")
-public class HTMLTemplate extends BaseMessageDialog {
+public class RichMessage extends BaseMessage {
   private WebView webView;
-  private @NonNull HTMLOptions htmlOptions;
+  private @NonNull
+  RichOptions richOptions;
 
-  public HTMLTemplate(Activity activity, @NonNull HTMLOptions htmlOptions) {
+  public RichMessage(Activity activity, @NonNull RichOptions richOptions) {
     super(activity);
-    this.htmlOptions = htmlOptions;
+    this.richOptions = richOptions;
 
     init();
   }
@@ -76,7 +77,7 @@ public class HTMLTemplate extends BaseMessageDialog {
 
   @Override
   boolean isFullscreen() {
-    return htmlOptions.isFullScreen();
+    return richOptions.isFullScreen();
   }
 
   @Override
@@ -91,7 +92,7 @@ public class HTMLTemplate extends BaseMessageDialog {
 
     window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-    if (htmlOptions.isBannerWithTapOutsideFalse()) {
+    if (richOptions.isBannerWithTapOutsideFalse()) {
       // banners need to be positioned at the top manually
       // (unless they get repositioned to the bottom later)
       window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -101,7 +102,7 @@ public class HTMLTemplate extends BaseMessageDialog {
       // from non-banners because we don't want to make the window too big (e.g. via a margin
       // in the layout) and block other things on the screen (e.g. dialogs)
       WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
-      windowLayoutParams.y = htmlOptions.getHtmlYOffset(activity);
+      windowLayoutParams.y = richOptions.getHtmlYOffset(activity);
       window.setAttributes(windowLayoutParams);
 
       window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
@@ -111,8 +112,8 @@ public class HTMLTemplate extends BaseMessageDialog {
           WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
     }
 
-    if (htmlOptions.isHtmlAlignBottom()) {
-      if (htmlOptions.isBannerWithTapOutsideFalse()) {
+    if (richOptions.isHtmlAlignBottom()) {
+      if (richOptions.isBannerWithTapOutsideFalse()) {
         window.setGravity(Gravity.BOTTOM);
       } else {
         contentView.setGravity(Gravity.BOTTOM);
@@ -127,8 +128,8 @@ public class HTMLTemplate extends BaseMessageDialog {
       layoutParams = new RelativeLayout.LayoutParams(
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else {
-      int height = SizeUtil.dpToPx(activity, htmlOptions.getHtmlHeight());
-      HTMLOptions.Size htmlWidth = htmlOptions.getHtmlWidth();
+      int height = SizeUtil.dpToPx(activity, richOptions.getHtmlHeight());
+      RichOptions.Size htmlWidth = richOptions.getHtmlWidth();
       if (htmlWidth == null || TextUtils.isEmpty(htmlWidth.type)) {
         layoutParams = new RelativeLayout.LayoutParams(
             LayoutParams.MATCH_PARENT, height);
@@ -144,9 +145,9 @@ public class HTMLTemplate extends BaseMessageDialog {
       }
 
       layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-      int htmlYOffset = htmlOptions.getHtmlYOffset(activity);
-      if (!htmlOptions.isBannerWithTapOutsideFalse()) {
-        if (htmlOptions.isHtmlAlignBottom()) {
+      int htmlYOffset = richOptions.getHtmlYOffset(activity);
+      if (!richOptions.isBannerWithTapOutsideFalse()) {
+        if (richOptions.isHtmlAlignBottom()) {
           layoutParams.bottomMargin = htmlYOffset;
         } else {
           layoutParams.topMargin = htmlYOffset;
@@ -212,7 +213,7 @@ public class HTMLTemplate extends BaseMessageDialog {
         return false;
       }
     });
-    String html = htmlOptions.getHtmlTemplate();
+    String html = richOptions.getHtmlTemplate();
 
     webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
 
@@ -220,7 +221,7 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   private boolean handleOpenEvent(String url) {
-    if (url.contains(htmlOptions.getOpenUrl())) {
+    if (url.contains(richOptions.getOpenUrl())) {
       contentView.setVisibility(View.VISIBLE);
       if (activity != null && !activity.isFinishing()) {
         show();
@@ -231,7 +232,7 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   private boolean handleCloseEvent(String url) {
-    if (url.contains(htmlOptions.getCloseUrl())) {
+    if (url.contains(richOptions.getCloseUrl())) {
       cancel();
       String queryComponentsFromUrl = queryComponentsFromUrl(url, "result");
       if (!TextUtils.isEmpty(queryComponentsFromUrl)) {
@@ -243,7 +244,7 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   private boolean handleTrackEvent(String url) {
-    if (url.contains(htmlOptions.getTrackUrl())) {
+    if (url.contains(richOptions.getTrackUrl())) {
       String eventName = queryComponentsFromUrl(url, "event");
       if (!TextUtils.isEmpty(eventName)) {
         Double value = Double.parseDouble(queryComponentsFromUrl(url, "value"));
@@ -257,7 +258,7 @@ public class HTMLTemplate extends BaseMessageDialog {
         }
 
         if (queryComponentsFromUrl(url, "isMessageEvent").equals("true")) {
-          ActionContext actionContext = htmlOptions.getActionContext();
+          ActionContext actionContext = richOptions.getActionContext();
           actionContext.trackMessageEvent(eventName, value, info, paramsMap);
         } else {
           Leanplum.track(eventName, value, info, paramsMap);
@@ -269,8 +270,8 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   private boolean handleActionEvent(String url) {
-    if (url.contains(htmlOptions.getActionUrl()) ||
-        url.contains(htmlOptions.getTrackActionUrl())) {
+    if (url.contains(richOptions.getActionUrl()) ||
+        url.contains(richOptions.getTrackActionUrl())) {
       cancel();
       String queryComponentsFromUrl = queryComponentsFromUrl(url, "action");
       try {
@@ -278,9 +279,9 @@ public class HTMLTemplate extends BaseMessageDialog {
       } catch (UnsupportedEncodingException ignored) {
       }
 
-      ActionContext actionContext = htmlOptions.getActionContext();
+      ActionContext actionContext = richOptions.getActionContext();
       if (!TextUtils.isEmpty(queryComponentsFromUrl) && actionContext != null) {
-        if (url.contains(htmlOptions.getActionUrl())) {
+        if (url.contains(richOptions.getActionUrl())) {
           actionContext.runActionNamed(queryComponentsFromUrl);
         } else {
           actionContext.runTrackedActionNamed(queryComponentsFromUrl);
@@ -377,8 +378,8 @@ public class HTMLTemplate extends BaseMessageDialog {
 
   @Override
   public boolean dispatchTouchEvent(@NonNull MotionEvent ev) {
-    if (!htmlOptions.isFullScreen()) {
-      if (htmlOptions.isBannerWithTapOutsideFalse()) {
+    if (!richOptions.isFullScreen()) {
+      if (richOptions.isBannerWithTapOutsideFalse()) {
         return super.dispatchTouchEvent(ev);
       }
 
@@ -386,12 +387,12 @@ public class HTMLTemplate extends BaseMessageDialog {
       int dialogWidth = webView.getWidth();
       int left = (size.x - dialogWidth) / 2;
       int right = (size.x + dialogWidth) / 2;
-      int height = SizeUtil.dpToPx(Leanplum.getContext(), htmlOptions.getHtmlHeight());
+      int height = SizeUtil.dpToPx(Leanplum.getContext(), richOptions.getHtmlHeight());
       int statusBarHeight = SizeUtil.getStatusBarHeight(Leanplum.getContext());
-      int htmlYOffset = htmlOptions.getHtmlYOffset(activity);
+      int htmlYOffset = richOptions.getHtmlYOffset(activity);
       int top;
       int bottom;
-      if (htmlOptions.isHtmlAlignBottom()) {
+      if (richOptions.isHtmlAlignBottom()) {
         top = size.y - height - statusBarHeight - htmlYOffset;
         bottom = size.y - htmlYOffset - statusBarHeight;
       } else {
@@ -400,7 +401,7 @@ public class HTMLTemplate extends BaseMessageDialog {
       }
 
       if (ev.getY() < top || ev.getY() > bottom || ev.getX() < left || ev.getX() > right) {
-        if (htmlOptions.isHtmlTabOutsideToClose()) {
+        if (richOptions.isHtmlTabOutsideToClose()) {
           cancel();
         }
         activity.dispatchTouchEvent(ev);
@@ -410,12 +411,12 @@ public class HTMLTemplate extends BaseMessageDialog {
   }
 
   @NonNull
-  public HTMLOptions getHtmlOptions() {
-    return htmlOptions;
+  public RichOptions getRichOptions() {
+    return richOptions;
   }
 
   public static ActionArgs createActionArgs(Context context) {
-    return HTMLOptions.toArgs();
+    return RichOptions.toArgs();
   }
 
   public static void showMessage(ActionContext context) {
@@ -424,13 +425,13 @@ public class HTMLTemplate extends BaseMessageDialog {
       return;
 
     try {
-      HTMLOptions htmlOptions = new HTMLOptions(context);
-      if (htmlOptions.getHtmlTemplate() == null) {
+      RichOptions richOptions = new RichOptions(context);
+      if (richOptions.getHtmlTemplate() == null) {
         return;
       }
 
       // Message is shown after html is rendered. Check handleOpenEvent(url) method.
-      new HTMLTemplate(activity, htmlOptions);
+      new RichMessage(activity, richOptions);
 
     } catch (Throwable t) {
       Log.e("Fail on show HTML In-App message: %s", t.getMessage());

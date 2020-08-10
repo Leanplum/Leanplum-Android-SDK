@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,29 +22,43 @@
 package com.leanplum.messagetemplates;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-
+import android.view.ViewGroup.LayoutParams;
+import android.widget.RelativeLayout;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.internal.Util;
-import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
-import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
 /**
- * Registers a Leanplum action that displays a system alert dialog.
+ * Registers a Leanplum action that displays a fullscreen interstitial.
  *
  * @author Andrew First
  */
-public class Alert {
+public class InterstitialMessage extends AbstractPopupMessage {
+
+  public InterstitialMessage(Activity activity, InterstitialOptions options) {
+    super(activity, options);
+  }
+
+  @Override
+  boolean isFullscreen() {
+    return true;
+  }
+
+  @Override
+  void applyWindowDecoration() {
+    // no implementation
+  }
+
+  @Override
+  protected RelativeLayout.LayoutParams createLayoutParams() {
+    return new RelativeLayout.LayoutParams(
+        LayoutParams.MATCH_PARENT,
+        LayoutParams.MATCH_PARENT);
+  }
 
   public static ActionArgs createActionArgs(Context context) {
-    return new ActionArgs()
-        .with(Args.TITLE, Util.getApplicationName(context))
-        .with(Args.MESSAGE, Values.ALERT_MESSAGE)
-        .with(Args.DISMISS_TEXT, Values.OK_TEXT)
-        .withAction(Args.DISMISS_ACTION, null);
+    return InterstitialOptions.toArgs(context);
   }
 
   public static void showMessage(ActionContext context) {
@@ -53,14 +67,8 @@ public class Alert {
       return;
     }
 
-    new AlertDialog.Builder(activity)
-        .setTitle(context.stringNamed(Args.TITLE))
-        .setMessage(context.stringNamed(Args.MESSAGE))
-        .setCancelable(false)
-        .setPositiveButton(
-            context.stringNamed(Args.DISMISS_TEXT),
-            (dialog, id) -> context.runActionNamed(Args.DISMISS_ACTION))
-        .create()
-        .show();
+    InterstitialOptions options = new InterstitialOptions(context);
+    InterstitialMessage interstitial = new InterstitialMessage(activity, options);
+    interstitial.show();
   }
 }

@@ -44,7 +44,7 @@ import java.util.List;
  *
  * @author Andrew First
  */
-class OpenURL {
+class OpenUrlAction {
 
   private static void openUriIntent(Context context, Intent uriIntent) {
     List<ResolveInfo> resolveInfoList =
@@ -78,7 +78,7 @@ class OpenURL {
     return new ActionArgs().with(Args.URL, Values.DEFAULT_URL);
   }
 
-  public static void showMessage(ActionContext actionContext) {
+  public static void onActionTriggered(ActionContext actionContext) {
     Context context = Leanplum.getContext();
     if (context == null) {
       return;

@@ -59,7 +59,7 @@ public class LPWebInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.booleanNamed(Args.HAS_DISMISS_BUTTON)).thenReturn(Values.DEFAULT_HAS_DISMISS_BUTTON);
 
     WebInterstitialOptions options = new WebInterstitialOptions(mockedContext);
-    WebInterstitial webInterstitial = new WebInterstitial(getMainActivity(), options);
+    WebInterstitialMessage webInterstitial = new WebInterstitialMessage(getMainActivity(), options);
     return webInterstitial.contentView;
   }
 }

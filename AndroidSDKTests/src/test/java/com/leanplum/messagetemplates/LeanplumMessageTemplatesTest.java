@@ -42,7 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 /**
  * @author Milos Jakovljevic
  */
-@PrepareForTest({MessageTemplates.class, HTMLOptions.class})
+@PrepareForTest({MessageTemplates.class, RichOptions.class})
 public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Override
@@ -72,15 +72,15 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     CenterPopupOptions options = new CenterPopupOptions(actionContext);
-    CenterPopup centerpopup = new CenterPopup(activity, options);
+    CenterPopupMessage centerpopup = new CenterPopupMessage(activity, options);
     assertNotNull(centerpopup);
     assertEquals(options, centerpopup.options);
   }
 
   @Test
   public void testHTML() throws Exception {
-    spy(HTMLOptions.class);
-    PowerMockito.doReturn("<body></body>").when(HTMLOptions.class, "getTemplate", anyObject());
+    spy(RichOptions.class);
+    PowerMockito.doReturn("<body></body>").when(RichOptions.class, "getTemplate", anyObject());
 
     LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
         create().start().resume().visible().get();
@@ -108,10 +108,10 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     map.put(Values.HTML_TEMPLATE_PREFIX, "file");
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
-    HTMLOptions options = new HTMLOptions(actionContext);
-    HTMLTemplate htmlTemplate = new HTMLTemplate(activity, options);
+    RichOptions options = new RichOptions(actionContext);
+    RichMessage htmlTemplate = new RichMessage(activity, options);
     assertNotNull(htmlTemplate);
-    assertEquals(options, htmlTemplate.getHtmlOptions());
+    assertEquals(options, htmlTemplate.getRichOptions());
   }
 
   @Test
@@ -143,7 +143,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     InterstitialOptions options = new InterstitialOptions(actionContext);
-    Interstitial interstitial = new Interstitial(activity, options);
+    InterstitialMessage interstitial = new InterstitialMessage(activity, options);
     assertNotNull(interstitial);
     assertEquals(options, interstitial.options);
   }
@@ -179,7 +179,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     WebInterstitialOptions options = new WebInterstitialOptions(actionContext);
-    WebInterstitial interstitial = new WebInterstitial(activity, options);
+    WebInterstitialMessage interstitial = new WebInterstitialMessage(activity, options);
     assertNotNull(interstitial);
     assertEquals(options, interstitial.getWebOptions());
   }

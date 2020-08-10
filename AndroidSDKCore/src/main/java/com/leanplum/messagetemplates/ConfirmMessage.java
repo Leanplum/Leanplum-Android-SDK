@@ -37,7 +37,7 @@ import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
  *
  * @author Andrew First
  */
-class Confirm {
+class ConfirmMessage {
 
   public static ActionArgs createActionArgs(Context context) {
     return new ActionArgs()

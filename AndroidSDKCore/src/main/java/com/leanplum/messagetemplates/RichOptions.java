@@ -43,11 +43,11 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
- * Options used by {@link HTMLTemplate}.
+ * Options used by {@link RichMessage}.
  *
  * @author Anna Orlova
  */
-class HTMLOptions {
+class RichOptions {
   private String closeUrl;
   private String openUrl;
   private String trackUrl;
@@ -61,7 +61,7 @@ class HTMLOptions {
   private Size htmlYOffset;
   private boolean htmlTabOutsideToClose;
 
-  HTMLOptions(ActionContext context) {
+  RichOptions(ActionContext context) {
     this.setActionContext(context);
     this.setHtmlTemplate(getTemplate(context));
     this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));

@@ -132,44 +132,44 @@ public class MessageTemplates {
 
     defineAction(
         OPEN_URL,
-        OpenURL::createActionArgs,
-        OpenURL::showMessage,
+        OpenUrlAction::createActionArgs,
+        OpenUrlAction::onActionTriggered,
         context);
 
     defineAction(
         ALERT,
-        Alert::createActionArgs,
-        Alert::showMessage,
+        AlertMessage::createActionArgs,
+        AlertMessage::showMessage,
         context);
 
     defineAction(
         CONFIRM,
-        Confirm::createActionArgs,
-        Confirm::showMessage,
+        ConfirmMessage::createActionArgs,
+        ConfirmMessage::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         CENTER_POPUP,
-        CenterPopup::createActionArgs,
-        CenterPopup::showMessage,
+        CenterPopupMessage::createActionArgs,
+        CenterPopupMessage::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         INTERSTITIAL,
-        Interstitial::createActionArgs,
-        Interstitial::showMessage,
+        InterstitialMessage::createActionArgs,
+        InterstitialMessage::showMessage,
         context);
 
     defineAction(
         WEB_INTERSTITIAL,
-        WebInterstitial::createActionArgs,
-        WebInterstitial::showMessage,
+        WebInterstitialMessage::createActionArgs,
+        WebInterstitialMessage::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         HTML,
-        HTMLTemplate::createActionArgs,
-        HTMLTemplate::showMessage,
+        RichMessage::createActionArgs,
+        RichMessage::showMessage,
         context);
   }
 }

@@ -93,8 +93,8 @@ public class LPRichInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.booleanNamed(Args.HAS_DISMISS_BUTTON)).thenReturn(false);
     when(mockedContext.streamNamed(Mockito.anyString())).thenReturn(templateStream);
 
-    HTMLOptions options = new HTMLOptions(mockedContext);
-    HTMLTemplate htmlTemplate = new HTMLTemplate(getMainActivity(), options);
+    RichOptions options = new RichOptions(mockedContext);
+    RichMessage htmlTemplate = new RichMessage(getMainActivity(), options);
     return htmlTemplate.contentView;
   }
 }

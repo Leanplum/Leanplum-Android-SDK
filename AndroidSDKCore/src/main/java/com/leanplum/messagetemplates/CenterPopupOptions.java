@@ -28,7 +28,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 
 /**
- * Options used by {@link CenterPopup}.
+ * Options used by {@link CenterPopupMessage}.
  *
  * @author Martin Yanakiev
  */
