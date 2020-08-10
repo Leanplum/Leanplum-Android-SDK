@@ -28,12 +28,9 @@ import android.os.Build;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
+import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.callbacks.ActionCallback;
-import com.leanplum.callbacks.PostponableAction;
-import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.utils.SizeUtil;
 
 /**
@@ -42,7 +39,6 @@ import com.leanplum.utils.SizeUtil;
  * @author Andrew First
  */
 public class CenterPopup extends PopupMessageTemplate {
-  private static final String NAME = "Center Popup";
 
   CenterPopup(Activity activity, CenterPopupOptions options) {
     super(activity, options);
@@ -91,33 +87,18 @@ public class CenterPopup extends PopupMessageTemplate {
     return layoutParams;
   }
 
-  public static void register(Context currentContext) {
-    Leanplum.defineAction(NAME, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION,
-        CenterPopupOptions.toArgs(currentContext), new ActionCallback() {
-          @Override
-          public boolean onResponse(final ActionContext context) {
-            Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(
-                new VariablesChangedCallback() {
-                  @Override
-                  public void variablesChanged() {
-                    LeanplumActivityHelper.queueActionUponActive(new PostponableAction() {
-                      @Override
-                      public void run() {
-                        Activity activity = LeanplumActivityHelper.getCurrentActivity();
-                        if (activity == null) {
-                          return;
-                        }
-                        CenterPopup popup = new CenterPopup(activity,
-                            new CenterPopupOptions(context));
-                        if (!activity.isFinishing()) {
-                          popup.show();
-                        }
-                      }
-                    });
-                  }
-                });
-            return true;
-          }
-        });
+  public static ActionArgs createActionArgs(Context context) {
+    return CenterPopupOptions.toArgs(context);
+  }
+
+  public static void showMessage(ActionContext context) {
+    Activity activity = LeanplumActivityHelper.getCurrentActivity();
+    if (activity == null || activity.isFinishing()) {
+      return;
+    }
+
+    CenterPopupOptions options = new CenterPopupOptions(context);
+    CenterPopup popup = new CenterPopup(activity, options);
+    popup.show();
   }
 }

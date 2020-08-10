@@ -25,7 +25,7 @@ import android.content.Context;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 
 /**
  * Options used by {@link CenterPopup}.
@@ -60,7 +60,7 @@ public class CenterPopupOptions extends BaseMessageOptions {
 
   public static ActionArgs toArgs(Context currentContext) {
     return BaseMessageOptions.toArgs(currentContext)
-        .with(Args.LAYOUT_WIDTH, MessageTemplates.Values.CENTER_POPUP_WIDTH)
-        .with(Args.LAYOUT_HEIGHT, MessageTemplates.Values.CENTER_POPUP_HEIGHT);
+        .with(Args.LAYOUT_WIDTH, MessageTemplateConstants.Values.CENTER_POPUP_WIDTH)
+        .with(Args.LAYOUT_HEIGHT, MessageTemplateConstants.Values.CENTER_POPUP_HEIGHT);
   }
 }

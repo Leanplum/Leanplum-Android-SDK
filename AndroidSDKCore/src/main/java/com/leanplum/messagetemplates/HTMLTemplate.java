@@ -41,12 +41,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
+import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.callbacks.ActionCallback;
-import com.leanplum.callbacks.PostponableAction;
-import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Log;
 import com.leanplum.utils.SizeUtil;
 import java.io.UnsupportedEncodingException;
@@ -61,8 +59,6 @@ import org.json.JSONObject;
  */
 @SuppressWarnings("WeakerAccess")
 public class HTMLTemplate extends BaseMessageDialog {
-  private static final String NAME = "HTML";
-
   private WebView webView;
   private @NonNull HTMLOptions htmlOptions;
 
@@ -366,18 +362,15 @@ public class HTMLTemplate extends BaseMessageDialog {
     super.onFadeOutAnimationEnd();
 
     Handler handler = new Handler();
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        if (webView != null) {
-          webView.stopLoading();
-          webView.loadUrl("");
-          if (contentView != null) {
-            contentView.removeAllViews();
-          }
-          webView.removeAllViews();
-          webView.destroy();
+    handler.postDelayed(() -> {
+      if (webView != null) {
+        webView.stopLoading();
+        webView.loadUrl("");
+        if (contentView != null) {
+          contentView.removeAllViews();
         }
+        webView.removeAllViews();
+        webView.destroy();
       }
     }, 10);
   }
@@ -421,37 +414,26 @@ public class HTMLTemplate extends BaseMessageDialog {
     return htmlOptions;
   }
 
-  public static void register() {
-    Leanplum.defineAction(NAME, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION,
-        HTMLOptions.toArgs(), new ActionCallback() {
-          @Override
-          public boolean onResponse(final ActionContext context) {
-            Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(
-                new VariablesChangedCallback() {
-                  @Override
-                  public void variablesChanged() {
-                    LeanplumActivityHelper.queueActionUponActive(
-                        new PostponableAction() {
-                          @Override
-                          public void run() {
-                            try {
-                              HTMLOptions htmlOptions = new HTMLOptions(context);
-                              if (htmlOptions.getHtmlTemplate() == null) {
-                                return;
-                              }
-                              final Activity activity = LeanplumActivityHelper.getCurrentActivity();
-                              if (activity != null && !activity.isFinishing()) {
-                                new HTMLTemplate(activity, htmlOptions);
-                              }
-                            } catch (Throwable t) {
-                              Log.e("Leanplum", "Fail on show HTML In-App message.", t);
-                            }
-                          }
-                        });
-                  }
-                });
-            return true;
-          }
-        });
+  public static ActionArgs createActionArgs(Context context) {
+    return HTMLOptions.toArgs();
+  }
+
+  public static void showMessage(ActionContext context) {
+    Activity activity = LeanplumActivityHelper.getCurrentActivity();
+    if (activity == null || activity.isFinishing())
+      return;
+
+    try {
+      HTMLOptions htmlOptions = new HTMLOptions(context);
+      if (htmlOptions.getHtmlTemplate() == null) {
+        return;
+      }
+
+      // Message is shown after html is rendered. Check handleOpenEvent(url) method.
+      new HTMLTemplate(activity, htmlOptions);
+
+    } catch (Throwable t) {
+      Log.e("Fail on show HTML In-App message: %s", t.getMessage());
+    }
   }
 }

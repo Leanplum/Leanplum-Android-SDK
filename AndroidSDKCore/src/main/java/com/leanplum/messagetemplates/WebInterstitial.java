@@ -31,11 +31,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
+import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.callbacks.ActionCallback;
-import com.leanplum.callbacks.PostponableAction;
 
 /**
  * Registers a Leanplum action that displays a fullscreen Web Interstitial.
@@ -43,8 +42,6 @@ import com.leanplum.callbacks.PostponableAction;
  * @author Atanas Dobrev
  */
 public class WebInterstitial extends BaseMessageDialog {
-  private static final String NAME = "Web Interstitial";
-
   private @NonNull WebInterstitialOptions webOptions;
 
   public WebInterstitial(Activity activity, @NonNull WebInterstitialOptions options) {
@@ -79,46 +76,23 @@ public class WebInterstitial extends BaseMessageDialog {
   @Override
   void addMessageChildViews(RelativeLayout parent) {
     WebView webView = createWebView(activity);
-    parent.addView(webView, webView.getLayoutParams());
+    parent.addView(webView);
   }
 
   private WebView createWebView(Context context) {
     WebView view = new WebView(context);
-    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    view.setLayoutParams(layoutParams);
+    view.setLayoutParams(
+        new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     view.setWebViewClient(new WebViewClient() {
       @SuppressWarnings("deprecation")
       @Override
       public boolean shouldOverrideUrlLoading(WebView wView, String url) {
-        if (url.contains(webOptions.getCloseUrl())) {
-          cancel();
-          String[] urlComponents = url.split("\\?");
-          if (urlComponents.length > 1) {
-            String queryString = urlComponents[1];
-            String[] parameters = queryString.split("&");
-            for (String parameter : parameters) {
-              String[] parameterComponents = parameter.split("=");
-              if (parameterComponents.length > 1 && parameterComponents[0].equals("result")) {
-                Leanplum.track(parameterComponents[1]);
-              }
-            }
-          }
+        if (handleCloseEvent(url)) {
           return true;
         }
 
-        // handle Google Play URI
-        Uri uri = Uri.parse(url);
-        if ("market".equals(uri.getScheme())) {
-          try {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(uri);
-            wView.getContext().startActivity(intent);
-            return true;
-          } catch (ActivityNotFoundException e) {
-            // Missing Google Play
-            return false;
-          }
+        if (handleGooglePlayUri(wView.getContext(), url)) {
+          return true;
         }
         return false;
       }
@@ -127,32 +101,58 @@ public class WebInterstitial extends BaseMessageDialog {
     return view;
   }
 
+  private boolean handleCloseEvent(String url) {
+    if (url.contains(webOptions.getCloseUrl())) {
+      cancel();
+      String[] urlComponents = url.split("\\?");
+      if (urlComponents.length > 1) {
+        String queryString = urlComponents[1];
+        String[] parameters = queryString.split("&");
+        for (String parameter : parameters) {
+          String[] parameterComponents = parameter.split("=");
+          if (parameterComponents.length > 1 && parameterComponents[0].equals("result")) {
+            Leanplum.track(parameterComponents[1]);
+          }
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private boolean handleGooglePlayUri(Context context, String url) {
+    Uri uri = Uri.parse(url);
+    if ("market".equals(uri.getScheme())) {
+      try {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(uri);
+        context.startActivity(intent);
+        return true;
+      } catch (ActivityNotFoundException e) {
+        // Missing Google Play
+        return false;
+      }
+    }
+    return false;
+  }
+
   @NonNull
   public WebInterstitialOptions getWebOptions() {
     return webOptions;
   }
 
-  public static void register() {
-    Leanplum.defineAction(NAME, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION,
-        WebInterstitialOptions.toArgs(), new ActionCallback() {
-          @Override
-          public boolean onResponse(final ActionContext context) {
-            LeanplumActivityHelper.queueActionUponActive(new PostponableAction() {
-              @Override
-              public void run() {
-                Activity activity = LeanplumActivityHelper.getCurrentActivity();
-                if (activity == null) {
-                  return;
-                }
-                WebInterstitial webInterstitial = new WebInterstitial(activity,
-                    new WebInterstitialOptions(context));
-                if (!activity.isFinishing()) {
-                  webInterstitial.show();
-                }
-              }
-            });
-            return true;
-          }
-        });
+  public static ActionArgs createActionArgs(Context context) {
+    return WebInterstitialOptions.toArgs();
+  }
+
+  public static void showMessage(ActionContext context) {
+    Activity activity = LeanplumActivityHelper.getCurrentActivity();
+    if (activity == null || activity.isFinishing()) {
+      return;
+    }
+
+    WebInterstitialOptions options = new WebInterstitialOptions(context);
+    WebInterstitial webInterstitial = new WebInterstitial(activity, options);
+    webInterstitial.show();
   }
 }

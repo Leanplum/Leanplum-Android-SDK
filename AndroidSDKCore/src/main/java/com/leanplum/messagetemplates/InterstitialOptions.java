@@ -39,7 +39,7 @@ public class InterstitialOptions extends BaseMessageOptions {
 
   public static ActionArgs toArgs(Context currentContext) {
     return BaseMessageOptions.toArgs(currentContext)
-        .with(MessageTemplates.Args.MESSAGE_TEXT, MessageTemplates.Values.INTERSTITIAL_MESSAGE);
+        .with(MessageTemplateConstants.Args.MESSAGE_TEXT, MessageTemplateConstants.Values.INTERSTITIAL_MESSAGE);
     // Add specific args for interstitial popup.
   }
 }

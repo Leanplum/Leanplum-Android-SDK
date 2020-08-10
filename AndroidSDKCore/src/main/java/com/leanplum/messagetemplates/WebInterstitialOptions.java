@@ -25,8 +25,8 @@ import android.content.Context;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
-import com.leanplum.messagetemplates.MessageTemplates.Values;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
 /**
  * Options used by {@link WebInterstitial}.

@@ -29,6 +29,8 @@ import android.util.Log;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 import com.leanplum.utils.SizeUtil;
 
 import org.json.JSONException;
@@ -62,17 +64,16 @@ class HTMLOptions {
   HTMLOptions(ActionContext context) {
     this.setActionContext(context);
     this.setHtmlTemplate(getTemplate(context));
-    this.setCloseUrl(context.stringNamed(MessageTemplates.Args.CLOSE_URL));
-    this.setOpenUrl(context.stringNamed(MessageTemplates.Args.OPEN_URL));
-    this.setTrackUrl(context.stringNamed(MessageTemplates.Args.TRACK_URL));
-    this.setActionUrl(context.stringNamed(MessageTemplates.Args.ACTION_URL));
-    this.setTrackActionUrl(context.stringNamed(MessageTemplates.Args.TRACK_ACTION_URL));
-    this.setHtmlAlign(context.stringNamed(MessageTemplates.Args.HTML_ALIGN));
-    this.setHtmlHeight(context.numberNamed(MessageTemplates.Args.HTML_HEIGHT).intValue());
-    this.setHtmlWidth(context.stringNamed(MessageTemplates.Args.HTML_WIDTH));
-    this.setHtmlYOffset(context.stringNamed(MessageTemplates.Args.HTML_Y_OFFSET));
-    this.setHtmlTabOutsideToClose(context.booleanNamed(
-        MessageTemplates.Args.HTML_TAP_OUTSIDE_TO_CLOSE));
+    this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));
+    this.setOpenUrl(context.stringNamed(Args.OPEN_URL));
+    this.setTrackUrl(context.stringNamed(Args.TRACK_URL));
+    this.setActionUrl(context.stringNamed(Args.ACTION_URL));
+    this.setTrackActionUrl(context.stringNamed(Args.TRACK_ACTION_URL));
+    this.setHtmlAlign(context.stringNamed(Args.HTML_ALIGN));
+    this.setHtmlHeight(context.numberNamed(Args.HTML_HEIGHT).intValue());
+    this.setHtmlWidth(context.stringNamed(Args.HTML_WIDTH));
+    this.setHtmlYOffset(context.stringNamed(Args.HTML_Y_OFFSET));
+    this.setHtmlTabOutsideToClose(context.booleanNamed(Args.HTML_TAP_OUTSIDE_TO_CLOSE));
   }
 
   /**
@@ -135,7 +136,7 @@ class HTMLOptions {
         @SuppressWarnings("unchecked")
         Map<String, Object> mapValue = (Map<String, Object>) map.get(key);
         replaceFileToLocalPath(mapValue, htmlTemplateName);
-      } else if (key.contains(MessageTemplates.Values.FILE_PREFIX) &&
+      } else if (key.contains(Values.FILE_PREFIX) &&
           !key.equals(htmlTemplateName)) {
         String filePath = ActionContext.filePath((String) map.get(key));
         if (filePath == null) {
@@ -144,7 +145,7 @@ class HTMLOptions {
         File f = new File(filePath);
         String localPath = "file://" + f.getAbsolutePath();
         if (localPath.contains(Leanplum.getContext().getPackageName())) {
-          map.put(key.replace(MessageTemplates.Values.FILE_PREFIX, ""),
+          map.put(key.replace(Values.FILE_PREFIX, ""),
               localPath.replace(" ", "%20"));
         }
         map.remove(key);
@@ -164,9 +165,9 @@ class HTMLOptions {
       return null;
     }
 
-    String htmlTemplate = readFileAsString(context, MessageTemplates.Values.HTML_TEMPLATE_PREFIX);
+    String htmlTemplate = readFileAsString(context, Values.HTML_TEMPLATE_PREFIX);
     Map<String, Object> htmlArgs = replaceFileToLocalPath(context.getArgs(),
-        MessageTemplates.Values.HTML_TEMPLATE_PREFIX);
+        Values.HTML_TEMPLATE_PREFIX);
     if (htmlArgs == null || TextUtils.isEmpty(htmlTemplate)) {
       return null;
     }
@@ -274,7 +275,7 @@ class HTMLOptions {
   }
 
   boolean isHtmlAlignBottom() {
-    return MessageTemplates.Args.HTML_ALIGN_BOTTOM.equals(getHtmlAlign());
+    return Args.HTML_ALIGN_BOTTOM.equals(getHtmlAlign());
   }
 
   private void setHtmlAlign(String htmlAlign) {
@@ -340,14 +341,13 @@ class HTMLOptions {
 
   public static ActionArgs toArgs() {
     return new ActionArgs()
-        .with(MessageTemplates.Args.CLOSE_URL, MessageTemplates.Values.DEFAULT_CLOSE_URL)
-        .with(MessageTemplates.Args.OPEN_URL, MessageTemplates.Values.DEFAULT_OPEN_URL)
-        .with(MessageTemplates.Args.ACTION_URL, MessageTemplates.Values.DEFAULT_ACTION_URL)
-        .with(MessageTemplates.Args.TRACK_ACTION_URL,
-            MessageTemplates.Values.DEFAULT_TRACK_ACTION_URL)
-        .with(MessageTemplates.Args.TRACK_URL, MessageTemplates.Values.DEFAULT_TRACK_URL)
-        .with(MessageTemplates.Args.HTML_ALIGN, MessageTemplates.Values.DEFAULT_HTML_ALING)
-        .with(MessageTemplates.Args.HTML_HEIGHT, MessageTemplates.Values.DEFAULT_HTML_HEIGHT);
+        .with(Args.CLOSE_URL, Values.DEFAULT_CLOSE_URL)
+        .with(Args.OPEN_URL, Values.DEFAULT_OPEN_URL)
+        .with(Args.ACTION_URL, Values.DEFAULT_ACTION_URL)
+        .with(Args.TRACK_ACTION_URL, Values.DEFAULT_TRACK_ACTION_URL)
+        .with(Args.TRACK_URL, Values.DEFAULT_TRACK_URL)
+        .with(Args.HTML_ALIGN, Values.DEFAULT_HTML_ALING)
+        .with(Args.HTML_HEIGHT, Values.DEFAULT_HTML_HEIGHT);
   }
 
   static class Size {
