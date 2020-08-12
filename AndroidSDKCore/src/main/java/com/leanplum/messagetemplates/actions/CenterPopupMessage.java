@@ -19,38 +19,29 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates.controllers;
+package com.leanplum.messagetemplates.actions;
 
 import android.app.Activity;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.RelativeLayout;
-import com.leanplum.messagetemplates.options.InterstitialOptions;
+import android.content.Context;
+import com.leanplum.ActionArgs;
+import com.leanplum.ActionContext;
+import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
+import com.leanplum.messagetemplates.options.CenterPopupOptions;
 
-/**
- * Registers a Leanplum action that displays a fullscreen interstitial.
- *
- * @author Andrew First
- */
-public class InterstitialController extends AbstractPopupController {
-
-  public InterstitialController(Activity activity, InterstitialOptions options) {
-    super(activity, options);
+public class CenterPopupMessage {
+  public static ActionArgs createActionArgs(Context context) {
+    return CenterPopupOptions.toArgs(context);
   }
 
-  @Override
-  boolean isFullscreen() {
-    return true;
-  }
+  public static void showMessage(ActionContext context) {
+    Activity activity = LeanplumActivityHelper.getCurrentActivity();
+    if (activity == null || activity.isFinishing()) {
+      return;
+    }
 
-  @Override
-  void applyWindowDecoration() {
-    // no implementation
-  }
-
-  @Override
-  protected RelativeLayout.LayoutParams createLayoutParams() {
-    return new RelativeLayout.LayoutParams(
-        LayoutParams.MATCH_PARENT,
-        LayoutParams.MATCH_PARENT);
+    CenterPopupOptions options = new CenterPopupOptions(context);
+    CenterPopupController popup = new CenterPopupController(activity, options);
+    popup.show();
   }
 }

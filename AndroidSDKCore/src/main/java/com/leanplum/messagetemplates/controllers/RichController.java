@@ -41,11 +41,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
-import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.internal.Log;
 import com.leanplum.messagetemplates.options.RichOptions;
 import com.leanplum.utils.SizeUtil;
 import java.io.UnsupportedEncodingException;
@@ -58,7 +55,6 @@ import org.json.JSONObject;
  *
  * @author Anna Orlova
  */
-@SuppressWarnings("WeakerAccess")
 public class RichController extends BaseController {
   private WebView webView;
   private @NonNull
@@ -414,28 +410,5 @@ public class RichController extends BaseController {
   @NonNull
   public RichOptions getRichOptions() {
     return richOptions;
-  }
-
-  public static ActionArgs createActionArgs(Context context) {
-    return RichOptions.toArgs();
-  }
-
-  public static void showMessage(ActionContext context) {
-    Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing())
-      return;
-
-    try {
-      RichOptions richOptions = new RichOptions(context);
-      if (richOptions.getHtmlTemplate() == null) {
-        return;
-      }
-
-      // Message is shown after html is rendered. Check handleOpenEvent(url) method.
-      new RichController(activity, richOptions);
-
-    } catch (Throwable t) {
-      Log.e("Fail on show HTML In-App message: %s", t.getMessage());
-    }
   }
 }

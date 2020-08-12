@@ -30,12 +30,12 @@ import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.messagetemplates.actions.AlertMessage;
-import com.leanplum.messagetemplates.controllers.CenterPopupController;
+import com.leanplum.messagetemplates.actions.CenterPopupMessage;
+import com.leanplum.messagetemplates.actions.InterstitialMessage;
+import com.leanplum.messagetemplates.actions.RichMessage;
+import com.leanplum.messagetemplates.actions.WebInterstitialMessage;
 import com.leanplum.messagetemplates.actions.ConfirmMessage;
-import com.leanplum.messagetemplates.controllers.InterstitialController;
 import com.leanplum.messagetemplates.actions.OpenUrlAction;
-import com.leanplum.messagetemplates.controllers.RichController;
-import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 
 /**
  * Registers all of the built-in message templates.
@@ -157,26 +157,26 @@ public class MessageTemplates {
 
     defineActionWaitVarsAndFiles(
         CENTER_POPUP,
-        CenterPopupController::createActionArgs,
-        CenterPopupController::showMessage,
+        CenterPopupMessage::createActionArgs,
+        CenterPopupMessage::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         INTERSTITIAL,
-        InterstitialController::createActionArgs,
-        InterstitialController::showMessage,
+        InterstitialMessage::createActionArgs,
+        InterstitialMessage::showMessage,
         context);
 
     defineAction(
         WEB_INTERSTITIAL,
-        WebInterstitialController::createActionArgs,
-        WebInterstitialController::showMessage,
+        WebInterstitialMessage::createActionArgs,
+        WebInterstitialMessage::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         HTML,
-        RichController::createActionArgs,
-        RichController::showMessage,
+        RichMessage::createActionArgs,
+        RichMessage::showMessage,
         context);
   }
 }

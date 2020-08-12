@@ -31,10 +31,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
-import com.leanplum.ActionArgs;
-import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 
 /**
@@ -140,20 +137,5 @@ public class WebInterstitialController extends BaseController {
   @NonNull
   public WebInterstitialOptions getWebOptions() {
     return webOptions;
-  }
-
-  public static ActionArgs createActionArgs(Context context) {
-    return WebInterstitialOptions.toArgs();
-  }
-
-  public static void showMessage(ActionContext context) {
-    Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing()) {
-      return;
-    }
-
-    WebInterstitialOptions options = new WebInterstitialOptions(context);
-    WebInterstitialController webInterstitial = new WebInterstitialController(activity, options);
-    webInterstitial.show();
   }
 }

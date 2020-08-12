@@ -22,15 +22,11 @@
 package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Point;
 import android.os.Build;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
-import com.leanplum.ActionArgs;
-import com.leanplum.ActionContext;
-import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
 import com.leanplum.utils.SizeUtil;
 
@@ -41,7 +37,7 @@ import com.leanplum.utils.SizeUtil;
  */
 public class CenterPopupController extends AbstractPopupController {
 
-  CenterPopupController(Activity activity, CenterPopupOptions options) {
+  public CenterPopupController(Activity activity, CenterPopupOptions options) {
     super(activity, options);
   }
 
@@ -86,20 +82,5 @@ public class CenterPopupController extends AbstractPopupController {
     layoutParams = new RelativeLayout.LayoutParams(width, height);
     layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
     return layoutParams;
-  }
-
-  public static ActionArgs createActionArgs(Context context) {
-    return CenterPopupOptions.toArgs(context);
-  }
-
-  public static void showMessage(ActionContext context) {
-    Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing()) {
-      return;
-    }
-
-    CenterPopupOptions options = new CenterPopupOptions(context);
-    CenterPopupController popup = new CenterPopupController(activity, options);
-    popup.show();
   }
 }
