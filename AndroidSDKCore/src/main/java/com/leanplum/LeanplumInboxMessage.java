@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -171,15 +171,15 @@ public class LeanplumInboxMessage {
   }
 
   /**
-   * Read the inbox message, marking it as read and invoking its open action.
+   * Mark the inbox message as read without invoking its open action.
    */
-  public void read() {
+  public void markAsRead() {
     try {
       if (Constants.isNoop()) {
         return;
       }
 
-      if (!this.isRead) {
+      if (!isRead) {
         setIsRead(true);
 
         int unreadCount = LeanplumInbox.getInstance().unreadCount() - 1;
@@ -191,7 +191,23 @@ public class LeanplumInboxMessage {
             .create();
         RequestSender.getInstance().send(req);
       }
-      this.context.runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
+    } catch (Throwable t) {
+      Log.exception(t);
+    }
+  }
+
+  /**
+   * Read the inbox message, marking it as read and invoking its open action.
+   */
+  public void read() {
+    try {
+      if (Constants.isNoop()) {
+        return;
+      }
+
+      markAsRead();
+
+      getContext().runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
     } catch (Throwable t) {
       Log.exception(t);
     }
