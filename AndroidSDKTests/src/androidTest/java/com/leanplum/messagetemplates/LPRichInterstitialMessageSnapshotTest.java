@@ -11,7 +11,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 import com.leanplum.messagetemplates.controllers.RichController;
-import com.leanplum.messagetemplates.controllers.RichOptions;
+import com.leanplum.messagetemplates.options.RichOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -97,6 +97,6 @@ public class LPRichInterstitialMessageSnapshotTest extends BaseSnapshotTest {
 
     RichOptions options = new RichOptions(mockedContext);
     RichController htmlTemplate = new RichController(getMainActivity(), options);
-    return htmlTemplate.contentView;
+    return htmlTemplate.getContentView();
   }
 }
