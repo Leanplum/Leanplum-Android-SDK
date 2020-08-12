@@ -31,7 +31,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.RichMessage;
+import com.leanplum.messagetemplates.controllers.RichController;
 import com.leanplum.utils.SizeUtil;
 
 import org.json.JSONException;
@@ -44,7 +44,7 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
- * Options used by {@link RichMessage}.
+ * Options used by {@link RichController}.
  *
  * @author Anna Orlova
  */

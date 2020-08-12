@@ -59,12 +59,12 @@ import org.json.JSONObject;
  * @author Anna Orlova
  */
 @SuppressWarnings("WeakerAccess")
-public class RichMessage extends BaseMessage {
+public class RichController extends BaseController {
   private WebView webView;
   private @NonNull
   RichOptions richOptions;
 
-  public RichMessage(Activity activity, @NonNull RichOptions richOptions) {
+  public RichController(Activity activity, @NonNull RichOptions richOptions) {
     super(activity);
     this.richOptions = richOptions;
 
@@ -432,7 +432,7 @@ public class RichMessage extends BaseMessage {
       }
 
       // Message is shown after html is rendered. Check handleOpenEvent(url) method.
-      new RichMessage(activity, richOptions);
+      new RichController(activity, richOptions);
 
     } catch (Throwable t) {
       Log.e("Fail on show HTML In-App message: %s", t.getMessage());

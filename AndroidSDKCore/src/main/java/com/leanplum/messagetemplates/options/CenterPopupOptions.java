@@ -27,10 +27,10 @@ import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.messagetemplates.MessageTemplateConstants;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
-import com.leanplum.messagetemplates.controllers.CenterPopupMessage;
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
 
 /**
- * Options used by {@link CenterPopupMessage}.
+ * Options used by {@link CenterPopupController}.
  *
  * @author Martin Yanakiev
  */

@@ -25,10 +25,10 @@ import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 
 /**
- * Options used by {@link WebInterstitialMessage}.
+ * Options used by {@link WebInterstitialController}.
  *
  * @author Atanas Dobrev
  */

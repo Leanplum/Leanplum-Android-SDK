@@ -10,7 +10,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class LPWebInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.booleanNamed(Args.HAS_DISMISS_BUTTON)).thenReturn(Values.DEFAULT_HAS_DISMISS_BUTTON);
 
     WebInterstitialOptions options = new WebInterstitialOptions(mockedContext);
-    WebInterstitialMessage webInterstitial = new WebInterstitialMessage(getMainActivity(), options);
+    WebInterstitialController webInterstitial = new WebInterstitialController(getMainActivity(), options);
     return webInterstitial.contentView;
   }
 }

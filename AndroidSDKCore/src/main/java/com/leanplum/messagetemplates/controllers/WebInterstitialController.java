@@ -42,10 +42,10 @@ import com.leanplum.messagetemplates.options.WebInterstitialOptions;
  *
  * @author Atanas Dobrev
  */
-public class WebInterstitialMessage extends BaseMessage {
+public class WebInterstitialController extends BaseController {
   private @NonNull WebInterstitialOptions webOptions;
 
-  public WebInterstitialMessage(Activity activity, @NonNull WebInterstitialOptions options) {
+  public WebInterstitialController(Activity activity, @NonNull WebInterstitialOptions options) {
     super(activity);
     this.webOptions = options;
 
@@ -153,7 +153,7 @@ public class WebInterstitialMessage extends BaseMessage {
     }
 
     WebInterstitialOptions options = new WebInterstitialOptions(context);
-    WebInterstitialMessage webInterstitial = new WebInterstitialMessage(activity, options);
+    WebInterstitialController webInterstitial = new WebInterstitialController(activity, options);
     webInterstitial.show();
   }
 }

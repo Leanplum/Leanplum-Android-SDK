@@ -39,13 +39,13 @@ import com.leanplum.views.ViewUtils;
  *
  * @author Martin Yanakiev, Anna Orlova
  */
-abstract class BaseMessage extends Dialog {
+abstract class BaseController extends Dialog {
   protected RelativeLayout contentView;
   protected Activity activity;
 
   protected boolean isClosing = false;
 
-  protected BaseMessage(Activity activity) {
+  protected BaseController(Activity activity) {
     super(activity, ViewUtils.getThemeId(activity));
     this.activity = activity;
     SizeUtil.init(activity);

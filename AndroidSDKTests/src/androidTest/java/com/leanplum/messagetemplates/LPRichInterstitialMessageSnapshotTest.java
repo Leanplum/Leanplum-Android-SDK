@@ -10,7 +10,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.RichMessage;
+import com.leanplum.messagetemplates.controllers.RichController;
 import com.leanplum.messagetemplates.controllers.RichOptions;
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,7 +96,7 @@ public class LPRichInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.streamNamed(Mockito.anyString())).thenReturn(templateStream);
 
     RichOptions options = new RichOptions(mockedContext);
-    RichMessage htmlTemplate = new RichMessage(getMainActivity(), options);
+    RichController htmlTemplate = new RichController(getMainActivity(), options);
     return htmlTemplate.contentView;
   }
 }

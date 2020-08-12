@@ -10,7 +10,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.CenterPopupMessage;
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class LPCenterPopupMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.numberNamed(Args.LAYOUT_HEIGHT)).thenReturn(Values.CENTER_POPUP_HEIGHT);
 
     CenterPopupOptions options = new CenterPopupOptions(mockedContext);
-    CenterPopupMessage centerpopup = new CenterPopupMessage(mainActivity, options);
+    CenterPopupController centerpopup = new CenterPopupController(mainActivity, options);
 
     setupView(centerpopup.contentView);
     snapshotView(centerpopup.contentView);

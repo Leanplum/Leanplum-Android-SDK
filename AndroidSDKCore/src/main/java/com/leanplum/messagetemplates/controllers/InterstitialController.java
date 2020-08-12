@@ -35,9 +35,9 @@ import com.leanplum.messagetemplates.options.InterstitialOptions;
  *
  * @author Andrew First
  */
-public class InterstitialMessage extends AbstractPopupMessage {
+public class InterstitialController extends AbstractPopupController {
 
-  public InterstitialMessage(Activity activity, InterstitialOptions options) {
+  public InterstitialController(Activity activity, InterstitialOptions options) {
     super(activity, options);
   }
 
@@ -69,7 +69,7 @@ public class InterstitialMessage extends AbstractPopupMessage {
     }
 
     InterstitialOptions options = new InterstitialOptions(context);
-    InterstitialMessage interstitial = new InterstitialMessage(activity, options);
+    InterstitialController interstitial = new InterstitialController(activity, options);
     interstitial.show();
   }
 }

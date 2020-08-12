@@ -26,10 +26,10 @@ import android.content.Context;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.messagetemplates.MessageTemplateConstants;
-import com.leanplum.messagetemplates.controllers.InterstitialMessage;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
 
 /**
- * Options used by {@link InterstitialMessage}.
+ * Options used by {@link InterstitialController}.
  *
  * @author Martin Yanakiev
  */

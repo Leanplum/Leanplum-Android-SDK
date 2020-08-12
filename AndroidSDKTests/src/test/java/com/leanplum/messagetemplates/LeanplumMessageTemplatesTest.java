@@ -27,13 +27,13 @@ import com.leanplum.activities.LeanplumTestActivity;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
-import com.leanplum.messagetemplates.controllers.CenterPopupMessage;
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
-import com.leanplum.messagetemplates.controllers.InterstitialMessage;
 import com.leanplum.messagetemplates.options.InterstitialOptions;
-import com.leanplum.messagetemplates.controllers.RichMessage;
+import com.leanplum.messagetemplates.controllers.RichController;
 import com.leanplum.messagetemplates.controllers.RichOptions;
-import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
 import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -80,7 +80,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     CenterPopupOptions options = new CenterPopupOptions(actionContext);
-    CenterPopupMessage centerpopup = new CenterPopupMessage(activity, options);
+    CenterPopupController centerpopup = new CenterPopupController(activity, options);
     assertNotNull(centerpopup);
     assertEquals(options, centerpopup.options);
   }
@@ -117,7 +117,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     RichOptions options = new RichOptions(actionContext);
-    RichMessage htmlTemplate = new RichMessage(activity, options);
+    RichController htmlTemplate = new RichController(activity, options);
     assertNotNull(htmlTemplate);
     assertEquals(options, htmlTemplate.getRichOptions());
   }
@@ -151,7 +151,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     InterstitialOptions options = new InterstitialOptions(actionContext);
-    InterstitialMessage interstitial = new InterstitialMessage(activity, options);
+    InterstitialController interstitial = new InterstitialController(activity, options);
     assertNotNull(interstitial);
     assertEquals(options, interstitial.options);
   }
@@ -187,7 +187,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     WebInterstitialOptions options = new WebInterstitialOptions(actionContext);
-    WebInterstitialMessage interstitial = new WebInterstitialMessage(activity, options);
+    WebInterstitialController interstitial = new WebInterstitialController(activity, options);
     assertNotNull(interstitial);
     assertEquals(options, interstitial.getWebOptions());
   }

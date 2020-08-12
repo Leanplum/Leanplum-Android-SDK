@@ -10,7 +10,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.InterstitialMessage;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
 import com.leanplum.messagetemplates.options.InterstitialOptions;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class LPInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.numberNamed(Args.ACCEPT_BUTTON_TEXT_COLOR)).thenReturn(Color.BLACK);
 
     InterstitialOptions options = new InterstitialOptions(mockedContext);
-    InterstitialMessage interstitial = new InterstitialMessage(mainActivity, options);
+    InterstitialController interstitial = new InterstitialController(mainActivity, options);
 
     setupView(interstitial.contentView);
     snapshotView(interstitial.contentView);

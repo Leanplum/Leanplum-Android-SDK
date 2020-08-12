@@ -30,12 +30,12 @@ import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.messagetemplates.controllers.AlertMessage;
-import com.leanplum.messagetemplates.controllers.CenterPopupMessage;
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
 import com.leanplum.messagetemplates.controllers.ConfirmMessage;
-import com.leanplum.messagetemplates.controllers.InterstitialMessage;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
 import com.leanplum.messagetemplates.controllers.OpenUrlAction;
-import com.leanplum.messagetemplates.controllers.RichMessage;
-import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
+import com.leanplum.messagetemplates.controllers.RichController;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 
 /**
  * Registers all of the built-in message templates.
@@ -157,26 +157,26 @@ public class MessageTemplates {
 
     defineActionWaitVarsAndFiles(
         CENTER_POPUP,
-        CenterPopupMessage::createActionArgs,
-        CenterPopupMessage::showMessage,
+        CenterPopupController::createActionArgs,
+        CenterPopupController::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         INTERSTITIAL,
-        InterstitialMessage::createActionArgs,
-        InterstitialMessage::showMessage,
+        InterstitialController::createActionArgs,
+        InterstitialController::showMessage,
         context);
 
     defineAction(
         WEB_INTERSTITIAL,
-        WebInterstitialMessage::createActionArgs,
-        WebInterstitialMessage::showMessage,
+        WebInterstitialController::createActionArgs,
+        WebInterstitialController::showMessage,
         context);
 
     defineActionWaitVarsAndFiles(
         HTML,
-        RichMessage::createActionArgs,
-        RichMessage::showMessage,
+        RichController::createActionArgs,
+        RichController::showMessage,
         context);
   }
 }
