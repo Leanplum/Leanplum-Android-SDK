@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -46,6 +46,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.internal.Log;
+import com.leanplum.messagetemplates.options.RichOptions;
 import com.leanplum.utils.SizeUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

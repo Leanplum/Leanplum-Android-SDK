@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.app.Dialog;

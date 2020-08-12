@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.options;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -41,7 +41,7 @@ import java.io.InputStream;
  *
  * @author Martin Yanakiev
  */
-abstract class BaseMessageOptions {
+public abstract class BaseMessageOptions {
   private ActionContext context;
   private String title;
   private int titleColor;

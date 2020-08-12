@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.content.Context;
@@ -31,6 +31,7 @@ import android.widget.RelativeLayout;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.messagetemplates.options.CenterPopupOptions;
 import com.leanplum.utils.SizeUtil;
 
 /**

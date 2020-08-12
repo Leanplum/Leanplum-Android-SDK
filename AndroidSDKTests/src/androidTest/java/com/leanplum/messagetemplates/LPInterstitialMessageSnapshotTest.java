@@ -10,6 +10,8 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.InterstitialMessage;
+import com.leanplum.messagetemplates.options.InterstitialOptions;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;

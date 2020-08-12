@@ -29,6 +29,13 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.messagetemplates.controllers.AlertMessage;
+import com.leanplum.messagetemplates.controllers.CenterPopupMessage;
+import com.leanplum.messagetemplates.controllers.ConfirmMessage;
+import com.leanplum.messagetemplates.controllers.InterstitialMessage;
+import com.leanplum.messagetemplates.controllers.OpenUrlAction;
+import com.leanplum.messagetemplates.controllers.RichMessage;
+import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
 
 /**
  * Registers all of the built-in message templates.

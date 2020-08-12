@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.options;
 
 import android.app.Activity;
 import android.graphics.Point;
@@ -31,6 +31,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.RichMessage;
 import com.leanplum.utils.SizeUtil;
 
 import org.json.JSONException;
@@ -47,7 +48,7 @@ import java.util.Map;
  *
  * @author Anna Orlova
  */
-class RichOptions {
+public class RichOptions {
   private String closeUrl;
   private String openUrl;
   private String trackUrl;
@@ -61,7 +62,7 @@ class RichOptions {
   private Size htmlYOffset;
   private boolean htmlTabOutsideToClose;
 
-  RichOptions(ActionContext context) {
+  public RichOptions(ActionContext context) {
     this.setActionContext(context);
     this.setHtmlTemplate(getTemplate(context));
     this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));
@@ -196,16 +197,16 @@ class RichOptions {
   /**
    * @return boolean True if it's full screen template.
    */
-  boolean isFullScreen() {
+  public boolean isFullScreen() {
     return htmlHeight == 0;
   }
 
-  int getHtmlHeight() {
+  public int getHtmlHeight() {
     return htmlHeight;
   }
 
   // Gets html width.
-  Size getHtmlWidth() {
+  public Size getHtmlWidth() {
     return htmlWidth;
   }
 
@@ -214,7 +215,7 @@ class RichOptions {
   }
 
   //Gets html y offset in pixels.
-  int getHtmlYOffset(Activity context) {
+  public int getHtmlYOffset(Activity context) {
     int yOffset = 0;
     if (context == null) {
       return yOffset;
@@ -258,7 +259,7 @@ class RichOptions {
     return out;
   }
 
-  boolean isHtmlTabOutsideToClose() {
+  public boolean isHtmlTabOutsideToClose() {
     return htmlTabOutsideToClose;
   }
 
@@ -270,11 +271,11 @@ class RichOptions {
     this.htmlHeight = htmlHeight;
   }
 
-  String getHtmlAlign() {
+  public String getHtmlAlign() {
     return htmlAlign;
   }
 
-  boolean isHtmlAlignBottom() {
+  public boolean isHtmlAlignBottom() {
     return Args.HTML_ALIGN_BOTTOM.equals(getHtmlAlign());
   }
 
@@ -282,7 +283,7 @@ class RichOptions {
     this.htmlAlign = htmlAlign;
   }
 
-  ActionContext getActionContext() {
+  public ActionContext getActionContext() {
     return actionContext;
   }
 
@@ -291,7 +292,7 @@ class RichOptions {
     this.actionContext = actionContext;
   }
 
-  String getHtmlTemplate() {
+  public String getHtmlTemplate() {
     return htmlTemplate;
   }
 
@@ -299,7 +300,7 @@ class RichOptions {
     this.htmlTemplate = htmlTemplate;
   }
 
-  String getTrackActionUrl() {
+  public String getTrackActionUrl() {
     return trackActionUrl;
   }
 
@@ -307,7 +308,7 @@ class RichOptions {
     this.trackActionUrl = trackActionUrl;
   }
 
-  String getTrackUrl() {
+  public String getTrackUrl() {
     return trackUrl;
   }
 
@@ -315,7 +316,7 @@ class RichOptions {
     this.trackUrl = trackUrl;
   }
 
-  String getOpenUrl() {
+  public String getOpenUrl() {
     return openUrl;
   }
 
@@ -323,7 +324,7 @@ class RichOptions {
     this.openUrl = openUrl;
   }
 
-  String getActionUrl() {
+  public String getActionUrl() {
     return actionUrl;
   }
 
@@ -331,7 +332,7 @@ class RichOptions {
     this.actionUrl = actionUrl;
   }
 
-  String getCloseUrl() {
+  public String getCloseUrl() {
     return closeUrl;
   }
 
@@ -350,9 +351,9 @@ class RichOptions {
         .with(Args.HTML_HEIGHT, Values.DEFAULT_HTML_HEIGHT);
   }
 
-  static class Size {
-    int value;
-    String type;
+  public static class Size {
+    public int value;
+    public String type;
   }
 
   /**

@@ -19,50 +19,57 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-
+import android.view.ViewGroup.LayoutParams;
+import android.widget.RelativeLayout;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.internal.Util;
-import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
-import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.options.InterstitialOptions;
 
 /**
- * Registers a Leanplum action that displays a system confirm dialog.
+ * Registers a Leanplum action that displays a fullscreen interstitial.
  *
  * @author Andrew First
  */
-class ConfirmMessage {
+public class InterstitialMessage extends AbstractPopupMessage {
+
+  public InterstitialMessage(Activity activity, InterstitialOptions options) {
+    super(activity, options);
+  }
+
+  @Override
+  boolean isFullscreen() {
+    return true;
+  }
+
+  @Override
+  void applyWindowDecoration() {
+    // no implementation
+  }
+
+  @Override
+  protected RelativeLayout.LayoutParams createLayoutParams() {
+    return new RelativeLayout.LayoutParams(
+        LayoutParams.MATCH_PARENT,
+        LayoutParams.MATCH_PARENT);
+  }
 
   public static ActionArgs createActionArgs(Context context) {
-    return new ActionArgs()
-        .with(Args.TITLE, Util.getApplicationName(context))
-        .with(Args.MESSAGE, Values.CONFIRM_MESSAGE)
-        .with(Args.ACCEPT_TEXT, Values.YES_TEXT)
-        .with(Args.CANCEL_TEXT, Values.NO_TEXT)
-        .withAction(Args.ACCEPT_ACTION, null)
-        .withAction(Args.CANCEL_ACTION, null);
+    return InterstitialOptions.toArgs(context);
   }
 
   public static void showMessage(ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing())
+    if (activity == null || activity.isFinishing()) {
       return;
+    }
 
-    new AlertDialog.Builder(activity)
-        .setTitle(context.stringNamed(Args.TITLE))
-        .setMessage(context.stringNamed(Args.MESSAGE))
-        .setCancelable(false)
-        .setPositiveButton(context.stringNamed(Args.ACCEPT_TEXT),
-            (dialog, id) -> context.runTrackedActionNamed(Args.ACCEPT_ACTION))
-        .setNegativeButton(context.stringNamed(Args.CANCEL_TEXT),
-            (dialog, id) -> context.runActionNamed(Args.CANCEL_ACTION))
-        .create()
-        .show();
+    InterstitialOptions options = new InterstitialOptions(context);
+    InterstitialMessage interstitial = new InterstitialMessage(activity, options);
+    interstitial.show();
   }
 }

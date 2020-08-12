@@ -27,6 +27,14 @@ import com.leanplum.activities.LeanplumTestActivity;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
+import com.leanplum.messagetemplates.controllers.CenterPopupMessage;
+import com.leanplum.messagetemplates.options.CenterPopupOptions;
+import com.leanplum.messagetemplates.controllers.InterstitialMessage;
+import com.leanplum.messagetemplates.options.InterstitialOptions;
+import com.leanplum.messagetemplates.controllers.RichMessage;
+import com.leanplum.messagetemplates.controllers.RichOptions;
+import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
+import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;

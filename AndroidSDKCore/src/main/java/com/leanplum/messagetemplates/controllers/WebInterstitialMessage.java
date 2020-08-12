@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -35,6 +35,7 @@ import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 
 /**
  * Registers a Leanplum action that displays a fullscreen Web Interstitial.

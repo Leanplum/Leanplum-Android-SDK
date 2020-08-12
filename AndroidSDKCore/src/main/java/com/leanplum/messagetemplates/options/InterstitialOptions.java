@@ -19,12 +19,14 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.options;
 
 import android.content.Context;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
+import com.leanplum.messagetemplates.MessageTemplateConstants;
+import com.leanplum.messagetemplates.controllers.InterstitialMessage;
 
 /**
  * Options used by {@link InterstitialMessage}.

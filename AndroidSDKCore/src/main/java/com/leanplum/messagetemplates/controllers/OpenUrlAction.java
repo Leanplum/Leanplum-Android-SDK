@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -44,7 +44,7 @@ import java.util.List;
  *
  * @author Andrew First
  */
-class OpenUrlAction {
+public class OpenUrlAction {
 
   private static void openUriIntent(Context context, Intent uriIntent) {
     List<ResolveInfo> resolveInfoList =

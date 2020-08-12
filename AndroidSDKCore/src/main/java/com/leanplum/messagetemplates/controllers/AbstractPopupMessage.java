@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.content.Context;
@@ -32,6 +32,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.leanplum.core.R;
+import com.leanplum.messagetemplates.options.BaseMessageOptions;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;

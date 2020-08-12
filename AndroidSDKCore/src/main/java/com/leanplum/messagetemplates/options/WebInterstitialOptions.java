@@ -19,25 +19,25 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.options;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.WebInterstitialMessage;
 
 /**
  * Options used by {@link WebInterstitialMessage}.
  *
  * @author Atanas Dobrev
  */
-@SuppressWarnings("WeakerAccess")
 public class WebInterstitialOptions {
   private String url;
   private String closeUrl;
   private boolean hasDismissButton;
 
-  protected WebInterstitialOptions(ActionContext context) {
+  public WebInterstitialOptions(ActionContext context) {
     this.setUrl(context.stringNamed(Args.URL));
     this.setHasDismissButton(context.booleanNamed(Args.HAS_DISMISS_BUTTON));
     this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));
