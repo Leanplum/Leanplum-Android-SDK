@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates.controllers;
+package com.leanplum.messagetemplates.actions;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;

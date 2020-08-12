@@ -29,11 +29,11 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
-import com.leanplum.messagetemplates.controllers.AlertMessage;
+import com.leanplum.messagetemplates.actions.AlertMessage;
 import com.leanplum.messagetemplates.controllers.CenterPopupController;
-import com.leanplum.messagetemplates.controllers.ConfirmMessage;
+import com.leanplum.messagetemplates.actions.ConfirmMessage;
 import com.leanplum.messagetemplates.controllers.InterstitialController;
-import com.leanplum.messagetemplates.controllers.OpenUrlAction;
+import com.leanplum.messagetemplates.actions.OpenUrlAction;
 import com.leanplum.messagetemplates.controllers.RichController;
 import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 
