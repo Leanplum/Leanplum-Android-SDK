@@ -59,7 +59,7 @@ public class LPCenterPopupMessageSnapshotTest extends BaseSnapshotTest {
     CenterPopupOptions options = new CenterPopupOptions(mockedContext);
     CenterPopupController centerpopup = new CenterPopupController(mainActivity, options);
 
-    setupView(centerpopup.contentView);
-    snapshotView(centerpopup.contentView);
+    setupView(centerpopup.getContentView());
+    snapshotView(centerpopup.getContentView());
   }
 }

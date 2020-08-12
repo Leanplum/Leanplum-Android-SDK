@@ -33,7 +33,7 @@ import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
 import com.leanplum.messagetemplates.options.InterstitialOptions;
 import com.leanplum.messagetemplates.controllers.RichController;
-import com.leanplum.messagetemplates.controllers.RichOptions;
+import com.leanplum.messagetemplates.options.RichOptions;
 import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -82,7 +82,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     CenterPopupOptions options = new CenterPopupOptions(actionContext);
     CenterPopupController centerpopup = new CenterPopupController(activity, options);
     assertNotNull(centerpopup);
-    assertEquals(options, centerpopup.options);
+    assertEquals(options, centerpopup.getOptions());
   }
 
   @Test
@@ -153,7 +153,7 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     InterstitialOptions options = new InterstitialOptions(actionContext);
     InterstitialController interstitial = new InterstitialController(activity, options);
     assertNotNull(interstitial);
-    assertEquals(options, interstitial.options);
+    assertEquals(options, interstitial.getOptions());
   }
 
   @Test

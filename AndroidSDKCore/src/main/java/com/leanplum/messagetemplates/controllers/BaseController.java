@@ -29,6 +29,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.core.R;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.CloseButton;
@@ -156,4 +157,8 @@ abstract class BaseController extends Dialog {
     return closeButton;
   }
 
+  @VisibleForTesting
+  public View getContentView() {
+    return contentView;
+  }
 }

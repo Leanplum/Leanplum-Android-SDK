@@ -31,6 +31,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.core.R;
 import com.leanplum.messagetemplates.options.BaseMessageOptions;
 import com.leanplum.utils.BitmapUtil;
@@ -54,6 +55,11 @@ abstract class AbstractPopupController extends BaseController {
   @Override
   protected boolean hasDismissButton() {
     return true;
+  }
+
+  @VisibleForTesting
+  public BaseMessageOptions getOptions() {
+    return options;
   }
 
   @Override
