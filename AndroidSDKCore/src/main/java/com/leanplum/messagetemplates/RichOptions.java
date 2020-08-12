@@ -363,7 +363,7 @@ class RichOptions {
    * in its container window
    */
   public boolean isBannerWithTapOutsideFalse() {
-    String templateName = getActionContext().getArgs().get("__file__Template").toString();
+    String templateName = getActionContext().getArgs().get(Values.HTML_TEMPLATE_PREFIX).toString();
     return templateName.toLowerCase().contains("banner") && !isHtmlTabOutsideToClose();
   }
 }
