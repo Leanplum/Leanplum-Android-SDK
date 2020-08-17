@@ -231,7 +231,6 @@ public class Constants {
     public static final String CHAIN_MESSAGE_ACTION_NAME = "Chain to Existing Message";
     public static final String DEFAULT_PUSH_MESSAGE = "Push message goes here.";
     public static final String SDK_LOG = "sdkLog";
-    public static final String SDK_ERROR = "sdkError";
     public static final String SDK_COUNT = "sdkCount";
     public static final String FILE_PREFIX = "__file__";
   }

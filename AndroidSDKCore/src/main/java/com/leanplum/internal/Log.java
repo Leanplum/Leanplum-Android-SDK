@@ -96,13 +96,14 @@ public class Log {
 
       StringWriter stringWriter = new StringWriter();
       PrintWriter writer = new PrintWriter(stringWriter);
+      writer.println(message);
+
       throwable.printStackTrace(writer);
 
       Request request = RequestBuilder.withLogAction()
-          .andParam(Constants.Params.TYPE, Constants.Values.SDK_ERROR)
+          .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
           .andParam(Constants.Params.VERSION_NAME, versionName)
-          .andParam(Constants.Params.STACK_TRACE, writer.toString())
-          .andParam(Constants.Params.MESSAGE, message)
+          .andParam(Constants.Params.MESSAGE, writer.toString())
           .create();
       RequestSender.getInstance().send(request);
     } catch (Throwable t2) {
