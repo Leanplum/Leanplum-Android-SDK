@@ -32,8 +32,8 @@ import com.leanplum.messagetemplates.controllers.InterstitialController;
 import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
 import com.leanplum.messagetemplates.options.InterstitialOptions;
-import com.leanplum.messagetemplates.controllers.RichController;
-import com.leanplum.messagetemplates.options.RichOptions;
+import com.leanplum.messagetemplates.controllers.RichHtmlController;
+import com.leanplum.messagetemplates.options.RichHtmlOptions;
 import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -50,7 +50,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 /**
  * @author Milos Jakovljevic
  */
-@PrepareForTest({MessageTemplates.class, RichOptions.class})
+@PrepareForTest({MessageTemplates.class, RichHtmlOptions.class})
 public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Override
@@ -87,8 +87,8 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Test
   public void testHTML() throws Exception {
-    spy(RichOptions.class);
-    PowerMockito.doReturn("<body></body>").when(RichOptions.class, "getTemplate", anyObject());
+    spy(RichHtmlOptions.class);
+    PowerMockito.doReturn("<body></body>").when(RichHtmlOptions.class, "getTemplate", anyObject());
 
     LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
         create().start().resume().visible().get();
@@ -116,8 +116,8 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     map.put(Values.HTML_TEMPLATE_PREFIX, "file");
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
-    RichOptions options = new RichOptions(actionContext);
-    RichController htmlTemplate = new RichController(activity, options);
+    RichHtmlOptions options = new RichHtmlOptions(actionContext);
+    RichHtmlController htmlTemplate = new RichHtmlController(activity, options);
     assertNotNull(htmlTemplate);
     assertEquals(options, htmlTemplate.getRichOptions());
   }

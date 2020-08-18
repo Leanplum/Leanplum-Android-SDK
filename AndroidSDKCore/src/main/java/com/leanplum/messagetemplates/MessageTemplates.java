@@ -32,7 +32,7 @@ import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.messagetemplates.actions.AlertMessage;
 import com.leanplum.messagetemplates.actions.CenterPopupMessage;
 import com.leanplum.messagetemplates.actions.InterstitialMessage;
-import com.leanplum.messagetemplates.actions.RichMessage;
+import com.leanplum.messagetemplates.actions.RichHtmlMessage;
 import com.leanplum.messagetemplates.actions.WebInterstitialMessage;
 import com.leanplum.messagetemplates.actions.ConfirmMessage;
 import com.leanplum.messagetemplates.actions.OpenUrlAction;
@@ -175,8 +175,8 @@ public class MessageTemplates {
 
     defineActionWaitVarsAndFiles(
         HTML,
-        RichMessage::createActionArgs,
-        RichMessage::showMessage,
+        RichHtmlMessage::createActionArgs,
+        RichHtmlMessage::showMessage,
         context);
   }
 }

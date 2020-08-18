@@ -31,7 +31,7 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
-import com.leanplum.messagetemplates.controllers.RichController;
+import com.leanplum.messagetemplates.controllers.RichHtmlController;
 import com.leanplum.utils.SizeUtil;
 
 import org.json.JSONException;
@@ -44,11 +44,11 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
- * Options used by {@link RichController}.
+ * Options used by {@link RichHtmlController}.
  *
  * @author Anna Orlova
  */
-public class RichOptions {
+public class RichHtmlOptions {
   private String closeUrl;
   private String openUrl;
   private String trackUrl;
@@ -62,7 +62,7 @@ public class RichOptions {
   private Size htmlYOffset;
   private boolean htmlTabOutsideToClose;
 
-  public RichOptions(ActionContext context) {
+  public RichHtmlOptions(ActionContext context) {
     this.setActionContext(context);
     this.setHtmlTemplate(getTemplate(context));
     this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));

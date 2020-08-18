@@ -27,12 +27,12 @@ import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.internal.Log;
-import com.leanplum.messagetemplates.controllers.RichController;
-import com.leanplum.messagetemplates.options.RichOptions;
+import com.leanplum.messagetemplates.controllers.RichHtmlController;
+import com.leanplum.messagetemplates.options.RichHtmlOptions;
 
-public class RichMessage {
+public class RichHtmlMessage {
   public static ActionArgs createActionArgs(Context context) {
-    return RichOptions.toArgs();
+    return RichHtmlOptions.toArgs();
   }
 
   public static void showMessage(ActionContext context) {
@@ -41,13 +41,13 @@ public class RichMessage {
       return;
 
     try {
-      RichOptions richOptions = new RichOptions(context);
+      RichHtmlOptions richOptions = new RichHtmlOptions(context);
       if (richOptions.getHtmlTemplate() == null) {
         return;
       }
 
       // Message is shown after html is rendered. Check handleOpenEvent(url) method.
-      new RichController(activity, richOptions);
+      new RichHtmlController(activity, richOptions);
 
     } catch (Throwable t) {
       Log.e("Fail on show HTML In-App message: %s", t.getMessage());

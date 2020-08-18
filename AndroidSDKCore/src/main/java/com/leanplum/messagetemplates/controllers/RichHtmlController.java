@@ -43,7 +43,7 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.messagetemplates.options.RichOptions;
+import com.leanplum.messagetemplates.options.RichHtmlOptions;
 import com.leanplum.utils.SizeUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -55,12 +55,12 @@ import org.json.JSONObject;
  *
  * @author Anna Orlova
  */
-public class RichController extends BaseController {
+public class RichHtmlController extends BaseController {
   private WebView webView;
   private @NonNull
-  RichOptions richOptions;
+  RichHtmlOptions richOptions;
 
-  public RichController(Activity activity, @NonNull RichOptions richOptions) {
+  public RichHtmlController(Activity activity, @NonNull RichHtmlOptions richOptions) {
     super(activity);
     this.richOptions = richOptions;
 
@@ -126,7 +126,7 @@ public class RichController extends BaseController {
           LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     } else {
       int height = SizeUtil.dpToPx(activity, richOptions.getHtmlHeight());
-      RichOptions.Size htmlWidth = richOptions.getHtmlWidth();
+      RichHtmlOptions.Size htmlWidth = richOptions.getHtmlWidth();
       if (htmlWidth == null || TextUtils.isEmpty(htmlWidth.type)) {
         layoutParams = new RelativeLayout.LayoutParams(
             LayoutParams.MATCH_PARENT, height);
@@ -408,7 +408,7 @@ public class RichController extends BaseController {
   }
 
   @NonNull
-  public RichOptions getRichOptions() {
+  public RichHtmlOptions getRichOptions() {
     return richOptions;
   }
 }
