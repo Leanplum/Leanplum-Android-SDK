@@ -19,27 +19,25 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
-
-import android.content.Context;
+package com.leanplum.messagetemplates.options;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
-import com.leanplum.messagetemplates.MessageTemplates.Values;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
 
 /**
- * Options used by {@link WebInterstitial}.
+ * Options used by {@link WebInterstitialController}.
  *
  * @author Atanas Dobrev
  */
-@SuppressWarnings("WeakerAccess")
 public class WebInterstitialOptions {
   private String url;
   private String closeUrl;
   private boolean hasDismissButton;
 
-  protected WebInterstitialOptions(ActionContext context) {
+  public WebInterstitialOptions(ActionContext context) {
     this.setUrl(context.stringNamed(Args.URL));
     this.setHasDismissButton(context.booleanNamed(Args.HAS_DISMISS_BUTTON));
     this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));

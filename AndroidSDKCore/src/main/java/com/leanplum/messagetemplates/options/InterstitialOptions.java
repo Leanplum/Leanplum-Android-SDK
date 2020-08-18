@@ -19,48 +19,29 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.options;
 
 import android.content.Context;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
 
 /**
- * Options used by {@link CenterPopup}.
+ * Options used by {@link InterstitialController}.
  *
  * @author Martin Yanakiev
  */
-public class CenterPopupOptions extends BaseMessageOptions {
-  private int width;
-  private int height;
-
-  public CenterPopupOptions(ActionContext context) {
+public class InterstitialOptions extends BaseMessageOptions {
+  public InterstitialOptions(ActionContext context) {
     super(context);
-    setWidth(context.numberNamed(Args.LAYOUT_WIDTH).intValue());
-    setHeight(context.numberNamed(Args.LAYOUT_HEIGHT).intValue());
-  }
-
-  public int getWidth() {
-    return width;
-  }
-
-  private void setWidth(int width) {
-    this.width = width;
-  }
-
-  public int getHeight() {
-    return height;
-  }
-
-  private void setHeight(int height) {
-    this.height = height;
+    // Set specific properties for interstitial popup.
   }
 
   public static ActionArgs toArgs(Context currentContext) {
     return BaseMessageOptions.toArgs(currentContext)
-        .with(Args.LAYOUT_WIDTH, MessageTemplates.Values.CENTER_POPUP_WIDTH)
-        .with(Args.LAYOUT_HEIGHT, MessageTemplates.Values.CENTER_POPUP_HEIGHT);
+        .with(MessageTemplateConstants.Args.MESSAGE_TEXT, MessageTemplateConstants.Values.INTERSTITIAL_MESSAGE);
+    // Add specific args for interstitial popup.
   }
 }

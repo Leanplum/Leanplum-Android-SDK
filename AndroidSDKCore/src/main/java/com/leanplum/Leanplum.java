@@ -109,7 +109,6 @@ public class Leanplum {
   private static String customDeviceId;
   private static String customAppVersion = null;
   private static boolean userSpecifiedDeviceId;
-  private static boolean initializedMessageTemplates = false;
   private static boolean locationCollectionEnabled = true;
   private static ScheduledExecutorService heartbeatExecutor = null;
   private static Context context;
@@ -566,7 +565,6 @@ public class Leanplum {
         return;
       }
 
-      initializedMessageTemplates = true;
       MessageTemplates.register(Leanplum.getContext());
 
       LeanplumInternal.setStartedInBackground(actuallyInBackground);
@@ -1446,12 +1444,6 @@ public class Leanplum {
     }
 
     try {
-      Context context = Leanplum.getContext();
-      if (!initializedMessageTemplates) {
-        initializedMessageTemplates = true;
-        MessageTemplates.register(context);
-      }
-
       if (options == null) {
         options = new HashMap<>();
       }

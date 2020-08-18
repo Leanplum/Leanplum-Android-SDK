@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,27 +19,29 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.actions;
 
+import android.app.Activity;
 import android.content.Context;
-
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
+import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
+import com.leanplum.messagetemplates.options.CenterPopupOptions;
 
-/**
- * Options used by {@link Interstitial}.
- *
- * @author Martin Yanakiev
- */
-public class InterstitialOptions extends BaseMessageOptions {
-  public InterstitialOptions(ActionContext context) {
-    super(context);
-    // Set specific properties for interstitial popup.
+public class CenterPopupMessage {
+  public static ActionArgs createActionArgs(Context context) {
+    return CenterPopupOptions.toArgs(context);
   }
 
-  public static ActionArgs toArgs(Context currentContext) {
-    return BaseMessageOptions.toArgs(currentContext)
-        .with(MessageTemplates.Args.MESSAGE_TEXT, MessageTemplates.Values.INTERSTITIAL_MESSAGE);
-    // Add specific args for interstitial popup.
+  public static void showMessage(ActionContext context) {
+    Activity activity = LeanplumActivityHelper.getCurrentActivity();
+    if (activity == null || activity.isFinishing()) {
+      return;
+    }
+
+    CenterPopupOptions options = new CenterPopupOptions(context);
+    CenterPopupController popup = new CenterPopupController(activity, options);
+    popup.show();
   }
 }

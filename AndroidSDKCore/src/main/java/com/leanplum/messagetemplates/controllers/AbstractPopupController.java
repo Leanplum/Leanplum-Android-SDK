@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.content.Context;
@@ -31,7 +31,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.core.R;
+import com.leanplum.messagetemplates.options.BaseMessageOptions;
 import com.leanplum.utils.BitmapUtil;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.BackgroundImageView;
@@ -39,11 +41,11 @@ import com.leanplum.views.BackgroundImageView;
 /**
  * Base class for CenterPopup and Interstitial messages.
  */
-abstract class PopupMessageTemplate extends BaseMessageDialog {
+abstract class AbstractPopupController extends BaseController {
 
   protected BaseMessageOptions options;
 
-  protected PopupMessageTemplate(Activity activity, BaseMessageOptions options) {
+  protected AbstractPopupController(Activity activity, BaseMessageOptions options) {
     super(activity);
     this.options = options;
 
@@ -53,6 +55,11 @@ abstract class PopupMessageTemplate extends BaseMessageDialog {
   @Override
   protected boolean hasDismissButton() {
     return true;
+  }
+
+  @VisibleForTesting
+  public BaseMessageOptions getOptions() {
+    return options;
   }
 
   @Override

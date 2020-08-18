@@ -8,8 +8,10 @@ import android.view.View;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
-import com.leanplum.messagetemplates.MessageTemplates.Values;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
+import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -59,7 +61,7 @@ public class LPWebInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.booleanNamed(Args.HAS_DISMISS_BUTTON)).thenReturn(Values.DEFAULT_HAS_DISMISS_BUTTON);
 
     WebInterstitialOptions options = new WebInterstitialOptions(mockedContext);
-    WebInterstitial webInterstitial = new WebInterstitial(getMainActivity(), options);
-    return webInterstitial.contentView;
+    WebInterstitialController webInterstitial = new WebInterstitialController(getMainActivity(), options);
+    return webInterstitial.getContentView();
   }
 }

@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.controllers;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -29,6 +29,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.core.R;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.CloseButton;
@@ -39,13 +40,13 @@ import com.leanplum.views.ViewUtils;
  *
  * @author Martin Yanakiev, Anna Orlova
  */
-abstract class BaseMessageDialog extends Dialog {
+abstract class BaseController extends Dialog {
   protected RelativeLayout contentView;
   protected Activity activity;
 
   protected boolean isClosing = false;
 
-  protected BaseMessageDialog(Activity activity) {
+  protected BaseController(Activity activity) {
     super(activity, ViewUtils.getThemeId(activity));
     this.activity = activity;
     SizeUtil.init(activity);
@@ -156,4 +157,8 @@ abstract class BaseMessageDialog extends Dialog {
     return closeButton;
   }
 
+  @VisibleForTesting
+  public View getContentView() {
+    return contentView;
+  }
 }

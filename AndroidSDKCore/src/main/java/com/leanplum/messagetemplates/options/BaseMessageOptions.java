@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates;
+package com.leanplum.messagetemplates.options;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -29,7 +29,9 @@ import android.util.Log;
 
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
+import com.leanplum.internal.Util;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 import com.leanplum.utils.BitmapUtil;
 
 import java.io.InputStream;
@@ -39,7 +41,7 @@ import java.io.InputStream;
  *
  * @author Martin Yanakiev
  */
-abstract class BaseMessageOptions {
+public abstract class BaseMessageOptions {
   private ActionContext context;
   private String title;
   private int titleColor;
@@ -155,14 +157,13 @@ abstract class BaseMessageOptions {
 
   public static ActionArgs toArgs(Context currentContext) {
     return new ActionArgs()
-        .with(Args.TITLE_TEXT,
-            MessageTemplates.getApplicationName(currentContext))
+        .with(Args.TITLE_TEXT, Util.getApplicationName(currentContext))
         .withColor(Args.TITLE_COLOR, Color.BLACK)
-        .with(Args.MESSAGE_TEXT, MessageTemplates.Values.POPUP_MESSAGE)
+        .with(Args.MESSAGE_TEXT, Values.POPUP_MESSAGE)
         .withColor(Args.MESSAGE_COLOR, Color.BLACK)
         .withFile(Args.BACKGROUND_IMAGE, null)
         .withColor(Args.BACKGROUND_COLOR, Color.WHITE)
-        .with(Args.ACCEPT_BUTTON_TEXT, MessageTemplates.Values.OK_TEXT)
+        .with(Args.ACCEPT_BUTTON_TEXT, Values.OK_TEXT)
         .withColor(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, Color.WHITE)
         .withColor(Args.ACCEPT_BUTTON_TEXT_COLOR, Color.argb(255, 0, 122, 255))
         .withAction(Args.ACCEPT_ACTION, null);
