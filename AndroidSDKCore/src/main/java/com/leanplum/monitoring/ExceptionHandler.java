@@ -44,7 +44,6 @@ public class ExceptionHandler {
       } catch (Throwable t) {
         Log.e("LeanplumExceptionHandler", t);
       }
-      Leanplum.countAggregator().incrementCount("report_exception");
     }
 
   }

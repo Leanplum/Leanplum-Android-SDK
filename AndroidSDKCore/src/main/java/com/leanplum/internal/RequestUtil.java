@@ -52,7 +52,6 @@ public class RequestUtil {
      * @return true if successful, false otherwise
      */
     public static boolean isResponseSuccess(JSONObject response) {
-        Leanplum.countAggregator().incrementCount("is_response_success");
         if (response == null) {
             return false;
         }
@@ -71,7 +70,6 @@ public class RequestUtil {
      * @return request error
      */
     public static String getResponseError(JSONObject response) {
-        Leanplum.countAggregator().incrementCount("get_response_error");
         if (response == null) {
             return null;
         }

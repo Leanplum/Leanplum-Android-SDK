@@ -178,12 +178,6 @@ public class RequestBuilder {
 
   public Request create() {
     Log.d("Will call API method: %s with params: %s", apiAction, params);
-
-    if (GET.equals(this.httpMethod))
-      Leanplum.countAggregator().incrementCount("get_request");
-    else if (POST.equals(this.httpMethod))
-      Leanplum.countAggregator().incrementCount("post_request");
-
     return RequestFactory.getInstance().createRequest(httpMethod, apiAction, params);
   }
 

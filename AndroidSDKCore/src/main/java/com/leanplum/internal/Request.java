@@ -57,12 +57,10 @@ public class Request {
 
   public void onResponse(ResponseCallback response) {
     this.response = response;
-    Leanplum.countAggregator().incrementCount("on_response");
   }
 
   public void onError(ErrorCallback error) {
     this.error = error;
-    Leanplum.countAggregator().incrementCount("on_error");
   }
 
   public interface ResponseCallback {
