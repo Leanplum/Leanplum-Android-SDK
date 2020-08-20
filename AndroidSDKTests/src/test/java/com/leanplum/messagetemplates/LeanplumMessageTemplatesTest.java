@@ -24,7 +24,17 @@ import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum.activities.LeanplumTestActivity;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
+import com.leanplum.messagetemplates.controllers.CenterPopupController;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
+import com.leanplum.messagetemplates.controllers.WebInterstitialController;
+import com.leanplum.messagetemplates.options.CenterPopupOptions;
+import com.leanplum.messagetemplates.options.InterstitialOptions;
+import com.leanplum.messagetemplates.controllers.RichHtmlController;
+import com.leanplum.messagetemplates.options.RichHtmlOptions;
+import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -40,7 +50,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 /**
  * @author Milos Jakovljevic
  */
-@PrepareForTest({MessageTemplates.class, HTMLOptions.class})
+@PrepareForTest({MessageTemplates.class, RichHtmlOptions.class})
 public class LeanplumMessageTemplatesTest extends AbstractTest {
 
   @Override
@@ -57,28 +67,28 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     Leanplum.setApplicationContext(activity);
 
     HashMap<String, Object> map = new HashMap<>();
-    map.put(MessageTemplates.Args.TITLE_TEXT, "text");
-    map.put(MessageTemplates.Args.TITLE_COLOR, 100);
-    map.put(MessageTemplates.Args.MESSAGE_TEXT, "message_text");
-    map.put(MessageTemplates.Args.MESSAGE_COLOR, 1200);
-    map.put(MessageTemplates.Args.BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT, "button_text");
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
-    map.put(MessageTemplates.Args.LAYOUT_WIDTH, 128);
-    map.put(MessageTemplates.Args.LAYOUT_HEIGHT, 128);
+    map.put(Args.TITLE_TEXT, "text");
+    map.put(Args.TITLE_COLOR, 100);
+    map.put(Args.MESSAGE_TEXT, "message_text");
+    map.put(Args.MESSAGE_COLOR, 1200);
+    map.put(Args.BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT, "button_text");
+    map.put(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
+    map.put(Args.LAYOUT_WIDTH, 128);
+    map.put(Args.LAYOUT_HEIGHT, 128);
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     CenterPopupOptions options = new CenterPopupOptions(actionContext);
-    CenterPopup centerpopup = new CenterPopup(activity, options);
+    CenterPopupController centerpopup = new CenterPopupController(activity, options);
     assertNotNull(centerpopup);
-    assertEquals(options, centerpopup.options);
+    assertEquals(options, centerpopup.getOptions());
   }
 
   @Test
   public void testHTML() throws Exception {
-    spy(HTMLOptions.class);
-    PowerMockito.doReturn("<body></body>").when(HTMLOptions.class, "getTemplate", anyObject());
+    spy(RichHtmlOptions.class);
+    PowerMockito.doReturn("<body></body>").when(RichHtmlOptions.class, "getTemplate", anyObject());
 
     LeanplumTestActivity activity = Robolectric.buildActivity(LeanplumTestActivity.class).
         create().start().resume().visible().get();
@@ -86,30 +96,30 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     Leanplum.setApplicationContext(activity);
 
     HashMap<String, Object> map = new HashMap<>();
-    map.put(MessageTemplates.Args.TITLE_TEXT, "text");
-    map.put(MessageTemplates.Args.TITLE_COLOR, 100);
-    map.put(MessageTemplates.Args.MESSAGE_TEXT, "message_text");
-    map.put(MessageTemplates.Args.MESSAGE_COLOR, 1200);
-    map.put(MessageTemplates.Args.BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT, "button_text");
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
-    map.put(MessageTemplates.Args.LAYOUT_WIDTH, 128);
-    map.put(MessageTemplates.Args.LAYOUT_HEIGHT, 128);
-    map.put(MessageTemplates.Args.CLOSE_URL, "www.google.com");
-    map.put(MessageTemplates.Args.OPEN_URL, "www.google.com");
-    map.put(MessageTemplates.Args.TRACK_URL, "www.google.com");
-    map.put(MessageTemplates.Args.ACTION_URL, "www.google.com");
-    map.put(MessageTemplates.Args.TRACK_ACTION_URL, "www.google.com");
-    map.put(MessageTemplates.Args.HTML_ALIGN, "top");
-    map.put(MessageTemplates.Args.HTML_HEIGHT, 100);
-    map.put(MessageTemplates.Values.HTML_TEMPLATE_PREFIX, "file");
+    map.put(Args.TITLE_TEXT, "text");
+    map.put(Args.TITLE_COLOR, 100);
+    map.put(Args.MESSAGE_TEXT, "message_text");
+    map.put(Args.MESSAGE_COLOR, 1200);
+    map.put(Args.BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT, "button_text");
+    map.put(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
+    map.put(Args.LAYOUT_WIDTH, 128);
+    map.put(Args.LAYOUT_HEIGHT, 128);
+    map.put(Args.CLOSE_URL, "www.google.com");
+    map.put(Args.OPEN_URL, "www.google.com");
+    map.put(Args.TRACK_URL, "www.google.com");
+    map.put(Args.ACTION_URL, "www.google.com");
+    map.put(Args.TRACK_ACTION_URL, "www.google.com");
+    map.put(Args.HTML_ALIGN, "top");
+    map.put(Args.HTML_HEIGHT, 100);
+    map.put(Values.HTML_TEMPLATE_PREFIX, "file");
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
-    HTMLOptions options = new HTMLOptions(actionContext);
-    HTMLTemplate htmlTemplate = new HTMLTemplate(activity, options);
+    RichHtmlOptions options = new RichHtmlOptions(actionContext);
+    RichHtmlController htmlTemplate = new RichHtmlController(activity, options);
     assertNotNull(htmlTemplate);
-    assertEquals(options, htmlTemplate.htmlOptions);
+    assertEquals(options, htmlTemplate.getRichOptions());
   }
 
   @Test
@@ -120,30 +130,30 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     Leanplum.setApplicationContext(activity);
 
     HashMap<String, Object> map = new HashMap<>();
-    map.put(MessageTemplates.Args.TITLE_TEXT, "text");
-    map.put(MessageTemplates.Args.TITLE_COLOR, 100);
-    map.put(MessageTemplates.Args.MESSAGE_TEXT, "message_text");
-    map.put(MessageTemplates.Args.MESSAGE_COLOR, 1200);
-    map.put(MessageTemplates.Args.BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT, "button_text");
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
-    map.put(MessageTemplates.Args.LAYOUT_WIDTH, 128);
-    map.put(MessageTemplates.Args.LAYOUT_HEIGHT, 128);
-    map.put(MessageTemplates.Args.CLOSE_URL, "www.google.com");
-    map.put(MessageTemplates.Args.OPEN_URL, "www.google.com");
-    map.put(MessageTemplates.Args.TRACK_URL, "www.google.com");
-    map.put(MessageTemplates.Args.ACTION_URL, "www.google.com");
-    map.put(MessageTemplates.Args.TRACK_ACTION_URL, "www.google.com");
-    map.put(MessageTemplates.Args.HTML_ALIGN, "top");
-    map.put(MessageTemplates.Args.HTML_HEIGHT, 100);
-    map.put(MessageTemplates.Values.HTML_TEMPLATE_PREFIX, "file");
+    map.put(Args.TITLE_TEXT, "text");
+    map.put(Args.TITLE_COLOR, 100);
+    map.put(Args.MESSAGE_TEXT, "message_text");
+    map.put(Args.MESSAGE_COLOR, 1200);
+    map.put(Args.BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT, "button_text");
+    map.put(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
+    map.put(Args.LAYOUT_WIDTH, 128);
+    map.put(Args.LAYOUT_HEIGHT, 128);
+    map.put(Args.CLOSE_URL, "www.google.com");
+    map.put(Args.OPEN_URL, "www.google.com");
+    map.put(Args.TRACK_URL, "www.google.com");
+    map.put(Args.ACTION_URL, "www.google.com");
+    map.put(Args.TRACK_ACTION_URL, "www.google.com");
+    map.put(Args.HTML_ALIGN, "top");
+    map.put(Args.HTML_HEIGHT, 100);
+    map.put(Values.HTML_TEMPLATE_PREFIX, "file");
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     InterstitialOptions options = new InterstitialOptions(actionContext);
-    Interstitial interstitial = new Interstitial(activity, options);
+    InterstitialController interstitial = new InterstitialController(activity, options);
     assertNotNull(interstitial);
-    assertEquals(options, interstitial.options);
+    assertEquals(options, interstitial.getOptions());
   }
 
   @Test
@@ -154,31 +164,31 @@ public class LeanplumMessageTemplatesTest extends AbstractTest {
     Leanplum.setApplicationContext(activity);
 
     HashMap<String, Object> map = new HashMap<>();
-    map.put(MessageTemplates.Args.TITLE_TEXT, "text");
-    map.put(MessageTemplates.Args.TITLE_COLOR, 100);
-    map.put(MessageTemplates.Args.MESSAGE_TEXT, "message_text");
-    map.put(MessageTemplates.Args.MESSAGE_COLOR, 1200);
-    map.put(MessageTemplates.Args.BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT, "button_text");
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
-    map.put(MessageTemplates.Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
-    map.put(MessageTemplates.Args.LAYOUT_WIDTH, 128);
-    map.put(MessageTemplates.Args.LAYOUT_HEIGHT, 128);
-    map.put(MessageTemplates.Args.CLOSE_URL, "www.google.com");
-    map.put(MessageTemplates.Args.OPEN_URL, "www.google.com");
-    map.put(MessageTemplates.Args.TRACK_URL, "www.google.com");
-    map.put(MessageTemplates.Args.ACTION_URL, "www.google.com");
-    map.put(MessageTemplates.Args.TRACK_ACTION_URL, "www.google.com");
-    map.put(MessageTemplates.Args.HTML_ALIGN, "top");
-    map.put(MessageTemplates.Args.HTML_HEIGHT, 100);
-    map.put(MessageTemplates.Args.URL, "www.google.com");
-    map.put(MessageTemplates.Args.HAS_DISMISS_BUTTON, true);
-    map.put(MessageTemplates.Args.CLOSE_URL, "www.leanplum.com");
+    map.put(Args.TITLE_TEXT, "text");
+    map.put(Args.TITLE_COLOR, 100);
+    map.put(Args.MESSAGE_TEXT, "message_text");
+    map.put(Args.MESSAGE_COLOR, 1200);
+    map.put(Args.BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT, "button_text");
+    map.put(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, 123);
+    map.put(Args.ACCEPT_BUTTON_TEXT_COLOR, 123);
+    map.put(Args.LAYOUT_WIDTH, 128);
+    map.put(Args.LAYOUT_HEIGHT, 128);
+    map.put(Args.CLOSE_URL, "www.google.com");
+    map.put(Args.OPEN_URL, "www.google.com");
+    map.put(Args.TRACK_URL, "www.google.com");
+    map.put(Args.ACTION_URL, "www.google.com");
+    map.put(Args.TRACK_ACTION_URL, "www.google.com");
+    map.put(Args.HTML_ALIGN, "top");
+    map.put(Args.HTML_HEIGHT, 100);
+    map.put(Args.URL, "www.google.com");
+    map.put(Args.HAS_DISMISS_BUTTON, true);
+    map.put(Args.CLOSE_URL, "www.leanplum.com");
 
     ActionContext actionContext = new ActionContext("center_popup", map, "message_id");
     WebInterstitialOptions options = new WebInterstitialOptions(actionContext);
-    WebInterstitial interstitial = new WebInterstitial(activity, options);
+    WebInterstitialController interstitial = new WebInterstitialController(activity, options);
     assertNotNull(interstitial);
-    assertEquals(options, interstitial.webOptions);
+    assertEquals(options, interstitial.getWebOptions());
   }
 }

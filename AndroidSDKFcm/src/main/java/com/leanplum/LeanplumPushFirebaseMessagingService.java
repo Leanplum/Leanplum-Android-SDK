@@ -71,9 +71,9 @@ public class LeanplumPushFirebaseMessagingService extends FirebaseMessagingServi
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
         LeanplumPushService.handleNotification(getApplicationContext(), getBundle(messageMap));
       }
-      Log.i("Received: " + messageMap.toString());
+      Log.d("Received push notification message: %s", messageMap.toString());
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 

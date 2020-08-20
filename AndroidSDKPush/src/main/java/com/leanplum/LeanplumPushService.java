@@ -35,15 +35,17 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
-import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
@@ -171,11 +173,12 @@ public class LeanplumPushService {
           } else {
             // Try downloading the messages again if it doesn't exist.
             // Maybe the message was created while the app was running.
-            Map<String, Object> params = new HashMap<>();
-            params.put(Params.INCLUDE_DEFAULTS, Boolean.toString(false));
-            params.put(Params.INCLUDE_MESSAGE_ID, messageId);
-            RequestOld req = RequestOld.post(Methods.GET_VARS, params);
-            req.onResponse(new RequestOld.ResponseCallback() {
+            Request req = RequestBuilder
+                .withGetVarsAction()
+                .andParam(Params.INCLUDE_DEFAULTS, Boolean.toString(false))
+                .andParam(Params.INCLUDE_MESSAGE_ID, messageId)
+                .create();
+            req.onResponse(new Request.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 try {
@@ -204,20 +207,20 @@ public class LeanplumPushService {
                   }
                   onComplete.variablesChanged();
                 } catch (Throwable t) {
-                  Util.handleException(t);
+                  Log.exception(t);
                 }
               }
             });
-            req.onError(new RequestOld.ErrorCallback() {
+            req.onError(new Request.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 onComplete.variablesChanged();
               }
             });
-            req.sendIfConnected();
+            RequestSender.getInstance().sendIfConnected(req);
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -398,7 +401,7 @@ public class LeanplumPushService {
       Log.e("Unable to show push notification.", e);
     } catch (Throwable t) {
       Log.e("Unable to show push notification.", t);
-      Util.handleException(t);
+      Log.exception(t);
     }
     Leanplum.countAggregator().incrementCount("show_with_title");
   }
@@ -465,7 +468,7 @@ public class LeanplumPushService {
 
       return arguments;
     } catch (Throwable ignored) {
-      Log.i("Failed to parse notification bundle.");
+      Log.d("Failed to parse notification bundle.");
     }
     return null;
   }
@@ -480,12 +483,12 @@ public class LeanplumPushService {
    */
   public static Bundle preHandlePushNotification(Context context, Intent intent) {
     if (intent == null) {
-      Log.i("Unable to pre handle push notification, Intent is null.");
+      Log.d("Unable to pre handle push notification, Intent is null.");
       return null;
     }
     Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.i("Unable to pre handle push notification, extras are null.");
+      Log.d("Unable to pre handle push notification, extras are null.");
       return null;
     }
     return notification;
@@ -501,7 +504,7 @@ public class LeanplumPushService {
   public static void postHandlePushNotification(Context context, Intent intent) {
     final Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.i("Could not post handle push notification, extras are null.");
+      Log.d("Could not post handle push notification, extras are null.");
       return;
     }
     // Perform action.
@@ -536,19 +539,19 @@ public class LeanplumPushService {
                                 try {
                                   LeanplumInternal.performTrackedAction(actionName, messageId);
                                 } catch (Throwable t) {
-                                  Util.handleException(t);
+                                  Log.exception(t);
                                 }
                               }
                             });
                       } catch (Throwable t) {
-                        Util.handleException(t);
+                        Log.exception(t);
                       }
                     }
                   });
             }
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -637,7 +640,7 @@ public class LeanplumPushService {
       unregisterIntent.setPackage("com.google.android.gms");
       context.startService(unregisterIntent);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -685,7 +688,7 @@ public class LeanplumPushService {
     if (!provider.isInitialized() || !provider.isManifestSetup()) {
       return;
     }
-    if (hasAppIDChanged(RequestOld.appId())) {
+    if (hasAppIDChanged(APIConfig.getInstance().appId())) {
       provider.unregister();
     }
     registerInBackground();
@@ -710,7 +713,7 @@ public class LeanplumPushService {
     String storedAppId = SharedPreferencesUtil.getString(context, Constants.Defaults.LEANPLUM_PUSH,
         Constants.Defaults.APP_ID);
     if (!currentAppId.equals(storedAppId)) {
-      Log.v("Saving the application id in the shared preferences.");
+      Log.d("Saving the application id in the shared preferences.");
       SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
           Constants.Defaults.APP_ID, currentAppId);
       // Check application id was stored before.
@@ -728,7 +731,7 @@ public class LeanplumPushService {
    * @param context The application context.
    * @param currentContext Current application context.
    */
-  static void showDeviceRegistedPush(Context context, Context currentContext) {
+  static void showDeviceRegisteredPush(Context context, Context currentContext) {
     try {
       NotificationCompat.Builder builder =
           LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context,
@@ -747,7 +750,7 @@ public class LeanplumPushService {
       // mId allows you to update the notification later on.
       mNotificationManager.notify(0, builder.build());
     } catch (Throwable t) {
-      Log.i("Device is registered.");
+      // ignore
     }
   }
 }

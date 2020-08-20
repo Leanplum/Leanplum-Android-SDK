@@ -29,10 +29,14 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumInbox;
 import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum._whitebox.utilities.ImmediateRequestSender;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Log;
+import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestFactory;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.VarCache;
 import com.leanplum.tests.BuildConfig;
 
@@ -80,11 +84,12 @@ public class LeanplumTestHelper {
   public static void setUp() {
     RequestFactory.defaultFactory = new RequestFactory() {
       @Override
-      public RequestOld createRequest(String httpMethod, String apiMethod,
+      public Request createRequest(String httpMethod, String apiMethod,
                                       Map<String, Object> params) {
         return new RequestHelper(httpMethod, apiMethod, params);
       }
     };
+    RequestSender.setInstance(new ImmediateRequestSender());
 
     if (BuildConfig.DEBUG) {
       Leanplum.setAppIdForDevelopmentMode(APP_ID, DEVELOPMENT_KEY);
@@ -94,9 +99,9 @@ public class LeanplumTestHelper {
     Leanplum.setDeviceId("leanplum-unit-test-20527411-BF1E-4E84-91AE-2E98CBCF30AF");
     Leanplum.setApiConnectionSettings(API_HOST_NAME, "api", API_SSL);
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
-    Leanplum.enableVerboseLoggingInDevelopmentMode();
+    Leanplum.setLogLevel(Log.Level.DEBUG);
 
-    TestClassUtil.setField(RequestOld.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
+    TestClassUtil.setField(RequestSender.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
   }
 
   /**
@@ -105,10 +110,10 @@ public class LeanplumTestHelper {
   public static void tearDown() {
     reset();
     clear();
-    RequestOld.setAppId(null, null);
-    RequestOld.setDeviceId(null);
-    RequestOld.setToken(null);
-    RequestOld.setUserId(null);
+    APIConfig.getInstance().setAppId(null, null);
+    APIConfig.getInstance().setDeviceId(null);
+    APIConfig.getInstance().setToken(null);
+    APIConfig.getInstance().setUserId(null);
     Leanplum.setApplicationContext(null);
   }
 

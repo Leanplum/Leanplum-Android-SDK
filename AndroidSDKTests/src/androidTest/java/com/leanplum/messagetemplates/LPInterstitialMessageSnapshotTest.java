@@ -8,8 +8,10 @@ import android.graphics.Color;
 import androidx.test.annotation.UiThreadTest;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
-import com.leanplum.messagetemplates.MessageTemplates.Values;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.InterstitialController;
+import com.leanplum.messagetemplates.options.InterstitialOptions;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -50,9 +52,9 @@ public class LPInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.numberNamed(Args.ACCEPT_BUTTON_TEXT_COLOR)).thenReturn(Color.BLACK);
 
     InterstitialOptions options = new InterstitialOptions(mockedContext);
-    Interstitial interstitial = new Interstitial(mainActivity, options);
+    InterstitialController interstitial = new InterstitialController(mainActivity, options);
 
-    setupView(interstitial.dialogView);
-    snapshotView(interstitial.dialogView);
+    setupView(interstitial.getContentView());
+    snapshotView(interstitial.getContentView());
   }
 }

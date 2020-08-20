@@ -8,8 +8,10 @@ import android.view.View;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.messagetemplates.MessageTemplates.Args;
-import com.leanplum.messagetemplates.MessageTemplates.Values;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
+import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
+import com.leanplum.messagetemplates.controllers.RichHtmlController;
+import com.leanplum.messagetemplates.options.RichHtmlOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -93,8 +95,8 @@ public class LPRichInterstitialMessageSnapshotTest extends BaseSnapshotTest {
     when(mockedContext.booleanNamed(Args.HAS_DISMISS_BUTTON)).thenReturn(false);
     when(mockedContext.streamNamed(Mockito.anyString())).thenReturn(templateStream);
 
-    HTMLOptions options = new HTMLOptions(mockedContext);
-    HTMLTemplate htmlTemplate = new HTMLTemplate(getMainActivity(), options);
-    return htmlTemplate.dialogView;
+    RichHtmlOptions options = new RichHtmlOptions(mockedContext);
+    RichHtmlController htmlTemplate = new RichHtmlController(getMainActivity(), options);
+    return htmlTemplate.getContentView();
   }
 }

@@ -146,11 +146,11 @@ public class AESCrypt {
     }
     String cipherText = encryptInternal(appIdKeyPassword(), plaintext);
     if (cipherText == null) {
-      Log.w("Failed to encrypt.");
+      Log.d("Failed to encrypt.");
       return null;
     }
     if (cipherText.isEmpty() || cipherText.equals(plaintext) || !cipherText.startsWith("[")) {
-      Log.w("Invalid ciphertext: " + cipherText);
+      Log.d("Invalid ciphertext: " + cipherText);
       return null;
     }
     return EncryptionType.APP_ID_KEY.prefix + cipherText;
@@ -179,7 +179,7 @@ public class AESCrypt {
     Pair<EncryptionType, String> encryptionSpec = EncryptionType.parseCipherText(cipherText);
     String result = null;
     if (encryptionSpec == null) {
-      Log.v("Got null encryptionSpec for encrypted: " + cipherText);
+      Log.d("Got null encryptionSpec for encrypted: " + cipherText);
     } else {
       switch (encryptionSpec.first) {
         case LEGACY_TOKEN:
@@ -207,7 +207,7 @@ public class AESCrypt {
       }
     }
     if (result == null) {
-      Log.w("Unable to decrypt " + cipherText);
+      Log.d("Unable to decrypt " + cipherText);
     }
     return result;
   }
@@ -221,7 +221,7 @@ public class AESCrypt {
       return Arrays.toString(performCryptOperation(Cipher.ENCRYPT_MODE, password,
           plaintext.getBytes("UTF-8")));
     } catch (UnsupportedEncodingException e) {
-      Log.w("Unable to encrypt " + plaintext, e);
+      Log.d("Unable to encrypt " + plaintext, e);
       return null;
     }
   }
@@ -257,7 +257,7 @@ public class AESCrypt {
     try {
       byte[] bytes = parseCiphertextInternal(ciphertext);
       if (bytes == null) {
-        Log.w("Invalid ciphertext: " + ciphertext);
+        Log.d("Invalid ciphertext: " + ciphertext);
         return null;
       }
       byte[] byteResult = performCryptOperation(Cipher.DECRYPT_MODE, password, bytes);
@@ -266,7 +266,7 @@ public class AESCrypt {
       }
     } catch (UnsupportedEncodingException e) {
       // Unreachable on android, which guarantees UTF-8 support.
-      Log.w("Could not encode UTF8 string.\n" + Log.getStackTraceString(e));
+      Log.d("Could not encode UTF8 string.\n" + Log.getStackTraceString(e));
     }
     return null;
   }

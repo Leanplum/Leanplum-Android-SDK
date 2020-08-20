@@ -43,7 +43,6 @@ import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumException;
-import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.monitoring.ExceptionHandler;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -163,7 +162,7 @@ public class Util {
     String logPrefix = "Skipping wifi device id; ";
     if (context.checkCallingOrSelfPermission(ACCESS_WIFI_STATE_PERMISSION) !=
         PackageManager.PERMISSION_GRANTED) {
-      Log.v(logPrefix + "no wifi state permissions.");
+      Log.d(logPrefix + "no wifi state permissions.");
       return null;
     }
     try {
@@ -171,27 +170,27 @@ public class Util {
           .getSystemService(Context.WIFI_SERVICE);
       WifiInfo wifiInfo = manager.getConnectionInfo();
       if (wifiInfo == null) {
-        Log.i(logPrefix + "null WifiInfo.");
+        Log.d(logPrefix + "null WifiInfo.");
         return null;
       }
       @SuppressLint("HardwareIds")
       String macAddress = wifiInfo.getMacAddress();
       if (macAddress == null || macAddress.isEmpty()) {
-        Log.i(logPrefix + "no mac address returned.");
+        Log.d(logPrefix + "no mac address returned.");
         return null;
       }
       if (Constants.INVALID_MAC_ADDRESS.equals(macAddress)) {
         // Note(ed): this is the expected case for Marshmallow and later, as they return
         // INVALID_MAC_ADDRESS; we intend to fall back to the Android id for Marshmallow devices.
-        Log.v(logPrefix + "Marshmallow and later returns a fake MAC address.");
+        Log.d(logPrefix + "Marshmallow and later returns a fake MAC address.");
         return null;
       }
       @SuppressLint("HardwareIds")
       String deviceId = md5(wifiInfo.getMacAddress());
-      Log.v("Using wifi device id: " + deviceId);
+      Log.d("Using wifi device id: " + deviceId);
       return checkDeviceId("mac address", deviceId);
     } catch (Exception e) {
-      Log.w("Error getting wifi MAC address.");
+      Log.d("Error getting wifi MAC address.");
     }
     return null;
   }
@@ -225,7 +224,7 @@ public class Util {
             boolean limitTracking = (Boolean) adInfo.getClass()
                 .getMethod("isLimitAdTrackingEnabled")
                 .invoke(adInfo);
-            Log.v("Using advertising device id: " + id);
+            Log.d("Using advertising device id: " + id);
             return new DeviceIdInfo(id, limitTracking);
           }
         } catch (Throwable t) {
@@ -242,14 +241,14 @@ public class Util {
     @SuppressLint("HardwareIds")
     String androidId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
     if (androidId == null || androidId.isEmpty()) {
-      Log.i("Skipping Android device id; no id returned.");
+      Log.d("Skipping Android device id; no id returned.");
       return null;
     }
     if (Constants.INVALID_ANDROID_ID.equals(androidId)) {
-      Log.v("Skipping Android device id; got invalid " + "device id: " + androidId);
+      Log.d("Skipping Android device id; got invalid " + "device id: " + androidId);
       return null;
     }
-    Log.v("Using Android device id: " + androidId);
+    Log.d("Using Android device id: " + androidId);
     return checkDeviceId("android id", androidId);
   }
 
@@ -259,7 +258,7 @@ public class Util {
   private static String generateRandomDeviceId() {
     // Mark random IDs to be able to identify them.
     String randomId = UUID.randomUUID().toString() + "-LP";
-    Log.v("Using generated device id: " + randomId);
+    Log.d("Using generated device id: " + randomId);
     return randomId;
   }
 
@@ -269,10 +268,10 @@ public class Util {
       Charset charset = Charset.forName(charsetName);
       encoder = charset.newEncoder();
     } catch (UnsupportedCharsetException e) {
-      Log.w("Unsupported charset: " + charsetName);
+      Log.d("Unsupported charset: " + charsetName);
     }
     if (encoder != null && !encoder.canEncode(id)) {
-      Log.v("Invalid id (contains invalid characters): " + id);
+      Log.d("Invalid id (contains invalid characters): " + id);
       return false;
     }
     return true;
@@ -281,19 +280,19 @@ public class Util {
   public static boolean isValidUserId(String userId) {
     String logPrefix = "Invalid user id ";
     if (userId == null || userId.isEmpty()) {
-      Log.v(logPrefix + "(sentinel): " + userId);
+      Log.d(logPrefix + "(sentinel): " + userId);
       return false;
     }
     if (userId.length() > Constants.MAX_USER_ID_LENGTH) {
-      Log.v(logPrefix + "(too long): " + userId);
+      Log.d(logPrefix + "(too long): " + userId);
       return false;
     }
     if (userId.contains("\n")) {
-      Log.v(logPrefix + "(contains newline): " + userId);
+      Log.d(logPrefix + "(contains newline): " + userId);
       return false;
     }
     if (userId.contains("\"") || userId.contains("\'")) {
-      Log.v(logPrefix + "(contains quotes): " + userId);
+      Log.d(logPrefix + "(contains quotes): " + userId);
       return false;
     }
     return isValidForCharset(userId, "UTF-8");
@@ -305,27 +304,27 @@ public class Util {
         Constants.INVALID_ANDROID_ID.equals(deviceId) ||
         Constants.INVALID_MAC_ADDRESS_HASH.equals(deviceId) ||
         Constants.OLD_INVALID_MAC_ADDRESS_HASH.equals(deviceId)) {
-      Log.v(logPrefix + "(sentinel): " + deviceId);
+      Log.d(logPrefix + "(sentinel): " + deviceId);
       return false;
     }
     if (deviceId.length() > Constants.MAX_DEVICE_ID_LENGTH) {
-      Log.v(logPrefix + "(too long): " + deviceId);
+      Log.d(logPrefix + "(too long): " + deviceId);
       return false;
     }
     if (deviceId.contains("[")) {
-      Log.v(logPrefix + "(contains brackets): " + deviceId);
+      Log.d(logPrefix + "(contains brackets): " + deviceId);
       return false;
     }
     if (deviceId.contains("\n")) {
-      Log.v(logPrefix + "(contains newline): " + deviceId);
+      Log.d(logPrefix + "(contains newline): " + deviceId);
       return false;
     }
     if (deviceId.contains(",")) {
-      Log.v(logPrefix + "(contains comma): " + deviceId);
+      Log.d(logPrefix + "(contains comma): " + deviceId);
       return false;
     }
     if (deviceId.contains("\"") || deviceId.contains("\'")) {
-      Log.v(logPrefix + "(contains quotes): " + deviceId);
+      Log.d(logPrefix + "(contains quotes): " + deviceId);
       return false;
     }
     return isValidForCharset(deviceId, "US-ASCII");
@@ -342,7 +341,7 @@ public class Util {
           return info;
         }
       } catch (Exception e) {
-        Log.e("Error getting advertising ID", e);
+        Log.e("Error getting advertising ID: %s", e);
       }
     }
 
@@ -378,7 +377,7 @@ public class Util {
         versionName = pInfo.versionName;
       }
     } catch (Exception e) {
-      Log.w("Could not extract versionName from Manifest or PackageInfo.");
+      Log.d("Could not extract versionName from Manifest or PackageInfo.");
     }
     return versionName;
   }
@@ -470,7 +469,7 @@ public class Util {
     Uri.Builder builder = new Uri.Builder();
     for (Map.Entry<String, Object> pair : params.entrySet()) {
       if (pair.getValue() == null) {
-        Log.w("RequestOld parameter for key: " + pair.getKey() + " is null.");
+        Log.d("Request parameter for key: " + pair.getKey() + " is null.");
         continue;
       }
       builder.appendQueryParameter(pair.getKey(), pair.getValue().toString());
@@ -577,7 +576,7 @@ public class Util {
     */
 
     urlConnection.setRequestProperty("User-Agent",
-        getApplicationName(context) + "/" + getVersionName() + "/" + RequestOld.appId() + "/" +
+        getApplicationName(context) + "/" + getVersionName() + "/" + APIConfig.getInstance().appId() + "/" +
             Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
             getSystemVersion() + "/" + Constants.LEANPLUM_SUPPORTED_ENCODING + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
     urlConnection.setRequestProperty("Accept-Encoding", Constants.LEANPLUM_SUPPORTED_ENCODING);
@@ -646,14 +645,14 @@ public class Util {
           outputStream.write(buffer, 0, bytesRead);
         }
       } catch (NullPointerException e) {
-        Log.e("Unable to read file while uploading " + filesToUpload.get(i));
+        Log.d("Unable to read file while uploading " + filesToUpload.get(i));
         return null;
       } finally {
         if (is != null) {
           try {
             is.close();
           } catch (IOException e) {
-            Log.w("Failed to close InputStream: " + e);
+            Log.d("Failed to close InputStream: " + e);
           }
         }
       }
@@ -712,10 +711,6 @@ public class Util {
   public static JSONObject getJsonResponse(HttpURLConnection op)
       throws JSONException, IOException {
     String response = getResponse(op);
-    if (Constants.enableVerboseLoggingInDevelopmentMode
-        && Constants.isDevelopmentModeEnabled) {
-      Log.d("Received response " + response);
-    }
     JSONTokener tokener = new JSONTokener(response);
     return new JSONObject(tokener);
   }
@@ -737,7 +732,7 @@ public class Util {
       NetworkInfo netInfo = manager.getActiveNetworkInfo();
       return !(netInfo == null || !netInfo.isConnectedOrConnecting());
     } catch (Exception e) {
-      Log.e("Error getting connectivity info", e);
+      Log.d("Error getting connectivity info", e);
       return false;
     }
   }
@@ -831,7 +826,7 @@ public class Util {
       PackageInfo info = packageManager.getPackageInfo(packageName, 0);
       params.put(Params.INSTALL_DATE, "" + (info.firstInstallTime / 1000.0));
     } catch (NameNotFoundException e) {
-      Log.w("Failed to find package info: " + e);
+      Log.d("Failed to find package info: " + e);
     }
   }
 
@@ -847,7 +842,7 @@ public class Util {
         params.put(Constants.Params.UPDATE_DATE, "" + (apkFile.lastModified() / 1000.0));
       }
     } catch (Throwable t) {
-      Log.w("Failed to find package info: " + t);
+      Log.d("Failed to find package info: " + t);
     }
   }
 
@@ -856,60 +851,6 @@ public class Util {
    */
   public static void initExceptionHandling(Context context) {
     ExceptionHandler.getInstance().setContext(context);
-  }
-
-  /**
-   * Handles uncaught exceptions in the SDK.
-   */
-  public static void handleException(Throwable t) {
-    ExceptionHandler.getInstance().reportException(t);
-
-    if (t instanceof OutOfMemoryError) {
-      if (Constants.isDevelopmentModeEnabled) {
-        throw (OutOfMemoryError) t;
-      }
-      return;
-    }
-
-    // Propagate Leanplum generated exceptions.
-    if (t instanceof LeanplumException) {
-      if (Constants.isDevelopmentModeEnabled) {
-        throw (LeanplumException) t;
-      }
-      return;
-    }
-
-    Log.e("INTERNAL ERROR", t);
-
-    String versionName;
-    try {
-      versionName = getVersionName();
-    } catch (Throwable t2) {
-      versionName = "(Unknown)";
-    }
-
-    try {
-      Map<String, Object> params = new HashMap<>();
-      params.put(Params.TYPE, Constants.Values.SDK_ERROR);
-
-      String message = t.getMessage();
-      if (message != null) {
-        message = t.toString() + " (" + message + ')';
-      } else {
-        message = t.toString();
-      }
-      params.put(Params.MESSAGE, message);
-
-      StringWriter stringWriter = new StringWriter();
-      PrintWriter writer = new PrintWriter(stringWriter);
-      t.printStackTrace(writer);
-      params.put("stackTrace", stringWriter.toString());
-
-      params.put(Params.VERSION_NAME, versionName);
-      RequestOld.post(Methods.LOG, params).send();
-    } catch (Throwable t2) {
-      Log.e("Unable to send error report.", t2);
-    }
   }
 
   /**
@@ -939,7 +880,7 @@ public class Util {
   public static String generateResourceNameFromId(int resourceId) {
     try {
       if (resourceId <= 0) {
-        Log.w("Provided resource id is invalid.");
+        Log.d("Provided resource id is invalid.");
         return null;
       }
       Resources resources = Leanplum.getContext().getResources();
@@ -964,8 +905,8 @@ public class Util {
       // Return full resource name in format: drawable/image.png
       return typeName + "/" + entryName + extension;
     } catch (Exception e) {
-      Log.w("Failed to generate resource name from provided resource id: ", e);
-      Util.handleException(e);
+      Log.e("Failed to generate resource name from provided resource id: %s", e.getMessage());
+      Log.exception(e);
     }
     return null;
   }
@@ -996,7 +937,7 @@ public class Util {
         return resources.getIdentifier(entryName, typeName, Leanplum.getContext().getPackageName());
       }
     }
-    Log.w("Could not extract resource id from provided resource name: ", resourceName);
+    Log.d("Could not extract resource id from provided resource name: ", resourceName);
     return 0;
   }
 }
