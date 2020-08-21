@@ -34,6 +34,7 @@ import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
+import com.leanplum.internal.ApiConfigLoader;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
 import com.leanplum.internal.FeatureFlagManager;
@@ -278,6 +279,16 @@ public class Leanplum {
   }
 
   /**
+   * Loads appId and accessKey from Android resources.
+   */
+  private static void loadApiConfigFromResources() {
+    ApiConfigLoader loader = new ApiConfigLoader(getContext());
+    loader.loadFromResources(
+        Leanplum::setAppIdForProductionMode,
+        Leanplum::setAppIdForDevelopmentMode);
+  }
+
+  /**
    * Enable screen tracking.
    */
   public static void trackAllAppScreens() {
@@ -516,6 +527,11 @@ public class Leanplum {
   static synchronized void start(final Context context, final String userId,
       final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
     try {
+      boolean appIdNotSet = TextUtils.isEmpty(APIConfig.getInstance().appId());
+      if (appIdNotSet) {
+        loadApiConfigFromResources();
+      }
+
       LeanplumActivityHelper.setCurrentActivity(context);
 
       // Detect if app is in background automatically if isBackground is not set.
