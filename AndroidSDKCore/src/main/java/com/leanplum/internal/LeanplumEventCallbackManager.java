@@ -57,7 +57,6 @@ class LeanplumEventCallbackManager {
     }
 
     callbacks.put(request.requestId(), new LeanplumEventCallbacks(responseCallback, errorCallback));
-    Leanplum.countAggregator().incrementCount("add_event_callback_at");
   }
 
   /**
@@ -160,8 +159,6 @@ class LeanplumEventCallbackManager {
     for (String key : keys) {
       callbacks.remove(key);
     }
-
-    Leanplum.countAggregator().incrementCount("invoke_error_callbacks_on_responses");
   }
 
   private static class LeanplumEventCallbacks {

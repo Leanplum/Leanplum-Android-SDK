@@ -95,8 +95,6 @@ public class FileTransferManager {
       return;
     }
 
-    Leanplum.countAggregator().incrementCount("download_file");
-
     OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
       @Override
       public void run() {
@@ -238,8 +236,6 @@ public class FileTransferManager {
     if (filesToUpload.size() == 0) {
       return;
     }
-
-    Leanplum.countAggregator().incrementCount("send_files_now");
 
     printUploadProgress();
 

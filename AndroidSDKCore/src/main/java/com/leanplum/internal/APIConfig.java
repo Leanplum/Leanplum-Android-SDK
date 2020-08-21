@@ -55,7 +55,6 @@ public class APIConfig {
     if (!TextUtils.isEmpty(accessKey)) {
       this.accessKey = accessKey.trim();
     }
-    Leanplum.countAggregator().incrementCount("set_app_id");
   }
 
   public void loadToken(String token) {
@@ -92,7 +91,6 @@ public class APIConfig {
 
   public void setToken(String token) {
     this.token = token;
-    Leanplum.countAggregator().incrementCount("set_token");
   }
 
   public void loadToken() {
@@ -104,7 +102,6 @@ public class APIConfig {
       return;
     }
     setToken(token);
-    Leanplum.countAggregator().incrementCount("load_token");
   }
 
   public void saveToken() {

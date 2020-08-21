@@ -60,6 +60,5 @@ public class Registration {
       }
     });
     RequestSender.getInstance().sendIfConnected(request);
-    Leanplum.countAggregator().incrementCount("register_device");
   }
 }
