@@ -670,8 +670,22 @@ public class Util {
     return urlConnection;
   }
 
+  private static boolean isGzipCompressed(URLConnection op) {
+    String contentHeader = op.getHeaderField("content-encoding");
+    if (contentHeader != null) {
+      return contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING);
+    }
+    return false;
+  }
+
   public static void saveResponse(URLConnection op, OutputStream outputStream) throws IOException {
     InputStream is = op.getInputStream();
+
+    // If we have a gzipped response, de-compress it first
+    if (isGzipCompressed(op)) {
+      is = new GZIPInputStream(is);
+    }
+
     byte[] buffer = new byte[4096];
     int bytesRead;
     while ((bytesRead = is.read(buffer)) != -1) {
@@ -682,8 +696,6 @@ public class Util {
 
   private static String getResponse(HttpURLConnection op) throws IOException {
     InputStream inputStream;
-    String contentHeader = op.getHeaderField("content-encoding");
-    boolean isCompressed = contentHeader != null && contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING);
     if (op.getResponseCode() < 400) {
       inputStream = op.getInputStream();
     } else {
@@ -691,7 +703,9 @@ public class Util {
     }
 
     // If we have a gzipped response, de-compress it first
-    if (isCompressed) inputStream = new GZIPInputStream(inputStream);
+    if (isGzipCompressed(op)) {
+      inputStream = new GZIPInputStream(inputStream);
+    }
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
     StringBuilder builder = new StringBuilder();
