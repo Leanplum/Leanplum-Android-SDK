@@ -1,0 +1,714 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" charset="utf-8">
+  <style type="text/css">
+        a,
+        abbr,
+        acronym,
+        address,
+        applet,
+        article,
+        aside,
+        audio,
+        b,
+        big,
+        blockquote,
+        body,
+        canvas,
+        caption,
+        center,
+        cite,
+        code,
+        dd,
+        del,
+        details,
+        dfn,
+        div,
+        dl,
+        dt,
+        em,
+        embed,
+        fieldset,
+        figcaption,
+        figure,
+        footer,
+        form,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        header,
+        hgroup,
+        html,
+        i,
+        iframe,
+        img,
+        ins,
+        kbd,
+        label,
+        legend,
+        li,
+        mark,
+        menu,
+        nav,
+        object,
+        ol,
+        output,
+        p,
+        pre,
+        q,
+        ruby,
+        s,
+        samp,
+        section,
+        small,
+        span,
+        strike,
+        strong,
+        sub,
+        summary,
+        sup,
+        table,
+        tbody,
+        td,
+        tfoot,
+        th,
+        thead,
+        time,
+        tr,
+        tt,
+        u,
+        ul,
+        var,
+        video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline
+        }
+
+        article,
+        aside,
+        details,
+        figcaption,
+        figure,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        section {
+            display: block
+        }
+
+        body {
+            line-height: 1
+        }
+
+        ol,
+        ul {
+            list-style: none
+        }
+
+        blockquote,
+        q {
+            quotes: none
+        }
+
+        blockquote:after,
+        blockquote:before,
+        q:after,
+        q:before {
+            content: '';
+            content: none
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent
+        }
+
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none
+        }
+
+        html {
+            height: 100%
+        }
+
+        #close-button {
+            display: none;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 10
+        }
+
+        /*##BANNER_MEDIAQUERY##
+        @media screen
+        and (min-device-width: 375px)
+        and (min-device-height: 812px)
+        and (max-width: 375px)
+        and (-webkit-device-pixel-ratio: 3),
+        screen
+        and (min-device-width: 414px)
+        and (max-width: 414px)
+        and (min-device-height: 896px)
+        and (-webkit-device-pixel-ratio: 2),
+        screen
+        and (device-width: 414px)
+        and (device-height: 896px)
+        and (max-width: 414px)
+        and (-webkit-device-pixel-ratio: 3){
+            #close-button {
+                right: 5px!important;
+            }
+            .main-section {
+                margin-left: 0px!important;
+                margin-right: 0px!important;
+            }
+
+        }
+
+        @media screen
+            and (min-device-width: 375px)
+            and (min-device-height: 812px)
+            and (min-width: 812px)
+            and (-webkit-device-pixel-ratio: 3),
+            screen
+            and (min-device-width: 414px)
+            and (min-device-height: 896px)
+            and (min-width: 896px)
+            and (-webkit-device-pixel-ratio: 2),
+            screen
+            and (device-width: 414px)
+            and (device-height: 896px)
+            and (min-width: 896px)
+            and (-webkit-device-pixel-ratio: 3) {
+            #close-button {
+                right: 49px!important;
+            }
+            .main-section {
+                margin-left: 44px!important;
+                margin-right: 44px!important;
+            }
+        }
+        ##BANNER_MEDIAQUERY##*/
+
+        #cover {
+            z-index: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .5)
+        }
+
+        .text {
+            text-align: center
+        }
+
+        .image {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center
+        }
+
+        body {
+            height: 100%;
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-align: center;
+            align-items: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            font-family: sans-serif;
+            font-weight: 400
+        }
+
+        #view {
+            -ms-flex: 1 1 auto;
+            flex: 1 1 auto;
+            z-index: 1;
+            position: relative;
+            border: 1px solid
+        }
+
+        #view.rounded-border {
+            border-radius: 13px
+        }
+
+        #view.rounded-border #hero-image {
+            border-top-right-radius: 13px;
+            border-top-left-radius: 13px
+        }
+
+        #view.rounded-border #hero-image {
+            border-top-right-radius: 13px;
+            border-top-left-radius: 13px
+        }
+
+        #view.rounded-border .button-section {
+            overflow: hidden;
+            border-bottom-right-radius: 13px;
+            border-bottom-left-radius: 13px
+        }
+
+        #view.banner {
+            height: 100%;
+            -ms-flex-item-align: start;
+            align-self: flex-start
+        }
+
+        #close-button svg {
+            width: 20px;
+            height: 20px
+        }
+
+        .main-section {
+            display: -ms-flexbox;
+            display: flex;
+            height: 100%
+        }
+
+        .text-section {
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            padding: 0 10px;
+            -ms-flex-pack: center;
+            justify-content: center;
+            box-sizing: border-box
+        }
+
+        #title {
+            text-align: left;
+            line-height: 120%
+        }
+
+        #message {
+            line-height: 120%;
+            margin-top: 5px;
+            text-align: left
+        }
+
+        #hero-image {
+            width: 100px;
+            height: 100%
+        }
+    </style>
+</head>
+
+<body>
+<div id="view" class="banner image">
+  <div id="close-button">
+    <svg width="25px" height="25px" viewBox="0 0 60 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <circle id="Oval" fill="#222222" cx="30" cy="30" r="30"></circle>
+      <path d="M41.1015684,37.532294 C42.3105813,38.7889863 42.3189193,40.8040273 41.1099064,42.065053 C39.9134005,43.308745 37.9664729,43.3174119 36.753291,42.0563862 L29.5033827,34.5248994 L22.2576434,42.0563862 C21.0444615,43.308745 19.1100408,43.3174119 17.901028,42.065053 C16.7003531,40.8126942 16.6961841,38.7976531 17.909366,37.532294 L25.1551053,30.0008072 L17.909366,22.4693205 C16.7086911,21.2169616 16.6961841,19.2019206 17.901028,17.9408949 C19.1017028,16.688536 21.0402925,16.6842026 22.2576434,17.9408949 L29.5033827,25.4723816 L36.753291,17.9408949 C37.9581349,16.6928694 39.9050625,16.6842026 41.1099064,17.9408949 C42.3105813,19.1889203 42.3189193,21.1996279 41.1015684,22.4693205 L33.8599981,30.0008072 L41.1015684,37.532294 Z" id="Close-Icon" fill="#FFFFFF"></path>
+    </svg>
+  </div>
+
+  <div class="main-section">
+    <div id="hero-image" class="image"></div>
+    <div class="text-section">
+      <div id="title" class='text'></div>
+      <div id="message" class='text'></div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+        // Will be replaced by SDK.
+        var variables = {"Track URL":"http://leanplum/track","displayEvent":{"event":"banner","value":"0.0","info":""},"Track Action URL":"http://leanplum/runTrackedAction","HTML Align":"Top","HTML Height":60,"__name__":"HTML","Open URL":"http://leanplum/loadFinished","__file__Template":"lp_public_banner-10.html","messageId":"6538084630790144","Action URL":"http://leanplum/runAction","Font":{"CSS File":"file:///data/user/0/com.leanplum.rondo/app_Leanplum_Documents/lp_public_sf_ui_font.css"},"Close URL":"http://leanplum/close"};
+    </script>
+<script type="text/javascript">
+        function afterProcessVariables() {
+            getDomElementForVariable("view").onclick = function() {
+                runTrackedAction("Select Banner action")
+            }
+        }
+
+        function processVariables(a) {
+            for (var b in a) {
+                var c = a[b];
+                "function" == typeof handleCustomTemplateVariable && handleCustomTemplateVariable(b, c) || (handleTopLevelVariables(b, c), handleVariable(b, c))
+            }
+            "function" == typeof afterProcessVariables && afterProcessVariables(), document.body.appendChild(dynamicStyles)
+        }
+
+        function handleTopLevelVariables(a, b) {
+            switch (a) {
+                case "Font":
+                    addStyle("body", "font-family", b["Font family"]);
+                    break;
+                case "Height":
+                    addStyle("#view", "height", b);
+                    break;
+                case "Width":
+                    addStyle("#view", "max-width", b);
+                    break;
+                case "Show close button":
+                    if (b) {
+                        var c = getDomElementForVariable("close-button");
+                        addStyle("#close-button", "display", "block !important"), c.onclick = function(a) {
+                            a.stopPropagation(), closeMessage()
+                        }
+                    }
+                    break;
+                case "Enable background close":
+                    if (b) {
+                        getDomElementForVariable("cover").onclick = closeMessage
+                    }
+                    break;
+                case "Rounded border":
+                    b && addClassToSelector("#view", "rounded-border");
+                    break;
+                case "Button border color":
+                    addStyle(".button-section", "border-color", intColorToRgbaString(b)), addStyle("#button-1", "border-color", intColorToRgbaString(b) + " !important");
+                    break;
+                case "Close automatically":
+                    b["Close automatically"] && setTimeout(function() {
+                        closeMessage()
+                    }, 1e3 * b.Delay)
+            }
+        }
+
+        function handleVariable(a, b) {
+            var c = {};
+            getLeaves(c, a, b, a), Object.keys(c).forEach(function(b) {
+                setPropertyForVariable(b, a, c[b])
+            })
+        }
+
+        function setPropertyForVariable(a, b, c) {
+            var d = getLastComponent(a),
+                e = getIdSelectorForVariable(b),
+                f = getDomElementForVariable(b);
+            switch (d) {
+                case "Show button":
+                    buttonDisplayCache[e] = c, c || addStyle(e, "display", "none");
+                    var g = Object.keys(buttonDisplayCache).every(function(a) {
+                            return !buttonDisplayCache[a]
+                        }),
+                        h = document.getElementsByClassName("button-section")[0],
+                        i = h.children.length;
+                    Object.keys(buttonDisplayCache).length === i && g && (addStyle(".button-section", "display", "none"), addStyle("#message", "margin", "initial"));
+                    break;
+                case "Text value":
+                    f.innerHTML = c;
+                    break;
+                case "width":
+                    addStyle(e, "width", c);
+                    break;
+                case "height":
+                    addStyle(e, "height", c);
+                    break;
+                case "text-align":
+                    addStyle(e, "text-align", c);
+                    break;
+                case "Color":
+                    addStyle(e, "color", intColorToRgbaString(c));
+                    break;
+                case "Font size":
+                    addStyle(e, "font-size", c);
+                    break;
+                case "Italic":
+                    c && addStyle(e, "font-style", "italic");
+                    break;
+                case "Bold":
+                    c && addStyle(e, "font-weight", 600);
+                    break;
+                case "Image":
+                    c ? addStyle(e, "display", "block") : addStyle(e, "display", "none");
+                case "Background image":
+                    addStyle(e, "background-image", "url(" + c + ")");
+                    break;
+                case "Active background image":
+                    addStyle(e + ":active", "background-image", "url(" + c + ")");
+                    break;
+                case "Background color":
+                    addStyle(e, "background-color", intColorToRgbaString(c));
+                    break;
+                case "Active background color":
+                    addStyle(e + ":active", "background-color", intColorToRgbaString(c));
+                    break;
+                case "Border width":
+                    addStyle(e, "border-width", c);
+                    break;
+                case "Display left of message":
+                    var j = document.getElementsByClassName("text-section")[0],
+                        k = document.getElementById("hero-image");
+                    c ? insertAfter(k, j) : insertAfter(j, k);
+                    break;
+                case "Border color":
+                    addStyle(e, "border-color", intColorToRgbaString(c));
+                    break;
+                case "Display above headline":
+                    var l = document.getElementById("title"),
+                        m = document.getElementById("hero-image");
+                    c ? (removeClassFromSelector("#view", "hero-below-headline"), insertAfter(m, l)) : (addClassToSelector("#view", "hero-below-headline"), insertAfter(l, m))
+            }
+        }
+
+        function removeClassFromSelector(a, b) {
+            removeClassFromElement(querySelector(a), b)
+        }
+
+        function removeClassFromElement(a, b) {
+            a.className = a.className.replace(b, "")
+        }
+
+        function addClassToSelector(a, b) {
+            addClassToElement(querySelector(a), b)
+        }
+
+        function addClassToElement(a, b) {
+            -1 == a.className.indexOf(b) && (a.className += " " + b)
+        }
+
+        function insertAfter(a, b) {
+            a.parentNode.insertBefore(b, a.nextSibling)
+        }
+
+        function addStyle(a, b, c) {
+            var d = {};
+            d[b] = c, addStyles(a, d)
+        }
+
+        function addStyles(a, b) {
+            var c = "";
+            c += a + "{";
+            for (var d in b) c += d + ":" + b[d] + ";";
+            c += "}", addStyleString(c)
+        }
+
+        function addStyleString(a) {
+            dynamicStyles.innerHTML += a
+        }
+
+        function getDomElementForVariable(a) {
+            return querySelector(getIdSelectorForVariable(a))
+        }
+
+        function getIdSelectorForVariable(a) {
+            return "#" + a.toLowerCase().replace(/ /g, "-")
+        }
+
+        function querySelector(a) {
+            var b = selectorCache[a];
+            if (b) return b;
+            var c = document.querySelector(a);
+            return c || (variables.devMode && console.log("No selector found for " + a), c = {
+                style: {}
+            }), b = c, c
+        }
+
+        function trackMessageEvent(a, b, c, d) {
+            callTrack({
+                event: a,
+                value: b,
+                parameters: c,
+                info: d,
+                isMessageEvent: !0
+            })
+        }
+
+        function trackEvent(a, b, c, d) {
+            callTrack({
+                event: a,
+                value: b,
+                parameters: c,
+                info: d
+            })
+        }
+
+        function runAction(a) {
+            callBridge(bridgeActionName, {
+                action: a
+            })
+        }
+
+        function runTrackedAction(a) {
+            callBridge(bridgeTrackActionName, {
+                action: a
+            })
+        }
+
+        function closeMessage() {
+            callBridge(bridgeCloseName)
+        }
+
+        function showMessage() {
+            callBridge(bridgeOpenName)
+        }
+
+        function callTrack(a) {
+            var b = variables.displayEvent,
+                c = b && b.event;
+            if (variables["Include display event parameters"] && c) {
+                a.parameters.displayEvent = b.event;
+                for (var d in b.params) a.parameters[d] || (a.parameters[d] = b.params[d])
+            }
+            callBridge(bridgeTrackName, a)
+        }
+
+        function callBridge(a, b) {
+            if (!variables.devMode) {
+                var c = variables[a];
+                c && (b && (c += "?" + encodeQueryData(b)), routeToBridge(c))
+            }
+        }
+
+        function routeToBridge(a) {
+            var b = document.createElement("a");
+            b.setAttribute("href", a);
+            var c = document.createEvent("MouseEvents");
+            c.initEvent("click", !0, !1), b.dispatchEvent(c)
+        }
+
+        function getLeaves(a, b, c, d) {
+            if ("object" == typeof c && -1 === b.indexOf("action"))
+                for (var b in c) getLeaves(a, b, c[b], d + "." + b);
+            else a[d] = c
+        }
+
+        function intColorToRgbaString(a) {
+            a = parseInt(a);
+            var b = 255 & a,
+                c = a >> 8 & 255,
+                d = a >> 16 & 255,
+                e = a >> 24 & 255;
+            return "rgba(" + d + "," + c + "," + b + "," + Math.round(1e4 * e / 255) / 1e4 + ")"
+        }
+
+        function encodeQueryData(a) {
+            var b = [];
+            for (var c in a) {
+                var d = a[c];
+                void 0 !== d && ("object" == typeof d && (d = JSON.stringify(d)), b.push(encodeURIComponent(c) + "=" + encodeURIComponent(d)))
+            }
+            return b.join("&")
+        }
+
+        function run() {
+            var a = variables.Font["CSS File"];
+            a && loadCSS(a), scriptsToLoadCounter || buildTemplate()
+        }
+
+        function merge(a, b) {
+            for (var c in b) "object" == typeof a && "object" == typeof b[c] && c in a ? merge(a[c], b[c]) : a[c] = b[c];
+            return a
+        }
+
+        function handleInclude(a) {
+            switch (getLastComponent(a)) {
+                case "css":
+                    loadCSS(a);
+                    break;
+                case "js":
+                    loadJS(a);
+                    break;
+                default:
+                    console.log("Invalid filetype included: " + a)
+            }
+        }
+
+        function getLastComponent(a) {
+            return a.substr(a.lastIndexOf(".") + 1)
+        }
+
+        function loadJS(a) {
+            var b = document.createElement("script");
+            b.setAttribute("type", "text/javascript"), scriptsToLoadCounter++, b.onload = includeOnLoad, b.src = a, document.head.appendChild(b)
+        }
+
+        function loadCSS(a) {
+            var b = document.createElement("link");
+            b.href = a, b.type = "text/css", b.rel = "stylesheet", document.head.appendChild(b)
+        }
+
+        function includeOnLoad() {
+            0 === --scriptsToLoadCounter && buildTemplate()
+        }
+
+        function buildTemplate() {
+            document.addEventListener("touchstart", function() {}, !1), processVariables(variables), showMessage()
+        }
+        var defaults = {
+                Template: "lp_public_banner-10.html",
+                Font: {
+                    "CSS File": "lp_public_sf_ui_font.css",
+                    "Font family": "sf_ui"
+                },
+                "HTML Height": "60",
+                "HTML Width": "100%",
+                "HTML Align": "Top",
+                "HTML Y Offset": "0px",
+                "Show close button": !0,
+                "Close automatically": {
+                    "Close automatically": !1,
+                    Delay: "10"
+                },
+                "Tap Outside to Close": !1,
+                "Hero image": {
+                    Image: "",
+                    "Display left of message": !0
+                },
+                View: {
+                    "Background color": "-1118482",
+                    "Background image": "",
+                    "Border color": "4278190080",
+                    "Border width": "0px"
+                },
+                Title: {
+                    "Text value": "Notification Banner Title",
+                    Color: "4278190080",
+                    "Font size": "13px",
+                    Italic: !1,
+                    Bold: !0,
+                    width: "100%",
+                    "text-align": "left"
+                },
+                Message: {
+                    "Text value": "Text for your banner",
+                    Color: "4278190080",
+                    "Font size": "12px",
+                    Italic: !1,
+                    Bold: !1,
+                    width: "100%",
+                    "text-align": "left"
+                },
+                "Select Banner action": ""
+            },
+            selectorCache = {},
+            buttonDisplayCache = {},
+            bridgeActionName = "Action URL",
+            bridgeTrackActionName = "Track Action URL",
+            bridgeCloseName = "Close URL",
+            bridgeOpenName = "Open URL",
+            bridgeTrackName = "Track URL",
+            dynamicStyles = document.createElement("style");
+        variables = merge(defaults, variables);
+        var scriptsToLoadCounter = 0;
+        run();
+    </script>
+</body>
+
+</html>
