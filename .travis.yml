@@ -1,6 +1,6 @@
 sudo: true
 language: android
-#dist: bionic
+dist: bionic
 
 addons: # install packages for kvm support
   apt:
@@ -11,6 +11,8 @@ addons: # install packages for kvm support
       - qemu-kvm
       - virtinst
       - ubuntu-vm-builder
+  snaps:
+    - androidsdk
 
 env:
   global:
@@ -35,10 +37,10 @@ licenses:
 
 before_install:
   # Set up KVM
-  - sudo adduser `id -un` libvirtd
-  - sudo adduser `id -un` kvm
-  #- sudo adduser $USER libvirt
-  #- sudo adduser $USER kvm
+  #- sudo adduser `id -un` libvirtd
+  #- sudo adduser `id -un` kvm
+  - sudo adduser $USER libvirt
+  - sudo adduser $USER kvm
 
   - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-165.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-165.jar"
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
@@ -58,7 +60,7 @@ before_script:
   - emulator -verbose -avd test -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
 
 script:
-  - ./gradlew assembleRelease testReleaseUnitTest
+  #- ./gradlew assembleRelease testReleaseUnitTest
 
   # wait emulator to come alive and start snapshot tests
   - android-wait-for-emulator
