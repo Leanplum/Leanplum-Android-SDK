@@ -37,7 +37,7 @@ before_script:
   - echo y | sdkmanager "extras;android;m2repository" >/dev/null
   - echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"
   - echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M
-  - emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
+  - emulator -verbose -avd test -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
 
 script:
   - ./gradlew assembleRelease testReleaseUnitTest
