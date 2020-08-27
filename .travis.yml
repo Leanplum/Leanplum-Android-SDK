@@ -1,5 +1,6 @@
 sudo: true
 language: android
+dist: bionic
 
 addons: # install packages for kvm support
   apt:
