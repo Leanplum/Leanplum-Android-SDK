@@ -1,4 +1,15 @@
+sudo: true
 language: android
+
+addons: # install packages for kvm support
+  apt:
+    packages:
+      - bridge-utils
+      - libpulse0
+      - libvirt-bin
+      - qemu-kvm
+      - virtinst
+      - ubuntu-vm-builder
 
 env:
   global:
@@ -22,6 +33,10 @@ licenses:
   - 'google-gdk-license-.+'
 
 before_install:
+  # Set up KVM
+  - sudo adduser $USER libvirt
+  - sudo adduser $USER kvm
+
   - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-165.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-165.jar"
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
   - python -m pip install Pillow --user # library for image manipulation in snapshot tests
@@ -37,8 +52,7 @@ before_script:
   - echo y | sdkmanager "extras;android;m2repository" >/dev/null
   - echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"
   - echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M
-  - emulator -avd test -no-audio -no-window -gpu swiftshader &
-  # - emulator -verbose -avd test -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
+  - emulator -verbose -avd test -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
 
 script:
   - ./gradlew assembleRelease testReleaseUnitTest
