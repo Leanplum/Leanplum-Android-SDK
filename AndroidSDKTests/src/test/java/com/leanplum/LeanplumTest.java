@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -36,6 +36,7 @@ import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
+import com.leanplum.internal.ApiConfigLoader;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FeatureFlagManager;
@@ -57,6 +58,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.Method;
@@ -1739,5 +1741,70 @@ public class LeanplumTest extends AbstractTest {
       }
     });
 
+  }
+
+  /**
+   * Tests if appId and accessKey are loaded from Android resources
+   * if they aren't presented before calling start.
+   */
+  @Test
+  public void testApiConfigLoadFromResources() throws Exception {
+    // assure appId and accessKey are not set
+    TestClassUtil.setField(APIConfig.getInstance(), "appId", null);
+    TestClassUtil.setField(APIConfig.getInstance(), "accessKey", null);
+
+    String appId = "app_id";
+    String accessKey = "access_key";
+
+    class MockedLoader extends ApiConfigLoader {
+      private MockedLoader(Context context) {
+        super(context);
+      }
+      @Override
+      public void loadFromResources(KeyListener prodKeyListener, KeyListener devKeyListener) {
+        prodKeyListener.onKeysLoaded(appId, accessKey);
+      }
+    }
+
+    PowerMockito
+        .whenNew(ApiConfigLoader.class)
+        .withAnyArguments()
+        .thenReturn(new MockedLoader(mContext));
+
+    Leanplum.start(mContext);
+
+    assertTrue(Leanplum.hasStarted());
+    assertEquals(appId, APIConfig.getInstance().appId());
+    assertEquals(accessKey, APIConfig.getInstance().accessKey());
+  }
+
+  /**
+   * Tests if appId and accessKey are not overridden if they are presented before calling Start.
+   */
+  @Test
+  public void testApiConfigNotOverridden() throws Exception {
+    String appId = APIConfig.getInstance().appId();
+    String accessKey = APIConfig.getInstance().accessKey();
+
+    class MockedLoader extends ApiConfigLoader {
+      private MockedLoader(Context context) {
+        super(context);
+      }
+      @Override
+      public void loadFromResources(KeyListener prodKeyListener, KeyListener devKeyListener) {
+        prodKeyListener.onKeysLoaded("arbitrary_app_id", "arbitrary_access_key");
+      }
+    }
+
+    PowerMockito
+        .whenNew(ApiConfigLoader.class)
+        .withAnyArguments()
+        .thenReturn(new MockedLoader(mContext));
+
+    Leanplum.start(mContext);
+
+    assertTrue(Leanplum.hasStarted());
+    assertEquals(appId, APIConfig.getInstance().appId());
+    assertEquals(accessKey, APIConfig.getInstance().accessKey());
   }
 }

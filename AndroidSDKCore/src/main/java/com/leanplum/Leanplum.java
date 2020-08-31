@@ -34,6 +34,7 @@ import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
+import com.leanplum.internal.ApiConfigLoader;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
 import com.leanplum.internal.FeatureFlagManager;
@@ -278,6 +279,16 @@ public class Leanplum {
   }
 
   /**
+   * Loads appId and accessKey from Android resources.
+   */
+  private static void loadApiConfigFromResources() {
+    ApiConfigLoader loader = new ApiConfigLoader(getContext());
+    loader.loadFromResources(
+        Leanplum::setAppIdForProductionMode,
+        Leanplum::setAppIdForDevelopmentMode);
+  }
+
+  /**
    * Enable screen tracking.
    */
   public static void trackAllAppScreens() {
@@ -291,7 +302,6 @@ public class Leanplum {
    */
   public static void setVariantDebugInfoEnabled(boolean variantDebugInfoEnabled) {
     LeanplumInternal.setIsVariantDebugInfoEnabled(variantDebugInfoEnabled);
-    countAggregator.incrementCount("set_variant_debug_info_enabled");
   }
 
   /**
@@ -391,7 +401,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("sync_resources");
   }
 
   /**
@@ -407,7 +416,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("sync_resources");
   }
 
   /**
@@ -429,7 +437,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("sync_resource_paths");
   }
 
   /**
@@ -451,7 +458,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("sync_resource_paths");
   }
 
   /**
@@ -521,6 +527,11 @@ public class Leanplum {
   static synchronized void start(final Context context, final String userId,
       final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
     try {
+      boolean appIdNotSet = TextUtils.isEmpty(APIConfig.getInstance().appId());
+      if (appIdNotSet) {
+        loadApiConfigFromResources();
+      }
+
       LeanplumActivityHelper.setCurrentActivity(context);
 
       // Detect if app is in background automatically if isBackground is not set.
@@ -616,7 +627,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("start_with_user_id");
   }
 
   /**
@@ -750,7 +760,6 @@ public class Leanplum {
 
   private static void handleStartResponse(final JSONObject response) {
     boolean success = RequestUtil.isResponseSuccess(response);
-    Leanplum.countAggregator().incrementCount("on_start_response");
     if (!success) {
       try {
         LeanplumInternal.setHasStarted(true);
@@ -1455,7 +1464,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    Leanplum.countAggregator().incrementCount("define_action");
   }
 
   /**
@@ -1654,7 +1662,6 @@ public class Leanplum {
   public static void track(final String event, double value, String info,
       Map<String, ?> params) {
     LeanplumInternal.track(event, value, info, params, null);
-    countAggregator.incrementCount("track");
   }
 
   /**
@@ -1853,9 +1860,6 @@ public class Leanplum {
   public static void trackGeofence(GeofenceEventType event, String info) {
     if (featureFlagManager().isFeatureFlagEnabled("track_geofence")) {
       LeanplumInternal.trackGeofence(event, 0.0, info, null, null);
-      countAggregator().incrementCount("track_geofence");
-    } else {
-      countAggregator().incrementCount("track_geofence_disabled");
     }
   }
 
@@ -1897,7 +1901,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("advance_to");
   }
 
   /**
@@ -2099,7 +2102,6 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
-    countAggregator.incrementCount("force_content_update");
   }
 
   /**
@@ -2195,7 +2197,6 @@ public class Leanplum {
    */
   public static void setDeviceLocation(Location location) {
     setDeviceLocation(location, LeanplumLocationAccuracyType.CELL);
-    Leanplum.countAggregator().incrementCount("setDeviceLocation");
   }
 
   /**
@@ -2211,7 +2212,6 @@ public class Leanplum {
           "call setDeviceLocation. If you prefer to always set location manually, " +
           "then call disableLocationCollection.");
     }
-    Leanplum.countAggregator().incrementCount("setDeviceLocation_type");
     LeanplumInternal.setUserLocationAttribute(location, type,
         new LeanplumInternal.locationAttributeRequestsCallback() {
           @Override
@@ -2254,7 +2254,6 @@ public class Leanplum {
    */
   public static void clearUserContent() {
     VarCache.clearUserContent();
-    countAggregator.incrementCount("clear_user_content");
   }
 
   @VisibleForTesting

@@ -149,8 +149,6 @@ public class RequestSender {
         }
       }, delayMs);
     }
-
-    Leanplum.countAggregator().incrementCount("send_request");
   }
 
   public void sendEventually(Request request) {
@@ -174,7 +172,6 @@ public class RequestSender {
       Map<String, Object> args = createArgsDictionary(request);
       saveRequestForLater(request, args);
     }
-    Leanplum.countAggregator().incrementCount("send_eventually");
   }
 
   public void sendIfConnected(Request request) {
@@ -185,7 +182,6 @@ public class RequestSender {
       sendEventually(request);
       Log.d("Device is offline, saving request and will try again later.");
     }
-    Leanplum.countAggregator().incrementCount("send_if_connected");
   }
 
   private void sendNow(final Request request) {
@@ -206,8 +202,6 @@ public class RequestSender {
       Log.e("Cannot send request. accessKey is not set.");
       return;
     }
-
-    Leanplum.countAggregator().incrementCount("send_now");
 
     // Try to send all saved requests.
     OperationQueue.sharedInstance().addOperation(new Runnable() {
@@ -468,7 +462,6 @@ public class RequestSender {
         }
       }
     }, 1000);
-    Leanplum.countAggregator().incrementCount("send_if_delayed");
   }
 
   /**

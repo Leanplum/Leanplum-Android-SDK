@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Counter is not currently used and will be removed in the future.
+ * It is still functional both on client and server side.
+ */
 public class CountAggregator {
     private Set<String> enabledCounters = new HashSet<>();
     private final Map<String, Integer> counts = new HashMap<>();

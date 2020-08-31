@@ -450,7 +450,6 @@ public class ActionManager {
     int occurrences = getMessageTriggerOccurrences(messageId);
     occurrences++;
     saveMessageTriggerOccurrences(occurrences, messageId);
-    Leanplum.countAggregator().incrementCount("record_message_trigger");
   }
 
   /**
