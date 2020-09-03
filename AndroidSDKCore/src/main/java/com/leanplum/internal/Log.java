@@ -103,7 +103,7 @@ public class Log {
       Request request = RequestBuilder.withLogAction()
           .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
           .andParam(Constants.Params.VERSION_NAME, versionName)
-          .andParam(Constants.Params.MESSAGE, writer.toString())
+          .andParam(Constants.Params.MESSAGE, stringWriter.toString())
           .create();
       RequestSender.getInstance().send(request);
     } catch (Throwable t2) {
