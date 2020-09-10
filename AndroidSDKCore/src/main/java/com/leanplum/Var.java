@@ -294,49 +294,56 @@ public class Var<T> {
     overrideResId = resId;
   }
 
+  /**
+   * Applies correct number type to the value member based on defaultValue type.
+   */
   @SuppressWarnings("unchecked")
+  private void modifyValue(Number src) {
+    if (src == null)
+      return;
+
+    if (defaultValue instanceof Byte) {
+      value = (T) (Byte) src.byteValue();
+    } else if (defaultValue instanceof Short) {
+      value = (T) (Short) src.shortValue();
+    } else if (defaultValue instanceof Integer) {
+      value = (T) (Integer) src.intValue();
+    } else if (defaultValue instanceof Long) {
+      value = (T) (Long) src.longValue();
+    } else if (defaultValue instanceof Float) {
+      value = (T) (Float) src.floatValue();
+    } else if (defaultValue instanceof Double) {
+      value = (T) (Double) src.doubleValue();
+    } else if (defaultValue instanceof Character) {
+      value = (T) (Character) (char) src.intValue();
+    }
+  }
+
+  /**
+   * Parses src to initialize numberValue. If not parsable it uses the defaultValue.
+   */
+  private void modifyNumberValue(String src) {
+    try {
+      numberValue = Double.valueOf(src);
+    } catch (NumberFormatException e) {
+      numberValue = null;
+      if (defaultValue instanceof Number) {
+        numberValue = ((Number) defaultValue).doubleValue();
+      }
+    }
+  }
+
   private void cacheComputedValues() {
     if (value instanceof String) {
       stringValue = (String) value;
-      try {
-        numberValue = Double.valueOf(stringValue);
-      } catch (NumberFormatException e) {
-        numberValue = null;
-        if (defaultValue instanceof Short) {
-          value = (T) (Short) ((Number) defaultValue).shortValue();
-          numberValue = Double.valueOf(((Number) defaultValue).shortValue());
-        } else if (defaultValue instanceof Integer) {
-          value = (T) (Integer) ((Number) defaultValue).intValue();
-          numberValue = Double.valueOf(((Number) defaultValue).intValue());
-        } else if (defaultValue instanceof Long) {
-          value = (T) (Long) ((Number) defaultValue).longValue();
-          numberValue = Double.valueOf(((Number) defaultValue).longValue());
-        } else if (defaultValue instanceof Float) {
-          value = (T) (Float) ((Number) defaultValue).floatValue();
-          numberValue = Double.valueOf(((Number) defaultValue).floatValue());
-        } else if (defaultValue instanceof Double) {
-          value = (T) (Double) ((Number) defaultValue).doubleValue();
-          numberValue = Double.valueOf(((Number) defaultValue).doubleValue());
-        }
-      }
+      modifyNumberValue(stringValue);
+      modifyValue(numberValue);
+
     } else if (value instanceof Number) {
       stringValue = "" + value;
       numberValue = ((Number) value).doubleValue();
-      if (defaultValue instanceof Byte) {
-        value = (T) (Byte) ((Number) value).byteValue();
-      } else if (defaultValue instanceof Short) {
-        value = (T) (Short) ((Number) value).shortValue();
-      } else if (defaultValue instanceof Integer) {
-        value = (T) (Integer) ((Number) value).intValue();
-      } else if (defaultValue instanceof Long) {
-        value = (T) (Long) ((Number) value).longValue();
-      } else if (defaultValue instanceof Float) {
-        value = (T) (Float) ((Number) value).floatValue();
-      } else if (defaultValue instanceof Double) {
-        value = (T) (Double) ((Number) value).doubleValue();
-      } else if (defaultValue instanceof Character) {
-        value = (T) (Character) (char) ((Number) value).intValue();
-      }
+      modifyValue((Number) value);
+
     } else if (value != null &&
         !(value instanceof Iterable<?>) && !(value instanceof Map<?, ?>)) {
       stringValue = value.toString();
