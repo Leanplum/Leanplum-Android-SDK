@@ -146,9 +146,9 @@ class LeanplumLocalPushHelper {
    */
   static void cancelLocalPush(Context context, String messageId) {
     try {
-      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
+      Intent intentAlarm = LeanplumLocalPushListenerService.getIntent(context);
       AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-      PendingIntent existingIntent = PendingIntent.getService(
+      PendingIntent existingIntent = PendingIntent.getBroadcast(
           context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
       if (alarmManager != null && existingIntent != null) {
         alarmManager.cancel(existingIntent);
