@@ -153,11 +153,9 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(Leanplum.class, "deviceIdMode", LeanplumDeviceIdMode.MD5_MAC_ADDRESS);
     TestClassUtil.setField(Leanplum.class, "customDeviceId", null);
     TestClassUtil.setField(Leanplum.class, "userSpecifiedDeviceId", false);
-    TestClassUtil.setField(Leanplum.class, "initializedMessageTemplates", false);
     LeanplumInternal.setStartedInBackground(false);
     TestClassUtil.setField(LeanplumInternal.class, "inForeground", false);
 
-    TestClassUtil.setField(Leanplum.class, "heartbeatExecutor", null);
     TestClassUtil.setField(Leanplum.class, "context", null);
     TestClassUtil.setField(Leanplum.class, "pushStartCallback", null);
 

@@ -450,14 +450,17 @@ public class RequestSender {
   }
 
   private void sendRequestsDelayed(long delayMillis) {
-    OperationQueue.sharedInstance().addOperationAfterDelay(() -> {
-      try {
-        if (!Util.isConnected()) {
-          return;
+    OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          if (!Util.isConnected()) {
+            return;
+          }
+          sendRequests();
+        } catch (Throwable t) {
+          Log.exception(t);
         }
-        sendRequests();
-      } catch (Throwable t) {
-        Log.exception(t);
       }
     }, delayMillis);
   }

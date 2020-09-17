@@ -36,12 +36,15 @@ public class RequestSenderTimer {
   }
 
   private Runnable createTimerOperation() {
-    return () -> {
-      long eventsCount = LeanplumEventDataManager.sharedInstance().getEventsCount();
-      if (eventsCount > 0) { // TODO send heartbeat no matter eventsCount?
-        sendAllRequestsWithHeartbeat();
+    return new Runnable() {
+      @Override
+      public void run() {
+        long eventsCount = LeanplumEventDataManager.sharedInstance().getEventsCount();
+        if (eventsCount > 0) { // TODO send heartbeat no matter eventsCount?
+          sendAllRequestsWithHeartbeat();
+        }
+        OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, TIMER_MILLIS);
       }
-      OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, TIMER_MILLIS);
     };
   }
 

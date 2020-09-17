@@ -33,13 +33,18 @@ public class ImmediateRequestSender extends RequestSender {
 
   @Override
   public void send(Request request) {
-    currentRequestId = request.requestId();
+    currentRequestId = request.getRequestId();
 
     // immediately send current request
     if (!request.isSent()) {
-      super.send(request); // TODO remove this call?
       super.sendNow(request);
     }
+  }
+
+  @Override
+  public void sendNow(Request request) {
+    currentRequestId = request.getRequestId();
+    super.sendNow(request);
   }
 
   @Override

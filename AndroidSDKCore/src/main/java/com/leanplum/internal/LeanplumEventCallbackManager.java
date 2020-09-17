@@ -56,7 +56,7 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    callbacks.put(request.requestId(), new LeanplumEventCallbacks(responseCallback, errorCallback));
+    callbacks.put(request.getRequestId(), new LeanplumEventCallbacks(responseCallback, errorCallback));
   }
 
   /**

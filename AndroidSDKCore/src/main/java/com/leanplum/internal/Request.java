@@ -45,10 +45,6 @@ public class Request {
   ErrorCallback error;
   private boolean sent;
 
-  public String requestId() {
-    return requestId;
-  }
-
   public Request(String httpMethod, String apiAction, Map<String, Object> params) {
     this.httpMethod = httpMethod;
     this.apiAction = apiAction;

@@ -72,7 +72,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ScheduledExecutorService;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -110,7 +109,6 @@ public class Leanplum {
   private static String customAppVersion = null;
   private static boolean userSpecifiedDeviceId;
   private static boolean locationCollectionEnabled = true;
-  private static ScheduledExecutorService heartbeatExecutor = null;
   private static Context context;
 
   private static Runnable pushStartCallback;
