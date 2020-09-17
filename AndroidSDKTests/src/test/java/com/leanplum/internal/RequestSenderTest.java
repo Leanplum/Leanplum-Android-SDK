@@ -112,7 +112,7 @@ public class RequestSenderTest extends TestCase {
       @Override
       public void run() {
         Request request = new Request(POST, RequestBuilder.ACTION_START, params);
-        RequestSender.getInstance().sendIfConnected(request);
+        RequestSender.getInstance().sendNow(request);
 
         latch.countDown();
       }
@@ -122,7 +122,7 @@ public class RequestSenderTest extends TestCase {
       @Override
       public void run() {
         Request request = new Request(POST, RequestBuilder.ACTION_START, params);
-        RequestSender.getInstance().sendIfConnected(request);
+        RequestSender.getInstance().sendNow(request);
 
         latch.countDown();
       }
@@ -162,7 +162,7 @@ public class RequestSenderTest extends TestCase {
 
     // Regular start request.
     // Expectation: One request returned.
-    RequestSender.getInstance().sendEventually(request);
+    RequestSender.getInstance().send(request);
 
     // loop to complete all tasks
     ShadowLooper.idleMainLooperConstantly(true);
@@ -178,13 +178,13 @@ public class RequestSenderTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "2");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
@@ -197,13 +197,13 @@ public class RequestSenderTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     List unsentRequestsData =
@@ -219,19 +219,19 @@ public class RequestSenderTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
 
@@ -248,19 +248,19 @@ public class RequestSenderTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
@@ -276,19 +276,19 @@ public class RequestSenderTest extends TestCase {
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("fg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(false));
       put("bg", "1");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
       put(Constants.Params.BACKGROUND, Boolean.toString(true));
       put("bg", "2");
     }});
-    RequestSender.getInstance().sendEventually(req);
+    RequestSender.getInstance().send(req);
 
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     unsentRequestsData =
@@ -308,11 +308,11 @@ public class RequestSenderTest extends TestCase {
     // Prepare testable objects and method.
     RequestSender requestSender = spy(new RequestSender());
     Request request = new Request("POST", RequestBuilder.ACTION_START, null);
-    requestSender.sendEventually(request); // first request added
+    requestSender.send(request); // first request added
 
     for (int i = 0; i < 5000; i++) { // remaining requests to make up 5000
       Request startRequest = new Request("POST", RequestBuilder.ACTION_START, null);
-      requestSender.sendEventually(startRequest);
+      requestSender.send(startRequest);
     }
 
     // Expectation: 5000 requests returned.
@@ -439,7 +439,7 @@ public class RequestSenderTest extends TestCase {
     APIConfig.getInstance().setAppId("fskadfshdbfa", "wee5w4waer422323");
 
     // When the request is sent.
-    RequestSender.getInstance().sendIfConnected(request);
+    RequestSender.getInstance().sendNow(request);
 
     Leanplum.setApplicationContext(context);
   }

@@ -543,8 +543,8 @@ public class LeanplumTest extends AbstractTest {
     Request request1 = new Request("POST", RequestBuilder.ACTION_GET_INBOX_MESSAGES, null);
     Request request2 = new Request("POST", RequestBuilder.ACTION_LOG, null);
 
-    RequestSender.getInstance().sendEventually(request1);
-    RequestSender.getInstance().sendEventually(request2);
+    RequestSender.getInstance().send(request1);
+    RequestSender.getInstance().send(request2);
 
     final double fraction = 1.0;
     // Get a number of events in the database.

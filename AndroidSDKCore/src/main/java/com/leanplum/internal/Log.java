@@ -105,7 +105,7 @@ public class Log {
           .andParam(Constants.Params.VERSION_NAME, versionName)
           .andParam(Constants.Params.MESSAGE, stringWriter.toString())
           .create();
-      RequestSender.getInstance().send(request);
+      RequestSender.getInstance().sendNow(request);
     } catch (Throwable t2) {
       Log.e("Unable to send error report: %s", t2.getMessage());
     }
@@ -164,7 +164,7 @@ public class Log {
           .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
           .andParam(Constants.Params.MESSAGE, tag + msg)
           .create();
-      RequestSender.getInstance().sendEventually(request);
+      RequestSender.getInstance().send(request);
     }
   }
 

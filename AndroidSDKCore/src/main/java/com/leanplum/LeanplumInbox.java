@@ -37,7 +37,6 @@ import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
-import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONObject;
@@ -421,7 +420,7 @@ public class LeanplumInbox {
         triggerInboxSyncedWithStatus(false);
       }
     });
-    RequestSender.getInstance().sendIfConnected(req);
+    RequestSender.getInstance().sendNow(req);
   }
 
   /**

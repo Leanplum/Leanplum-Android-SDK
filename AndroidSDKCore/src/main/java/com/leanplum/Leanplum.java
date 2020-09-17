@@ -50,6 +50,7 @@ import com.leanplum.internal.Registration;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestSender;
+import com.leanplum.internal.RequestSenderTimer;
 import com.leanplum.internal.RequestUtil;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
@@ -71,9 +72,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -750,9 +749,9 @@ public class Leanplum {
     });
 
     if (isBackground) {
-      RequestSender.getInstance().sendEventually(request);
+      RequestSender.getInstance().send(request);
     } else {
-      RequestSender.getInstance().sendIfConnected(request);
+      RequestSender.getInstance().sendNow(request);
     }
 
     LeanplumInternal.triggerStartIssued();
@@ -932,7 +931,7 @@ public class Leanplum {
           }
         }
         LeanplumInternal.moveToForeground();
-        startHeartbeat();
+        startRequestTimer();
       } catch (Throwable t) {
         Log.exception(t);
       } finally {
@@ -1007,8 +1006,8 @@ public class Leanplum {
 
   private static void pauseInternal() {
     Request request = RequestBuilder.withPauseSessionAction().create();
-    RequestSender.getInstance().sendIfConnected(request);
-    pauseHeartbeat();
+    RequestSender.getInstance().sendNow(request);
+    stopRequestTimer();
     LeanplumInternal.setIsPaused(true);
   }
 
@@ -1044,52 +1043,22 @@ public class Leanplum {
     Request request = RequestBuilder.withResumeSessionAction().create();
     if (LeanplumInternal.hasStartedInBackground()) {
       LeanplumInternal.setStartedInBackground(false);
-      RequestSender.getInstance().sendIfConnected(request);
+      RequestSender.getInstance().sendNow(request);
     } else {
-      RequestSender.getInstance().sendIfDelayed(request);
+      RequestSender.getInstance().sendNow(request);
       LeanplumInternal.maybePerformActions("resume", null,
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
     }
-    resumeHeartbeat();
+    startRequestTimer();
     LeanplumInternal.setIsPaused(false);
   }
 
-  /**
-   * Send a heartbeat every 15 minutes while the app is running.
-   */
-  private static void startHeartbeat() {
-    synchronized (heartbeatLock) {
-      if (heartbeatExecutor == null) {
-        createHeartbeatExecutor();
-      }
-    }
+  private static void startRequestTimer() {
+    RequestSenderTimer.get().start();
   }
 
-  private static void pauseHeartbeat() {
-    synchronized (heartbeatLock) {
-      if (heartbeatExecutor != null) {
-        heartbeatExecutor.shutdown();
-        heartbeatExecutor = null;
-      }
-    }
-  }
-
-  private static void resumeHeartbeat() {
-    startHeartbeat();
-  }
-
-  private static void createHeartbeatExecutor() {
-    heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
-    heartbeatExecutor.scheduleAtFixedRate(new Runnable() {
-      public void run() {
-        try {
-          Request request = RequestBuilder.withHeartbeatAction().create();
-          RequestSender.getInstance().sendIfDelayed(request);
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
-      }
-    }, 15, 15, TimeUnit.MINUTES);
+  private static void stopRequestTimer() {
+    RequestSenderTimer.get().stop();
   }
 
   /**
@@ -1123,7 +1092,7 @@ public class Leanplum {
 
   private static void stopInternal() {
     Request request = RequestBuilder.withStopAction().create();
-    RequestSender.getInstance().sendIfConnected(request);
+    RequestSender.getInstance().sendNow(request);
   }
 
   /**
@@ -1587,7 +1556,7 @@ public class Leanplum {
               .withSetDeviceAttributesAction()
               .andParam(Constants.Params.DEVICE_PUSH_TOKEN, registrationId)
               .create();
-          RequestSender.getInstance().sendIfConnected(request);
+          RequestSender.getInstance().sendNow(request);
         } catch (Throwable t) {
           Log.exception(t);
         }
@@ -2098,7 +2067,7 @@ public class Leanplum {
           LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
         }
       });
-      RequestSender.getInstance().sendIfConnected(req);
+      RequestSender.getInstance().sendNow(req);
     } catch (Throwable t) {
       Log.exception(t);
     }

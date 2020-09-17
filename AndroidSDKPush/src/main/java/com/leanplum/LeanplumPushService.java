@@ -217,7 +217,7 @@ public class LeanplumPushService {
                 onComplete.variablesChanged();
               }
             });
-            RequestSender.getInstance().sendIfConnected(req);
+            RequestSender.getInstance().sendNow(req);
           }
         } catch (Throwable t) {
           Log.exception(t);

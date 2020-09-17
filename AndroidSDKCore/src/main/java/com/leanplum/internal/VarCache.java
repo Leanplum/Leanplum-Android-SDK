@@ -621,7 +621,7 @@ public class VarCache {
       }
       params.put(Constants.Params.FILE_ATTRIBUTES, JsonConverter.toJson(fileAttributes));
       Request request = RequestBuilder.withSetVarsAction().andParams(params).create();
-      RequestSender.getInstance().sendIfConnected(request);
+      RequestSender.getInstance().sendNow(request);
     }
 
     return changed;

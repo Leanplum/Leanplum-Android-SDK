@@ -24,6 +24,7 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -43,7 +44,6 @@ public class RequestSender {
 
   private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
   private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
-  private static final long PRODUCTION_DELAY = 60000;
   static final int MAX_EVENTS_PER_API_CALL;
 
   static {
@@ -127,95 +127,6 @@ public class RequestSender {
     });
   }
 
-  public void send(final Request request) {
-    sendEventually(request);
-
-    if (Constants.isDevelopmentModeEnabled) {
-      long currentTimeMs = System.currentTimeMillis();
-      long delayMs;
-      if (lastSendTimeMs == 0 || currentTimeMs - lastSendTimeMs > DEVELOPMENT_MAX_DELAY_MS) {
-        delayMs = DEVELOPMENT_MIN_DELAY_MS;
-      } else {
-        delayMs = (lastSendTimeMs + DEVELOPMENT_MAX_DELAY_MS) - currentTimeMs;
-      }
-      OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            sendIfConnected(request);
-          } catch (Throwable t) {
-            Log.exception(t);
-          }
-        }
-      }, delayMs);
-    }
-  }
-
-  public void sendEventually(Request request) {
-    if (Constants.isTestMode) {
-      return;
-    }
-
-    if (LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
-      return;
-    }
-
-    if (!request.isSent()) {
-      request.setSent(true);
-
-      // Check if it's error and there was SQLite exception.
-      if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())
-          && LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
-        addLocalError(request);
-      }
-
-      Map<String, Object> args = createArgsDictionary(request);
-      saveRequestForLater(request, args);
-    }
-  }
-
-  public void sendIfConnected(Request request) {
-    if (Util.isConnected()) {
-      Log.d("Sending request");
-      sendNow(request);
-    } else {
-      sendEventually(request);
-      Log.d("Device is offline, saving request and will try again later.");
-    }
-  }
-
-  private void sendNow(final Request request) {
-    if (Constants.isTestMode) {
-      return;
-    }
-
-    // always save request first
-    sendEventually(request);
-
-    // in case appId and accessKey are set later, request is already saved and will be
-    // sent when variables are set.
-    if (APIConfig.getInstance().appId() == null) {
-      Log.e("Cannot send request. appId is not set.");
-      return;
-    }
-    if (APIConfig.getInstance().accessKey() == null) {
-      Log.e("Cannot send request. accessKey is not set.");
-      return;
-    }
-
-    // Try to send all saved requests.
-    OperationQueue.sharedInstance().addOperation(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          sendRequests();
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
-      }
-    });
-  }
-
   protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
@@ -283,6 +194,7 @@ public class RequestSender {
     return requestsWithEncoding;
   }
 
+  @VisibleForTesting
   public void sendRequests() {
     Leanplum.countAggregator().sendAllCounts();
 
@@ -356,6 +268,7 @@ public class RequestSender {
     }
   }
 
+  @VisibleForTesting
   public List<Map<String, Object>> getUnsentRequests(double fraction) {
     List<Map<String, Object>> requestData;
 
@@ -446,38 +359,6 @@ public class RequestSender {
     }
   }
 
-  /**
-   * Wait 1 second for potential other API calls, and then sends the call synchronously if no other
-   * call has been sent within 1 minute.
-   */
-  public void sendIfDelayed(final Request request) {
-    sendEventually(request);
-    OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          sendIfDelayedHelper(request);
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
-      }
-    }, 1000);
-  }
-
-  /**
-   * Sends the call synchronously if no other call has been sent within 1 minute.
-   */
-  private void sendIfDelayedHelper(Request request) {
-    if (Constants.isDevelopmentModeEnabled) {
-      send(request);
-    } else {
-      long currentTimeMs = System.currentTimeMillis();
-      if (lastSendTimeMs == 0 || currentTimeMs - lastSendTimeMs > PRODUCTION_DELAY) {
-        sendIfConnected(request);
-      }
-    }
-  }
-
   private void addLocalError(Request request) {
     Map<String, Object> dict = createArgsDictionary(request);
     localErrors.add(dict);
@@ -498,5 +379,86 @@ public class RequestSender {
     }
     args.putAll(request.getParams());
     return args;
+  }
+
+  public void send(@NonNull Request request) {
+    if (Constants.isTestMode) {
+      return;
+    }
+
+    saveRequest(request);
+    scheduleSendForDevMode();
+  }
+
+  private void scheduleSendForDevMode() {
+    if (!Constants.isDevelopmentModeEnabled)
+      return;
+
+    long currentTimeMs = System.currentTimeMillis();
+    long delayMs;
+    if (lastSendTimeMs == 0 || currentTimeMs - lastSendTimeMs > DEVELOPMENT_MAX_DELAY_MS) {
+      delayMs = DEVELOPMENT_MIN_DELAY_MS;
+    } else {
+      delayMs = (lastSendTimeMs + DEVELOPMENT_MAX_DELAY_MS) - currentTimeMs;
+    }
+    sendRequestsDelayed(delayMs);
+  }
+
+  private void saveRequest(Request request) {
+    if (request.isSent())
+      return; // already saved
+
+    request.setSent(true);
+
+    if (LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+      if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())) {
+        addLocalError(request);
+      }
+      return;
+    }
+
+    Map<String, Object> args = createArgsDictionary(request);
+    saveRequestForLater(request, args);
+  }
+
+  public void sendNow(Request request) {
+    if (Constants.isTestMode) {
+      return;
+    }
+
+    // always save request first
+    saveRequest(request);
+
+    if (!Util.isConnected()) {
+      Log.d("Device is offline, saving request and will try again later.");
+      return;
+    }
+
+    // in case appId and accessKey are set later, request is already saved and will be
+    // sent when variables are set.
+    if (APIConfig.getInstance().appId() == null) {
+      Log.e("Cannot send request. appId is not set.");
+      return;
+    }
+    if (APIConfig.getInstance().accessKey() == null) {
+      Log.e("Cannot send request. accessKey is not set.");
+      return;
+    }
+
+    // Wait 1 second and send all saved requests
+    sendRequestsDelayed(1000);
+  }
+
+  private void sendRequestsDelayed(long delayMillis) {
+    OperationQueue.sharedInstance().addOperationAfterDelay(() -> {
+      try {
+        if (!Util.isConnected()) {
+          return;
+        }
+        sendRequests();
+      } catch (Throwable t) {
+        Log.exception(t);
+      }
+    }, delayMillis);
   }
 }
