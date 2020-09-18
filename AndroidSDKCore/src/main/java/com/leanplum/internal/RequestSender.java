@@ -387,10 +387,10 @@ public class RequestSender {
     }
 
     saveRequest(request);
-    scheduleSendForDevMode();
+    scheduleSendWhenDevMode();
   }
 
-  private void scheduleSendForDevMode() {
+  private void scheduleSendWhenDevMode() {
     if (!Constants.isDevelopmentModeEnabled)
       return;
 
@@ -401,7 +401,7 @@ public class RequestSender {
     } else {
       delayMs = (lastSendTimeMs + DEVELOPMENT_MAX_DELAY_MS) - currentTimeMs;
     }
-    sendRequestsDelayed(delayMs);
+    sendRequestsAsync(delayMs);
   }
 
   private void saveRequest(Request request) {
@@ -410,10 +410,12 @@ public class RequestSender {
 
     request.setSent(true);
 
-    if (LeanplumEventDataManager.sharedInstance().willSendErrorLogs()) {
+    if (LeanplumEventDataManager.sharedInstance().hasDatabaseError()) {
       if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())) {
+        // intercepting 'action=log' requests created from Log.exception
         addLocalError(request);
       }
+      // do not save request on database error
       return;
     }
 
@@ -429,11 +431,6 @@ public class RequestSender {
     // always save request first
     saveRequest(request);
 
-    if (!Util.isConnected()) {
-      Log.d("Device is offline, saving request and will try again later.");
-      return;
-    }
-
     // in case appId and accessKey are set later, request is already saved and will be
     // sent when variables are set.
     if (APIConfig.getInstance().appId() == null) {
@@ -445,16 +442,21 @@ public class RequestSender {
       return;
     }
 
-    // Wait 1 second and send all saved requests
-    sendRequestsDelayed(1000);
+    sendRequestsAsync();
   }
 
-  private void sendRequestsDelayed(long delayMillis) {
+  private void sendRequestsAsync() {
+    long noDelay = 0;
+    sendRequestsAsync(noDelay);
+  }
+
+  private void sendRequestsAsync(long delayMillis) {
     OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
       @Override
       public void run() {
         try {
           if (!Util.isConnected()) {
+            Log.d("Device is offline, will try sending requests again later.");
             return;
           }
           sendRequests();
