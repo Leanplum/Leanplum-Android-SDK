@@ -20,6 +20,8 @@
  */
 package com.leanplum.internal;
 
+import com.leanplum.internal.Request.RequestType;
+
 public class RequestSenderTimer {
   private static final RequestSenderTimer INSTANCE = new RequestSenderTimer();
   private static final long TIMER_MILLIS = 15 * 60 * 1000; // 15min
@@ -31,18 +33,18 @@ public class RequestSenderTimer {
   }
 
   private void sendAllRequestsWithHeartbeat() {
-    Request request = RequestBuilder.withHeartbeatAction().create();
-    RequestSender.getInstance().sendNow(request);
+    Request request = RequestBuilder
+        .withHeartbeatAction()
+        .andType(RequestType.IMMEDIATE)
+        .create();
+    RequestSender.getInstance().send(request);
   }
 
   private Runnable createTimerOperation() {
     return new Runnable() {
       @Override
       public void run() {
-        long eventsCount = LeanplumEventDataManager.sharedInstance().getEventsCount();
-        if (eventsCount > 0) { // TODO send heartbeat no matter eventsCount?
-          sendAllRequestsWithHeartbeat();
-        }
+        sendAllRequestsWithHeartbeat();
         OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, TIMER_MILLIS);
       }
     };

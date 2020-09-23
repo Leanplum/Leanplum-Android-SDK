@@ -21,7 +21,7 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.Leanplum;
+import androidx.annotation.VisibleForTesting;
 
 import org.json.JSONObject;
 
@@ -36,6 +36,11 @@ import java.util.UUID;
  */
 public class Request {
 
+  public enum RequestType {
+    DEFAULT,
+    IMMEDIATE
+  }
+
   private String requestId = UUID.randomUUID().toString();
 
   private final String httpMethod;
@@ -43,11 +48,16 @@ public class Request {
   private final Map<String, Object> params;
   ResponseCallback response;
   ErrorCallback error;
-  private boolean sent;
+  private RequestType type;
 
-  public Request(String httpMethod, String apiAction, Map<String, Object> params) {
+  public Request(
+      String httpMethod,
+      String apiAction,
+      RequestType type,
+      Map<String, Object> params) {
     this.httpMethod = httpMethod;
     this.apiAction = apiAction;
+    this.type = type;
     this.params = params != null ? params : new HashMap<>();
   }
 
@@ -67,14 +77,6 @@ public class Request {
     void error(Exception e);
   }
 
-  public void setSent(boolean sent) {
-    this.sent = sent;
-  }
-
-  public boolean isSent() {
-    return sent;
-  }
-
   public String getHttpMethod() {
     return httpMethod;
   }
@@ -89,5 +91,14 @@ public class Request {
 
   public Map<String, Object> getParams() {
     return params;
+  }
+
+  public RequestType getType() {
+    return type;
+  }
+
+  @VisibleForTesting
+  public void setType(RequestType type) {
+    this.type = type;
   }
 }

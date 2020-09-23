@@ -43,6 +43,7 @@ import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
@@ -177,6 +178,7 @@ public class LeanplumPushService {
                 .withGetVarsAction()
                 .andParam(Params.INCLUDE_DEFAULTS, Boolean.toString(false))
                 .andParam(Params.INCLUDE_MESSAGE_ID, messageId)
+                .andType(RequestType.IMMEDIATE)
                 .create();
             req.onResponse(new Request.ResponseCallback() {
               @Override
@@ -217,7 +219,7 @@ public class LeanplumPushService {
                 onComplete.variablesChanged();
               }
             });
-            RequestSender.getInstance().sendNow(req);
+            RequestSender.getInstance().send(req);
           }
         } catch (Throwable t) {
           Log.exception(t);

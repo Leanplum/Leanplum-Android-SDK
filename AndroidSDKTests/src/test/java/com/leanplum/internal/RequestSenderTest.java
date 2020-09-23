@@ -26,6 +26,7 @@ import android.content.Context;
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
+import com.leanplum.internal.Request.RequestType;
 import junit.framework.TestCase;
 
 import org.junit.Before;
@@ -91,7 +92,7 @@ public class RequestSenderTest extends TestCase {
   /** Test that request include a generated request id **/
   @Test
   public void testCreateArgsDictionaryShouldIncludeRequestId() {
-      Request request = new Request(POST, RequestBuilder.ACTION_START, null);
+      Request request = new Request(POST, RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
       Map<String, Object> args = RequestSender.createArgsDictionary(request);
       assertTrue(args.containsKey(Constants.Params.REQUEST_ID));
   }
@@ -111,8 +112,12 @@ public class RequestSenderTest extends TestCase {
     operationQueue.addOperation(new Runnable() {
       @Override
       public void run() {
-        Request request = new Request(POST, RequestBuilder.ACTION_START, params);
-        RequestSender.getInstance().sendNow(request);
+        Request request = new Request(
+            POST,
+            RequestBuilder.ACTION_START,
+            RequestType.IMMEDIATE,
+            params);
+        RequestSender.getInstance().send(request);
 
         latch.countDown();
       }
@@ -121,8 +126,12 @@ public class RequestSenderTest extends TestCase {
     operationQueue.addOperation(new Runnable() {
       @Override
       public void run() {
-        Request request = new Request(POST, RequestBuilder.ACTION_START, params);
-        RequestSender.getInstance().sendNow(request);
+        Request request = new Request(
+            POST,
+            RequestBuilder.ACTION_START,
+            RequestType.IMMEDIATE,
+            params);
+        RequestSender.getInstance().send(request);
 
         latch.countDown();
       }
@@ -149,7 +158,7 @@ public class RequestSenderTest extends TestCase {
   @Test
   public void testRemoveIrrelevantBackgroundStartRequests() throws Exception {
     // Prepare testable objects and method.
-    Request request = new Request("POST", RequestBuilder.ACTION_START, null);
+    Request request = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
     Method removeIrrelevantBackgroundStartRequests =
         RequestSender.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
     removeIrrelevantBackgroundStartRequests.setAccessible(true);
@@ -174,15 +183,17 @@ public class RequestSenderTest extends TestCase {
 
     // Two foreground start requests.
     // Expectation: Both foreground start request returned.
-    Request req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("fg", "1");
+    Request req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("fg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("fg", "2");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("fg", "2");
     }});
     RequestSender.getInstance().send(req);
 
@@ -193,15 +204,17 @@ public class RequestSenderTest extends TestCase {
 
     // One background start request followed by a foreground start request.
     // Expectation: Only one foreground start request returned.
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(true));
-      put("bg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, , RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(true));
+          put("bg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("fg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("fg", "1");
     }});
     RequestSender.getInstance().send(req);
 
@@ -215,21 +228,24 @@ public class RequestSenderTest extends TestCase {
 
     // Two background start request followed by a foreground start requests.
     // Expectation: Only one foreground start request returned.
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(true));
-      put("bg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(true));
+          put("bg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(true));
-      put("bg", "2");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(true));
+          put("bg", "2");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("fg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("fg", "1");
     }});
     RequestSender.getInstance().send(req);
 
@@ -244,21 +260,24 @@ public class RequestSenderTest extends TestCase {
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("fg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("fg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(true));
-      put("bg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(true));
+          put("bg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(true));
-      put("bg", "2");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(true));
+          put("bg", "2");
     }});
     RequestSender.getInstance().send(req);
 
@@ -272,21 +291,24 @@ public class RequestSenderTest extends TestCase {
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("fg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("fg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(false));
-      put("bg", "1");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(false));
+          put("bg", "1");
     }});
     RequestSender.getInstance().send(req);
 
-    req = new Request("POST", RequestBuilder.ACTION_START, new HashMap<String, Object>() {{
-      put(Constants.Params.BACKGROUND, Boolean.toString(true));
-      put("bg", "2");
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
+        new HashMap<String, Object>() {{
+          put(Constants.Params.BACKGROUND, Boolean.toString(true));
+          put("bg", "2");
     }});
     RequestSender.getInstance().send(req);
 
@@ -307,11 +329,12 @@ public class RequestSenderTest extends TestCase {
     RequestSender.RequestsWithEncoding requestsWithEncoding;
     // Prepare testable objects and method.
     RequestSender requestSender = spy(new RequestSender());
-    Request request = new Request("POST", RequestBuilder.ACTION_START, null);
+    Request request = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
     requestSender.send(request); // first request added
 
     for (int i = 0; i < 5000; i++) { // remaining requests to make up 5000
-      Request startRequest = new Request("POST", RequestBuilder.ACTION_START, null);
+      Request startRequest =
+          new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
       requestSender.send(startRequest);
     }
 
@@ -428,7 +451,7 @@ public class RequestSenderTest extends TestCase {
     Map<String, Object> params = new HashMap<>();
     params.put("data1", "value1");
     params.put("data2", "value2");
-    Request request = new Request(POST, RequestBuilder.ACTION_START, params);
+    Request request = new Request(POST, RequestBuilder.ACTION_START, RequestType.IMMEDIATE, params);
     request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
@@ -439,7 +462,7 @@ public class RequestSenderTest extends TestCase {
     APIConfig.getInstance().setAppId("fskadfshdbfa", "wee5w4waer422323");
 
     // When the request is sent.
-    RequestSender.getInstance().sendNow(request);
+    RequestSender.getInstance().send(request);
 
     Leanplum.setApplicationContext(context);
   }

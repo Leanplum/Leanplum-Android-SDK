@@ -48,6 +48,7 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Registration;
 import com.leanplum.internal.Request;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.RequestSenderTimer;
@@ -730,7 +731,12 @@ public class Leanplum {
     Util.initializePreLeanplumInstall(params);
 
     // Issue start API call.
-    final Request request = RequestBuilder.withStartAction().andParams(params).create();
+    RequestType requestType = isBackground ? RequestType.DEFAULT : RequestType.IMMEDIATE;
+    Request request = RequestBuilder
+        .withStartAction()
+        .andParams(params)
+        .andType(requestType)
+        .create();
     request.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
@@ -745,12 +751,7 @@ public class Leanplum {
         handleStartResponse(null);
       }
     });
-
-    if (isBackground) {
-      RequestSender.getInstance().send(request);
-    } else {
-      RequestSender.getInstance().sendNow(request);
-    }
+    RequestSender.getInstance().send(request);
 
     LeanplumInternal.triggerStartIssued();
   }
@@ -1003,8 +1004,11 @@ public class Leanplum {
   }
 
   private static void pauseInternal() {
-    Request request = RequestBuilder.withPauseSessionAction().create();
-    RequestSender.getInstance().sendNow(request);
+    Request request = RequestBuilder
+        .withPauseSessionAction()
+        .andType(RequestType.IMMEDIATE)
+        .create();
+    RequestSender.getInstance().send(request);
     stopRequestTimer();
     LeanplumInternal.setIsPaused(true);
   }
@@ -1038,12 +1042,15 @@ public class Leanplum {
   }
 
   private static void resumeInternal() {
-    Request request = RequestBuilder.withResumeSessionAction().create();
+    Request request = RequestBuilder
+        .withResumeSessionAction()
+        .andType(RequestType.IMMEDIATE)
+        .create();
+    RequestSender.getInstance().send(request);
+
     if (LeanplumInternal.hasStartedInBackground()) {
       LeanplumInternal.setStartedInBackground(false);
-      RequestSender.getInstance().sendNow(request);
     } else {
-      RequestSender.getInstance().sendNow(request);
       LeanplumInternal.maybePerformActions("resume", null,
           LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
     }
@@ -1089,8 +1096,8 @@ public class Leanplum {
   }
 
   private static void stopInternal() {
-    Request request = RequestBuilder.withStopAction().create();
-    RequestSender.getInstance().sendNow(request);
+    Request request = RequestBuilder.withStopAction().andType(RequestType.IMMEDIATE).create();
+    RequestSender.getInstance().send(request);
   }
 
   /**
@@ -1553,8 +1560,9 @@ public class Leanplum {
           Request request = RequestBuilder
               .withSetDeviceAttributesAction()
               .andParam(Constants.Params.DEVICE_PUSH_TOKEN, registrationId)
+              .andType(RequestType.IMMEDIATE)
               .create();
-          RequestSender.getInstance().sendNow(request);
+          RequestSender.getInstance().send(request);
         } catch (Throwable t) {
           Log.exception(t);
         }
@@ -2030,6 +2038,7 @@ public class Leanplum {
           .andParam(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false))
           .andParam(Constants.Params.INBOX_MESSAGES, LeanplumInbox.getInstance().messagesIds())
           .andParam(Constants.Params.INCLUDE_VARIANT_DEBUG_INFO, LeanplumInternal.getIsVariantDebugInfoEnabled())
+          .andType(RequestType.IMMEDIATE)
           .create();
       req.onResponse(new Request.ResponseCallback() {
         @Override
@@ -2065,7 +2074,7 @@ public class Leanplum {
           LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
         }
       });
-      RequestSender.getInstance().sendNow(req);
+      RequestSender.getInstance().send(req);
     } catch (Throwable t) {
       Log.exception(t);
     }

@@ -27,6 +27,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -85,46 +86,57 @@ public class RequestSender {
     INSTANCE = instance;
   }
 
+  private boolean attachUuid(Map<String, Object> args) {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return false;
+    }
+
+    SharedPreferences preferences = context.getSharedPreferences(
+        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
+    String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
+    if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+      uuid = UUID.randomUUID().toString();
+      editor.putString(Constants.Defaults.UUID_KEY, uuid);
+      SharedPreferencesUtil.commitChanges(editor);
+    }
+    args.put(Constants.Params.UUID, uuid);
+    return true;
+  }
+
   /**
-   * Saves requests into database.
-   * Saving will be executed on background thread serially.
-   * @param args json to save.
+   * Saves requests into database synchronously.
    */
-  private void saveRequestForLater(final Request request, final Map<String, Object> args) {
-    OperationQueue.sharedInstance().addOperation(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Context context = Leanplum.getContext();
-          if (context == null) {
-            return;
-          }
-
-          SharedPreferences preferences = context.getSharedPreferences(
-              Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
-          SharedPreferences.Editor editor = preferences.edit();
-          long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
-          String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
-            uuid = UUID.randomUUID().toString();
-            editor.putString(Constants.Defaults.UUID_KEY, uuid);
-            SharedPreferencesUtil.commitChanges(editor);
-          }
-          args.put(Constants.Params.UUID, uuid);
-          LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
-
-          // Checks if here response and/or error callback for this request. We need to add callbacks to
-          // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
-          // will handle error callback for this event.
-          if (request.response != null || request.error != null && !Util.isConnected()) {
-            eventCallbackManager.addCallbacks(request, request.response, request.error);
-          }
-
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
+  private void saveRequest(Request request) {
+    if (LeanplumEventDataManager.sharedInstance().hasDatabaseError()) {
+      if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())) {
+        // intercepting 'action=log' requests created from Log.exception
+        addLocalError(request);
       }
-    });
+      // do not save request on database error
+      return;
+    }
+
+    Map<String, Object> args = createArgsDictionary(request);
+
+    try {
+      if (!attachUuid(args)) {
+        return;
+      }
+      LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
+
+      // Checks if here response and/or error callback for this request. We need to add callbacks to
+      // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
+      // will handle error callback for this event.
+      if (request.response != null || request.error != null && !Util.isConnected()) {
+        eventCallbackManager.addCallbacks(request, request.response, request.error);
+      }
+
+    } catch (Throwable t) {
+      Log.exception(t);
+    }
   }
 
   protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {
@@ -381,89 +393,55 @@ public class RequestSender {
     return args;
   }
 
-  public void send(@NonNull Request request) {
-    if (Constants.isTestMode) {
-      return;
-    }
-
-    saveRequest(request);
-    scheduleSendWhenDevMode();
-  }
-
-  private void scheduleSendWhenDevMode() {
-    if (!Constants.isDevelopmentModeEnabled)
-      return;
-
-    long currentTimeMs = System.currentTimeMillis();
-    long delayMs;
-    if (lastSendTimeMs == 0 || currentTimeMs - lastSendTimeMs > DEVELOPMENT_MAX_DELAY_MS) {
-      delayMs = DEVELOPMENT_MIN_DELAY_MS;
-    } else {
-      delayMs = (lastSendTimeMs + DEVELOPMENT_MAX_DELAY_MS) - currentTimeMs;
-    }
-    sendRequestsAsync(delayMs);
-  }
-
-  private void saveRequest(Request request) {
-    if (request.isSent())
-      return; // already saved
-
-    request.setSent(true);
-
-    if (LeanplumEventDataManager.sharedInstance().hasDatabaseError()) {
-      if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())) {
-        // intercepting 'action=log' requests created from Log.exception
-        addLocalError(request);
-      }
-      // do not save request on database error
-      return;
-    }
-
-    Map<String, Object> args = createArgsDictionary(request);
-    saveRequestForLater(request, args);
-  }
-
-  public void sendNow(Request request) {
-    if (Constants.isTestMode) {
-      return;
-    }
-
-    // always save request first
-    saveRequest(request);
-
-    // in case appId and accessKey are set later, request is already saved and will be
-    // sent when variables are set.
-    if (APIConfig.getInstance().appId() == null) {
-      Log.e("Cannot send request. appId is not set.");
-      return;
-    }
-    if (APIConfig.getInstance().accessKey() == null) {
-      Log.e("Cannot send request. accessKey is not set.");
-      return;
-    }
-
-    sendRequestsAsync();
-  }
-
-  private void sendRequestsAsync() {
-    long noDelay = 0;
-    sendRequestsAsync(noDelay);
-  }
-
-  private void sendRequestsAsync(long delayMillis) {
-    OperationQueue.sharedInstance().addOperationAfterDelay(new Runnable() {
+  public void send(@NonNull final Request request) {
+    OperationQueue.sharedInstance().addOperation(new Runnable() {
       @Override
       public void run() {
-        try {
-          if (!Util.isConnected()) {
-            Log.d("Device is offline, will try sending requests again later.");
-            return;
-          }
-          sendRequests();
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
+        sendSync(request);
       }
-    }, delayMillis);
+    });
   }
+
+  /**
+   * Saves the request and sends all saved requests synchronously.
+   */
+  private void sendSync(@NonNull Request request) {
+    if (Constants.isTestMode) {
+      return;
+    }
+
+    saveRequest(request);
+
+    if (Constants.isDevelopmentModeEnabled || RequestType.IMMEDIATE.equals(request.getType())) {
+      if (!validateConfig()) {
+        return;
+      }
+
+      try {
+        sendRequests();
+      } catch (Throwable t) {
+        Log.exception(t);
+      }
+    }
+  }
+
+  private boolean validateConfig() {
+    if (APIConfig.getInstance().appId() == null) {
+      Log.e("Cannot send request. appId is not set.");
+      return false;
+    }
+
+    if (APIConfig.getInstance().accessKey() == null) {
+      Log.e("Cannot send request. accessKey is not set.");
+      return false;
+    }
+
+    if (!Util.isConnected()) {
+      Log.d("Device is offline, will try sending requests again later.");
+      return false;
+    }
+
+    return true;
+  }
+
 }

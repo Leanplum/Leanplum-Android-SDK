@@ -21,7 +21,7 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.Leanplum;
+import com.leanplum.internal.Request.RequestType;
 import java.util.Map;
 
 /**
@@ -39,8 +39,8 @@ public class RequestFactory {
     return defaultFactory;
   }
 
-  public Request createRequest(
-      String httpMethod, String apiMethod, Map<String, Object> params) {
-    return new Request(httpMethod, apiMethod, params);
+  public Request  createRequest(
+      String httpMethod, String apiMethod, RequestType type, Map<String, Object> params) {
+    return new Request(httpMethod, apiMethod, type, params);
   }
 }

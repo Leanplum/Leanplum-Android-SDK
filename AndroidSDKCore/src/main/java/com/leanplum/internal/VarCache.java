@@ -30,6 +30,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
 import com.leanplum.internal.FileManager.HashResults;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
@@ -620,8 +621,12 @@ public class VarCache {
         params.put(Constants.Params.ACTION_DEFINITIONS, JsonConverter.toJson(actionDefinitions));
       }
       params.put(Constants.Params.FILE_ATTRIBUTES, JsonConverter.toJson(fileAttributes));
-      Request request = RequestBuilder.withSetVarsAction().andParams(params).create();
-      RequestSender.getInstance().sendNow(request);
+      Request request = RequestBuilder
+          .withSetVarsAction()
+          .andParams(params)
+          .andType(RequestType.IMMEDIATE)
+          .create();
+      RequestSender.getInstance().send(request);
     }
 
     return changed;

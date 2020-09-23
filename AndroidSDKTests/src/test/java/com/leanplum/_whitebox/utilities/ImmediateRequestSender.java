@@ -23,6 +23,7 @@ package com.leanplum._whitebox.utilities;
 
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.Request;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestSender;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,15 +37,8 @@ public class ImmediateRequestSender extends RequestSender {
     currentRequestId = request.getRequestId();
 
     // immediately send current request
-    if (!request.isSent()) {
-      super.sendNow(request);
-    }
-  }
-
-  @Override
-  public void sendNow(Request request) {
-    currentRequestId = request.getRequestId();
-    super.sendNow(request);
+    request.setType(RequestType.IMMEDIATE);
+    super.send(request);
   }
 
   @Override
