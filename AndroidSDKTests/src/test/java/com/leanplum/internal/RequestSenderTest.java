@@ -204,7 +204,7 @@ public class RequestSenderTest extends TestCase {
 
     // One background start request followed by a foreground start request.
     // Expectation: Only one foreground start request returned.
-    req = new Request("POST", RequestBuilder.ACTION_START, , RequestType.DEFAULT,
+    req = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT,
         new HashMap<String, Object>() {{
           put(Constants.Params.BACKGROUND, Boolean.toString(true));
           put("bg", "1");

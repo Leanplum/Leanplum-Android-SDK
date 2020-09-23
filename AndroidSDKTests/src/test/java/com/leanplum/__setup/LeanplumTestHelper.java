@@ -35,6 +35,7 @@ import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.VarCache;
@@ -84,9 +85,12 @@ public class LeanplumTestHelper {
   public static void setUp() {
     RequestFactory.defaultFactory = new RequestFactory() {
       @Override
-      public Request createRequest(String httpMethod, String apiMethod,
-                                      Map<String, Object> params) {
-        return new RequestHelper(httpMethod, apiMethod, params);
+      public Request createRequest(
+          String httpMethod,
+          String apiMethod,
+          RequestType type,
+          Map<String, Object> params) {
+        return new RequestHelper(httpMethod, apiMethod, type, params);
       }
     };
     RequestSender.setInstance(new ImmediateRequestSender());

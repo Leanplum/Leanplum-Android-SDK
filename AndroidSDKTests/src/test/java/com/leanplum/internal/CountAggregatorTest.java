@@ -23,6 +23,7 @@ package com.leanplum.internal;
 import com.google.common.collect.Sets;
 import com.leanplum.__setup.AbstractTest;
 
+import com.leanplum.internal.Request.RequestType;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -151,6 +152,7 @@ public class CountAggregatorTest extends AbstractTest {
         .withArguments(
             RequestBuilder.POST,
             RequestBuilder.ACTION_LOG,
+            RequestType.DEFAULT,
             expectedParams);
   }
 }
