@@ -43,8 +43,6 @@ public class RequestSender {
 
   private static RequestSender INSTANCE = new RequestSender();
 
-  private static final long DEVELOPMENT_MIN_DELAY_MS = 100;
-  private static final long DEVELOPMENT_MAX_DELAY_MS = 5000;
   static final int MAX_EVENTS_PER_API_CALL;
 
   static {
@@ -71,7 +69,6 @@ public class RequestSender {
       new LeanplumEventCallbackManager();
 
   private List<Map<String, Object>> localErrors = new ArrayList<>();
-  private long lastSendTimeMs;
 
   @VisibleForTesting
   public RequestSender() {
@@ -106,15 +103,22 @@ public class RequestSender {
     return true;
   }
 
-  /**
-   * Saves requests into database synchronously.
-   */
-  private void saveRequest(Request request) {
+  private boolean handleDatabaseError(Request request) {
     if (LeanplumEventDataManager.sharedInstance().hasDatabaseError()) {
       if (RequestBuilder.ACTION_LOG.equals(request.getApiAction())) {
         // intercepting 'action=log' requests created from Log.exception
         addLocalError(request);
       }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Saves requests into database synchronously.
+   */
+  private void saveRequest(Request request) {
+    if (handleDatabaseError(request)) {
       // do not save request on database error
       return;
     }
@@ -130,7 +134,7 @@ public class RequestSender {
       // Checks if here response and/or error callback for this request. We need to add callbacks to
       // eventCallbackManager only if here was internet connection, otherwise triggerErrorCallback
       // will handle error callback for this event.
-      if (request.response != null || request.error != null && !Util.isConnected()) {
+      if (request.response != null || (request.error != null && !Util.isConnected())) {
         eventCallbackManager.addCallbacks(request, request.response, request.error);
       }
 
@@ -285,7 +289,6 @@ public class RequestSender {
     List<Map<String, Object>> requestData;
 
     synchronized (Request.class) {
-      lastSendTimeMs = System.currentTimeMillis();
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
           Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
@@ -413,12 +416,10 @@ public class RequestSender {
     saveRequest(request);
 
     if (Constants.isDevelopmentModeEnabled || RequestType.IMMEDIATE.equals(request.getType())) {
-      if (!validateConfig()) {
-        return;
-      }
-
       try {
-        sendRequests();
+        if (validateConfig()) {
+          sendRequests();
+        }
       } catch (Throwable t) {
         Log.exception(t);
       }
