@@ -30,6 +30,7 @@ import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.messagetemplates.actions.AlertMessage;
+import com.leanplum.messagetemplates.actions.AppRatingAction;
 import com.leanplum.messagetemplates.actions.CenterPopupMessage;
 import com.leanplum.messagetemplates.actions.InterstitialMessage;
 import com.leanplum.messagetemplates.actions.RichHtmlMessage;
@@ -50,6 +51,7 @@ public class MessageTemplates {
   private static final String INTERSTITIAL = "Interstitial";
   private static final String OPEN_URL = "Open URL";
   private static final String WEB_INTERSTITIAL = "Web Interstitial";
+  private static final String APP_RATING = "Request App Rating";
 
   private static boolean registered = false;
 
@@ -177,6 +179,12 @@ public class MessageTemplates {
         HTML,
         RichHtmlMessage::createActionArgs,
         RichHtmlMessage::showMessage,
+        context);
+
+    defineAction(
+        APP_RATING,
+        AppRatingAction::createActionArgs,
+        AppRatingAction::onActionTriggered,
         context);
   }
 }
