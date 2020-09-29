@@ -23,6 +23,7 @@ package com.leanplum.internal;
 
 
 import com.leanplum.LeanplumException;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.monitoring.ExceptionHandler;
 
 import java.io.PrintWriter;
@@ -104,6 +105,7 @@ public class Log {
           .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
           .andParam(Constants.Params.VERSION_NAME, versionName)
           .andParam(Constants.Params.MESSAGE, stringWriter.toString())
+          .andType(RequestType.IMMEDIATE)
           .create();
       RequestSender.getInstance().send(request);
     } catch (Throwable t2) {
@@ -164,7 +166,7 @@ public class Log {
           .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
           .andParam(Constants.Params.MESSAGE, tag + msg)
           .create();
-      RequestSender.getInstance().sendEventually(request);
+      RequestSender.getInstance().send(request);
     }
   }
 

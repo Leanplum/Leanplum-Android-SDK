@@ -30,8 +30,12 @@ import java.util.Map;
 public class RequestHelper extends Request {
   private static RequestHandler sRequestHandler = null;
 
-  public RequestHelper(String httpMethod, String apiMethod, Map<String, Object> params) {
-    super(httpMethod, apiMethod, params);
+  public RequestHelper(
+      String httpMethod,
+      String apiMethod,
+      RequestType type,
+      Map<String, Object> params) {
+    super(httpMethod, apiMethod, type, params);
 
     // execute handler with request params
     if (sRequestHandler != null) {

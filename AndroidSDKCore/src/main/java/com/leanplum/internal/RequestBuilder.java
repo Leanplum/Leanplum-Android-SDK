@@ -22,7 +22,7 @@
 package com.leanplum.internal;
 
 import androidx.annotation.VisibleForTesting;
-import com.leanplum.Leanplum;
+import com.leanplum.internal.Request.RequestType;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,6 +57,7 @@ public class RequestBuilder {
 
   private String httpMethod;
   private String apiAction;
+  private RequestType type = RequestType.DEFAULT;
   private Map<String, Object> params;
 
   @VisibleForTesting
@@ -176,9 +177,14 @@ public class RequestBuilder {
     return this;
   }
 
+  public RequestBuilder andType(RequestType type) {
+    this.type = type;
+    return this;
+  }
+
   public Request create() {
     Log.d("Will call API method: %s with params: %s", apiAction, params);
-    return RequestFactory.getInstance().createRequest(httpMethod, apiAction, params);
+    return RequestFactory.getInstance().createRequest(httpMethod, apiAction, type, params);
   }
 
   @VisibleForTesting
@@ -194,5 +200,10 @@ public class RequestBuilder {
   @VisibleForTesting
   public Map<String, Object> getParams() {
     return params;
+  }
+
+  @VisibleForTesting
+  public RequestType getType() {
+    return type;
   }
 }

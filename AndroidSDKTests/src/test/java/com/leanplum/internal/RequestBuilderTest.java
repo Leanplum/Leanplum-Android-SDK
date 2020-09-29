@@ -21,6 +21,7 @@
 
 package com.leanplum.internal;
 
+import com.leanplum.internal.Request.RequestType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -76,6 +77,22 @@ public class RequestBuilderTest {
 
     assertSame(builder, returnedBuilder);
     assertEquals(expectedParams, builder.getParams());
+  }
+
+  @Test
+  public void testAndParamAndType() {
+    String method = "get";
+    String action = "action";
+    RequestType type = RequestType.IMMEDIATE;
+    Map<String, Object> expectedParams = new HashMap<>();
+    expectedParams.put("param", "value");
+
+    RequestBuilder builder = new RequestBuilder(method, action);
+    RequestBuilder returnedBuilder = builder.andParam("param", "value").andType(type);
+
+    assertSame(builder, returnedBuilder);
+    assertEquals(expectedParams, builder.getParams());
+    assertEquals(type, builder.getType());
   }
 
   @Test

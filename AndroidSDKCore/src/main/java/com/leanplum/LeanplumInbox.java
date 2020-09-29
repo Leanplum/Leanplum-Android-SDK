@@ -34,10 +34,10 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
-import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONObject;
@@ -351,7 +351,10 @@ public class LeanplumInbox {
       return;
     }
 
-    Request req = RequestBuilder.withGetInboxMessagesAction().create();
+    Request req = RequestBuilder
+        .withGetInboxMessagesAction()
+        .andType(RequestType.IMMEDIATE)
+        .create();
     req.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
@@ -421,7 +424,7 @@ public class LeanplumInbox {
         triggerInboxSyncedWithStatus(false);
       }
     });
-    RequestSender.getInstance().sendIfConnected(req);
+    RequestSender.getInstance().send(req);
   }
 
   /**

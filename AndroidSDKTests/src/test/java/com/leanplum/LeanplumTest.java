@@ -45,6 +45,7 @@ import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
@@ -540,11 +541,12 @@ public class LeanplumTest extends AbstractTest {
     LeanplumEventDataManager.sharedInstance();
 
     // Add two events to database.
-    Request request1 = new Request("POST", RequestBuilder.ACTION_GET_INBOX_MESSAGES, null);
-    Request request2 = new Request("POST", RequestBuilder.ACTION_LOG, null);
+    Request request1 =
+        new Request("POST", RequestBuilder.ACTION_GET_INBOX_MESSAGES, RequestType.DEFAULT, null);
+    Request request2 = new Request("POST", RequestBuilder.ACTION_LOG, RequestType.DEFAULT, null);
 
-    RequestSender.getInstance().sendEventually(request1);
-    RequestSender.getInstance().sendEventually(request2);
+    RequestSender.getInstance().send(request1);
+    RequestSender.getInstance().send(request2);
 
     final double fraction = 1.0;
     // Get a number of events in the database.

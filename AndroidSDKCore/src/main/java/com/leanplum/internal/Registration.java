@@ -21,9 +21,9 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.Leanplum;
 import com.leanplum.callbacks.StartCallback;
 
+import com.leanplum.internal.Request.RequestType;
 import org.json.JSONObject;
 
 public class Registration {
@@ -31,6 +31,7 @@ public class Registration {
     Request request = RequestBuilder
         .withRegisterForDevelopmentAction()
         .andParam(Constants.Params.EMAIL, email)
+        .andType(RequestType.IMMEDIATE)
         .create();
 
     request.onResponse(new Request.ResponseCallback() {
@@ -59,6 +60,6 @@ public class Registration {
         OperationQueue.sharedInstance().addUiOperation(callback);
       }
     });
-    RequestSender.getInstance().sendIfConnected(request);
+    RequestSender.getInstance().send(request);
   }
 }

@@ -60,7 +60,7 @@ public class LeanplumEventDataManager {
   private SQLiteDatabase database;
   private LeanplumDataBaseManager databaseManager;
   private ContentValues contentValues = new ContentValues();
-  private boolean sendErrorLogs = false;
+  private boolean hasDatabaseError = false;
 
   private LeanplumEventDataManager() {
     try {
@@ -99,7 +99,7 @@ public class LeanplumEventDataManager {
     contentValues.put(COLUMN_DATA, event);
     try {
       database.insert(EVENT_TABLE_NAME, null, contentValues);
-      sendErrorLogs = false;
+      hasDatabaseError = false;
     } catch (Throwable t) {
       handleSQLiteError("Unable to insert event to database.", t);
     }
@@ -121,7 +121,7 @@ public class LeanplumEventDataManager {
     try {
       cursor = database.query(EVENT_TABLE_NAME, new String[] {COLUMN_DATA}, null, null, null,
           null, KEY_ROWID + " ASC", "" + count);
-      sendErrorLogs = false;
+      hasDatabaseError = false;
       while (cursor.moveToNext()) {
         Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
             cursor.getString(cursor.getColumnIndex(COLUMN_DATA))));
@@ -149,7 +149,7 @@ public class LeanplumEventDataManager {
     try {
       database.delete(EVENT_TABLE_NAME, KEY_ROWID + " in (select " + KEY_ROWID + " from " +
           EVENT_TABLE_NAME + " ORDER BY " + KEY_ROWID + " ASC LIMIT " + count + ")", null);
-      sendErrorLogs = false;
+      hasDatabaseError = false;
     } catch (Throwable t) {
       handleSQLiteError("Unable to delete events from the table.", t);
     }
@@ -167,7 +167,7 @@ public class LeanplumEventDataManager {
     }
     try {
       count = DatabaseUtils.queryNumEntries(database, EVENT_TABLE_NAME);
-      sendErrorLogs = false;
+      hasDatabaseError = false;
     } catch (Throwable t) {
       handleSQLiteError("Unable to get a number of rows in the table.", t);
     }
@@ -177,8 +177,8 @@ public class LeanplumEventDataManager {
   /**
    * Whether we are going to send error log or not.
    */
-  boolean willSendErrorLogs() {
-    return sendErrorLogs;
+  boolean hasDatabaseError() {
+    return hasDatabaseError;
   }
 
   /**
@@ -186,9 +186,9 @@ public class LeanplumEventDataManager {
    */
   private void handleSQLiteError(String log, Throwable t) {
     Log.e(log, t);
-    // Send error log. Using willSendErrorLog to prevent infinte loop.
-    if (!sendErrorLogs) {
-      sendErrorLogs = true;
+    if (!hasDatabaseError) {
+      hasDatabaseError = true;
+      // Sending error log. It will be intercepted when requests are sent.
       Log.exception(t);
     }
   }
