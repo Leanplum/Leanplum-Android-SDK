@@ -31,7 +31,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -42,46 +41,22 @@ import android.util.TypedValue;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumDeviceIdMode;
-import com.leanplum.LeanplumException;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.monitoring.ExceptionHandler;
 import com.leanplum.utils.SharedPreferencesUtil;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.UnsupportedCharsetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSocketFactory;
 
 import androidx.annotation.RequiresPermission;
 
@@ -454,279 +429,6 @@ public class Util {
       country = "XX";
     }
     return language + "_" + country;
-  }
-
-  /**
-   * Builds a query from Map containing parameters.
-   *
-   * @param params Params used to build a query.
-   * @return Query string or empty string in case params are null.
-   */
-  private static String getQuery(Map<String, Object> params) {
-    if (params == null) {
-      return "";
-    }
-    Uri.Builder builder = new Uri.Builder();
-    for (Map.Entry<String, Object> pair : params.entrySet()) {
-      if (pair.getValue() == null) {
-        Log.d("Request parameter for key: " + pair.getKey() + " is null.");
-        continue;
-      }
-      builder.appendQueryParameter(pair.getKey(), pair.getValue().toString());
-    }
-    return builder.build().getEncodedQuery();
-  }
-
-  public static HttpURLConnection operation(
-      String hostName,
-      String path,
-      Map<String, Object> params,
-      String httpMethod,
-      boolean ssl,
-      int timeoutSeconds) throws IOException {
-    if ("GET".equals(httpMethod)) {
-      path = attachGetParameters(path, params);
-    }
-    HttpURLConnection urlConnection = createHttpUrlConnection(hostName, path,
-        httpMethod, ssl, timeoutSeconds);
-
-    if (!"GET".equals(httpMethod)) {
-      attachPostParameters(params, urlConnection);
-    }
-
-    if (Constants.enableVerboseLoggingInDevelopmentMode
-        && Constants.isDevelopmentModeEnabled) {
-      Log.d("Sending request at path " + path + " with parameters " + params);
-    }
-    return urlConnection;
-  }
-
-  /**
-   * Converts and attaches GET parameters to specified path.
-   *
-   * @param path Path on which to attach parameters.
-   * @param params Params to convert and attach.
-   * @return Path with attached parameters.
-   */
-  private static String attachGetParameters(String path, Map<String, Object> params) {
-    if (params == null) {
-      return path;
-    }
-    Uri.Builder builder = Uri.parse(path).buildUpon();
-    for (Map.Entry<String, Object> pair : params.entrySet()) {
-      if (pair.getValue() == null) {
-        continue;
-      }
-      builder.appendQueryParameter(pair.getKey(), pair.getValue().toString());
-    }
-    return builder.build().toString();
-  }
-
-  /**
-   * Converts and writes POST parameters directly to an option http connection.
-   *
-   * @param params Params to post.
-   * @param urlConnection URL connection on which to write parameters.
-   * @throws IOException Throws in case it fails.
-   */
-  private static void attachPostParameters(Map<String, Object> params,
-      HttpURLConnection urlConnection) throws IOException {
-    OutputStream os = urlConnection.getOutputStream();
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-    String query = getQuery(params);
-    writer.write(query);
-    writer.close();
-    os.close();
-  }
-
-  public static HttpURLConnection createHttpUrlConnection(String hostName,
-      String path, String httpMethod, boolean ssl, int timeoutSeconds)
-      throws IOException {
-    String fullPath;
-    if (path.startsWith("http")) {
-      fullPath = path;
-    } else {
-      fullPath = (ssl ? "https://" : "http://") + hostName + "/" + path;
-    }
-    return createHttpUrlConnection(fullPath, httpMethod, ssl, timeoutSeconds);
-  }
-
-  static HttpURLConnection createHttpUrlConnection(
-      String fullPath, String httpMethod, boolean ssl, int timeoutSeconds)
-      throws IOException {
-    URL url = new URL(fullPath);
-    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-    if (ssl) {
-      SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-      ((HttpsURLConnection) urlConnection).setSSLSocketFactory(socketFactory);
-    }
-    urlConnection.setReadTimeout(timeoutSeconds * 1000);
-    urlConnection.setConnectTimeout(timeoutSeconds * 1000);
-    urlConnection.setRequestMethod(httpMethod);
-    urlConnection.setDoOutput(!"GET".equals(httpMethod));
-    urlConnection.setDoInput(true);
-    urlConnection.setUseCaches(false);
-    urlConnection.setInstanceFollowRedirects(true);
-    Context context = Leanplum.getContext();
-
-    /*
-      Must include `Accept-Encoding: gzip` in the header
-      Must include the phrase `gzip` in the `User-Agent` header
-      https://cloud.google.com/appengine/kb/
-    */
-
-    urlConnection.setRequestProperty("User-Agent",
-        getApplicationName(context) + "/" + getVersionName() + "/" + APIConfig.getInstance().appId() + "/" +
-            Constants.CLIENT + "/" + Constants.LEANPLUM_VERSION + "/" + getSystemName() + "/" +
-            getSystemVersion() + "/" + Constants.LEANPLUM_SUPPORTED_ENCODING + "/" + Constants.LEANPLUM_PACKAGE_IDENTIFIER);
-    urlConnection.setRequestProperty("Accept-Encoding", Constants.LEANPLUM_SUPPORTED_ENCODING);
-    return urlConnection;
-  }
-
-  /**
-   * Writes the filesToUpload to a new HttpURLConnection using the multipart form data format.
-   *
-   * @return the connection that the files were uploaded using
-   */
-  public static HttpURLConnection uploadFilesOperation(
-      String key,
-      List<File> filesToUpload,
-      List<InputStream> streams,
-      String hostName,
-      String path,
-      Map<String, Object> params,
-      String httpMethod,
-      boolean ssl,
-      int timeoutSeconds) throws IOException {
-
-    HttpURLConnection urlConnection = createHttpUrlConnection(hostName, path,
-        httpMethod, ssl, timeoutSeconds);
-
-    final String BOUNDARY = "==================================leanplum";
-    final String LINE_END = "\r\n";
-    final String TWO_HYPHENS = "--";
-    final String CONTENT_TYPE = "Content-Type: application/octet-stream";
-
-    // Make a connection to the server
-    urlConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
-    urlConnection.setRequestProperty("Connection", "Keep-Alive");
-
-    DataOutputStream outputStream = new DataOutputStream(urlConnection.getOutputStream());
-
-    // Create the header for the request with the parameters
-    for (Map.Entry<String, Object> entry : params.entrySet()) {
-      String paramData = TWO_HYPHENS + BOUNDARY + LINE_END
-          + "Content-Disposition: form-data; name=\"" + entry.getKey() + "\"" + LINE_END
-          + LINE_END
-          + entry.getValue() + LINE_END;
-      outputStream.writeBytes(paramData);
-    }
-
-    // Main file writing loop
-    for (int i = 0; i < filesToUpload.size(); i++) {
-      File fileToUpload = filesToUpload.get(i);
-      String contentDisposition = String.format(Locale.getDefault(), "Content-Disposition: " +
-              "form-data; name=\"%s%d\";filename=\"%s\"",
-          key, i, fileToUpload.getName());
-
-      // Create the header for the file
-      String fileHeader = TWO_HYPHENS + BOUNDARY + LINE_END
-          + contentDisposition + LINE_END
-          + CONTENT_TYPE + LINE_END
-          + LINE_END;
-      outputStream.writeBytes(fileHeader);
-
-      // Read in the actual file
-      InputStream is = (i < streams.size()) ? streams.get(i) : new FileInputStream(fileToUpload);
-      byte[] buffer = new byte[4096];
-      int bytesRead;
-      try {
-        while ((bytesRead = is.read(buffer)) != -1) {
-          outputStream.write(buffer, 0, bytesRead);
-        }
-      } catch (NullPointerException e) {
-        Log.d("Unable to read file while uploading " + filesToUpload.get(i));
-        return null;
-      } finally {
-        if (is != null) {
-          try {
-            is.close();
-          } catch (IOException e) {
-            Log.d("Failed to close InputStream: " + e);
-          }
-        }
-      }
-
-      // End the output for this file
-      outputStream.writeBytes(LINE_END);
-    }
-
-    // End the output for the request
-    String endOfRequest = TWO_HYPHENS + BOUNDARY + TWO_HYPHENS + LINE_END;
-    outputStream.writeBytes(endOfRequest);
-
-    outputStream.flush();
-    outputStream.close();
-    return urlConnection;
-  }
-
-  private static boolean isGzipCompressed(URLConnection op) {
-    String contentHeader = op.getHeaderField("content-encoding");
-    if (contentHeader != null) {
-      return contentHeader.trim().equalsIgnoreCase(Constants.LEANPLUM_SUPPORTED_ENCODING);
-    }
-    return false;
-  }
-
-  public static void saveResponse(URLConnection op, OutputStream outputStream) throws IOException {
-    InputStream is = op.getInputStream();
-
-    // If we have a gzipped response, de-compress it first
-    if (isGzipCompressed(op)) {
-      is = new GZIPInputStream(is);
-    }
-
-    byte[] buffer = new byte[4096];
-    int bytesRead;
-    while ((bytesRead = is.read(buffer)) != -1) {
-      outputStream.write(buffer, 0, bytesRead);
-    }
-    outputStream.close();
-  }
-
-  private static String getResponse(HttpURLConnection op) throws IOException {
-    InputStream inputStream;
-    if (op.getResponseCode() < 400) {
-      inputStream = op.getInputStream();
-    } else {
-      inputStream = op.getErrorStream();
-    }
-
-    // If we have a gzipped response, de-compress it first
-    if (isGzipCompressed(op)) {
-      inputStream = new GZIPInputStream(inputStream);
-    }
-
-    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-    StringBuilder builder = new StringBuilder();
-    for (String line; (line = reader.readLine()) != null; ) {
-      builder.append(line).append("\n");
-    }
-
-    try {
-      inputStream.close();
-      reader.close();
-    } catch (Exception ignored) {
-    }
-
-    return builder.toString();
-  }
-
-  public static JSONObject getJsonResponse(HttpURLConnection op)
-      throws JSONException, IOException {
-    String response = getResponse(op);
-    JSONTokener tokener = new JSONTokener(response);
-    return new JSONObject(tokener);
   }
 
   /**

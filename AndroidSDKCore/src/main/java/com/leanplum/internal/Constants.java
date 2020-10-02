@@ -40,7 +40,7 @@ public class Constants {
   public static String CLIENT = "android";
   public static String LEANPLUM_SUPPORTED_ENCODING = "gzip";
 
-  static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
+  public static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";
   static final String INVALID_MAC_ADDRESS_HASH = "0f607264fc6318a92b9e13c65db7cd3c";
 
