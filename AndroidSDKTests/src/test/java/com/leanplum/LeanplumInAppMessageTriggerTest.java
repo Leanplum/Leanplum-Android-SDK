@@ -126,7 +126,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
    * Tests message triggers on start or resume, and impression is recorded. Starts in foreground.
    */
   @Test
-  public void testTriggerOnStartOrResumeForeground() throws Exception {
+  public void testTriggerOnStartOrResumeForeground() {
     final String messageId = "Trigger on start or resume";
     ActionManager actionManager = ActionManager.getInstance();
     assertEquals(0, actionManager.getMessageTriggerOccurrences(messageId));

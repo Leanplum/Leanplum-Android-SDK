@@ -104,8 +104,6 @@ public class LeanplumTestHelper {
     Leanplum.setApiConnectionSettings(API_HOST_NAME, "api", API_SSL);
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
     Leanplum.setLogLevel(Log.Level.DEBUG);
-
-    TestClassUtil.setField(RequestSender.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
   }
 
   /**

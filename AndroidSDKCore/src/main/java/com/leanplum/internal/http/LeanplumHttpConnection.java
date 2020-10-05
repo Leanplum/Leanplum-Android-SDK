@@ -22,6 +22,7 @@
 package com.leanplum.internal.http;
 
 import android.content.Context;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Constants;
@@ -34,7 +35,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.zip.GZIPInputStream;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
@@ -132,7 +132,8 @@ public abstract class LeanplumHttpConnection {
     return new JSONObject(tokenizer);
   }
 
-  private String getResponse() throws IOException {
+  @VisibleForTesting
+  public String getResponse() throws IOException {
     InputStream inputStream;
     if (urlConnection.getResponseCode() < 400) {
       inputStream = urlConnection.getInputStream();

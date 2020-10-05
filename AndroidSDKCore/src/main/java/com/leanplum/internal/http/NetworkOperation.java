@@ -31,6 +31,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Map;
 
+/**
+ * Handles common http operation (GET and POST).
+ * Attaches the parameters to the connection object or url accordingly.
+ */
 public class NetworkOperation extends LeanplumHttpConnection {
 
   public NetworkOperation(

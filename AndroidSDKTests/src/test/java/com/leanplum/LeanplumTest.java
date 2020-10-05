@@ -51,6 +51,8 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
+import com.leanplum.internal.http.LeanplumHttpConnection;
+import com.leanplum.internal.http.NetworkOperation;
 import com.leanplum.models.GeofenceEventType;
 import com.leanplum.models.MessageArchiveData;
 
@@ -1125,38 +1127,6 @@ public class LeanplumTest extends AbstractTest {
     // Start and wait.
     setupSDK(mContext, "/responses/simple_start_response.json");
     countDownLatch.await();
-  }
-
-  /**
-   * Test when connection timeouts.
-   */
-  @Test
-  public void testVariablesCallbacksTimeout() throws Exception {
-    URLConnection urlConnection = Util.createHttpUrlConnection("www.leanplum.com", "api", "POST",
-            true, 1);
-    urlConnection.setConnectTimeout(1);
-
-    doReturn(urlConnection).when(Util.class, "createHttpUrlConnection", anyString(), anyString(),
-            anyBoolean(), anyInt());
-
-    final CountDownLatch countDownLatch = new CountDownLatch(2);
-
-    Leanplum.addVariablesChangedAndNoDownloadsPendingHandler(new VariablesChangedCallback() {
-      @Override
-      public void variablesChanged() {
-        countDownLatch.countDown();
-      }
-    });
-
-    Leanplum.addVariablesChangedHandler(new VariablesChangedCallback() {
-      @Override
-      public void variablesChanged() {
-        countDownLatch.countDown();
-      }
-    });
-    // Start and wait.
-    setupSDK(mContext, "/responses/simple_start_response.json");
-    countDownLatch.await(3, TimeUnit.SECONDS);
   }
 
   /**
