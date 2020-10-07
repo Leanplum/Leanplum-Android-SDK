@@ -53,7 +53,7 @@ public class AppRatingAction {
 //  }
 
   private static void showRatingFlow(Activity activity) throws Throwable {
-    Toast.makeText(Leanplum.getContext(), "Rating flow to be shown", Toast.LENGTH_SHORT).show();
+    Toast.makeText(Leanplum.getContext(), "Rating flow to be shown", Toast.LENGTH_SHORT).show(); // TODO remove Toast when done
 
     // Invoke the App Rating flow using reflection
     Object manager = callStatic(
@@ -98,7 +98,9 @@ public class AppRatingAction {
     }
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       if ("onComplete".equals(method.getName())) {
-        Object reviewInfo = args[0];
+        Object task = args[0];
+        Object reviewInfo = call("com.google.android.play.core.tasks.Task", task, "getResult");
+
         call(
             "com.google.android.play.core.review.ReviewManager",
             manager,
