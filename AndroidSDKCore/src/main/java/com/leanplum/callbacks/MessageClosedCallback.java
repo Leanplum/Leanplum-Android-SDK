@@ -1,5 +1,7 @@
 package com.leanplum.callbacks;
 
+import com.leanplum.models.MessageArchiveData;
+
 /**
  * Message Closed Callback
  * Nice to know when a Message is dismissed
@@ -8,10 +10,15 @@ package com.leanplum.callbacks;
 
 public abstract class MessageClosedCallback implements Runnable {
 
-    public void run()
-    {
-        this.messageClosed();
+    private MessageArchiveData messageArchiveData;
+
+    public void setMessageArchiveData(MessageArchiveData messageArchiveData) {
+        this.messageArchiveData = messageArchiveData;
     }
 
-    public abstract void messageClosed();
+    public void run() {
+        this.messageClosed(messageArchiveData);
+    }
+
+    public abstract void messageClosed(MessageArchiveData messageArchiveData);
 }

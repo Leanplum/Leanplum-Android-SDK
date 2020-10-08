@@ -30,6 +30,7 @@ import android.text.TextUtils;
 
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.ActionTriggeredCallback;
 import com.leanplum.callbacks.EmbeddedHTMLUrlCallback;
 import com.leanplum.callbacks.MessageClosedCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
@@ -100,6 +101,8 @@ public class Leanplum {
   private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
           new ArrayList<>();
   private static final ArrayList<MessageClosedCallback> messageClosedHandlers =
+          new ArrayList<>();
+  private static ArrayList<ActionTriggeredCallback> actionTriggeredHandlers =
           new ArrayList<>();
   private static EmbeddedHTMLUrlCallback embeddedHTMLUrlHandler = new EmbeddedHTMLUrlCallback() {
     @Override
@@ -1377,10 +1380,47 @@ public class Leanplum {
     }
   }
 
-  public static void triggerMessageClosed()
+  public static void triggerMessageClosed(ActionContext actionContext)
   {
     synchronized (messageClosedHandlers) {
       for (MessageClosedCallback callback : messageClosedHandlers) {
+        MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
+        callback.setMessageArchiveData(messageArchiveData);
+        OsHandler.getInstance().post(callback);
+      }
+    }
+  }
+
+  public static void addActionTriggeredHandler(ActionTriggeredCallback handler)
+  {
+    if (handler == null)
+    {
+      Log.e("addActionTriggeredHandler - Invalid handler parameter provided.");
+      return;
+    }
+
+    synchronized(actionTriggeredHandlers) {
+      actionTriggeredHandlers.add(handler);
+    }
+  }
+
+  public static void removeActionTriggeredHandler(ActionTriggeredCallback handler) {
+    if (handler == null)
+    {
+      Log.e("removeActionTriggeredHandler - Invalid handler parameter provided.");
+      return;
+    }
+
+    synchronized (actionTriggeredHandlers)
+    {
+      actionTriggeredHandlers.remove(handler);
+    }
+  }
+
+  public static void triggerActionTriggered(ActionContext actionContext) {
+    synchronized (actionTriggeredHandlers) {
+      for (ActionTriggeredCallback callback : actionTriggeredHandlers) {
+        callback.setActionContext(actionContext);
         OsHandler.getInstance().post(callback);
       }
     }

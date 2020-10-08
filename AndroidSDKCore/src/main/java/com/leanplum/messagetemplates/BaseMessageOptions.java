@@ -73,6 +73,8 @@ abstract class BaseMessageOptions {
         Args.ACCEPT_BUTTON_TEXT_COLOR).intValue());
   }
 
+  public ActionContext getActionContext() { return  context; }
+
   public int getBackgroundColor() {
     return backgroundColor;
   }

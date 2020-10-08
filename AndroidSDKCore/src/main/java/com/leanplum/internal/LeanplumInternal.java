@@ -111,6 +111,7 @@ public class LeanplumInternal {
   public static void triggerAction(final ActionContext context,
       final VariablesChangedCallback handledCallback) {
     List<ActionCallback> callbacks;
+    Leanplum.triggerActionTriggered(context);
     synchronized (actionHandlers) {
       List<ActionCallback> handlers = actionHandlers.get(context.actionName());
       if (handlers == null) {
