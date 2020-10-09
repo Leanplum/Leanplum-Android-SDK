@@ -26,7 +26,6 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum.internal.Request.RequestType;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.HashSet;
 import java.util.Arrays;
@@ -37,7 +36,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Grace Gu
  */
-@PrepareForTest({ Request.class })
 public class CountAggregatorTest extends AbstractTest {
   @Test
   public void testIncrementDisabledCount() {

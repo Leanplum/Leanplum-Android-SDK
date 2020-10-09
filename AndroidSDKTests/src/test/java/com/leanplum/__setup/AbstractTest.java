@@ -34,6 +34,7 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LocationManager;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
@@ -42,7 +43,6 @@ import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
-import com.leanplum.internal.VarCache;
 
 import org.junit.After;
 import org.junit.Before;
@@ -101,17 +101,11 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 })
 @PrepareForTest(value = {
     Leanplum.class,
-    LeanplumInternal.class,
-    Log.class,
-    Util.class,
     LeanplumActivityHelper.class,
     URL.class,
     LocationManager.class,
-    Request.class,
     LocationServices.class,
     FusedLocationProviderApi.class,
-    VarCache.class,
-    OperationQueue.class
 }, fullyQualifiedNames = {"com.leanplum.internal.*"})
 /**
  * AbstractTest class which holds methods to properly setup test environment.
@@ -132,7 +126,6 @@ public abstract class AbstractTest {
     spy(LeanplumEventDataManager.class);
     spy(Leanplum.class);
     spy(LeanplumActivityHelper.class);
-    spy(Request.class);
     spy(OperationQueue.class);
 
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
@@ -194,6 +187,15 @@ public abstract class AbstractTest {
   }
 
   protected void prepareHttpsURLConnection(int responseCode) throws Exception {
+    prepareHttpsURLConnection(responseCode, "/responses/simple_start_response.json", null, false);
+  }
+
+  protected void prepareHttpsURLConnection(
+      int responseCode,
+      String inputStreamJsonFile,
+      String errorStreamJsonFile,
+      boolean gzip) throws Exception {
+
     // Mock url connection to work offline.
     URL mockedURL = mock(URL.class);
     HttpsURLConnection httpsURLConnection = mock(HttpsURLConnection.class);
@@ -203,10 +205,20 @@ public abstract class AbstractTest {
     when(mockedURL.openConnection()).thenReturn(httpsURLConnection);
     when(httpsURLConnection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
     when(httpsURLConnection.getResponseCode()).thenReturn(responseCode);
+    if (gzip) {
+      when(httpsURLConnection.getHeaderField("content-encoding"))
+          .thenReturn(Constants.LEANPLUM_SUPPORTED_ENCODING);
+    }
     // We are just seeding a random file as a InputStream of a mocked httpConnection which will be
     // used in FileManager tests other tests depends on Util.getResponse() to mock response.
-    when(httpsURLConnection.getInputStream()).thenReturn(ResponseHelper
-        .seedInputStream("/responses/simple_start_response.json"));
+    if (inputStreamJsonFile != null) {
+      when(httpsURLConnection.getInputStream())
+          .thenReturn(ResponseHelper.seedInputStream(inputStreamJsonFile));
+    }
+    if (errorStreamJsonFile != null) {
+      when(httpsURLConnection.getErrorStream())
+          .thenReturn(ResponseHelper.seedInputStream(errorStreamJsonFile));
+    }
   }
 
   @After

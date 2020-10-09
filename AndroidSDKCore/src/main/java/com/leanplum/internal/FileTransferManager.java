@@ -21,13 +21,13 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.Leanplum;
+import com.leanplum.internal.http.NetworkOperation;
+import com.leanplum.internal.http.UploadOperation;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -115,12 +115,12 @@ public class FileTransferManager {
       final String url,
       final Map<String, Object> dict) {
 
-    HttpURLConnection op = null;
+    NetworkOperation op = null;
     URL originalURL = null;
     String httpMethod = request.getHttpMethod();
     try {
       if (url == null) {
-        op = Util.operation(
+        op = new NetworkOperation(
             hostName,
             servlet,
             dict,
@@ -128,7 +128,10 @@ public class FileTransferManager {
             Constants.API_SSL,
             Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
       } else {
-        op = Util.createHttpUrlConnection(url, httpMethod, url.startsWith("https://"),
+        op = new NetworkOperation(
+            url,
+            httpMethod,
+            url.startsWith("https://"),
             Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
       }
       originalURL = op.getURL();
@@ -153,7 +156,7 @@ public class FileTransferManager {
 
       FileOutputStream out = new FileOutputStream(
           new File(FileManager.fileRelativeToDocuments(path)));
-      Util.saveResponse(op, out);
+      op.saveResponse(out);
       pendingDownloads--;
       if (request.response != null) {
         request.response.response(null);
@@ -244,22 +247,18 @@ public class FileTransferManager {
       public void run() {
         synchronized (uploadFileLock) {  // Don't overload app and server with many upload tasks
           JSONObject result;
-          HttpURLConnection op = null;
+          UploadOperation op = null;
 
           try {
-            op = Util.uploadFilesOperation(
-                Constants.Params.FILE,
-                filesToUpload,
-                streams,
+            op = new UploadOperation(
                 Constants.API_HOST_NAME,
                 Constants.API_SERVLET,
-                dict,
                 request.getHttpMethod(),
                 Constants.API_SSL,
                 60);
 
-            if (op != null) {
-              result = Util.getJsonResponse(op);
+            if (op.uploadFiles(filesToUpload, streams, dict)) {
+              result = op.getJsonResponse();
               int statusCode = op.getResponseCode();
               if (statusCode != 200) {
                 throw new Exception("Leanplum: Error sending request: " + statusCode);

@@ -28,8 +28,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Request.RequestType;
+import com.leanplum.internal.http.NetworkOperation;
 import com.leanplum.utils.SharedPreferencesUtil;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -234,10 +234,10 @@ public class RequestSender {
     multiRequestArgs.put(Constants.Params.ACTION, RequestBuilder.ACTION_MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
 
-    HttpURLConnection op = null;
+    NetworkOperation op = null;
     try {
       try {
-        op = Util.operation(
+        op = new NetworkOperation(
             Constants.API_HOST_NAME,
             Constants.API_SERVLET,
             multiRequestArgs,
@@ -245,7 +245,7 @@ public class RequestSender {
             Constants.API_SSL,
             Constants.NETWORK_TIMEOUT_SECONDS);
 
-        JSONObject responseBody = Util.getJsonResponse(op);
+        JSONObject responseBody = op.getJsonResponse();
         int statusCode = op.getResponseCode();
 
         if (statusCode >= 200 && statusCode <= 299) {
