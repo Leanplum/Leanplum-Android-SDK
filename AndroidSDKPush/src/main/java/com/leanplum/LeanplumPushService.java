@@ -241,6 +241,9 @@ public class LeanplumPushService {
   }
 
   static void handleNotification(final Context context, final Bundle message) {
+    Map<String,String> properties = new HashMap<String, String>();
+    properties.put("messageID",getMessageId(message));
+    Leanplum.track("Push Delivered", properties);
     if (LeanplumActivityHelper.getCurrentActivity() != null
         && !LeanplumActivityHelper.isActivityPaused
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
@@ -402,6 +405,9 @@ public class LeanplumPushService {
 
   static void openNotification(Context context, Intent intent) {
     Log.d("Opening push notification action.");
+    Map<String,String> properties = new HashMap<String, String>();
+    properties.put("messageID",getMessageId(intent.getExtras()));
+    Leanplum.track("Push Opened", properties);
     // Pre handles push notification.
     Bundle notification = preHandlePushNotification(context, intent);
     if (notification == null) {

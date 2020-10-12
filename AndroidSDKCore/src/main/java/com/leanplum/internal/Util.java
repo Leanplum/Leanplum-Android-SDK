@@ -34,10 +34,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings.Secure;
-import androidx.annotation.RequiresPermission;
 import android.text.TextUtils;
 import android.util.TypedValue;
 
@@ -66,6 +64,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -79,12 +78,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
+
+import androidx.annotation.RequiresPermission;
 
 /**
  * Leanplum utilities.
@@ -92,8 +92,6 @@ import javax.net.ssl.SSLSocketFactory;
  * @author Andrew First
  */
 public class Util {
-  private static final Executor asyncExecutor = Executors.newCachedThreadPool();
-  private static final Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
 
   private static final String ACCESS_WIFI_STATE_PERMISSION = "android.permission.ACCESS_WIFI_STATE";
 
@@ -199,23 +197,40 @@ public class Util {
   }
 
   /**
-   * Retrieves the advertising ID. Requires Google Play Services. Note: This method must not run on
-   * the main thread.
+   * Retrieves the advertising ID. Requires Google Play Services or androidX. Note: This method must
+   * not run on the main thread.
    */
-  private static DeviceIdInfo getAdvertisingId(Context caller) throws Exception {
+  private static DeviceIdInfo getAdvertisingId(Context caller) {
     try {
-      // Using reflection because the app will either crash or print warnings
-      // if the app doesn't link to Google Play Services, even if this method is not called.
-      Object adInfo = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient")
-          .getMethod("getAdvertisingIdInfo", Context.class).invoke(null, caller);
-      String id = checkDeviceId(
-          "advertising id", (String) adInfo.getClass().getMethod("getId")
+      final String[] classNames = {
+          "androidx.ads.identifier.AdvertisingIdClient",
+          "com.google.android.gms.ads.identifier.AdvertisingIdClient"
+      };
+
+      for (String name : classNames) {
+        try {
+          Object adInfo = Class.forName(name)
+              .getMethod("getAdvertisingIdInfo", Context.class)
+              .invoke(null, caller);
+
+          if (name.equals(classNames[0])) {
+            Method get = adInfo.getClass().getMethod("get", long.class, TimeUnit.class);
+            adInfo = get.invoke(adInfo, 5, TimeUnit.SECONDS);
+          }
+
+          String id = checkDeviceId("advertising id", (String) adInfo.getClass().getMethod("getId")
               .invoke(adInfo));
-      if (id != null) {
-        boolean limitTracking = (Boolean) adInfo.getClass()
-            .getMethod("isLimitAdTrackingEnabled").invoke(adInfo);
-        Log.v("Using advertising device id: " + id);
-        return new DeviceIdInfo(id, limitTracking);
+
+          if (id != null) {
+            boolean limitTracking = (Boolean) adInfo.getClass()
+                .getMethod("isLimitAdTrackingEnabled")
+                .invoke(adInfo);
+            Log.v("Using advertising device id: " + id);
+            return new DeviceIdInfo(id, limitTracking);
+          }
+        } catch (Throwable t) {
+          Log.i("Couldn't get AdvertisingID using class: " + name);
+        }
       }
     } catch (Throwable t) {
       Log.e("Error getting advertising ID. Google Play Services are not available: ", t);
@@ -739,23 +754,6 @@ public class Util {
       current = ((Map<?, ?>) current).get(index);
     }
     return CollectionUtil.uncheckedCast(current);
-  }
-
-  /**
-   * Execute async task on single thread Executer or cached thread pool Executer.
-   *
-   * @param singleThread True if needs to be executed on single thread Executer, otherwise it will
-   * use cached thread pool Executer.
-   * @param task Async task to execute.
-   * @param params Params.
-   */
-  public static <T> void executeAsyncTask(boolean singleThread, AsyncTask<T, ?, ?> task,
-      T... params) {
-    if (singleThread) {
-      task.executeOnExecutor(singleThreadExecutor, params);
-    } else {
-      task.executeOnExecutor(asyncExecutor, params);
-    }
   }
 
   /**

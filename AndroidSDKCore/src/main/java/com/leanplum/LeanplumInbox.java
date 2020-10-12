@@ -32,7 +32,7 @@ import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.OsHandler;
+import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestOld;
 import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -262,7 +262,7 @@ public class LeanplumInbox {
   void triggerChanged() {
     synchronized (changedCallbacks) {
       for (InboxChangedCallback callback : changedCallbacks) {
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     }
   }
@@ -275,7 +275,7 @@ public class LeanplumInbox {
     synchronized (changedCallbacks) {
       for (InboxSyncedCallback callback : syncedCallbacks) {
         callback.setSuccess(success);
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     }
   }

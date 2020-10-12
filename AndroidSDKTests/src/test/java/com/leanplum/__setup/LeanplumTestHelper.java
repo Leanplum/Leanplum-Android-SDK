@@ -136,6 +136,7 @@ public class LeanplumTestHelper {
     onceNoDownloadsHandlers.clear();
     LeanplumInternal.getActionHandlers().clear();
     LeanplumInternal.getUserAttributeChanges().clear();
+    Leanplum.countAggregator().getAndClearCounts();
 
     TestClassUtil.setField(Leanplum.class, "registerDeviceHandler", null);
     TestClassUtil.setField(Leanplum.class, "registerDeviceFinishedHandler", null);

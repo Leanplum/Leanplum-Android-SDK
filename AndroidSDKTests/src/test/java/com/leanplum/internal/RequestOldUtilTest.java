@@ -38,9 +38,6 @@ public class RequestOldUtilTest extends TestCase {
         assertNotNull(context);
         Leanplum.setApplicationContext(context);
 
-        // Mock this so async things run synchronously
-        ReflectionHelpers.setStaticField(Util.class, "singleThreadExecutor", new SynchronousExecutor());
-
         ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
 
         Field instance = OperationQueue.class.getDeclaredField("instance");

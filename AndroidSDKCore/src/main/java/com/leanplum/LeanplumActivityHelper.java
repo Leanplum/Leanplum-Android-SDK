@@ -26,15 +26,12 @@ import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.Bundle;
 
 import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.LeanplumUIEditorWrapper;
-import com.leanplum.internal.OsHandler;
 import com.leanplum.internal.Util;
 
 import java.util.Collections;
@@ -125,16 +122,6 @@ public class LeanplumActivityHelper {
       @Override
       public void onActivityResumed(final Activity activity) {
         try {
-          if (Leanplum.isInterfaceEditingEnabled()) {
-            // Execute runnable in next frame to ensure that all system stuff is setup, before
-            // applying UI edits.
-            OsHandler.getInstance().post(new Runnable() {
-              @Override
-              public void run() {
-                LeanplumUIEditorWrapper.getInstance().applyInterfaceEdits(activity);
-              }
-            });
-          }
           onResume(activity);
           if (Leanplum.isScreenTrackingEnabled()) {
             Leanplum.advanceTo(activity.getLocalClassName());
