@@ -27,7 +27,6 @@ import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
 import com.leanplum.internal.Request.RequestType;
-import com.leanplum.internal.RequestSender.RequestBatch;
 import junit.framework.TestCase;
 
 import org.junit.Before;
@@ -160,13 +159,11 @@ public class RequestSenderTest extends TestCase {
   public void testRemoveIrrelevantBackgroundStartRequests() throws Exception {
     // Prepare testable objects and method.
     Request request = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
-    Method removeIrrelevantBackgroundStartRequests =
-        RequestSender.class.getDeclaredMethod("removeIrrelevantBackgroundStartRequests", List.class);
-    removeIrrelevantBackgroundStartRequests.setAccessible(true);
+    RequestBatchFactory batchFactory = new RequestBatchFactory();
 
     // Invoke method with specific test data.
     // Expectation: No request returned.
-    List unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
+    List unsentRequests = batchFactory.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
@@ -177,10 +174,11 @@ public class RequestSenderTest extends TestCase {
     // loop to complete all tasks
     ShadowLooper.idleMainLooperConstantly(true);
 
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
+    unsentRequests = batchFactory.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
-    RequestSender.getInstance().deleteRequests(unsentRequests.size());
+    RequestBatch batch = new RequestBatch(unsentRequests, null, null);
+    batchFactory.deleteFinishedBatch(batch);
 
     // Two foreground start requests.
     // Expectation: Both foreground start request returned.
@@ -198,10 +196,11 @@ public class RequestSenderTest extends TestCase {
     }});
     RequestSender.getInstance().send(req);
 
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
+    unsentRequests = batchFactory.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
-    RequestSender.getInstance().deleteRequests(unsentRequests.size());
+    batch = new RequestBatch(unsentRequests, null, null);
+    batchFactory.deleteFinishedBatch(batch);
 
     // One background start request followed by a foreground start request.
     // Expectation: Only one foreground start request returned.
@@ -219,13 +218,14 @@ public class RequestSenderTest extends TestCase {
     }});
     RequestSender.getInstance().send(req);
 
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
+    unsentRequests = batchFactory.getUnsentRequests(1.0);
     List unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
+        batchFactory.removeIrrelevantBackgroundStartRequests(unsentRequests);
     assertNotNull(unsentRequestsData);
     assertEquals(1, unsentRequestsData.size());
     assertEquals("1", ((Map) unsentRequestsData.get(0)).get("fg"));
-    RequestSender.getInstance().deleteRequests(unsentRequests.size());
+    batch = new RequestBatch(unsentRequests, null, null);
+    batchFactory.deleteFinishedBatch(batch);
 
     // Two background start request followed by a foreground start requests.
     // Expectation: Only one foreground start request returned.
@@ -250,14 +250,14 @@ public class RequestSenderTest extends TestCase {
     }});
     RequestSender.getInstance().send(req);
 
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
+    unsentRequests = batchFactory.getUnsentRequests(1.0);
 
     assertNotNull(unsentRequests);
-    unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
+    unsentRequestsData = batchFactory.removeIrrelevantBackgroundStartRequests(unsentRequests);
     assertEquals(1, unsentRequestsData.size());
     assertEquals("1", ((Map) unsentRequestsData.get(0)).get("fg"));
-    RequestSender.getInstance().deleteRequests(unsentRequests.size());
+    batch = new RequestBatch(unsentRequests, null, null);
+    batchFactory.deleteFinishedBatch(batch);
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
@@ -282,13 +282,13 @@ public class RequestSenderTest extends TestCase {
     }});
     RequestSender.getInstance().send(req);
 
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
+    unsentRequests = batchFactory.getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
-    unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
+    unsentRequestsData = batchFactory.removeIrrelevantBackgroundStartRequests(unsentRequests);
     assertEquals(2, unsentRequestsData.size());
     assertEquals("2", ((Map) unsentRequestsData.get(1)).get("bg"));
-    RequestSender.getInstance().deleteRequests(unsentRequests.size());
+    batch = new RequestBatch(unsentRequests, null, null);
+    batchFactory.deleteFinishedBatch(batch);
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
@@ -313,12 +313,12 @@ public class RequestSenderTest extends TestCase {
     }});
     RequestSender.getInstance().send(req);
 
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
-    unsentRequestsData =
-        (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
+    unsentRequests = batchFactory.getUnsentRequests(1.0);
+    unsentRequestsData = batchFactory.removeIrrelevantBackgroundStartRequests(unsentRequests);
     assertNotNull(unsentRequestsData);
     assertEquals(3, unsentRequestsData.size());
-    RequestSender.getInstance().deleteRequests(unsentRequests.size());
+    batch = new RequestBatch(unsentRequests, null, null);
+    batchFactory.deleteFinishedBatch(batch);
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
@@ -329,9 +329,11 @@ public class RequestSenderTest extends TestCase {
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
     RequestBatch requestBatch;
     // Prepare testable objects and method.
-    RequestSender requestSender = spy(new RequestSender());
+    RequestSender requestSender = new RequestSender();
     Request request = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
     requestSender.send(request); // first request added
+
+    RequestBatchFactory batchFactory = spy(new RequestBatchFactory());
 
     for (int i = 0; i < 5000; i++) { // remaining requests to make up 5000
       Request startRequest =
@@ -340,7 +342,7 @@ public class RequestSenderTest extends TestCase {
     }
 
     // Expectation: 5000 requests returned.
-    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    requestBatch = batchFactory.getNextBatch(1.0);
 
     assertNotNull(requestBatch.unsentRequests);
     assertNotNull(requestBatch.requestsToSend);
@@ -349,8 +351,8 @@ public class RequestSenderTest extends TestCase {
 
     // Throw OOM on 5000 requests
     // Expectation: 2500 requests returned.
-    when(requestSender.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    when(batchFactory.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    requestBatch = batchFactory.getNextBatch(1.0);
 
     assertNotNull(requestBatch.unsentRequests);
     assertNotNull(requestBatch.requestsToSend);
@@ -359,14 +361,14 @@ public class RequestSenderTest extends TestCase {
 
     // Throw OOM on 2500, 5000 requests
     // Expectation: 1250 requests returned.
-    when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    when(batchFactory.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    requestBatch = batchFactory.getNextBatch(1.0);
     assertEquals(1250, requestBatch.unsentRequests.size());
 
     // Throw OOM on serializing any finite number of requests (extreme condition)
     // Expectation: Determine only 0 requests to be sent
-    when(requestSender.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
-    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    when(batchFactory.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
+    requestBatch = batchFactory.getNextBatch(1.0);
 
     assertNotNull(requestBatch.unsentRequests);
     assertNotNull(requestBatch.requestsToSend);
@@ -384,13 +386,12 @@ public class RequestSenderTest extends TestCase {
   public void testJsonEncodeUnsentRequestsWithException() {
     List<Map<String, Object>> requests = mockRequests(4);
 
-    RequestSender realRequestSender = new RequestSender();
-    RequestSender requestSender = spy(realRequestSender);
-    when(requestSender.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-    when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-    when(requestSender.getUnsentRequests(0.25)).thenReturn(requests);
+    RequestBatchFactory batchFactory = spy(new RequestBatchFactory());
+    when(batchFactory.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
+    when(batchFactory.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
+    when(batchFactory.getUnsentRequests(0.25)).thenReturn(requests);
 
-    RequestBatch requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestBatch requestBatch = batchFactory.getNextBatch(1.0);
 
     assertEquals(4, requestBatch.unsentRequests.size());
     assertEquals(4, requestBatch.requestsToSend.size());
@@ -406,10 +407,10 @@ public class RequestSenderTest extends TestCase {
   public void testJsonEncodeUnsentRequests() {
     List<Map<String, Object>> requests = mockRequests(4);
 
-    RequestSender requestSender = spy(new RequestSender());
-    when(requestSender.getUnsentRequests(1.0)).thenReturn(requests);
+    RequestBatchFactory batchFactory = spy(new RequestBatchFactory());
+    when(batchFactory.getUnsentRequests(1.0)).thenReturn(requests);
 
-    RequestBatch requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestBatch requestBatch = batchFactory.getNextBatch(1.0);
 
     assertEquals(4, requestBatch.unsentRequests.size());
     assertEquals(4, requestBatch.requestsToSend.size());
@@ -422,8 +423,9 @@ public class RequestSenderTest extends TestCase {
   // The String should have the expected format
   @Test
   public void testGetRequestsWithEncodedStringStoredRequests() {
+    RequestBatchFactory batchFactory = new RequestBatchFactory();
     List<Map<String, Object>> requests = mockRequests(4);
-    String json = RequestSender.getInstance().jsonEncodeRequests(requests);
+    String json = batchFactory.jsonEncodeRequests(requests);
 
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(json, expectedJson);

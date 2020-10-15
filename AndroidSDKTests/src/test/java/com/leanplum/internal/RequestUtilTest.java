@@ -54,13 +54,16 @@ public class RequestUtilTest extends TestCase {
         Request request2 =
             new Request(this.POST, RequestBuilder.ACTION_TRACK, RequestType.DEFAULT, null);
         RequestSender.getInstance().send(request2);
-        List<Map<String, Object>> unsentRequests1 = RequestSender.getInstance().getUnsentRequests(1.0);
+        List<Map<String, Object>> unsentRequests1 =
+            new RequestBatchFactory().getUnsentRequests(1.0);
         String oldUUID1 = (String) unsentRequests1.get(0).get(Constants.Params.UUID);
 
-        List<Map<String, Object>> unsentRequests2 = RequestSender.getInstance().getUnsentRequests(1.0);
+        List<Map<String, Object>> unsentRequests2 =
+            new RequestBatchFactory().getUnsentRequests(1.0);
         String oldUUID2 = (String) unsentRequests2.get(0).get(Constants.Params.UUID);
 
-        List<Map<String, Object>> unsentRequests3 = RequestSender.getInstance().getUnsentRequests(0.5);
+        List<Map<String, Object>> unsentRequests3 =
+            new RequestBatchFactory().getUnsentRequests(0.5);
         String newUUID = (String) unsentRequests3.get(0).get(Constants.Params.UUID);
 
         assertTrue(oldUUID1.equals(oldUUID2));

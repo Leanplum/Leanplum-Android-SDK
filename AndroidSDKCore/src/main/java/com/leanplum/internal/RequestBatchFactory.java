@@ -68,7 +68,8 @@ public class RequestBatchFactory {
   /**
    * @param fraction Decimal from 0 to 1. It says what part of all saved events to include in batch.
    */
-  private RequestBatch getNextBatch(double fraction) {
+  @VisibleForTesting
+  protected RequestBatch getNextBatch(double fraction) {
     try {
       List<Map<String, Object>> unsentRequests;
       List<Map<String, Object>> requestsToSend;
@@ -108,7 +109,8 @@ public class RequestBatchFactory {
    * @param requestData A list of the requests, stored on the device.
    * @return A list of only these requests, which contain relevant information for the API call.
    */
-  private static List<Map<String, Object>> removeIrrelevantBackgroundStartRequests(
+  @VisibleForTesting
+  protected List<Map<String, Object>> removeIrrelevantBackgroundStartRequests(
       List<Map<String, Object>> requestData) {
     List<Map<String, Object>> relevantRequests = new ArrayList<>();
 
@@ -148,7 +150,8 @@ public class RequestBatchFactory {
     return requestData;
   }
 
-  protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {
+  @VisibleForTesting
+  protected String jsonEncodeRequests(List<Map<String, Object>> requestData) {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);
