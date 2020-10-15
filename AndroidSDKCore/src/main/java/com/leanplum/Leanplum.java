@@ -1327,7 +1327,7 @@ public class Leanplum {
       for (MessageClosedCallback callback : messageClosedHandlers) {
         MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
         callback.setMessageArchiveData(messageArchiveData);
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     }
   }
@@ -1362,7 +1362,7 @@ public class Leanplum {
     synchronized (actionTriggeredHandlers) {
       for (ActionTriggeredCallback callback : actionTriggeredHandlers) {
         callback.setActionContext(actionContext);
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     }
   }
