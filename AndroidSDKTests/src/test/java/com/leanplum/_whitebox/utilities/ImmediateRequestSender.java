@@ -21,11 +21,13 @@
 
 package com.leanplum._whitebox.utilities;
 
+import androidx.annotation.NonNull;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestSender;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ImmediateRequestSender extends RequestSender {
@@ -42,7 +44,7 @@ public class ImmediateRequestSender extends RequestSender {
   }
 
   @Override
-  protected void triggerCallbackManager(JSONObject responseBody, Exception error) {
+  protected void invokeCallbacks(@NonNull JSONObject responseBody) {
     try {
       // attach the uuid we generated
       JSONArray jsonArray = responseBody.getJSONArray(Params.RESPONSE);
@@ -50,9 +52,9 @@ public class ImmediateRequestSender extends RequestSender {
         JSONObject jsonObject = jsonArray.getJSONObject(i);
         jsonObject.put(Params.REQUEST_ID, currentRequestId);
       }
-    } catch (Exception e) {
+    } catch (JSONException e) {
       // ignore
     }
-    super.triggerCallbackManager(responseBody, error);
+    super.invokeCallbacks(responseBody);
   }
 }

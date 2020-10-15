@@ -205,13 +205,18 @@ public class LeanplumEventDataManager {
       db.execSQL("CREATE TABLE IF NOT EXISTS " + EVENT_TABLE_NAME + "(" + COLUMN_DATA +
           " TEXT)");
 
-      // Migrate old data from shared preferences.
-      try {
-        migrateFromSharedPreferences(db);
-      } catch (Throwable t) {
-        Log.e("Cannot move old data from shared preferences to SQLite table.", t);
-        Log.exception(t);
-      }
+      OperationQueue.sharedInstance().addOperation(new Runnable() {
+        @Override
+        public void run() {
+          // Migrate old data from shared preferences.
+          try {
+            migrateFromSharedPreferences(db);
+          } catch (Throwable t) {
+            Log.e("Cannot move old data from shared preferences to SQLite table.", t);
+            Log.exception(t);
+          }
+        }
+      });
     }
 
     @Override
@@ -223,7 +228,6 @@ public class LeanplumEventDataManager {
      * Migrate data from shared preferences to SQLite.
      */
     private static void migrateFromSharedPreferences(SQLiteDatabase db) {
-      synchronized (Request.class) {
         Context context = Leanplum.getContext();
         SharedPreferences preferences = context.getSharedPreferences(
             Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
@@ -268,7 +272,6 @@ public class LeanplumEventDataManager {
           Log.e("Failed on migration data from shared preferences.", t);
           Log.exception(t);
         }
-      }
     }
   }
 }

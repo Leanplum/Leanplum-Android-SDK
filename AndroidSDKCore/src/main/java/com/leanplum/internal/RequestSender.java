@@ -250,11 +250,11 @@ public class RequestSender {
 
         if (statusCode >= 200 && statusCode <= 299) {
           // Parse response body and trigger callbacks
-          triggerCallbackManager(responseBody, null);
+          invokeCallbacks(responseBody);
 
           // Clear localErrors list.
           localErrors.clear();
-          deleteSentRequests(unsentRequests.size());
+          deleteRequests(unsentRequests.size());
 
           // Send another request if the last request had maximum events per api call.
           if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
@@ -263,17 +263,17 @@ public class RequestSender {
         } else {
           Exception errorException = new Exception("HTTP error " + statusCode);
           if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
-            deleteSentRequests(unsentRequests.size());
+            deleteRequests(unsentRequests.size());
           }
-          triggerCallbackManager(responseBody, errorException);
+          invokeCallbacksWithError(errorException);
         }
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
-        deleteSentRequests(unsentRequests.size());
-        triggerCallbackManager(null, e);
+        deleteRequests(unsentRequests.size());
+        invokeCallbacksWithError(e);
       } catch (Exception e) {
         Log.e("Unable to send request: " + e.toString() + "\n" + Log.getStackTraceString(e));
-        triggerCallbackManager(null, e);
+        invokeCallbacksWithError(e);
       } finally {
         if (op != null) {
           op.disconnect();
@@ -286,22 +286,19 @@ public class RequestSender {
 
   @VisibleForTesting
   public List<Map<String, Object>> getUnsentRequests(double fraction) {
-    List<Map<String, Object>> requestData;
-
-    synchronized (Request.class) {
-      Context context = Leanplum.getContext();
-      SharedPreferences preferences = context.getSharedPreferences(
-          Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
-      SharedPreferences.Editor editor = preferences.edit();
-      int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
-      requestData = LeanplumEventDataManager.sharedInstance().getEvents(count);
-      editor.remove(Constants.Defaults.UUID_KEY);
-      SharedPreferencesUtil.commitChanges(editor);
-      // if we send less than 100% of requests, we need to reset the batch
-      // UUID for the next batch
-      if (fraction < 1) {
-        RequestUtil.setNewBatchUUID(requestData);
-      }
+    Context context = Leanplum.getContext();
+    SharedPreferences preferences = context.getSharedPreferences(
+        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
+    SharedPreferences.Editor editor = preferences.edit();
+    int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
+    List<Map<String, Object>> requestData =
+        LeanplumEventDataManager.sharedInstance().getEvents(count);
+    editor.remove(Constants.Defaults.UUID_KEY);
+    SharedPreferencesUtil.commitChanges(editor);
+    // if we send less than 100% of requests, we need to reset the batch
+    // UUID for the next batch
+    if (fraction < 1) {
+      RequestUtil.setNewBatchUUID(requestData);
     }
     return requestData;
   }
@@ -345,33 +342,21 @@ public class RequestSender {
     return relevantRequests;
   }
 
-  /**
-   * Parse response body from server.  Invoke potential error or response callbacks for all events
-   * of this request.
-   *
-   * @param responseBody JSONObject with response body from server.
-   * @param error Exception.
-   */
-  protected void triggerCallbackManager(JSONObject responseBody, Exception error) {
-    synchronized (Request.class) {
-      if (responseBody == null && error != null) {
-        // Invoke potential error callbacks for all events of this request.
-        eventCallbackManager.invokeAllCallbacksWithError(error);
-        return;
-      } else if (responseBody == null) {
-        return;
-      }
-      eventCallbackManager.invokeCallbacks(responseBody);
-    }
+  @VisibleForTesting
+  protected void invokeCallbacks(@NonNull JSONObject responseBody) {
+    eventCallbackManager.invokeCallbacks(responseBody);
   }
 
-  void deleteSentRequests(int requestsCount) {
-    if (requestsCount == 0) {
+  private void invokeCallbacksWithError(@NonNull Exception exception) {
+    eventCallbackManager.invokeAllCallbacksWithError(exception);
+  }
+
+  @VisibleForTesting
+  void deleteRequests(int count) {
+    if (count == 0) {
       return;
     }
-    synchronized (Request.class) {
-      LeanplumEventDataManager.sharedInstance().deleteEvents(requestsCount);
-    }
+    LeanplumEventDataManager.sharedInstance().deleteEvents(count);
   }
 
   private void addLocalError(Request request) {

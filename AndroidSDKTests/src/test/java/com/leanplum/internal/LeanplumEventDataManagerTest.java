@@ -28,6 +28,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
+import java.lang.reflect.Field;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,10 +62,15 @@ public class LeanplumEventDataManagerTest {
    * Runs before every test case.
    */
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     this.mContext = RuntimeEnvironment.application;
     assertNotNull(this.mContext);
     Leanplum.setApplicationContext(this.mContext);
+
+    ShadowOperationQueue shadowOperationQueue = new ShadowOperationQueue();
+    Field instance = OperationQueue.class.getDeclaredField("instance");
+    instance.setAccessible(true);
+    instance.set(instance, shadowOperationQueue);
   }
 
   @Test

@@ -179,7 +179,7 @@ public class RequestSenderTest extends TestCase {
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(1, unsentRequests.size());
-    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteRequests(unsentRequests.size());
 
     // Two foreground start requests.
     // Expectation: Both foreground start request returned.
@@ -200,7 +200,7 @@ public class RequestSenderTest extends TestCase {
     unsentRequests = RequestSender.getInstance().getUnsentRequests(1.0);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
-    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteRequests(unsentRequests.size());
 
     // One background start request followed by a foreground start request.
     // Expectation: Only one foreground start request returned.
@@ -224,7 +224,7 @@ public class RequestSenderTest extends TestCase {
     assertNotNull(unsentRequestsData);
     assertEquals(1, unsentRequestsData.size());
     assertEquals("1", ((Map) unsentRequestsData.get(0)).get("fg"));
-    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteRequests(unsentRequests.size());
 
     // Two background start request followed by a foreground start requests.
     // Expectation: Only one foreground start request returned.
@@ -256,7 +256,7 @@ public class RequestSenderTest extends TestCase {
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertEquals(1, unsentRequestsData.size());
     assertEquals("1", ((Map) unsentRequestsData.get(0)).get("fg"));
-    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteRequests(unsentRequests.size());
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
@@ -287,7 +287,7 @@ public class RequestSenderTest extends TestCase {
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertEquals(2, unsentRequestsData.size());
     assertEquals("2", ((Map) unsentRequestsData.get(1)).get("bg"));
-    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteRequests(unsentRequests.size());
 
     // A foreground start request followed by two background start requests.
     // Expectation: Should keep the foreground and the last background start request returned.
@@ -317,7 +317,7 @@ public class RequestSenderTest extends TestCase {
         (List) removeIrrelevantBackgroundStartRequests.invoke(Request.class, unsentRequests);
     assertNotNull(unsentRequestsData);
     assertEquals(3, unsentRequestsData.size());
-    RequestSender.getInstance().deleteSentRequests(unsentRequests.size());
+    RequestSender.getInstance().deleteRequests(unsentRequests.size());
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
