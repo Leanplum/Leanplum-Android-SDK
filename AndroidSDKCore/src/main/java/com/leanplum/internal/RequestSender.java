@@ -42,24 +42,12 @@ public class RequestSender {
 
   private static RequestSender INSTANCE = new RequestSender();
 
-  /**
-   * This class wraps the unsent requests, requests that we need to send
-   * and the JSON encoded string. Wrapping it in the class allows us to
-   * retain consistency in the requests we are sending and the actual
-   * JSON string.
-   */
-  static class RequestsWithEncoding {
-    List<Map<String, Object>> unsentRequests;
-    List<Map<String, Object>> requestsToSend;
-    String jsonEncodedString;
-  }
-
   private final LeanplumEventCallbackManager eventCallbackManager =
       new LeanplumEventCallbackManager();
 
   private final RequestBatchFactory batchFactory = new RequestBatchFactory();
 
-  private List<Map<String, Object>> localErrors = new ArrayList<>();
+  private final List<Map<String, Object>> localErrors = new ArrayList<>();
 
   @VisibleForTesting
   public RequestSender() {
@@ -73,7 +61,7 @@ public class RequestSender {
   public static void setInstance(RequestSender instance) {
     INSTANCE = instance;
   }
-//TODO move attachUuid() method?
+
   private boolean attachUuid(Map<String, Object> args) {
     Context context = Leanplum.getContext();
     if (context == null) {
@@ -134,18 +122,19 @@ public class RequestSender {
     }
   }
 
+  private RequestBatch getNextBatch() {
+    // Check if we have localErrors, if yes then we will send only errors to the server.
+    if (localErrors.size() > 0)
+      return batchFactory.createErrorBatch(localErrors);
+    else
+      return batchFactory.getNextBatch();
+  }
+
   @VisibleForTesting
   public void sendRequests() {
     Leanplum.countAggregator().sendAllCounts();
-
-    RequestsWithEncoding requestsWithEncoding =
-        batchFactory.getRequestsWithEncodedString(localErrors);
-
-    List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
-    List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
-    String jsonEncodedString = requestsWithEncoding.jsonEncodedString;
-
-    if (requestsToSend.isEmpty()) {
+    RequestBatch batch = getNextBatch();
+    if (batch.isEmpty()) {
       return;
     }
 
@@ -153,8 +142,7 @@ public class RequestSender {
     if (!APIConfig.getInstance().attachApiKeys(multiRequestArgs)) {
       return;
     }
-
-    multiRequestArgs.put(Constants.Params.DATA, jsonEncodedString);
+    multiRequestArgs.put(Constants.Params.DATA, batch.getJson());
     multiRequestArgs.put(Constants.Params.SDK_VERSION, Constants.LEANPLUM_VERSION);
     multiRequestArgs.put(Constants.Params.ACTION, RequestBuilder.ACTION_MULTI);
     multiRequestArgs.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
@@ -179,22 +167,22 @@ public class RequestSender {
 
           // Clear localErrors list.
           localErrors.clear();
-          deleteRequests(unsentRequests.size());
+          batchFactory.deleteFinishedBatch(batch);
 
-          // Send another request if the last request had maximum events per api call.
-          if (unsentRequests.size() == RequestBatchFactory.MAX_EVENTS_PER_API_CALL) {
+          // Send another batch if the last batch had maximum events per api call.
+          if (batch.isFull()) {
             sendRequests();
           }
         } else {
           Exception errorException = new Exception("HTTP error " + statusCode);
           if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
-            deleteRequests(unsentRequests.size());
+            batchFactory.deleteFinishedBatch(batch);
           }
           invokeCallbacksWithError(errorException);
         }
       } catch (JSONException e) {
         Log.e("Error parsing JSON response: " + e.toString() + "\n" + Log.getStackTraceString(e));
-        deleteRequests(unsentRequests.size());
+        batchFactory.deleteFinishedBatch(batch);
         invokeCallbacksWithError(e);
       } catch (Exception e) {
         Log.e("Unable to send request: " + e.toString() + "\n" + Log.getStackTraceString(e));
@@ -216,14 +204,6 @@ public class RequestSender {
 
   private void invokeCallbacksWithError(@NonNull Exception exception) {
     eventCallbackManager.invokeAllCallbacksWithError(exception);
-  }
-
-  @VisibleForTesting
-  void deleteRequests(int count) {
-    if (count == 0) {
-      return;
-    }
-    LeanplumEventDataManager.sharedInstance().deleteEvents(count);
   }
 
   private void addLocalError(Request request) {

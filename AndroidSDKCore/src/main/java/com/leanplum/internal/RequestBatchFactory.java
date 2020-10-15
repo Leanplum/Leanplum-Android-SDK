@@ -24,9 +24,9 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
-import com.leanplum.internal.RequestSender.RequestsWithEncoding;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,20 +38,10 @@ public class RequestBatchFactory {
 
   static final int MAX_EVENTS_PER_API_CALL = (Build.VERSION.SDK_INT <= 17) ? 5000 : 10000;
 
-// TODO fix the methods for the errors
-  public RequestsWithEncoding getRequestsWithEncodedString(List<Map<String, Object>> localErrors) {
-    RequestsWithEncoding requestsWithEncoding;
-    // Check if we have localErrors, if yes then we will send only errors to the server.
-    if (localErrors.size() != 0) {
-      requestsWithEncoding = getRequestsWithEncodedStringForErrors(localErrors);
-    } else {
-      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests(1.0);
-    }
-
-    return requestsWithEncoding;
-  }
-
-  private RequestsWithEncoding getRequestsWithEncodedStringForErrors(List<Map<String, Object>> localErrors) {
+  /**
+   * In the presence of errors we do not send any events but only the errors.
+   */
+  public RequestBatch createErrorBatch(List<Map<String, Object>> localErrors) {
     List<Map<String, Object>> unsentRequests = new ArrayList<>();
     List<Map<String, Object>> requestsToSend;
     String jsonEncodedRequestsToSend;
@@ -64,21 +54,24 @@ public class RequestBatchFactory {
     requestsToSend = unsentRequests;
     jsonEncodedRequestsToSend = jsonEncodeRequests(unsentRequests);
 
-    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
     // for errors, we send all unsent requests so they are identical
-    requestsWithEncoding.unsentRequests = unsentRequests;
-    requestsWithEncoding.requestsToSend = requestsToSend;
-    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
-
-    return requestsWithEncoding;
+    return new RequestBatch(unsentRequests, requestsToSend, jsonEncodedRequestsToSend);
   }
 
-  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
+  /**
+   * Creates batch with all saved events with count of up to {@link #MAX_EVENTS_PER_API_CALL}.
+   */
+  public RequestBatch getNextBatch() {
+    return getNextBatch(1.0);
+  }
+
+  /**
+   * @param fraction Decimal from 0 to 1. It says what part of all saved events to include in batch.
+   */
+  private RequestBatch getNextBatch(double fraction) {
     try {
       List<Map<String, Object>> unsentRequests;
       List<Map<String, Object>> requestsToSend;
-      String jsonEncodedRequestsToSend;
-      RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
 
       if (fraction < 0.01) { //base case
         unsentRequests = new ArrayList<>(0);
@@ -88,15 +81,12 @@ public class RequestBatchFactory {
         requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
       }
 
-      jsonEncodedRequestsToSend = jsonEncodeRequests(requestsToSend);
-      requestsWithEncoding.unsentRequests = unsentRequests;
-      requestsWithEncoding.requestsToSend = requestsToSend;
-      requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
+      String jsonEncoded = jsonEncodeRequests(requestsToSend);
 
-      return requestsWithEncoding;
+      return new RequestBatch(unsentRequests, requestsToSend, jsonEncoded);
     } catch (OutOfMemoryError E) {
       // half the requests will need less memory, recursively
-      return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
+      return getNextBatch(0.5 * fraction);
     }
   }
 
@@ -162,6 +152,15 @@ public class RequestBatchFactory {
     Map<String, Object> data = new HashMap<>();
     data.put(Constants.Params.DATA, requestData);
     return JsonConverter.toJson(data);
+  }
+
+  public void deleteFinishedBatch(@NonNull RequestBatch batch) {
+    // Currently no enumeration of the requests so removing the first ones in the queue
+    int eventsCount = batch.getEventsCount();
+    if (eventsCount == 0) {
+      return;
+    }
+    LeanplumEventDataManager.sharedInstance().deleteEvents(eventsCount);
   }
 
 }

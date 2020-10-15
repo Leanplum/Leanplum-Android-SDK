@@ -27,6 +27,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
 import com.leanplum.internal.Request.RequestType;
+import com.leanplum.internal.RequestSender.RequestBatch;
 import junit.framework.TestCase;
 
 import org.junit.Before;
@@ -326,7 +327,7 @@ public class RequestSenderTest extends TestCase {
   // The list should try and get a smaller fraction of the available requests
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
-    RequestSender.RequestsWithEncoding requestsWithEncoding;
+    RequestBatch requestBatch;
     // Prepare testable objects and method.
     RequestSender requestSender = spy(new RequestSender());
     Request request = new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
@@ -339,40 +340,40 @@ public class RequestSenderTest extends TestCase {
     }
 
     // Expectation: 5000 requests returned.
-    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
-    assertNotNull(requestsWithEncoding.unsentRequests);
-    assertNotNull(requestsWithEncoding.requestsToSend);
-    assertNotNull(requestsWithEncoding.jsonEncodedString);
-    assertEquals(5000, requestsWithEncoding.unsentRequests.size());
+    assertNotNull(requestBatch.unsentRequests);
+    assertNotNull(requestBatch.requestsToSend);
+    assertNotNull(requestBatch.jsonEncoded);
+    assertEquals(5000, requestBatch.unsentRequests.size());
 
     // Throw OOM on 5000 requests
     // Expectation: 2500 requests returned.
     when(requestSender.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
-    assertNotNull(requestsWithEncoding.unsentRequests);
-    assertNotNull(requestsWithEncoding.requestsToSend);
-    assertNotNull(requestsWithEncoding.jsonEncodedString);
-    assertEquals(2500, requestsWithEncoding.unsentRequests.size());
+    assertNotNull(requestBatch.unsentRequests);
+    assertNotNull(requestBatch.requestsToSend);
+    assertNotNull(requestBatch.jsonEncoded);
+    assertEquals(2500, requestBatch.unsentRequests.size());
 
     // Throw OOM on 2500, 5000 requests
     // Expectation: 1250 requests returned.
     when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
-    assertEquals(1250, requestsWithEncoding.unsentRequests.size());
+    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    assertEquals(1250, requestBatch.unsentRequests.size());
 
     // Throw OOM on serializing any finite number of requests (extreme condition)
     // Expectation: Determine only 0 requests to be sent
     when(requestSender.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
-    requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
-    assertNotNull(requestsWithEncoding.unsentRequests);
-    assertNotNull(requestsWithEncoding.requestsToSend);
-    assertNotNull(requestsWithEncoding.jsonEncodedString);
-    assertEquals(0, requestsWithEncoding.unsentRequests.size());
-    assertEquals(0, requestsWithEncoding.requestsToSend.size());
-    assertEquals("{\"data\":[]}", requestsWithEncoding.jsonEncodedString);
+    assertNotNull(requestBatch.unsentRequests);
+    assertNotNull(requestBatch.requestsToSend);
+    assertNotNull(requestBatch.jsonEncoded);
+    assertEquals(0, requestBatch.unsentRequests.size());
+    assertEquals(0, requestBatch.requestsToSend.size());
+    assertEquals("{\"data\":[]}", requestBatch.jsonEncoded);
 
   }
 
@@ -389,12 +390,12 @@ public class RequestSenderTest extends TestCase {
     when(requestSender.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     when(requestSender.getUnsentRequests(0.25)).thenReturn(requests);
 
-    RequestSender.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestBatch requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
-    assertEquals(4, requestsWithEncoding .unsentRequests.size());
-    assertEquals(4, requestsWithEncoding .requestsToSend.size());
+    assertEquals(4, requestBatch.unsentRequests.size());
+    assertEquals(4, requestBatch.requestsToSend.size());
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
-    assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
+    assertEquals(expectedJson, requestBatch.jsonEncoded);
   }
 
   // Given a list of unsent requests
@@ -408,12 +409,12 @@ public class RequestSenderTest extends TestCase {
     RequestSender requestSender = spy(new RequestSender());
     when(requestSender.getUnsentRequests(1.0)).thenReturn(requests);
 
-    RequestSender.RequestsWithEncoding requestsWithEncoding = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
+    RequestBatch requestBatch = requestSender.getRequestsWithEncodedStringStoredRequests(1.0);
 
-    assertEquals(4, requestsWithEncoding.unsentRequests.size());
-    assertEquals(4, requestsWithEncoding.requestsToSend.size());
+    assertEquals(4, requestBatch.unsentRequests.size());
+    assertEquals(4, requestBatch.requestsToSend.size());
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
-    assertEquals(expectedJson, requestsWithEncoding.jsonEncodedString);
+    assertEquals(expectedJson, requestBatch.jsonEncoded);
   }
 
   // Given a list of requests

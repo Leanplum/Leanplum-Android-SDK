@@ -35,7 +35,7 @@ public class ImmediateRequestSender extends RequestSender {
   private String currentRequestId;
 
   @Override
-  public void send(Request request) {
+  public void send(@NonNull Request request) {
     currentRequestId = request.getRequestId();
 
     // immediately send current request
