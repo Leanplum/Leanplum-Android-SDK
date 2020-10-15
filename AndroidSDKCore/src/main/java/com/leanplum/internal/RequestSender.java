@@ -23,7 +23,6 @@ package com.leanplum.internal;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
@@ -43,16 +42,6 @@ public class RequestSender {
 
   private static RequestSender INSTANCE = new RequestSender();
 
-  static final int MAX_EVENTS_PER_API_CALL;
-
-  static {
-    if (Build.VERSION.SDK_INT <= 17) {
-      MAX_EVENTS_PER_API_CALL = 5000;
-    } else {
-      MAX_EVENTS_PER_API_CALL = 10000;
-    }
-  }
-
   /**
    * This class wraps the unsent requests, requests that we need to send
    * and the JSON encoded string. Wrapping it in the class allows us to
@@ -68,6 +57,8 @@ public class RequestSender {
   private final LeanplumEventCallbackManager eventCallbackManager =
       new LeanplumEventCallbackManager();
 
+  private final RequestBatchFactory batchFactory = new RequestBatchFactory();
+
   private List<Map<String, Object>> localErrors = new ArrayList<>();
 
   @VisibleForTesting
@@ -82,7 +73,7 @@ public class RequestSender {
   public static void setInstance(RequestSender instance) {
     INSTANCE = instance;
   }
-
+//TODO move attachUuid() method?
   private boolean attachUuid(Map<String, Object> args) {
     Context context = Leanplum.getContext();
     if (context == null) {
@@ -94,7 +85,7 @@ public class RequestSender {
     SharedPreferences.Editor editor = preferences.edit();
     long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
     String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-    if (uuid == null || count % MAX_EVENTS_PER_API_CALL == 0) {
+    if (uuid == null || count % RequestBatchFactory.MAX_EVENTS_PER_API_CALL == 0) {
       uuid = UUID.randomUUID().toString();
       editor.putString(Constants.Defaults.UUID_KEY, uuid);
       SharedPreferencesUtil.commitChanges(editor);
@@ -143,78 +134,12 @@ public class RequestSender {
     }
   }
 
-  protected static String jsonEncodeRequests(List<Map<String, Object>> requestData) {
-    Map<String, Object> data = new HashMap<>();
-    data.put(Constants.Params.DATA, requestData);
-    return JsonConverter.toJson(data);
-  }
-
-  private RequestsWithEncoding getRequestsWithEncodedStringForErrors() {
-    List<Map<String, Object>> unsentRequests = new ArrayList<>();
-    List<Map<String, Object>> requestsToSend;
-    String jsonEncodedRequestsToSend;
-
-    String uuid = UUID.randomUUID().toString();
-    for (Map<String, Object> error : localErrors) {
-      error.put(Constants.Params.UUID, uuid);
-      unsentRequests.add(error);
-    }
-    requestsToSend = unsentRequests;
-    jsonEncodedRequestsToSend = jsonEncodeRequests(unsentRequests);
-
-    RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
-    // for errors, we send all unsent requests so they are identical
-    requestsWithEncoding.unsentRequests = unsentRequests;
-    requestsWithEncoding.requestsToSend = requestsToSend;
-    requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
-
-    return requestsWithEncoding;
-  }
-
-  protected RequestsWithEncoding getRequestsWithEncodedStringStoredRequests(double fraction) {
-    try {
-      List<Map<String, Object>> unsentRequests;
-      List<Map<String, Object>> requestsToSend;
-      String jsonEncodedRequestsToSend;
-      RequestsWithEncoding requestsWithEncoding = new RequestsWithEncoding();
-
-      if (fraction < 0.01) { //base case
-        unsentRequests = new ArrayList<>(0);
-        requestsToSend = new ArrayList<>(0);
-      } else {
-        unsentRequests = getUnsentRequests(fraction);
-        requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
-      }
-
-      jsonEncodedRequestsToSend = jsonEncodeRequests(requestsToSend);
-      requestsWithEncoding.unsentRequests = unsentRequests;
-      requestsWithEncoding.requestsToSend = requestsToSend;
-      requestsWithEncoding.jsonEncodedString = jsonEncodedRequestsToSend;
-
-      return requestsWithEncoding;
-    } catch (OutOfMemoryError E) {
-      // half the requests will need less memory, recursively
-      return getRequestsWithEncodedStringStoredRequests(0.5 * fraction);
-    }
-  }
-
-  private RequestsWithEncoding getRequestsWithEncodedString() {
-    RequestsWithEncoding requestsWithEncoding;
-    // Check if we have localErrors, if yes then we will send only errors to the server.
-    if (localErrors.size() != 0) {
-      requestsWithEncoding = getRequestsWithEncodedStringForErrors();
-    } else {
-      requestsWithEncoding = getRequestsWithEncodedStringStoredRequests(1.0);
-    }
-
-    return requestsWithEncoding;
-  }
-
   @VisibleForTesting
   public void sendRequests() {
     Leanplum.countAggregator().sendAllCounts();
 
-    RequestsWithEncoding requestsWithEncoding = getRequestsWithEncodedString();
+    RequestsWithEncoding requestsWithEncoding =
+        batchFactory.getRequestsWithEncodedString(localErrors);
 
     List<Map<String, Object>> unsentRequests = requestsWithEncoding.unsentRequests;
     List<Map<String, Object>> requestsToSend = requestsWithEncoding.requestsToSend;
@@ -257,7 +182,7 @@ public class RequestSender {
           deleteRequests(unsentRequests.size());
 
           // Send another request if the last request had maximum events per api call.
-          if (unsentRequests.size() == MAX_EVENTS_PER_API_CALL) {
+          if (unsentRequests.size() == RequestBatchFactory.MAX_EVENTS_PER_API_CALL) {
             sendRequests();
           }
         } else {
@@ -282,64 +207,6 @@ public class RequestSender {
     } catch (Throwable t) {
       Log.exception(t);
     }
-  }
-
-  @VisibleForTesting
-  public List<Map<String, Object>> getUnsentRequests(double fraction) {
-    Context context = Leanplum.getContext();
-    SharedPreferences preferences = context.getSharedPreferences(
-        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
-    List<Map<String, Object>> requestData =
-        LeanplumEventDataManager.sharedInstance().getEvents(count);
-    editor.remove(Constants.Defaults.UUID_KEY);
-    SharedPreferencesUtil.commitChanges(editor);
-    // if we send less than 100% of requests, we need to reset the batch
-    // UUID for the next batch
-    if (fraction < 1) {
-      RequestUtil.setNewBatchUUID(requestData);
-    }
-    return requestData;
-  }
-
-  /**
-   * In various scenarios we can end up batching a big number of requests (e.g. device is offline,
-   * background sessions), which could make the stored API calls batch look something like:
-   * <p>
-   * <code>start(B), start(B), start(F), track, start(B), track, start(F), resumeSession</code>
-   * <p>
-   * where <code>start(B)</code> indicates a start in the background, and <code>start(F)</code>
-   * one in the foreground.
-   * <p>
-   * In this case the first two <code>start(B)</code> can be dropped because they don't contribute
-   * any relevant information for the batch call.
-   * <p>
-   * Essentially we drop every <code>start(B)</code> call, that is directly followed by any kind of
-   * a <code>start</code> call.
-   *
-   * @param requestData A list of the requests, stored on the device.
-   * @return A list of only these requests, which contain relevant information for the API call.
-   */
-  private static List<Map<String, Object>> removeIrrelevantBackgroundStartRequests(
-      List<Map<String, Object>> requestData) {
-    List<Map<String, Object>> relevantRequests = new ArrayList<>();
-
-    int requestCount = requestData.size();
-    if (requestCount > 0) {
-      for (int i = 0; i < requestCount; i++) {
-        Map<String, Object> currentRequest = requestData.get(i);
-        if (i < requestCount - 1
-            && RequestBuilder.ACTION_START.equals(requestData.get(i + 1).get(Constants.Params.ACTION))
-            && RequestBuilder.ACTION_START.equals(currentRequest.get(Constants.Params.ACTION))
-            && Boolean.TRUE.toString().equals(currentRequest.get(Constants.Params.BACKGROUND))) {
-          continue;
-        }
-        relevantRequests.add(currentRequest);
-      }
-    }
-
-    return relevantRequests;
   }
 
   @VisibleForTesting
