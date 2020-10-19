@@ -43,11 +43,7 @@ public class RequestBatchFactory {
     List<Map<String, Object>> requests = new ArrayList<>();
     String jsonEncodedRequestsToSend;
 
-    String uuid = UUID.randomUUID().toString();
-    for (Map<String, Object> error : localErrors) {
-      error.put(Constants.Params.UUID, uuid);
-      requests.add(error);
-    }
+    uuidHelper.attachNewUuid(localErrors);
     jsonEncodedRequestsToSend = jsonEncodeRequests(requests);
 
     // for errors, we send all unsent requests so they are identical
