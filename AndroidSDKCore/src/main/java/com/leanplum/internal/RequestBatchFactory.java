@@ -21,13 +21,9 @@
 
 package com.leanplum.internal;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
-import com.leanplum.Leanplum;
-import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +33,8 @@ import java.util.UUID;
 public class RequestBatchFactory {
 
   static final int MAX_EVENTS_PER_API_CALL = (Build.VERSION.SDK_INT <= 17) ? 5000 : 10000;
+
+  private final RequestUuidHelper uuidHelper = new RequestUuidHelper();
 
   /**
    * In the presence of errors we do not send any events but only the errors.
@@ -61,15 +59,15 @@ public class RequestBatchFactory {
   /**
    * Creates batch with all saved events with count of up to {@link #MAX_EVENTS_PER_API_CALL}.
    */
-  public RequestBatch getNextBatch() {
-    return getNextBatch(1.0);
+  public RequestBatch createNextBatch() {
+    return createNextBatch(1.0);
   }
 
   /**
    * @param fraction Decimal from 0 to 1. It says what part of all saved events to include in batch.
    */
   @VisibleForTesting
-  protected RequestBatch getNextBatch(double fraction) {
+  protected RequestBatch createNextBatch(double fraction) {
     try {
       List<Map<String, Object>> unsentRequests;
       List<Map<String, Object>> requestsToSend;
@@ -87,7 +85,7 @@ public class RequestBatchFactory {
       return new RequestBatch(unsentRequests, requestsToSend, jsonEncoded);
     } catch (OutOfMemoryError E) {
       // half the requests will need less memory, recursively
-      return getNextBatch(0.5 * fraction);
+      return createNextBatch(0.5 * fraction);
     }
   }
 
@@ -133,21 +131,19 @@ public class RequestBatchFactory {
 
   @VisibleForTesting
   public List<Map<String, Object>> getUnsentRequests(double fraction) {
-    Context context = Leanplum.getContext();
-    SharedPreferences preferences = context.getSharedPreferences(
-        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    int count = (int) (fraction * MAX_EVENTS_PER_API_CALL);
-    List<Map<String, Object>> requestData =
-        LeanplumEventDataManager.sharedInstance().getEvents(count);
-    editor.remove(Constants.Defaults.UUID_KEY);
-    SharedPreferencesUtil.commitChanges(editor);
-    // if we send less than 100% of requests, we need to reset the batch
-    // UUID for the next batch
+    int eventsCount = (int) (fraction * MAX_EVENTS_PER_API_CALL);
+    List<Map<String, Object>> events =
+        LeanplumEventDataManager.sharedInstance().getEvents(eventsCount);
+
+    // start new batch id for subsequent requests
+    uuidHelper.deleteUuid();
+
+    // if less than 100% of requests are sent the uuid will be reset
     if (fraction < 1) {
-      RequestUtil.setNewBatchUUID(requestData);
+      // Check PR#340. This is only if OutOfMemoryException is thrown.
+      uuidHelper.attachNewUuid(events);
     }
-    return requestData;
+    return events;
   }
 
   @VisibleForTesting

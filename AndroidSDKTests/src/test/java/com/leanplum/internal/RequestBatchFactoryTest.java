@@ -278,7 +278,7 @@ public class RequestBatchFactoryTest {
     }
 
     // Expectation: 5000 requests returned.
-    requestBatch = batchFactory.getNextBatch(1.0);
+    requestBatch = batchFactory.createNextBatch(1.0);
 
     assertNotNull(requestBatch.unsentRequests);
     assertNotNull(requestBatch.requestsToSend);
@@ -288,7 +288,7 @@ public class RequestBatchFactoryTest {
     // Throw OOM on 5000 requests
     // Expectation: 2500 requests returned.
     when(batchFactory.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
-    requestBatch = batchFactory.getNextBatch(1.0);
+    requestBatch = batchFactory.createNextBatch(1.0);
 
     assertNotNull(requestBatch.unsentRequests);
     assertNotNull(requestBatch.requestsToSend);
@@ -298,13 +298,13 @@ public class RequestBatchFactoryTest {
     // Throw OOM on 2500, 5000 requests
     // Expectation: 1250 requests returned.
     when(batchFactory.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
-    requestBatch = batchFactory.getNextBatch(1.0);
+    requestBatch = batchFactory.createNextBatch(1.0);
     assertEquals(1250, requestBatch.unsentRequests.size());
 
     // Throw OOM on serializing any finite number of requests (extreme condition)
     // Expectation: Determine only 0 requests to be sent
     when(batchFactory.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
-    requestBatch = batchFactory.getNextBatch(1.0);
+    requestBatch = batchFactory.createNextBatch(1.0);
 
     assertNotNull(requestBatch.unsentRequests);
     assertNotNull(requestBatch.requestsToSend);
@@ -327,7 +327,7 @@ public class RequestBatchFactoryTest {
     when(batchFactory.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     when(batchFactory.getUnsentRequests(0.25)).thenReturn(requests);
 
-    RequestBatch requestBatch = batchFactory.getNextBatch(1.0);
+    RequestBatch requestBatch = batchFactory.createNextBatch(1.0);
 
     assertEquals(4, requestBatch.unsentRequests.size());
     assertEquals(4, requestBatch.requestsToSend.size());
@@ -346,7 +346,7 @@ public class RequestBatchFactoryTest {
     RequestBatchFactory batchFactory = spy(new RequestBatchFactory());
     when(batchFactory.getUnsentRequests(1.0)).thenReturn(requests);
 
-    RequestBatch requestBatch = batchFactory.getNextBatch(1.0);
+    RequestBatch requestBatch = batchFactory.createNextBatch(1.0);
 
     assertEquals(4, requestBatch.unsentRequests.size());
     assertEquals(4, requestBatch.requestsToSend.size());

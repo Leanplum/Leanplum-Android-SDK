@@ -237,7 +237,7 @@ public class LeanplumEventDataManager {
           return;
         }
 
-        List<Map<String, Object>> requestData = new ArrayList<>();
+        ArrayList<Map<String, Object>> requestData = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
           String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
           Map<String, Object> requestArgs;
@@ -252,22 +252,20 @@ public class LeanplumEventDataManager {
         }
 
         editor.remove(Constants.Defaults.COUNT_KEY);
+        SharedPreferencesUtil.commitChanges(editor);
 
         ContentValues contentValues = new ContentValues();
 
         try {
-          String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-          if (uuid == null || count % RequestBatchFactory.MAX_EVENTS_PER_API_CALL == 0) {
-            uuid = UUID.randomUUID().toString();
-            editor.putString(Constants.Defaults.UUID_KEY, uuid);
+          RequestUuidHelper uuidHelper = new RequestUuidHelper();
+
+          if (uuidHelper.attachUuid(requestData)) {
+            for (Map<String, Object> event : requestData) {
+              contentValues.put(COLUMN_DATA, JsonConverter.toJson(event));
+              db.insert(EVENT_TABLE_NAME, null, contentValues);
+              contentValues.clear();
+            }
           }
-          for (Map<String, Object> event : requestData) {
-            event.put(Constants.Params.UUID, uuid);
-            contentValues.put(COLUMN_DATA, JsonConverter.toJson(event));
-            db.insert(EVENT_TABLE_NAME, null, contentValues);
-            contentValues.clear();
-          }
-          SharedPreferencesUtil.commitChanges(editor);
         } catch (Throwable t) {
           Log.e("Failed on migration data from shared preferences.", t);
           Log.exception(t);

@@ -32,7 +32,7 @@ import java.util.Map;
  * JSON string.
  */
 public class RequestBatch { // TODO make fields private
-  List<Map<String, Object>> unsentRequests;
+  List<Map<String, Object>> unsentRequests; // TODO rename fields
   List<Map<String, Object>> requestsToSend;
   String jsonEncoded;
 

@@ -21,20 +21,16 @@
 
 package com.leanplum.internal;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.http.NetworkOperation;
-import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,6 +42,7 @@ public class RequestSender {
       new LeanplumEventCallbackManager();
 
   private final RequestBatchFactory batchFactory = new RequestBatchFactory();
+  private final RequestUuidHelper uuidHelper = new RequestUuidHelper();
 
   private final List<Map<String, Object>> localErrors = new ArrayList<>();
 
@@ -60,26 +57,6 @@ public class RequestSender {
   @VisibleForTesting
   public static void setInstance(RequestSender instance) {
     INSTANCE = instance;
-  }
-
-  private boolean attachUuid(Map<String, Object> args) {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return false;
-    }
-
-    SharedPreferences preferences = context.getSharedPreferences(
-        Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    long count = LeanplumEventDataManager.sharedInstance().getEventsCount();
-    String uuid = preferences.getString(Constants.Defaults.UUID_KEY, null);
-    if (uuid == null || count % RequestBatchFactory.MAX_EVENTS_PER_API_CALL == 0) {
-      uuid = UUID.randomUUID().toString();
-      editor.putString(Constants.Defaults.UUID_KEY, uuid);
-      SharedPreferencesUtil.commitChanges(editor);
-    }
-    args.put(Constants.Params.UUID, uuid);
-    return true;
   }
 
   private boolean handleDatabaseError(Request request) {
@@ -105,7 +82,7 @@ public class RequestSender {
     Map<String, Object> args = createArgsDictionary(request);
 
     try {
-      if (!attachUuid(args)) {
+      if (!uuidHelper.attachUuid(args)) {
         return;
       }
       LeanplumEventDataManager.sharedInstance().insertEvent(JsonConverter.toJson(args));
@@ -122,18 +99,20 @@ public class RequestSender {
     }
   }
 
-  private RequestBatch getNextBatch() {
+  private RequestBatch createNextBatch() {
     // Check if we have localErrors, if yes then we will send only errors to the server.
     if (localErrors.size() > 0)
       return batchFactory.createErrorBatch(localErrors);
     else
-      return batchFactory.getNextBatch();
+      return batchFactory.createNextBatch();
   }
 
   @VisibleForTesting
   public void sendRequests() {
     Leanplum.countAggregator().sendAllCounts();
-    RequestBatch batch = getNextBatch();
+
+    RequestBatch batch = createNextBatch();
+
     if (batch.isEmpty()) {
       return;
     }
