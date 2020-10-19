@@ -280,36 +280,36 @@ public class RequestBatchFactoryTest {
     // Expectation: 5000 requests returned.
     requestBatch = batchFactory.createNextBatch(1.0);
 
-    assertNotNull(requestBatch.unsentRequests);
+    assertNotNull(requestBatch.requests);
     assertNotNull(requestBatch.requestsToSend);
     assertNotNull(requestBatch.jsonEncoded);
-    assertEquals(5000, requestBatch.unsentRequests.size());
+    assertEquals(5000, requestBatch.requests.size());
 
     // Throw OOM on 5000 requests
     // Expectation: 2500 requests returned.
     when(batchFactory.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
     requestBatch = batchFactory.createNextBatch(1.0);
 
-    assertNotNull(requestBatch.unsentRequests);
+    assertNotNull(requestBatch.requests);
     assertNotNull(requestBatch.requestsToSend);
     assertNotNull(requestBatch.jsonEncoded);
-    assertEquals(2500, requestBatch.unsentRequests.size());
+    assertEquals(2500, requestBatch.requests.size());
 
     // Throw OOM on 2500, 5000 requests
     // Expectation: 1250 requests returned.
     when(batchFactory.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     requestBatch = batchFactory.createNextBatch(1.0);
-    assertEquals(1250, requestBatch.unsentRequests.size());
+    assertEquals(1250, requestBatch.requests.size());
 
     // Throw OOM on serializing any finite number of requests (extreme condition)
     // Expectation: Determine only 0 requests to be sent
     when(batchFactory.getUnsentRequests(not(eq(0)))).thenThrow(OutOfMemoryError.class);
     requestBatch = batchFactory.createNextBatch(1.0);
 
-    assertNotNull(requestBatch.unsentRequests);
+    assertNotNull(requestBatch.requests);
     assertNotNull(requestBatch.requestsToSend);
     assertNotNull(requestBatch.jsonEncoded);
-    assertEquals(0, requestBatch.unsentRequests.size());
+    assertEquals(0, requestBatch.requests.size());
     assertEquals(0, requestBatch.requestsToSend.size());
     assertEquals("{\"data\":[]}", requestBatch.jsonEncoded);
 
@@ -329,7 +329,7 @@ public class RequestBatchFactoryTest {
 
     RequestBatch requestBatch = batchFactory.createNextBatch(1.0);
 
-    assertEquals(4, requestBatch.unsentRequests.size());
+    assertEquals(4, requestBatch.requests.size());
     assertEquals(4, requestBatch.requestsToSend.size());
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(expectedJson, requestBatch.jsonEncoded);
@@ -348,7 +348,7 @@ public class RequestBatchFactoryTest {
 
     RequestBatch requestBatch = batchFactory.createNextBatch(1.0);
 
-    assertEquals(4, requestBatch.unsentRequests.size());
+    assertEquals(4, requestBatch.requests.size());
     assertEquals(4, requestBatch.requestsToSend.size());
     final String expectedJson =  "{\"data\":[{\"0\":\"testData\"},{\"1\":\"testData\"},{\"2\":\"testData\"},{\"3\":\"testData\"}]}";
     assertEquals(expectedJson, requestBatch.jsonEncoded);

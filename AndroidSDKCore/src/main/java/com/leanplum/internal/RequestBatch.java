@@ -31,22 +31,24 @@ import java.util.Map;
  * retain consistency in the requests we are sending and the actual
  * JSON string.
  */
-public class RequestBatch { // TODO make fields private
-  List<Map<String, Object>> unsentRequests; // TODO rename fields
+public class RequestBatch {
+  // all persisted requests
+  List<Map<String, Object>> requests;
+  // filtered requests that will be sent
   List<Map<String, Object>> requestsToSend;
   String jsonEncoded;
 
   public RequestBatch(
-      @NonNull List<Map<String, Object>> unsentRequests,
+      @NonNull List<Map<String, Object>> requests,
       @NonNull List<Map<String, Object>> requestsToSend,
       @NonNull String jsonEncoded) {
-    this.unsentRequests = unsentRequests;
+    this.requests = requests;
     this.requestsToSend = requestsToSend;
     this.jsonEncoded = jsonEncoded;
   }
 
   public int getEventsCount() {
-    return unsentRequests.size();
+    return requests.size();
   }
 
   public boolean isEmpty() {

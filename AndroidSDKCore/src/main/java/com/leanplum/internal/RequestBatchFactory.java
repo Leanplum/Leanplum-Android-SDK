@@ -40,20 +40,18 @@ public class RequestBatchFactory {
    * In the presence of errors we do not send any events but only the errors.
    */
   public RequestBatch createErrorBatch(List<Map<String, Object>> localErrors) {
-    List<Map<String, Object>> unsentRequests = new ArrayList<>();
-    List<Map<String, Object>> requestsToSend;
+    List<Map<String, Object>> requests = new ArrayList<>();
     String jsonEncodedRequestsToSend;
 
     String uuid = UUID.randomUUID().toString();
     for (Map<String, Object> error : localErrors) {
       error.put(Constants.Params.UUID, uuid);
-      unsentRequests.add(error);
+      requests.add(error);
     }
-    requestsToSend = unsentRequests;
-    jsonEncodedRequestsToSend = jsonEncodeRequests(unsentRequests);
+    jsonEncodedRequestsToSend = jsonEncodeRequests(requests);
 
     // for errors, we send all unsent requests so they are identical
-    return new RequestBatch(unsentRequests, requestsToSend, jsonEncodedRequestsToSend);
+    return new RequestBatch(requests, requests, jsonEncodedRequestsToSend);
   }
 
   /**
@@ -69,21 +67,21 @@ public class RequestBatchFactory {
   @VisibleForTesting
   protected RequestBatch createNextBatch(double fraction) {
     try {
-      List<Map<String, Object>> unsentRequests;
+      List<Map<String, Object>> requests;
       List<Map<String, Object>> requestsToSend;
 
       if (fraction < 0.01) { //base case
-        unsentRequests = new ArrayList<>(0);
+        requests = new ArrayList<>(0);
         requestsToSend = new ArrayList<>(0);
       } else {
-        unsentRequests = getUnsentRequests(fraction);
-        requestsToSend = removeIrrelevantBackgroundStartRequests(unsentRequests);
+        requests = getUnsentRequests(fraction);
+        requestsToSend = removeIrrelevantBackgroundStartRequests(requests);
       }
 
       String jsonEncoded = jsonEncodeRequests(requestsToSend);
 
-      return new RequestBatch(unsentRequests, requestsToSend, jsonEncoded);
-    } catch (OutOfMemoryError E) {
+      return new RequestBatch(requests, requestsToSend, jsonEncoded);
+    } catch (OutOfMemoryError oom) {
       // half the requests will need less memory, recursively
       return createNextBatch(0.5 * fraction);
     }
