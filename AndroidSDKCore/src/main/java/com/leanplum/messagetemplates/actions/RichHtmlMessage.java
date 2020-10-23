@@ -23,19 +23,32 @@ package com.leanplum.messagetemplates.actions;
 
 import android.app.Activity;
 import android.content.Context;
+import androidx.annotation.NonNull;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.internal.Log;
+import com.leanplum.messagetemplates.MessageTemplate;
 import com.leanplum.messagetemplates.controllers.RichHtmlController;
 import com.leanplum.messagetemplates.options.RichHtmlOptions;
 
-public class RichHtmlMessage {
-  public static ActionArgs createActionArgs(Context context) {
+public class RichHtmlMessage implements MessageTemplate {
+  private static final String HTML = "HTML";
+
+  @NonNull
+  @Override
+  public String getName() {
+    return HTML;
+  }
+
+  @NonNull
+  @Override
+  public ActionArgs createActionArgs(Context context) {
     return RichHtmlOptions.toArgs();
   }
 
-  public static void showMessage(ActionContext context) {
+  @Override
+  public void handleAction(ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing())
       return;

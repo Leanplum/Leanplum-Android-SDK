@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import com.leanplum.internal.ActionArg;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 
 import java.util.ArrayList;
@@ -117,5 +118,17 @@ public class ActionArgs {
 
   List<ActionArg<?>> getValue() {
     return args;
+  }
+
+  /**
+   * Checks if there is at least one file argument.
+   */
+  public boolean containsFile() {
+    for (ActionArg<?> arg : args) {
+      if (Constants.Kinds.FILE.equals(arg.kind())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

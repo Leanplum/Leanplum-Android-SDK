@@ -19,42 +19,36 @@
  * under the License.
  */
 
-package com.leanplum.messagetemplates.actions;
+package com.leanplum.messagetemplates;
 
-import android.app.Activity;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
-import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.messagetemplates.MessageTemplate;
-import com.leanplum.messagetemplates.controllers.InterstitialController;
-import com.leanplum.messagetemplates.options.InterstitialOptions;
 
-public class InterstitialMessage implements MessageTemplate {
-  private static final String INTERSTITIAL = "Interstitial";
+/**
+ * Wraps action name, arguments and handler.
+ */
+public interface MessageTemplate {
 
+  /**
+   * Returns the name of the action to register.
+   */
   @NonNull
-  @Override
-  public String getName() {
-    return INTERSTITIAL;
-  }
+  String getName();
 
+  /**
+   * Creates the user-customizable options for the action.
+   *
+   * @param context Android context
+   */
   @NonNull
-  @Override
-  public ActionArgs createActionArgs(Context context) {
-    return InterstitialOptions.toArgs(context);
-  }
+  ActionArgs createActionArgs(Context context);
 
-  @Override
-  public void handleAction(ActionContext context) {
-    Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing()) {
-      return;
-    }
-
-    InterstitialOptions options = new InterstitialOptions(context);
-    InterstitialController interstitial = new InterstitialController(activity, options);
-    interstitial.show();
-  }
+  /**
+   * Called in response to the registered action.
+   *
+   * @param context The context in which an action or message is executed.
+   */
+  void handleAction(ActionContext context);
 }

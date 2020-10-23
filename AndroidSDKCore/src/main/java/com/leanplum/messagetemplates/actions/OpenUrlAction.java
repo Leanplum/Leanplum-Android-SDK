@@ -28,10 +28,12 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Log;
+import com.leanplum.messagetemplates.MessageTemplate;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
@@ -44,7 +46,14 @@ import java.util.List;
  *
  * @author Andrew First
  */
-public class OpenUrlAction {
+public class OpenUrlAction implements MessageTemplate {
+  private static final String OPEN_URL = "Open URL";
+
+  @NonNull
+  @Override
+  public String getName() {
+    return OPEN_URL;
+  }
 
   private static void openUriIntent(Context context, Intent uriIntent) {
     List<ResolveInfo> resolveInfoList =
@@ -74,11 +83,14 @@ public class OpenUrlAction {
     }
   }
 
-  public static ActionArgs createActionArgs(Context context) {
+  @NonNull
+  @Override
+  public ActionArgs createActionArgs(Context context) {
     return new ActionArgs().with(Args.URL, Values.DEFAULT_URL);
   }
 
-  public static void onActionTriggered(ActionContext actionContext) {
+  @Override
+  public void handleAction(ActionContext actionContext) {
     Context context = Leanplum.getContext();
     if (context == null) {
       return;

@@ -25,10 +25,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.internal.Util;
+import com.leanplum.messagetemplates.MessageTemplate;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 
@@ -37,9 +39,18 @@ import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
  *
  * @author Andrew First
  */
-public class ConfirmMessage {
+public class ConfirmMessage implements MessageTemplate {
+  private static final String CONFIRM = "Confirm";
 
-  public static ActionArgs createActionArgs(Context context) {
+  @NonNull
+  @Override
+  public String getName() {
+    return CONFIRM;
+  }
+
+  @NonNull
+  @Override
+  public ActionArgs createActionArgs(Context context) {
     return new ActionArgs()
         .with(Args.TITLE, Util.getApplicationName(context))
         .with(Args.MESSAGE, Values.CONFIRM_MESSAGE)
@@ -49,7 +60,8 @@ public class ConfirmMessage {
         .withAction(Args.CANCEL_ACTION, null);
   }
 
-  public static void showMessage(ActionContext context) {
+  @Override
+  public void handleAction(ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing())
       return;
