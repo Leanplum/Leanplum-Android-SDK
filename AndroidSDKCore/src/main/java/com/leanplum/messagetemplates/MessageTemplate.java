@@ -47,8 +47,20 @@ public interface MessageTemplate {
 
   /**
    * Called in response to the registered action.
+   * Use it to show your message to the user.
    *
    * @param context The context in which an action or message is executed.
    */
   void handleAction(ActionContext context);
+
+  /**
+   * If your custom template depends on files or variables, that will be downloaded, override and
+   * return true.
+   *
+   * @return true to wait for files and variables to finish downloading before calling
+   * {@link #handleAction(ActionContext)}.
+   */
+  default boolean waitFilesAndVariables() {
+    return false;
+  }
 }

@@ -91,32 +91,16 @@ public class MessageTemplates {
    * @param template Wrapper for action name, action arguments and handler.
    * @param context Android context
    */
-  public static void registerTemplate(
-      @NonNull MessageTemplate template,
-      @NonNull Context context) {
-
-    registerTemplate(template, context, false);
-  }
-
-  /**
-   * Registers a message template to respond to a given action.
-   * It will check if message depends on files and will wait for them.
-   *
-   * @param template Wrapper for action name, action arguments and handler.
-   * @param context Android context
-   * @param forceWaitVariablesAndFiles whether to wait for variables and files to be synced
-   */
   private static void registerTemplate(
       @NonNull MessageTemplate template,
-      @NonNull Context context,
-      boolean forceWaitVariablesAndFiles) {
+      @NonNull Context context) {
 
     String name = template.getName();
     int kind = Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION;
     ActionArgs args = template.createActionArgs(context);
 
     ActionCallback callback;
-    if (args.containsFile() || forceWaitVariablesAndFiles) {
+    if (template.waitFilesAndVariables() || args.containsFile()) { // checks args just in case
       callback = createCallbackWaitVarsAndFiles(template);
     } else {
       callback = createCallback(template);
@@ -137,9 +121,6 @@ public class MessageTemplates {
     registerTemplate(new CenterPopupMessage(), context);
     registerTemplate(new InterstitialMessage(), context);
     registerTemplate(new WebInterstitialMessage(), context);
-    // The Rich template depends on an html file not included in the ActionArgs
-    // thus we must wait for vars and files explicitly
-    boolean forceWaitVarsAndFiles = true;
-    registerTemplate(new RichHtmlMessage(), context, forceWaitVarsAndFiles);
+    registerTemplate(new RichHtmlMessage(), context);
   }
 }

@@ -57,4 +57,9 @@ public class CenterPopupMessage implements MessageTemplate {
     CenterPopupController popup = new CenterPopupController(activity, options);
     popup.show();
   }
+
+  @Override
+  public boolean waitFilesAndVariables() {
+    return true;
+  }
 }

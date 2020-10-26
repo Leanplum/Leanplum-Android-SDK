@@ -66,4 +66,9 @@ public class RichHtmlMessage implements MessageTemplate {
       Log.e("Fail on show HTML In-App message: %s", t.getMessage());
     }
   }
+
+  @Override
+  public boolean waitFilesAndVariables() {
+    return true;
+  }
 }

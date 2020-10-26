@@ -57,4 +57,9 @@ public class InterstitialMessage implements MessageTemplate {
     InterstitialController interstitial = new InterstitialController(activity, options);
     interstitial.show();
   }
+
+  @Override
+  public boolean waitFilesAndVariables() {
+    return true;
+  }
 }
