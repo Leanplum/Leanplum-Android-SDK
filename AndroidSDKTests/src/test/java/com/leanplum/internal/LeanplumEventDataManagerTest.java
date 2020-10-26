@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,14 +21,12 @@
 package com.leanplum.internal;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
 import java.lang.reflect.Field;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +36,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
@@ -73,41 +70,21 @@ public class LeanplumEventDataManagerTest {
     instance.set(instance, shadowOperationQueue);
   }
 
-  @Test
-  public void migrateFromSharedPreferencesTest() {
+  @After
+  public void tearDown() {
     setDatabaseToNull();
+  }
 
-    SharedPreferences preferences = mContext.getSharedPreferences(
-        "__leanplum__", Context.MODE_PRIVATE);
-    SharedPreferences.Editor editor = preferences.edit();
-    int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-    assertEquals(0, count);
+  @Test
+  public void testInsertAndGetEvents() {
+    // Insert 3 events in the database
+    int count = 3;
+    LeanplumEventDataManager.sharedInstance().insertEvent("{event:0}");
+    LeanplumEventDataManager.sharedInstance().insertEvent("{event:1}");
+    LeanplumEventDataManager.sharedInstance().insertEvent("{event:2}");
 
-    // Insert 3 events to shared preferences.
-    String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
-    editor.putString(itemKey, "{event:0}");
-    count++;
-    itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
-    editor.putString(itemKey, "{event:1}");
-    count++;
-    itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, count);
-    editor.putString(itemKey, "{event:2}");
-    count++;
-    editor.putInt(Constants.Defaults.COUNT_KEY, count);
-    editor.commit();
-
-    // Get count from shared preferences and assert count equals 3.
-    count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-    assertEquals(3, count);
-
-    // Create database. That should also migrate data from shared preferences.
-    LeanplumEventDataManager.sharedInstance();
-    // Assert in database after migration 3 events.
+    // Test getEventsCount method
     assertEquals(count, LeanplumEventDataManager.sharedInstance().getEventsCount());
-
-    // Assert count 0 after data migration.
-    count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-    assertEquals(0, count);
 
     // Get list of events from SQLite.
     List<Map<String, Object>> events = LeanplumEventDataManager.sharedInstance().getEvents(3);
@@ -117,12 +94,9 @@ public class LeanplumEventDataManagerTest {
     assertEquals(0, (int) events.get(0).get("event"));
     assertEquals(1, (int) events.get(1).get("event"));
     assertEquals(2, (int) events.get(2).get("event"));
-
-    setDatabaseToNull();
   }
 
   public static void setDatabaseToNull(){
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
   }
 }
-

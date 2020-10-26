@@ -25,7 +25,6 @@ import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.leanplum.Leanplum;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -112,27 +111,6 @@ public class RequestUuidHelper {
     for (Map<String, Object> event : events) {
       event.put(Constants.Params.UUID, uuid);
     }
-  }
-
-  /**
-   * Attaches new uuid for every {@link RequestBatchFactory#MAX_EVENTS_PER_API_CALL} events.
-   */
-  public boolean attachUuid(@NonNull ArrayList<Map<String, Object>> events) {
-    Context context = Leanplum.getContext();
-    if (context == null)
-      return false;
-
-    String uuid = null;
-    Map<String, Object> event;
-
-    for (int i = 0; i < events.size(); i++) {
-      if (i % RequestBatchFactory.MAX_EVENTS_PER_API_CALL == 0) {
-        uuid = saveNewUuid(context);
-      }
-      event = events.get(i);
-      event.put(Constants.Params.UUID, uuid);
-    }
-    return true;
   }
 
 }

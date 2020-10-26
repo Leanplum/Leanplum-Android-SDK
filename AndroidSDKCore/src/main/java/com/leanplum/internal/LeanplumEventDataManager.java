@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,7 +23,6 @@ package com.leanplum.internal;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 
 import android.database.DatabaseUtils;
@@ -31,16 +30,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.leanplum.Leanplum;
-import com.leanplum.utils.SharedPreferencesUtil;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * LeanplumEventDataManager class to work with SQLite.
@@ -204,19 +199,6 @@ public class LeanplumEventDataManager {
       // Create event table.
       db.execSQL("CREATE TABLE IF NOT EXISTS " + EVENT_TABLE_NAME + "(" + COLUMN_DATA +
           " TEXT)");
-
-      OperationQueue.sharedInstance().addOperation(new Runnable() {
-        @Override
-        public void run() {
-          // Migrate old data from shared preferences.
-          try {
-            migrateFromSharedPreferences(db);
-          } catch (Throwable t) {
-            Log.e("Cannot move old data from shared preferences to SQLite table.", t);
-            Log.exception(t);
-          }
-        }
-      });
     }
 
     @Override
@@ -224,52 +206,5 @@ public class LeanplumEventDataManager {
       // No used for now.
     }
 
-    /**
-     * Migrate data from shared preferences to SQLite.
-     */
-    private static void migrateFromSharedPreferences(SQLiteDatabase db) {
-        Context context = Leanplum.getContext();
-        SharedPreferences preferences = context.getSharedPreferences(
-            Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        int count = preferences.getInt(Constants.Defaults.COUNT_KEY, 0);
-        if (count == 0) {
-          return;
-        }
-
-        ArrayList<Map<String, Object>> requestData = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-          String itemKey = String.format(Locale.US, Constants.Defaults.ITEM_KEY, i);
-          Map<String, Object> requestArgs;
-          try {
-            requestArgs = JsonConverter.mapFromJson(new JSONObject(
-                preferences.getString(itemKey, "{}")));
-            requestData.add(requestArgs);
-          } catch (JSONException e) {
-            e.printStackTrace();
-          }
-          editor.remove(itemKey);
-        }
-
-        editor.remove(Constants.Defaults.COUNT_KEY);
-        SharedPreferencesUtil.commitChanges(editor);
-
-        ContentValues contentValues = new ContentValues();
-
-        try {
-          RequestUuidHelper uuidHelper = new RequestUuidHelper();
-
-          if (uuidHelper.attachUuid(requestData)) {
-            for (Map<String, Object> event : requestData) {
-              contentValues.put(COLUMN_DATA, JsonConverter.toJson(event));
-              db.insert(EVENT_TABLE_NAME, null, contentValues);
-              contentValues.clear();
-            }
-          }
-        } catch (Throwable t) {
-          Log.e("Failed on migration data from shared preferences.", t);
-          Log.exception(t);
-        }
-    }
   }
 }
