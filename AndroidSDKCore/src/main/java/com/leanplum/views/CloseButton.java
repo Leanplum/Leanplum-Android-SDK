@@ -49,11 +49,13 @@ public class CloseButton extends View {
 
   public CloseButton(Context context) {
     super(context);
+    SizeUtil.init(context);
     initLabelView();
   }
 
   public CloseButton(Context context, AttributeSet attrs) {
     super(context, attrs);
+    SizeUtil.init(context);
     initLabelView();
   }
 
