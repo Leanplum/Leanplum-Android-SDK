@@ -91,7 +91,7 @@ public class MessageTemplates {
    * @param template Wrapper for action name, action arguments and handler.
    * @param context Android context
    */
-  private static void registerTemplate(
+  public static void registerTemplate(
       @NonNull MessageTemplate template,
       @NonNull Context context) {
 
