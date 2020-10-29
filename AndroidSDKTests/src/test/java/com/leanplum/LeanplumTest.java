@@ -46,6 +46,7 @@ import com.leanplum.internal.LeanplumEventDataManager;
 import com.leanplum.internal.LeanplumEventDataManagerTest;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Request.RequestType;
+import com.leanplum.internal.RequestBatchFactory;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
@@ -553,7 +554,7 @@ public class LeanplumTest extends AbstractTest {
     final double fraction = 1.0;
     // Get a number of events in the database.
     // Expectation: 2 events.
-    List unsentRequests = RequestSender.getInstance().getUnsentRequests(fraction);
+    List unsentRequests = new RequestBatchFactory().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -575,7 +576,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Checks if ours two events still here.
     // Expectation: 2 events.
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(fraction);
+    unsentRequests = new RequestBatchFactory().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 
@@ -593,7 +594,7 @@ public class LeanplumTest extends AbstractTest {
 
     // Get a number of events in the database. Make sure we sent all events.
     // Expectation: 0 events.
-    unsentRequests = RequestSender.getInstance().getUnsentRequests(fraction);
+    unsentRequests = new RequestBatchFactory().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(0, unsentRequests.size());
 
