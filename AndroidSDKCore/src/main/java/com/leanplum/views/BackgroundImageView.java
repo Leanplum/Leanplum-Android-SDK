@@ -60,6 +60,15 @@ public class BackgroundImageView extends AppCompatImageView {
     init();
   }
 
+  /**
+   * This constructor is left for backward compatibility with the samples of message templates.
+   */
+  public BackgroundImageView(Context context, boolean fullscreen) {
+    super(context);
+    init();
+    roundedCorners = !fullscreen;
+  }
+
   public BackgroundImageView(
       Context context,
       int backgroundColor,
