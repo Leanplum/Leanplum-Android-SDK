@@ -1,21 +1,10 @@
 package com.leanplum.internal;
 
-import com.leanplum.Leanplum;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class RequestUtil {
-
-    public static void setNewBatchUUID(List<Map<String, Object>> requests) {
-        String uuid = UUID.randomUUID().toString();
-        for (Map<String, Object> request : requests) {
-            request.put(Constants.Params.UUID, uuid);
-        }
-    }
 
     /**
      * Get response json object for request Id
