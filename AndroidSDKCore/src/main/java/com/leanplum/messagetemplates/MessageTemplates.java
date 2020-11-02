@@ -22,6 +22,7 @@
 package com.leanplum.messagetemplates;
 
 import android.content.Context;
+import androidx.annotation.NonNull;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
@@ -43,27 +44,10 @@ import com.leanplum.messagetemplates.actions.OpenUrlAction;
  * @author Andrew First
  */
 public class MessageTemplates {
-  private static final String ALERT = "Alert";
-  private static final String CENTER_POPUP = "Center Popup";
-  private static final String CONFIRM = "Confirm";
-  private static final String HTML = "HTML";
-  private static final String INTERSTITIAL = "Interstitial";
-  private static final String OPEN_URL = "Open URL";
-  private static final String WEB_INTERSTITIAL = "Web Interstitial";
 
   private static boolean registered = false;
 
-  @FunctionalInterface
-  private interface MessageFactory {
-    void showMessage(ActionContext context);
-  }
-
-  @FunctionalInterface
-  private interface ActionArgsFactory {
-    ActionArgs createActionArgs(Context context);
-  }
-
-  private static ActionCallback createCallback(MessageFactory messageFactory) {
+  private static ActionCallback createCallback(@NonNull MessageTemplate template) {
     return new ActionCallback() {
       @Override
       public boolean onResponse(ActionContext actionContext) {
@@ -71,7 +55,7 @@ public class MessageTemplates {
             new PostponableAction() {
               @Override
               public void run() {
-                messageFactory.showMessage(actionContext);
+                template.handleAction(actionContext);
               }
             });
         return true;
@@ -79,7 +63,7 @@ public class MessageTemplates {
     };
   }
 
-  private static ActionCallback createCallbackWaitVarsAndFiles(MessageFactory messageFactory) {
+  private static ActionCallback createCallbackWaitVarsAndFiles(@NonNull MessageTemplate template) {
     return new ActionCallback() {
       @Override
       public boolean onResponse(ActionContext actionContext) {
@@ -91,7 +75,7 @@ public class MessageTemplates {
                     new PostponableAction() {
                       @Override
                       public void run() {
-                        messageFactory.showMessage(actionContext);
+                        template.handleAction(actionContext);
                       }
                     });
               }
@@ -101,32 +85,26 @@ public class MessageTemplates {
     };
   }
 
-  private static void defineAction(
-      String name,
-      ActionArgsFactory argsFactory,
-      MessageFactory messageFactory,
-      Context context) {
+  /**
+   * Registers a message template to respond to a given action.
+   *
+   * @param template Wrapper for action name, action arguments and handler.
+   * @param context Android context
+   */
+  public static void registerTemplate(
+      @NonNull MessageTemplate template,
+      @NonNull Context context) {
 
+    String name = template.getName();
     int kind = Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION;
+    ActionArgs args = template.createActionArgs(context);
 
-    ActionArgs args = argsFactory.createActionArgs(context);
-
-    ActionCallback callback = createCallback(messageFactory);
-
-    Leanplum.defineAction(name, kind, args, callback);
-  }
-
-  private static void defineActionWaitVarsAndFiles(
-      String name,
-      ActionArgsFactory argsFactory,
-      MessageFactory messageFactory,
-      Context context) {
-
-    int kind = Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION;
-
-    ActionArgs args = argsFactory.createActionArgs(context);
-
-    ActionCallback callback = createCallbackWaitVarsAndFiles(messageFactory);
+    ActionCallback callback;
+    if (template.waitFilesAndVariables() || args.containsFile()) { // checks args just in case
+      callback = createCallbackWaitVarsAndFiles(template);
+    } else {
+      callback = createCallback(template);
+    }
 
     Leanplum.defineAction(name, kind, args, callback);
   }
@@ -137,46 +115,12 @@ public class MessageTemplates {
     }
     registered = true;
 
-    defineAction(
-        OPEN_URL,
-        OpenUrlAction::createActionArgs,
-        OpenUrlAction::onActionTriggered,
-        context);
-
-    defineAction(
-        ALERT,
-        AlertMessage::createActionArgs,
-        AlertMessage::showMessage,
-        context);
-
-    defineAction(
-        CONFIRM,
-        ConfirmMessage::createActionArgs,
-        ConfirmMessage::showMessage,
-        context);
-
-    defineActionWaitVarsAndFiles(
-        CENTER_POPUP,
-        CenterPopupMessage::createActionArgs,
-        CenterPopupMessage::showMessage,
-        context);
-
-    defineActionWaitVarsAndFiles(
-        INTERSTITIAL,
-        InterstitialMessage::createActionArgs,
-        InterstitialMessage::showMessage,
-        context);
-
-    defineAction(
-        WEB_INTERSTITIAL,
-        WebInterstitialMessage::createActionArgs,
-        WebInterstitialMessage::showMessage,
-        context);
-
-    defineActionWaitVarsAndFiles(
-        HTML,
-        RichHtmlMessage::createActionArgs,
-        RichHtmlMessage::showMessage,
-        context);
+    registerTemplate(new OpenUrlAction(), context);
+    registerTemplate(new AlertMessage(), context);
+    registerTemplate(new ConfirmMessage(), context);
+    registerTemplate(new CenterPopupMessage(), context);
+    registerTemplate(new InterstitialMessage(), context);
+    registerTemplate(new WebInterstitialMessage(), context);
+    registerTemplate(new RichHtmlMessage(), context);
   }
 }

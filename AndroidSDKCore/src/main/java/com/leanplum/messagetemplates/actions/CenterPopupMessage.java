@@ -23,18 +23,31 @@ package com.leanplum.messagetemplates.actions;
 
 import android.app.Activity;
 import android.content.Context;
+import androidx.annotation.NonNull;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.messagetemplates.MessageTemplate;
 import com.leanplum.messagetemplates.controllers.CenterPopupController;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
 
-public class CenterPopupMessage {
-  public static ActionArgs createActionArgs(Context context) {
+public class CenterPopupMessage implements MessageTemplate {
+  private static final String CENTER_POPUP = "Center Popup";
+
+  @NonNull
+  @Override
+  public String getName() {
+    return CENTER_POPUP;
+  }
+
+  @NonNull
+  @Override
+  public ActionArgs createActionArgs(Context context) {
     return CenterPopupOptions.toArgs(context);
   }
 
-  public static void showMessage(ActionContext context) {
+  @Override
+  public void handleAction(ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
       return;
@@ -43,5 +56,10 @@ public class CenterPopupMessage {
     CenterPopupOptions options = new CenterPopupOptions(context);
     CenterPopupController popup = new CenterPopupController(activity, options);
     popup.show();
+  }
+
+  @Override
+  public boolean waitFilesAndVariables() {
+    return true;
   }
 }
