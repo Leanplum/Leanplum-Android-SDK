@@ -67,11 +67,16 @@ public class UploadOperation extends LeanplumHttpConnection {
 
     // Main file writing loop
     for (int i = 0; i < filesToUpload.size(); i++) {
+      File file = filesToUpload.get(i);
 
-      File fileToUpload = filesToUpload.get(i);
-      InputStream is = (i < streams.size()) ? streams.get(i) : new FileInputStream(fileToUpload);
+      InputStream is;
+      if (i < streams.size()) {
+        is = streams.get(i);
+      } else {
+        is = new FileInputStream(file);
+      }
 
-      if (!writeFile(writer, fileToUpload, is, i)) {
+      if (!writeFile(writer, file.getName(), file.getPath(), is, i)) {
         return false;
       }
     }
@@ -101,12 +106,17 @@ public class UploadOperation extends LeanplumHttpConnection {
     writer.writeBytes(endOfRequest);
   }
 
-  private boolean writeFile(DataOutputStream writer, File file, InputStream is, int i)
+  private boolean writeFile(
+      DataOutputStream writer,
+      String fileName,
+      String filePath,
+      InputStream is,
+      int i)
       throws IOException {
 
-    writeFileHeader(writer, file.getName(), i);
+    writeFileHeader(writer, fileName, i);
 
-    if (!writeFileContent(writer, file, is)) {
+    if (!writeFileContent(writer, filePath, is)) {
       return false;
     }
 
@@ -129,7 +139,7 @@ public class UploadOperation extends LeanplumHttpConnection {
     writer.writeBytes(fileHeader);
   }
 
-  private boolean writeFileContent(DataOutputStream writer, File file, InputStream is)
+  private boolean writeFileContent(DataOutputStream writer, String filePath, InputStream is)
       throws IOException {
     // Read in the actual file
     byte[] buffer = new byte[4096];
@@ -139,7 +149,7 @@ public class UploadOperation extends LeanplumHttpConnection {
         writer.write(buffer, 0, bytesRead);
       }
     } catch (NullPointerException e) {
-      Log.d("Unable to read file while uploading " + file);
+      Log.d("Unable to read file while uploading " + filePath);
       return false;
     } finally {
       if (is != null) {
