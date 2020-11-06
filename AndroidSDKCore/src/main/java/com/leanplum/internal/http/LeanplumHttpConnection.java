@@ -91,11 +91,31 @@ public abstract class LeanplumHttpConnection {
       Must include the phrase `gzip` in the `User-Agent` header
       https://cloud.google.com/appengine/kb/
     */
-    urlConnection.setRequestProperty("User-Agent", createUserAgentValue());
+    urlConnection.setRequestProperty("User-Agent", createUserAgent());
     urlConnection.setRequestProperty("Accept-Encoding", Constants.LEANPLUM_SUPPORTED_ENCODING);
   }
 
-  private String createUserAgentValue() {
+  /**
+   * Currently Android uses OkHttp as an HTTP client. We need to remove invalid characters from
+   * the User-Agent value according to checkValue(String, String) from:
+   *
+   * https://github.com/square/okhttp/blob/dabbd56572089cfef00d358edcc87b3f5c73e580/okhttp/src/main/kotlin/okhttp3/Headers.kt#L431
+   */
+  private String createUserAgent() {
+    String userAgentString = createUserAgentString();
+    StringBuilder result = new StringBuilder();
+
+    // Removing invalid characters
+    for (int i = 0; i < userAgentString.length(); i++) {
+      char c = userAgentString.charAt(i);
+      if (c == '\t' || ('\u0020' <= c && c <= '\u007e')) {
+        result.append(c);
+      }
+    }
+    return result.toString();
+  }
+
+  private String createUserAgentString() {
     Context context = Leanplum.getContext();
 
     return Util.getApplicationName(context)
