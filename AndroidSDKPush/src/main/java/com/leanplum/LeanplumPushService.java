@@ -344,7 +344,7 @@ public class LeanplumPushService {
           customizer.customize(notificationCompatBuilder, message);
         }
       } catch (Throwable t) {
-        Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
+        Log.e("Unable to customize push notification: %s", Log.getStackTraceString(t));
         return;
       }
     } else {

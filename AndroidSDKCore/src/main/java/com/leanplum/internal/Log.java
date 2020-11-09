@@ -48,6 +48,14 @@ public class Log {
     log(LogType.ERROR, msg, args);
   }
 
+  public static void e(String msg, Throwable throwable) {
+    if (msg != null && msg.contains("%s")) {
+      log(LogType.ERROR, msg, getStackTraceString(throwable));
+    } else {
+      log(LogType.ERROR, msg + "\n" + getStackTraceString(throwable));
+    }
+  }
+
   public static void i(String msg, Object... args) {
     log(LogType.INFO, msg, args);
   }

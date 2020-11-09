@@ -65,10 +65,9 @@ public class Parser {
             field.setAccessible(false);
           }
         } catch (IllegalArgumentException e) {
-          Log.e("Leanplum", "Invalid value " + var.value() +
-              " for field " + var.name(), e);
+          Log.e("Invalid value " + var.value() + " for field " + var.name(), e);
         } catch (IllegalAccessException e) {
-          Log.e("Leanplum", "Error setting value for field " + var.name(), e);
+          Log.e("Error setting value for field " + var.name(), e);
         }
       }
     });
@@ -100,10 +99,9 @@ public class Parser {
             field.setAccessible(false);
           }
         } catch (IllegalArgumentException e) {
-          Log.e("Leanplum", "Invalid value " + var.value() +
-              " for field " + var.name(), e);
+          Log.e("Invalid value " + var.value() + " for field " + var.name(), e);
         } catch (IllegalAccessException e) {
-          Log.e("Leanplum", "Error setting value for field " + var.name(), e);
+          Log.e("Error setting value for field " + var.name(), e);
         }
       }
     });
@@ -118,7 +116,7 @@ public class Parser {
         parseVariablesHelper(instance, instance.getClass());
       }
     } catch (Throwable t) {
-      Log.e("Leanplum", "Error parsing variables", t);
+      Log.e("Error parsing variables", t);
     }
   }
 
@@ -131,7 +129,7 @@ public class Parser {
         parseVariablesHelper(null, clazz);
       }
     } catch (Throwable t) {
-      Log.e("Leanplum", "Error parsing variables", t);
+      Log.e("Error parsing variables", t);
     }
   }
 
