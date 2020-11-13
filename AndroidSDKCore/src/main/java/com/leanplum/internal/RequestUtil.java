@@ -28,7 +28,7 @@ public class RequestUtil {
                 }
             }
         } catch (JSONException e) {
-            Log.e("Could not get response for id: ", reqId, e);
+            Log.e("Could not get response for id: " + reqId, e);
             return null;
         }
         return null;

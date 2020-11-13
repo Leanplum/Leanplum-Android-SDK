@@ -366,7 +366,7 @@ public class LeanplumInbox {
 
           JSONObject messagesDict = response.optJSONObject(Constants.Keys.INBOX_MESSAGES);
           if (messagesDict == null) {
-            Log.e("No inbox messages found in the response from the server.", response);
+            Log.e("No inbox messages found in the response from the server. %s", response);
             return;
           }
           int unreadCount = 0;
