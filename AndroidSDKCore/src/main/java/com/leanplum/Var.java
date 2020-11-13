@@ -111,9 +111,12 @@ public class Var<T> {
       var.cacheComputedValues();
       VarCache.registerVariable(var);
       if (Constants.Kinds.FILE.equals(var.kind)) {
-        VarCache.registerFile(var.stringValue,
-            var.defaultValue() == null ? null : var.defaultValue().toString(),
-            var.defaultStream(), var.isResource, var.hash, var.size);
+        if (var.isResource) {
+          VarCache.registerFile(var.stringValue, var::defaultStream, var.hash, var.size);
+        } else {
+          String defaultVal = var.defaultValue() == null ? null : var.defaultValue().toString();
+          VarCache.registerFile(var.stringValue, defaultVal, var::defaultStream);
+        }
       }
       var.update();
     } catch (Throwable t) {

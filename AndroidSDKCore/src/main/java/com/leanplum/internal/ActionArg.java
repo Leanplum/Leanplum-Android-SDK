@@ -69,16 +69,14 @@ public class ActionArg<T> {
       defaultFilename = "";
     }
     ActionArg<String> arg = argNamed(name, defaultFilename, Constants.Kinds.FILE);
-    VarCache.registerFile(arg.defaultValue, arg.defaultValue,
-        arg.defaultStream(), false, null, 0);
+    VarCache.registerFile(arg.defaultValue, arg.defaultValue, arg::defaultStream);
     return arg;
   }
 
   public static ActionArg<String> assetArgNamed(String name, String defaultFilename) {
     ActionArg<String> arg = argNamed(name, defaultFilename, Constants.Kinds.FILE);
     arg.isAsset = true;
-    VarCache.registerFile(arg.defaultValue, arg.defaultValue,
-        arg.defaultStream(), false, null, 0);
+    VarCache.registerFile(arg.defaultValue, arg.defaultValue, arg::defaultStream);
     return arg;
   }
 
