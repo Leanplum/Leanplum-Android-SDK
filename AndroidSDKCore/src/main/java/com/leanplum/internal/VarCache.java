@@ -59,7 +59,7 @@ import java.util.regex.Pattern;
 public class VarCache {
   private static final Map<String, Var<?>> vars = new ConcurrentHashMap<>();
   private static final Map<String, Object> fileAttributes = new HashMap<>();
-  private static final Map<String, InputStream> fileStreams = new HashMap<>();
+  private static final Map<String, StreamProvider> fileStreams = new HashMap<>();
 
   /**
    * The default values set by the client. This is not thread-safe so traversals should be
@@ -122,40 +122,75 @@ public class VarCache {
     return null;
   }
 
-  public static boolean registerFile(
-      String stringValue, String defaultValue,
-      InputStream defaultStream, boolean isResource, String resourceHash, int resourceSize) {
-    if (Constants.isDevelopmentModeEnabled) {
-      if (!Constants.isNoop()) {
-        if (defaultStream == null) {
-          return false;
-        }
-        Map<String, Object> variationAttributes = new HashMap<>();
-        Map<String, Object> attributes = new HashMap<>();
-        if (isResource) {
-          attributes.put(Constants.Keys.HASH, resourceHash);
-          attributes.put(Constants.Keys.SIZE, resourceSize);
-        } else {
-          if (Constants.hashFilesToDetermineModifications && Util.isSimulator()) {
-            HashResults result = FileManager.fileMD5HashCreateWithPath(defaultStream);
-            if (result != null) {
-              attributes.put(Constants.Keys.HASH, result.hash);
-              attributes.put(Constants.Keys.SIZE, result.size);
-            }
-          } else {
-            int size = FileManager.getFileSize(
-                FileManager.fileValue(stringValue, defaultValue, null));
-            attributes.put(Constants.Keys.SIZE, size);
-          }
-        }
-        variationAttributes.put("", attributes);
-        fileAttributes.put(stringValue, variationAttributes);
-        fileStreams.put(stringValue, defaultStream);
-        maybeUploadNewFiles();
+  @FunctionalInterface
+  public interface StreamProvider {
+    InputStream openStream();
+  }
+
+  private static boolean isStreamAvailable(StreamProvider stream) {
+    if (stream == null)
+      return false;
+
+    try {
+      InputStream is = stream.openStream();
+      if (is != null) {
+        is.close();
+        return true;
       }
-      return true;
+    } catch (Throwable ignore) {
     }
     return false;
+  }
+
+  public static void registerFile(
+      String stringValue, StreamProvider defaultStream, String hash, int size) {
+
+    if (!isStreamAvailable(defaultStream)
+        || !Constants.isDevelopmentModeEnabled
+        || Constants.isNoop()) {
+      return;
+    }
+
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(Constants.Keys.HASH, hash);
+    attributes.put(Constants.Keys.SIZE, size);
+
+    Map<String, Object> variationAttributes = new HashMap<>();
+    variationAttributes.put("", attributes);
+
+    fileStreams.put(stringValue, defaultStream);
+    fileAttributes.put(stringValue, variationAttributes);
+    maybeUploadNewFiles();
+  }
+
+  public static void registerFile(
+      String stringValue, String defaultValue, StreamProvider defaultStream) {
+
+    if (!isStreamAvailable(defaultStream)
+        || !Constants.isDevelopmentModeEnabled
+        || Constants.isNoop()) {
+      return;
+    }
+
+    Map<String, Object> variationAttributes = new HashMap<>();
+    Map<String, Object> attributes = new HashMap<>();
+
+    if (Constants.hashFilesToDetermineModifications && Util.isSimulator()) {
+      HashResults result = FileManager.fileMD5HashCreateWithPath(defaultStream.openStream());
+      if (result != null) {
+        attributes.put(Constants.Keys.HASH, result.hash);
+        attributes.put(Constants.Keys.SIZE, result.size);
+      }
+    } else {
+      int size = FileManager.getFileSize(
+          FileManager.fileValue(stringValue, defaultValue, null));
+      attributes.put(Constants.Keys.SIZE, size);
+    }
+
+    variationAttributes.put("", attributes);
+    fileStreams.put(stringValue, defaultStream);
+    fileAttributes.put(stringValue, variationAttributes);
+    maybeUploadNewFiles();
   }
 
   private static void updateValues(String name, String[] nameComponents, Object value, String kind,
@@ -461,8 +496,8 @@ public class VarCache {
           !overrideFile.equals(var.defaultValue())) {
         Map<String, Object> variationAttributes = CollectionUtil.uncheckedCast(fileAttributes.get
             (overrideFile));
-        InputStream stream = fileStreams.get(overrideFile);
-        if (variationAttributes != null && stream != null) {
+        StreamProvider streamProvider = fileStreams.get(overrideFile);
+        if (variationAttributes != null && streamProvider != null) {
           var.setOverrideResId(getResIdFromPath(var.stringValue()));
         }
       }
@@ -692,7 +727,12 @@ public class VarCache {
           Log.e("Unable to upload files.\n" + Log.getStackTraceString(e));
           fileData.add(new JSONObject());
         }
-        streams.add(fileStreams.get(name));
+        InputStream is = null;
+        StreamProvider streamProvider = fileStreams.get(name);
+        if (streamProvider != null) {
+          is = streamProvider.openStream();
+        }
+        streams.add(is);
       }
     }
 
