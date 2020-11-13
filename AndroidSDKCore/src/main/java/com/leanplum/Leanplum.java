@@ -2275,4 +2275,16 @@ public class Leanplum {
   public static FeatureFlagManager featureFlagManager() {
     return featureFlagManager;
   }
+
+  /**
+   * Sets the time interval to periodically upload events to server.
+   * Default is {@link EventsUploadInterval#AT_MOST_15_MINUTES}.
+   *
+   * @param uploadInterval The time between uploads.
+   */
+  public static void setEventsUploadInterval(EventsUploadInterval uploadInterval) {
+    if (uploadInterval != null) {
+      RequestSenderTimer.get().setTimerInterval(uploadInterval);
+    }
+  }
 }

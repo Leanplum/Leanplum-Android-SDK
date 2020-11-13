@@ -20,16 +20,22 @@
  */
 package com.leanplum.internal;
 
+import androidx.annotation.NonNull;
+import com.leanplum.EventsUploadInterval;
 import com.leanplum.internal.Request.RequestType;
 
 public class RequestSenderTimer {
   private static final RequestSenderTimer INSTANCE = new RequestSenderTimer();
-  private static final long TIMER_MILLIS = 15 * 60 * 1000; // 15min
+  private EventsUploadInterval timerInterval = EventsUploadInterval.AT_MOST_15_MINUTES;
 
   private Runnable timerOperation;
 
   public static RequestSenderTimer get() {
     return INSTANCE;
+  }
+
+  private long getIntervalMillis() {
+    return timerInterval.getMinutes() * 60 * 1000;
   }
 
   private void sendAllRequestsWithHeartbeat() {
@@ -45,7 +51,7 @@ public class RequestSenderTimer {
       @Override
       public void run() {
         sendAllRequestsWithHeartbeat();
-        OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, TIMER_MILLIS);
+        OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, getIntervalMillis());
       }
     };
   }
@@ -55,7 +61,7 @@ public class RequestSenderTimer {
       return;
 
     timerOperation = createTimerOperation();
-    OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, TIMER_MILLIS);
+    OperationQueue.sharedInstance().addOperationAfterDelay(timerOperation, getIntervalMillis());
   }
 
   public synchronized void stop() {
@@ -64,5 +70,9 @@ public class RequestSenderTimer {
 
      OperationQueue.sharedInstance().removeOperation(timerOperation);
      timerOperation = null;
+  }
+
+  public void setTimerInterval(@NonNull EventsUploadInterval timerInterval) {
+    this.timerInterval = timerInterval;
   }
 }
