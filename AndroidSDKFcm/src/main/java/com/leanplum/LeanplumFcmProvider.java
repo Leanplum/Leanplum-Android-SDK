@@ -25,8 +25,8 @@ import android.text.TextUtils;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.installations.FirebaseInstallations;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.leanplum.internal.Log;
 
 import androidx.annotation.NonNull;
@@ -45,17 +45,17 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   public void getCurrentRegistrationIdAndUpdateBackend() {
-    FirebaseInstanceId.getInstance().getInstanceId()
-        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+    FirebaseMessaging.getInstance().getToken()
+        .addOnCompleteListener(new OnCompleteListener<String>() {
           @Override
-          public void onComplete(@NonNull Task<InstanceIdResult> task) {
+          public void onComplete(@NonNull Task<String> task) {
             if (!task.isSuccessful()) {
               Exception exc = task.getException();
               Log.e("getInstanceId failed:\n" + Log.getStackTraceString(exc));
               return;
             }
             // Get new Instance ID token
-            String tokenId = task.getResult().getToken();
+            String tokenId = task.getResult();
             if (!TextUtils.isEmpty(tokenId)) {
                 onRegistrationIdReceived(Leanplum.getContext(), tokenId);
               }
@@ -71,7 +71,8 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
   @Override
   public void unregister() {
     try {
-      FirebaseInstanceId.getInstance().deleteInstanceId();
+      FirebaseInstallations.getInstance().delete();
+      FirebaseMessaging.getInstance().deleteToken();
       Log.i("Application was unregistered from FCM.");
     } catch (Exception e) {
       Log.e("Failed to unregister from FCM.");
