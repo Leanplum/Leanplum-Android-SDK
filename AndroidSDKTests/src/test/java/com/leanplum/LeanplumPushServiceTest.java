@@ -152,15 +152,7 @@ public class LeanplumPushServiceTest {
 
     LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
-    // Test if Manifest is not set up and provider is initialized.
-    doReturn(false).when(fcmProviderMock).isManifestSetup();
-    doReturn(true).when(fcmProviderMock).isInitialized();
-    initPushServiceMethod.invoke(pushService);
-    assertNotNull(initPushServiceMethod);
-    verifyPrivate(LeanplumPushService.class, times(0)).invoke("registerInBackground");
-
     // Test if Manifest is set up and provider is initialized.
-    doReturn(true).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
@@ -189,15 +181,7 @@ public class LeanplumPushServiceTest {
     initPushServiceMethod.setAccessible(true);
     LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
 
-    // Test if Manifest is not set up and provider is initialized.
-    doReturn(false).when(fcmProviderMock).isManifestSetup();
-    doReturn(true).when(fcmProviderMock).isInitialized();
-    initPushServiceMethod.invoke(pushService);
-    assertNotNull(initPushServiceMethod);
-    verifyPrivate(LeanplumPushService.class, times(0)).invoke("registerInBackground");
-
     // Test if Manifest is set up and provider is initialized.
-    doReturn(true).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
     initPushServiceMethod.invoke(pushService);
     assertNotNull(initPushServiceMethod);
@@ -386,7 +370,6 @@ public class LeanplumPushServiceTest {
 
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     whenNew(LeanplumFcmProvider.class).withNoArguments().thenReturn(fcmProviderMock);
-    doReturn(true).when(fcmProviderMock).isManifestSetup();
     doReturn(true).when(fcmProviderMock).isInitialized();
 
     LeanplumPushService.setCloudMessagingProvider(fcmProviderMock);
