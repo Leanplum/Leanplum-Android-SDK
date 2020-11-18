@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -684,7 +684,7 @@ public class LeanplumPushService {
    * Initialize push service.
    */
   static void initPushService() {
-    if (!provider.isInitialized() || !provider.isManifestSetup()) {
+    if (!provider.isInitialized()) {
       return;
     }
     if (hasAppIDChanged(APIConfig.getInstance().appId())) {

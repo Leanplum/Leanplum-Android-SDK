@@ -49,11 +49,6 @@ public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
   }
 
   @Override
-  public boolean isManifestSetup() {
-    return true;
-  }
-
-  @Override
   public void unregister() {
   }
 }
