@@ -110,11 +110,6 @@ public class LeanplumCloudMessagingProviderTest {
       }
 
       @Override
-      public boolean isManifestSetup() {
-        return false;
-      }
-
-      @Override
       public void unregister() {
 
       }
