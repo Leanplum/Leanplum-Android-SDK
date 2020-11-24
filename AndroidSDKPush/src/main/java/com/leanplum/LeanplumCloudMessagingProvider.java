@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -72,13 +72,6 @@ abstract class LeanplumCloudMessagingProvider {
    * @return True if provider is initialized, false otherwise.
    */
   public abstract boolean isInitialized();
-
-  /**
-   * Whether app manifest is setup correctly.
-   *
-   * @return True if manifest is setup, false otherwise.
-   */
-  public abstract boolean isManifestSetup();
 
   /**
    * Unregister from cloud messaging.
