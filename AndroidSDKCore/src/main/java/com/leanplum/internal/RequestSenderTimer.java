@@ -21,6 +21,7 @@
 package com.leanplum.internal;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.EventsUploadInterval;
 import com.leanplum.internal.Request.RequestType;
 
@@ -34,7 +35,8 @@ public class RequestSenderTimer {
     return INSTANCE;
   }
 
-  private long getIntervalMillis() {
+  @VisibleForTesting
+  protected long getIntervalMillis() {
     return timerInterval.getMinutes() * 60 * 1000;
   }
 
@@ -46,7 +48,8 @@ public class RequestSenderTimer {
     RequestSender.getInstance().send(request);
   }
 
-  private Runnable createTimerOperation() {
+  @VisibleForTesting
+  protected Runnable createTimerOperation() {
     return new Runnable() {
       @Override
       public void run() {
