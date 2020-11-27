@@ -1546,9 +1546,17 @@ public class Leanplum {
   /**
    * Sets the registration ID used for Cloud Messaging.
    */
-  static void setRegistrationId(final String registrationId) {
+  static void setRegistrationId(PushProviderType type, final String registrationId) {
     if (Constants.isNoop()) {
       return;
+    }
+    String attributeName;
+    switch (type) {
+      case FCM:
+        attributeName = Constants.Params.DEVICE_PUSH_TOKEN;
+        break;
+      default:
+        return;
     }
     pushStartCallback = new Runnable() {
       @Override
@@ -1559,7 +1567,7 @@ public class Leanplum {
         try {
           Request request = RequestBuilder
               .withSetDeviceAttributesAction()
-              .andParam(Constants.Params.DEVICE_PUSH_TOKEN, registrationId)
+              .andParam(attributeName, registrationId)
               .andType(RequestType.IMMEDIATE)
               .create();
           RequestSender.getInstance().send(request);

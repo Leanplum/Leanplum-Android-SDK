@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,34 +21,31 @@
 
 package com.leanplum;
 
-import android.content.Context;
+interface IPushProvider {//TODO protect classes in proguard for reflection
 
-/**
- * Leanplum provider for manually registering for Cloud Messaging services.
- *
- * @author Anna Orlova
- */
-public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
-  LeanplumManualProvider(Context context, String registrationId) {
-    onRegistrationIdReceived(context, registrationId);
-  }
+  /**
+   * Returns the type of this push provider.
+   */
+  PushProviderType getType();
 
-  @Override
-  public String getRegistrationId() {
-    return getCurrentRegistrationId();
-  }
+  /**
+   * Unregister from cloud messaging. Main usage is for testing purposes.
+   */
+  void unregister();
 
-  @Override
-  public void getCurrentRegistrationIdAndUpdateBackend() {
+  /**
+   * Updates the current registration ID from the cloud messaging's API.
+   */
+  void updateRegistrationId();
 
-  }
+  /**
+   * Returns the stored registration ID.
+   */
+  String getRegistrationId();
 
-  @Override
-  public boolean isInitialized() {
-    return true;
-  }
+  /**
+   * Stores the registration ID and sends it to backend.
+   */
+  void setRegistrationId(String registrationId);
 
-  @Override
-  public void unregister() {
-  }
 }

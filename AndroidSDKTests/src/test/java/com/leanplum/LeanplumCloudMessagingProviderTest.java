@@ -86,7 +86,7 @@ public class LeanplumCloudMessagingProviderTest {
 
   /**
    * Test if registrationId is sent to the server when a new registrationId is received. {@link
-   * LeanplumCloudMessagingProvider#onRegistrationIdReceived}
+   * LeanplumCloudMessagingProvider#setRegistrationId}
    *
    * @throws Exception
    */
@@ -94,13 +94,9 @@ public class LeanplumCloudMessagingProviderTest {
   public void testOnRegistrationIdReceived() throws Exception {
     mockStatic(SharedPreferencesUtil.class);
     LeanplumCloudMessagingProvider cloudMessagingProvider = new LeanplumCloudMessagingProvider() {
-      @Override
-      public String getRegistrationId() {
-        return null;
-      }
 
       @Override
-      public void getCurrentRegistrationIdAndUpdateBackend() {
+      public void updateRegistrationId() {
 
       }
 
@@ -122,22 +118,22 @@ public class LeanplumCloudMessagingProviderTest {
     // of LeanplumCloudMessagingProvider class, referenced in onRegistrationIdReceived.
     when(SharedPreferencesUtil.class, "getString", context, Constants.Defaults.LEANPLUM_PUSH,
         Constants.Defaults.PROPERTY_TOKEN_ID).thenReturn("stored_token");
-    doNothing().when(cloudMessagingProviderMock).storePreferences(context.getApplicationContext());
+    doNothing().when(cloudMessagingProviderMock).storeRegistrationId(context.getApplicationContext());
     doNothing().when(LeanplumCloudMessagingProvider.class, "sendRegistrationIdToBackend",
         "new_token");
 
     // Test if a token gets send to the backend when no previous token exists.
-    cloudMessagingProvider.onRegistrationIdReceived(context, "new_token");
+    cloudMessagingProvider.setRegistrationId(context, "new_token");
     verifyPrivate(LeanplumCloudMessagingProvider.class, times(1)).invoke(
         "sendRegistrationIdToBackend", "new_token");
 
     // Test if new token gets send to backend when a previous token exists.
-    cloudMessagingProvider.onRegistrationIdReceived(context, "new_token1");
+    cloudMessagingProvider.setRegistrationId(context, "new_token1");
     verifyPrivate(LeanplumCloudMessagingProvider.class, times(1)).invoke(
         "sendRegistrationIdToBackend", "new_token1");
 
     // Test if a new token is not sent to the backend when a token equals to the stored token.
-    cloudMessagingProvider.onRegistrationIdReceived(context, "stored_token");
+    cloudMessagingProvider.setRegistrationId(context, "stored_token");
     verifyPrivate(LeanplumCloudMessagingProvider.class, times(0)).invoke(
         "sendRegistrationIdToBackend", "stored_token");
   }

@@ -27,24 +27,31 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 
 import androidx.annotation.NonNull;
 
 /**
  * Leanplum provider for work with Firebase.
+ * Class is instantiated by reflection.
  *
  * @author Anna Orlova
  */
 class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
-  public String getRegistrationId() {
-    return this.getStoredRegistrationPreferences(Leanplum.getContext());
+  protected String getSharedPrefsPropertyName() {
+    return Constants.Defaults.PROPERTY_TOKEN_ID;
   }
 
   @Override
-  public void getCurrentRegistrationIdAndUpdateBackend() {
+  public PushProviderType getType() {
+    return PushProviderType.FCM;
+  }
+
+  @Override
+  public void updateRegistrationId() {
     FirebaseInstanceId.getInstance().getInstanceId()
         .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
           @Override
@@ -57,15 +64,10 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
             // Get new Instance ID token
             String tokenId = task.getResult().getToken();
             if (!TextUtils.isEmpty(tokenId)) {
-                onRegistrationIdReceived(Leanplum.getContext(), tokenId);
+                setRegistrationId(tokenId);
               }
             }
         });
-  }
-
-  @Override
-  public boolean isInitialized() {
-    return true;
   }
 
   @Override

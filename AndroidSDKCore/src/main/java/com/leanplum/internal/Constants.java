@@ -107,7 +107,7 @@ public class Constants {
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_MODEL = "deviceModel";
     public static final String DEVICE_NAME = "deviceName";
-    public static final String DEVICE_PUSH_TOKEN = "gcmRegistrationId";
+    public static final String DEVICE_PUSH_TOKEN = "gcmRegistrationId"; // TODO rename variable
     public static final String DEVICE_SYSTEM_NAME = "systemName";
     public static final String DEVICE_SYSTEM_VERSION = "systemVersion";
     public static final String EMAIL = "email";
