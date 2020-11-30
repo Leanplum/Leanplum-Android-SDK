@@ -23,6 +23,7 @@ package com.leanplum;
 
 import android.content.Context;
 import android.text.TextUtils;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
@@ -31,13 +32,16 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-class PushProviders {
+public class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
 
   private Map<PushProviderType, IPushProvider> providers = new HashMap<>();
 
   public PushProviders() {
-    initFcm();
+    IPushProvider fcm = createFcm();
+    if (fcm != null) {
+      providers.put(PushProviderType.FCM, fcm);
+    }
   }
 
   public void updateRegistrationIdsAndBackend() {
@@ -56,14 +60,15 @@ class PushProviders {
     }
   }
 
-  private void initFcm() {
+  private static IPushProvider createFcm() {
     try {
       IPushProvider fcmProvider =
           (IPushProvider) Class.forName(FCM_PROVIDER_CLASS).getConstructor().newInstance();
-      providers.put(PushProviderType.FCM, fcmProvider);
+      return fcmProvider;
     } catch (Throwable t) {
       Log.e("FCM not found. Did you forget to include FCM module dependency "
           + "\"com.leanplum:leanplum-fcm\"?", t);
+      return null;
     }
   }
 
@@ -73,7 +78,8 @@ class PushProviders {
    * @param currentAppId Current application id.
    * @return True if application id was stored before and doesn't equal to current.
    */
-  private static boolean hasAppIDChanged(String currentAppId) {
+  @VisibleForTesting
+  static boolean hasAppIDChanged(String currentAppId) {
     if (TextUtils.isEmpty(currentAppId)) {
       return false;
     }

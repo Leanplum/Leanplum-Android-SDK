@@ -25,6 +25,7 @@ import android.content.Context;
 
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -35,6 +36,11 @@ import com.leanplum.utils.SharedPreferencesUtil;
  * @author Anna Orlova
  */
 abstract class LeanplumCloudMessagingProvider implements IPushProvider {
+
+  /**
+   * Returns the name of the property in shared preferences where this provider's ID is saved.
+   */
+  protected abstract String getSharedPrefsPropertyName();
 
   @Override
   public void setRegistrationId(String registrationId) {
@@ -52,12 +58,8 @@ abstract class LeanplumCloudMessagingProvider implements IPushProvider {
     }
   }
 
-  /**
-   * Returns the name of the property in shared preferences where this provider's ID is saved.
-   */
-  protected abstract String getSharedPrefsPropertyName();
-
-  private void storeRegistrationId(@NonNull String registrationId) {
+  @VisibleForTesting
+  void storeRegistrationId(@NonNull String registrationId) {
     Context context = Leanplum.getContext();
     if (context == null) {
       return;

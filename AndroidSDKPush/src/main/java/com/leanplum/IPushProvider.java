@@ -29,6 +29,16 @@ interface IPushProvider {//TODO protect classes in proguard for reflection
   PushProviderType getType();
 
   /**
+   * Returns the stored registration ID.
+   */
+  String getRegistrationId();
+
+  /**
+   * Stores the registration ID and sends it to backend.
+   */
+  void setRegistrationId(String regId);
+
+  /**
    * Unregister from cloud messaging. Main usage is for testing purposes.
    */
   void unregister();
@@ -37,15 +47,4 @@ interface IPushProvider {//TODO protect classes in proguard for reflection
    * Updates the current registration ID from the cloud messaging's API.
    */
   void updateRegistrationId();
-
-  /**
-   * Returns the stored registration ID.
-   */
-  String getRegistrationId();
-
-  /**
-   * Stores the registration ID and sends it to backend.
-   */
-  void setRegistrationId(String registrationId);
-
 }
