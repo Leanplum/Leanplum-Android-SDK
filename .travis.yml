@@ -40,7 +40,7 @@ before_script:
   - emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
 
 script:
-  - ./gradlew assembleRelease testReleaseUnitTest
+  - ./gradlew assembleRelease testReleaseUnitTest --tests com.leanplum.LeanplumPushServiceTest
 
   # wait emulator to come alive and start snapshot tests
   - android-wait-for-emulator
