@@ -37,6 +37,8 @@ import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
+import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
 import com.leanplum.tests.MainActivity;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -126,6 +128,8 @@ public class LeanplumPushServiceTest {
 
     customizeNotificationBuilderCalled = false;
     customizeNotificationBuilderCompatCalled = false;
+
+    TestClassUtil.setField(OperationQueue.class, "instance", new ShadowOperationQueue());
   }
 
   /**
