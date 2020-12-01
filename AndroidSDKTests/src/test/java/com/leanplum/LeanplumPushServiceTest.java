@@ -41,6 +41,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.tests.MainActivity;
 import com.leanplum.utils.SharedPreferencesUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -117,6 +118,7 @@ public class LeanplumPushServiceTest {
     mockStatic(LeanplumPushService.class);
     spy(LeanplumPushService.class);
     spy(Util.class);
+    spy(PushProviders.class);
 
     this.context = RuntimeEnvironment.application;
     assertNotNull(this.context);
@@ -124,6 +126,15 @@ public class LeanplumPushServiceTest {
 
     customizeNotificationBuilderCalled = false;
     customizeNotificationBuilderCompatCalled = false;
+  }
+
+  /**
+   * Runs after every test case.
+   */
+  @After
+  public void tearDown() throws Exception {
+    PowerMockito.doCallRealMethod().when(PushProviders.class, "createFcm");
+    TestClassUtil.setField(LeanplumPushService.class, "pushProviders", new PushProviders());
   }
 
   /**
@@ -168,7 +179,7 @@ public class LeanplumPushServiceTest {
   }
 
   /**
-   * Test for {@link LeanplumPushService#hasAppIDChanged(String)} that should return true if
+   * Test for {@link PushProviders#hasAppIDChanged(String)} that should return true if
    * application id was stored before and doesn't equal to current.
    *
    * @throws Exception
