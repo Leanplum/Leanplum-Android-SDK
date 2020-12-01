@@ -166,6 +166,7 @@ public class LeanplumPushServiceTest {
     spy(PushProviders.class);
 
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
+    doNothing().when(fcmProviderMock).updateRegistrationId();
     PowerMockito.doReturn(fcmProviderMock).when(PushProviders.class, "createFcm");
     PushProviders pushProviders = new PushProviders();
     TestClassUtil.setField(LeanplumPushService.class, "pushProviders", pushProviders);
