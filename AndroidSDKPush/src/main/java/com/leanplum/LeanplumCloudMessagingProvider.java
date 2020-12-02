@@ -54,7 +54,7 @@ abstract class LeanplumCloudMessagingProvider implements IPushProvider {
     if (!registrationId.equals(getRegistrationId())) {
       storeRegistrationId(registrationId);
       Log.d("Sending registration ID to backend.");
-      Leanplum.setRegistrationId(getType(), registrationId); // TODO comment about sync
+      Leanplum.setRegistrationId(getType(), registrationId);
     }
   }
 
