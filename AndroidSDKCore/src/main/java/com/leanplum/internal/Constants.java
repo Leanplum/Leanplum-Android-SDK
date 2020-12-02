@@ -86,7 +86,7 @@ public class Constants {
     public static final String INBOX_KEY = "__leanplum_newsfeed";
     public static final String LEANPLUM_PUSH = "__leanplum_push__";
     public static final String APP_ID = "__app_id";
-    public static final String PROPERTY_TOKEN_ID = "registration_id";
+    public static final String PROPERTY_FCM_TOKEN_ID = "registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
     public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
     public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";
@@ -107,7 +107,7 @@ public class Constants {
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_MODEL = "deviceModel";
     public static final String DEVICE_NAME = "deviceName";
-    public static final String DEVICE_PUSH_TOKEN = "gcmRegistrationId"; // TODO rename variable
+    public static final String DEVICE_FCM_PUSH_TOKEN = "gcmRegistrationId";
     public static final String DEVICE_SYSTEM_NAME = "systemName";
     public static final String DEVICE_SYSTEM_VERSION = "systemVersion";
     public static final String EMAIL = "email";

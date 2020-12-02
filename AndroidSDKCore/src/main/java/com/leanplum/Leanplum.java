@@ -690,8 +690,8 @@ public class Leanplum {
     Date now = new Date();
     int timezoneOffsetSeconds = localTimeZone.getOffset(now.getTime()) / 1000;
 
-    String registrationId = SharedPreferencesUtil.getString(context,
-        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID);
+    String fcmRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
 
     HashMap<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
@@ -703,8 +703,8 @@ public class Leanplum {
     params.put(Constants.Params.DEVICE_MODEL, Util.getDeviceModel());
     params.put(Constants.Params.DEVICE_SYSTEM_NAME, Util.getSystemName());
     params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
-    if (!TextUtils.isEmpty(registrationId)) {
-      params.put(Constants.Params.DEVICE_PUSH_TOKEN, registrationId);
+    if (!TextUtils.isEmpty(fcmRegistrationId)) {
+      params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
@@ -1553,7 +1553,7 @@ public class Leanplum {
     String attributeName;
     switch (type) {
       case FCM:
-        attributeName = Constants.Params.DEVICE_PUSH_TOKEN;
+        attributeName = Constants.Params.DEVICE_FCM_PUSH_TOKEN;
         break;
       default:
         return;

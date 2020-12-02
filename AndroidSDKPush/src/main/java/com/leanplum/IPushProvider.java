@@ -21,7 +21,7 @@
 
 package com.leanplum;
 
-interface IPushProvider {//TODO protect classes in proguard for reflection
+interface IPushProvider {
 
   /**
    * Returns the type of this push provider.

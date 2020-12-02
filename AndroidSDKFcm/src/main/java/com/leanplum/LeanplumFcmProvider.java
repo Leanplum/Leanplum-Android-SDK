@@ -34,7 +34,7 @@ import androidx.annotation.NonNull;
 
 /**
  * Leanplum provider for work with Firebase.
- * Class is instantiated by reflection.
+ * Class is instantiated by reflection using default constructor.
  *
  * @author Anna Orlova
  */
@@ -42,7 +42,7 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   protected String getSharedPrefsPropertyName() {
-    return Constants.Defaults.PROPERTY_TOKEN_ID;
+    return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
   }
 
   @Override

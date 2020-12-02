@@ -104,7 +104,7 @@ public class LeanplumCloudMessagingProviderTest {
     LeanplumCloudMessagingProvider cloudMessagingProvider = new LeanplumCloudMessagingProvider() {
       @Override
       protected String getSharedPrefsPropertyName() {
-        return Constants.Defaults.PROPERTY_TOKEN_ID;
+        return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
       }
       @Override
       public void updateRegistrationId() {
@@ -122,7 +122,7 @@ public class LeanplumCloudMessagingProviderTest {
     whenNew(LeanplumCloudMessagingProvider.class).withNoArguments().thenReturn(
         cloudMessagingProviderMock);
     when(SharedPreferencesUtil.class, "getString", context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_TOKEN_ID).thenReturn("stored_token");
+        Constants.Defaults.PROPERTY_FCM_TOKEN_ID).thenReturn("stored_token");
     doNothing().when(cloudMessagingProviderMock).storeRegistrationId(anyString());
 
     // Test if a token gets send to the backend when no previous token exists.
