@@ -24,6 +24,7 @@ package com.leanplum;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.Nullable;
 import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
@@ -347,8 +348,16 @@ public class LeanplumInbox {
   }
 
   void downloadMessages() {
+    downloadMessages(null);
+  }
+
+  void downloadMessages(@Nullable InboxSyncedCallback callback) {
     if (Constants.isNoop()) {
       return;
+    }
+
+    if (callback != null) {
+      addSyncedHandler(callback);
     }
 
     Request req = RequestBuilder
@@ -400,6 +409,9 @@ public class LeanplumInbox {
           if (!willDownladImages) {
             update(messages, unreadCount, true);
             triggerInboxSyncedWithStatus(true);
+            if (callback != null) {
+              removeSyncedHandler(callback);
+            }
             return;
           }
 
@@ -410,10 +422,16 @@ public class LeanplumInbox {
                 public void variablesChanged() {
                   update(messages, totalUnreadCount, true);
                   triggerInboxSyncedWithStatus(true);
+                  if (callback != null) {
+                    removeSyncedHandler(callback);
+                  }
                 }
               });
         } catch (Throwable t) {
           triggerInboxSyncedWithStatus(false);
+          if (callback != null) {
+            removeSyncedHandler(callback);
+          }
           Log.exception(t);
         }
       }
@@ -422,6 +440,9 @@ public class LeanplumInbox {
       @Override
       public void error(Exception e) {
         triggerInboxSyncedWithStatus(false);
+        if (callback != null) {
+          removeSyncedHandler(callback);
+        }
       }
     });
     RequestSender.getInstance().send(req);

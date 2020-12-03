@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,8 +25,12 @@ import android.content.Context;
 import android.location.Location;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.InboxChangedCallback;
+import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
@@ -2078,6 +2082,24 @@ public class Leanplum {
     } catch (Throwable t) {
       Log.exception(t);
     }
+  }
+
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   */
+  public static void downloadInboxMessages() {
+    downloadInboxMessages(null);
+  }
+
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   *
+   * @param callback The callback to invoke when messages are downloaded.
+   */
+  public static void downloadInboxMessages(@Nullable InboxSyncedCallback callback) {
+    LeanplumInbox.getInstance().downloadMessages(callback);
   }
 
   /**
