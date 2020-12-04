@@ -285,6 +285,19 @@ public class LeanplumInbox {
     }
   }
 
+  private void triggerInboxSyncedWithStatus(
+      boolean success,
+      @Nullable InboxSyncedCallback oneTimeCallback) {
+
+    if (oneTimeCallback != null) {
+      addSyncedHandler(oneTimeCallback);
+      triggerInboxSyncedWithStatus(success);
+      removeSyncedHandler(oneTimeCallback);
+    } else {
+      triggerInboxSyncedWithStatus(success);
+    }
+  }
+
   void load() {
     if (Constants.isNoop()) {
       return;
@@ -356,10 +369,6 @@ public class LeanplumInbox {
       return;
     }
 
-    if (callback != null) {
-      addSyncedHandler(callback);
-    }
-
     Request req = RequestBuilder
         .withGetInboxMessagesAction()
         .andType(RequestType.IMMEDIATE)
@@ -408,10 +417,7 @@ public class LeanplumInbox {
 
           if (!willDownladImages) {
             update(messages, unreadCount, true);
-            triggerInboxSyncedWithStatus(true);
-            if (callback != null) {
-              removeSyncedHandler(callback);
-            }
+            triggerInboxSyncedWithStatus(true, callback);
             return;
           }
 
@@ -421,17 +427,11 @@ public class LeanplumInbox {
                 @Override
                 public void variablesChanged() {
                   update(messages, totalUnreadCount, true);
-                  triggerInboxSyncedWithStatus(true);
-                  if (callback != null) {
-                    removeSyncedHandler(callback);
-                  }
+                  triggerInboxSyncedWithStatus(true, callback);
                 }
               });
         } catch (Throwable t) {
-          triggerInboxSyncedWithStatus(false);
-          if (callback != null) {
-            removeSyncedHandler(callback);
-          }
+          triggerInboxSyncedWithStatus(false, callback);
           Log.exception(t);
         }
       }
@@ -439,10 +439,7 @@ public class LeanplumInbox {
     req.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
-        triggerInboxSyncedWithStatus(false);
-        if (callback != null) {
-          removeSyncedHandler(callback);
-        }
+        triggerInboxSyncedWithStatus(false, callback);
       }
     });
     RequestSender.getInstance().send(req);
