@@ -360,11 +360,21 @@ public class LeanplumInbox {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
-  void downloadMessages() {
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   */
+  public void downloadMessages() {
     downloadMessages(null);
   }
 
-  void downloadMessages(@Nullable InboxSyncedCallback callback) {
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   *
+   * @param callback The callback to invoke when messages are downloaded.
+   */
+  public void downloadMessages(@Nullable InboxSyncedCallback callback) {
     if (Constants.isNoop()) {
       return;
     }

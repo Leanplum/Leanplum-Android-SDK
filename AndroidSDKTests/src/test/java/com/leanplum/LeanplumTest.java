@@ -32,7 +32,6 @@ import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.VariablesTestClass;
 import com.leanplum.annotations.Parser;
-import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
@@ -1338,48 +1337,6 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     countDownLatch.await();
-  }
-
-  /**
-   * Test for {@link Leanplum#downloadInboxMessages()}.
-   */
-  @Test
-  public void testDownloadInboxMessages() {
-    setupSDK(mContext, "/responses/simple_start_response.json");
-
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    Boolean[] inboxSyncResult = new Boolean[1]; // boolean holder
-
-    LeanplumInbox.getInstance().addSyncedHandler(new InboxSyncedCallback() {
-      @Override
-      public void onForceContentUpdate(boolean success) {
-        inboxSyncResult[0] = success;
-      }
-    });
-    Leanplum.downloadInboxMessages();
-
-    assertNotNull(inboxSyncResult[0]);
-    assertTrue(inboxSyncResult[0]);
-  }
-
-  /**
-   * Test for {@link Leanplum#downloadInboxMessages(InboxSyncedCallback)}.
-   */
-  @Test
-  public void testDownloadInboxMessagesWithCallback() {
-    setupSDK(mContext, "/responses/simple_start_response.json");
-
-    ResponseHelper.seedResponse("/responses/newsfeed_response.json");
-    Boolean[] inboxSyncResult = new Boolean[1]; // boolean holder
-
-    Leanplum.downloadInboxMessages(new InboxSyncedCallback() {
-      @Override
-      public void onForceContentUpdate(boolean success) {
-        inboxSyncResult[0] = success;
-      }
-    });
-    assertNotNull(inboxSyncResult[0]);
-    assertTrue(inboxSyncResult[0]);
   }
 
   /**
