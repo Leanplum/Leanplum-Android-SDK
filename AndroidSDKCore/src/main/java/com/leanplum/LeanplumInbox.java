@@ -24,6 +24,7 @@ package com.leanplum;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.Nullable;
 import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
@@ -284,6 +285,19 @@ public class LeanplumInbox {
     }
   }
 
+  private void triggerInboxSyncedWithStatus(
+      boolean success,
+      @Nullable InboxSyncedCallback oneTimeCallback) {
+
+    if (oneTimeCallback != null) {
+      addSyncedHandler(oneTimeCallback);
+      triggerInboxSyncedWithStatus(success);
+      removeSyncedHandler(oneTimeCallback);
+    } else {
+      triggerInboxSyncedWithStatus(success);
+    }
+  }
+
   void load() {
     if (Constants.isNoop()) {
       return;
@@ -346,7 +360,21 @@ public class LeanplumInbox {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
-  void downloadMessages() {
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   */
+  public void downloadMessages() {
+    downloadMessages(null);
+  }
+
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   *
+   * @param callback The callback to invoke when messages are downloaded.
+   */
+  public void downloadMessages(@Nullable InboxSyncedCallback callback) {
     if (Constants.isNoop()) {
       return;
     }
@@ -399,7 +427,7 @@ public class LeanplumInbox {
 
           if (!willDownladImages) {
             update(messages, unreadCount, true);
-            triggerInboxSyncedWithStatus(true);
+            triggerInboxSyncedWithStatus(true, callback);
             return;
           }
 
@@ -409,11 +437,11 @@ public class LeanplumInbox {
                 @Override
                 public void variablesChanged() {
                   update(messages, totalUnreadCount, true);
-                  triggerInboxSyncedWithStatus(true);
+                  triggerInboxSyncedWithStatus(true, callback);
                 }
               });
         } catch (Throwable t) {
-          triggerInboxSyncedWithStatus(false);
+          triggerInboxSyncedWithStatus(false, callback);
           Log.exception(t);
         }
       }
@@ -421,7 +449,7 @@ public class LeanplumInbox {
     req.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
-        triggerInboxSyncedWithStatus(false);
+        triggerInboxSyncedWithStatus(false, callback);
       }
     });
     RequestSender.getInstance().send(req);
