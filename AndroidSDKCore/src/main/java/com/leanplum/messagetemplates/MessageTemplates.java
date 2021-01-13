@@ -87,6 +87,7 @@ public class MessageTemplates {
 
   /**
    * Registers a message template to respond to a given action.
+   * Will be shown in the templates group in Dashboard.
    *
    * @param template Wrapper for action name, action arguments and handler.
    * @param context Android context
@@ -94,9 +95,28 @@ public class MessageTemplates {
   public static void registerTemplate(
       @NonNull MessageTemplate template,
       @NonNull Context context) {
+    register(template, context, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION);
+  }
+
+  /**
+   * Registers an action template to respond to a given action.
+   * Will be shown in the actions group in Dashboard.
+   *
+   * @param template Wrapper for action name, action arguments and handler.
+   * @param context Android context
+   */
+  public static void registerAction(
+      @NonNull MessageTemplate template,
+      @NonNull Context context) {
+    register(template, context, Leanplum.ACTION_KIND_ACTION);
+  }
+
+  private static void register(
+      @NonNull MessageTemplate template,
+      @NonNull Context context,
+      int kind) {
 
     String name = template.getName();
-    int kind = Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION;
     ActionArgs args = template.createActionArgs(context);
 
     ActionCallback callback;
@@ -115,7 +135,7 @@ public class MessageTemplates {
     }
     registered = true;
 
-    registerTemplate(new OpenUrlAction(), context);
+    registerAction(new OpenUrlAction(), context);
     registerTemplate(new AlertMessage(), context);
     registerTemplate(new ConfirmMessage(), context);
     registerTemplate(new CenterPopupMessage(), context);
