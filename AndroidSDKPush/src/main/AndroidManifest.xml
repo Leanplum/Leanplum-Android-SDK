@@ -4,8 +4,6 @@
 
     <application>
         <receiver android:name="com.leanplum.LeanplumJobStartReceiver" />
-        <!-- Leanplum FCM Registration Service. -->
-        <service android:name="com.leanplum.LeanplumPushRegistrationService" />
         <!-- Leanplum Local Push Notification Service. -->
         <service
             android:name="com.leanplum.LeanplumLocalPushListenerService"

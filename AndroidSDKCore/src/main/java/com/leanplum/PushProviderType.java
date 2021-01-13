@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,34 +21,6 @@
 
 package com.leanplum;
 
-import android.content.Context;
-
-/**
- * Leanplum provider for manually registering for Cloud Messaging services.
- *
- * @author Anna Orlova
- */
-public class LeanplumManualProvider extends LeanplumCloudMessagingProvider {
-  LeanplumManualProvider(Context context, String registrationId) {
-    onRegistrationIdReceived(context, registrationId);
-  }
-
-  @Override
-  public String getRegistrationId() {
-    return getCurrentRegistrationId();
-  }
-
-  @Override
-  public void getCurrentRegistrationIdAndUpdateBackend() {
-
-  }
-
-  @Override
-  public boolean isInitialized() {
-    return true;
-  }
-
-  @Override
-  public void unregister() {
-  }
+enum PushProviderType {
+  FCM
 }

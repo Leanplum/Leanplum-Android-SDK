@@ -532,6 +532,9 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(messages, Leanplum.messageMetadata());
   }
 
+  /**
+   * Note that test fails on debug flavor and runs ok on release flavor.
+   */
   @Test
   public void testCrashes() throws Exception {
     // Setup sdk first.
@@ -1134,7 +1137,7 @@ public class LeanplumTest extends AbstractTest {
    * Test push notification registration
    */
   @Test
-  public void testPushNotificationRegistration() throws Exception {
+  public void testPushNotificationRegistrationFcm() throws Exception {
     setupSDK(mContext, "/responses/simple_start_response.json");
 
     // Verify request.
@@ -1146,7 +1149,7 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     // Register for push notification.
-    Leanplum.setRegistrationId(LeanplumPushService.LEANPLUM_SENDER_ID);
+    Leanplum.setRegistrationId(PushProviderType.FCM, LeanplumPushService.LEANPLUM_SENDER_ID);
   }
 
   /**

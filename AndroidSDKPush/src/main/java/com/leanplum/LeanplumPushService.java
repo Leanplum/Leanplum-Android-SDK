@@ -34,8 +34,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import com.leanplum.callbacks.VariablesChangedCallback;
-import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
@@ -50,7 +50,6 @@ import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
-import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -95,13 +94,12 @@ public class LeanplumPushService {
    */
   public static final String LEANPLUM_MESSAGE_ID = "lp_message_id";
 
-  private static final String LEANPLUM_PUSH_SERVICE_FCM = "com.leanplum.LeanplumPushServiceFcm";
   private static final int NOTIFICATION_ID = 1;
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
   private static Class<? extends Activity> callbackClass;
-  private static LeanplumCloudMessagingProvider provider;
+  private static final PushProviders pushProviders = new PushProviders();
   private static LeanplumPushNotificationCustomizer customizer;
   private static boolean useNotificationBuilderCustomizer = false;
 
@@ -110,12 +108,9 @@ public class LeanplumPushService {
    *
    * @return LeanplumCloudMessagingProvider - current provider
    */
-  static LeanplumCloudMessagingProvider getCloudMessagingProvider() {
-    return provider;
-  }
-
-  static void setCloudMessagingProvider(LeanplumCloudMessagingProvider cloudMessagingProvider) {
-    provider = cloudMessagingProvider;
+  @NonNull
+  static PushProviders getPushProviders() {
+    return pushProviders;
   }
 
   /**
@@ -644,83 +639,10 @@ public class LeanplumPushService {
   }
 
   /**
-   * Registers the application with FCM servers asynchronously.
-   * <p>
-   * Stores the registration ID and app versionCode in the application's shared preferences.
-   */
-  private static void registerInBackground() {
-    try {
-      Context context = Leanplum.getContext();
-      if (context == null) {
-        Log.e("Failed to register application with FCM. Your application context is not set.");
-        return;
-      }
-      Intent registerIntent = new Intent(context, LeanplumPushRegistrationService.class);
-      context.startService(registerIntent);
-    } catch (Throwable ignored) {
-    }
-  }
-
-  /**
    * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
-    Class leanplumFcmPushServiceClass = null;
-
-    try {
-      leanplumFcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_FCM);
-    } catch (Throwable ignored) {
-    }
-
-    if (leanplumFcmPushServiceClass != null) {
-      try {
-        leanplumFcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
-      } catch (Throwable ignored) {
-      }
-    }
-  }
-
-  /**
-   * Initialize push service.
-   */
-  static void initPushService() {
-    if (!provider.isInitialized()) {
-      return;
-    }
-    if (hasAppIDChanged(APIConfig.getInstance().appId())) {
-      provider.unregister();
-    }
-    registerInBackground();
-  }
-
-  /**
-   * Check if current application id is different from stored one.
-   *
-   * @param currentAppId - Current application id.
-   * @return True if application id was stored before and doesn't equal to current.
-   */
-  private static boolean hasAppIDChanged(String currentAppId) {
-    if (currentAppId == null) {
-      return false;
-    }
-
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return false;
-    }
-
-    String storedAppId = SharedPreferencesUtil.getString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.APP_ID);
-    if (!currentAppId.equals(storedAppId)) {
-      Log.d("Saving the application id in the shared preferences.");
-      SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-          Constants.Defaults.APP_ID, currentAppId);
-      // Check application id was stored before.
-      if (!SharedPreferencesUtil.DEFAULT_STRING_VALUE.equals(storedAppId)) {
-        return true;
-      }
-    }
-    return false;
+    pushProviders.updateRegistrationIdsAndBackend();
   }
 
   /**

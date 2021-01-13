@@ -46,11 +46,8 @@ public final class LeanplumFirebaseServiceHandler {
    * Call from your implementation of {@link FirebaseMessagingService#onNewToken(String)}
    */
   public void onNewToken(String token, Context context) {
-    LeanplumPushService.setCloudMessagingProvider(new LeanplumFcmProvider());
-    LeanplumPushService.getCloudMessagingProvider().storePreferences(context, token);
-
     //send the new token to backend
-    LeanplumPushService.getCloudMessagingProvider().onRegistrationIdReceived(context, token);
+    LeanplumPushService.getPushProviders().setRegistrationId(PushProviderType.FCM, token);
   }
 
   /**
