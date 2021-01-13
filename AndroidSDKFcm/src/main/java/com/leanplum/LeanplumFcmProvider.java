@@ -40,6 +40,12 @@ import androidx.annotation.NonNull;
  */
 class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
+  /**
+   * Constructor called by reflection.
+   */
+  public LeanplumFcmProvider() {
+  }
+
   @Override
   protected String getSharedPrefsPropertyName() {
     return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
