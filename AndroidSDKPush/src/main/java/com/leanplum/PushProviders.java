@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +34,7 @@ import java.util.Map;
 
 public class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
+  private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
 
   private Map<PushProviderType, IPushProvider> providers = new HashMap<>();
 
@@ -41,6 +42,11 @@ public class PushProviders {
     IPushProvider fcm = createFcm();
     if (fcm != null) {
       providers.put(PushProviderType.FCM, fcm);
+    }
+
+    IPushProvider miPush = createMiPush();
+    if (miPush != null) {
+      providers.put(PushProviderType.MIPUSH, miPush);
     }
   }
 
@@ -68,6 +74,18 @@ public class PushProviders {
     } catch (Throwable t) {
       Log.e("FCM not found. Did you forget to include FCM module dependency "
           + "\"com.leanplum:leanplum-fcm\"?", t);
+      return null;
+    }
+  }
+
+  private static IPushProvider createMiPush() {
+    try {
+      IPushProvider miPushProvider =
+          (IPushProvider) Class.forName(MIPUSH_PROVIDER_CLASS).getConstructor().newInstance();
+      return miPushProvider;
+    } catch (Throwable t) {
+      Log.e("MiPush not found. Did you forget to include MiPush module dependency "
+          + "\"com.leanplum:leanplum-mipush\"?", t);
       return null;
     }
   }

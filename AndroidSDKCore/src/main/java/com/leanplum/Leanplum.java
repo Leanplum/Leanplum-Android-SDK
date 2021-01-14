@@ -692,6 +692,8 @@ public class Leanplum {
 
     String fcmRegistrationId = SharedPreferencesUtil.getString(context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
+    String miPushRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID);
 
     HashMap<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
@@ -705,6 +707,9 @@ public class Leanplum {
     params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
     if (!TextUtils.isEmpty(fcmRegistrationId)) {
       params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
+    }
+    if (false && !TextUtils.isEmpty(miPushRegistrationId)) { // TODO fix to send to server when done with mipush
+      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, fcmRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
@@ -1554,6 +1559,10 @@ public class Leanplum {
     switch (type) {
       case FCM:
         attributeName = Constants.Params.DEVICE_FCM_PUSH_TOKEN;
+        break;
+      case MIPUSH:
+        attributeName = Constants.Params.DEVICE_MIPUSH_TOKEN;
+        if (true) return; // TODO remove line to send to server
         break;
       default:
         return;

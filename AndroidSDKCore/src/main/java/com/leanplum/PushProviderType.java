@@ -22,5 +22,6 @@
 package com.leanplum;
 
 enum PushProviderType {
-  FCM
+  FCM,
+  MIPUSH
 }
