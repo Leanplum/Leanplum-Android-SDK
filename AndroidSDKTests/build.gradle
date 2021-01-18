@@ -45,6 +45,8 @@ android {
                 logger.lifecycle("Running test: " + descriptor)
             }
 
+            //uncomment when AndroidSDKMiPush dependency is added
+            //jvmArgs '-noverify' // MiPush jar is compiled using older Java (version 7) than the Leanplum SDK (version 8) and Robolectric causes java.lang.VerifyError
 
         }
         unitTests {
@@ -62,7 +64,7 @@ dependencies {
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
-    implementation project(':AndroidSDKMiPush')
+    //implementation project(':AndroidSDKMiPush')
     implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
     implementation 'com.google.android.gms:play-services-location:17.0.0'
 
