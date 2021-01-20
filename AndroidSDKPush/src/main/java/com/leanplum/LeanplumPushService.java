@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -35,6 +35,7 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
@@ -223,7 +224,7 @@ public class LeanplumPushService {
     });
   }
 
-  private static String getMessageId(Bundle message) {
+  static String getMessageId(Bundle message) {
     String messageId = message.getString(Keys.PUSH_MESSAGE_ID_NO_MUTE_WITH_ACTION);
     if (messageId == null) {
       messageId = message.getString(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION);
@@ -241,9 +242,13 @@ public class LeanplumPushService {
   }
 
   static void handleNotification(final Context context, final Bundle message) {
-    Map<String,String> properties = new HashMap<String, String>();
-    properties.put("messageID",getMessageId(message));
-    Leanplum.track("Push Delivered", properties);
+    PushTracking.trackDelivery(message);
+
+    if (PushTracking.isFcmSilentPush(message)) {
+      // This type of push is used to measure rate.
+      return;
+    }
+
     if (LeanplumActivityHelper.getCurrentActivity() != null
         && !LeanplumActivityHelper.isActivityPaused
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
@@ -351,7 +356,7 @@ public class LeanplumPushService {
     }
 
     int notificationId = LeanplumPushService.NOTIFICATION_ID;
-    Object notificationIdObject = message.get("lp_notificationId");
+    Object notificationIdObject = message.get(Keys.PUSH_MESSAGE_NOTIFICATION_ID);
     if (notificationIdObject instanceof Number) {
       notificationId = ((Number) notificationIdObject).intValue();
     } else if (notificationIdObject instanceof String) {
@@ -401,15 +406,17 @@ public class LeanplumPushService {
   }
 
   static void openNotification(Context context, Intent intent) {
-    Log.d("Opening push notification action.");
-    Map<String,String> properties = new HashMap<String, String>();
-    properties.put("messageID",getMessageId(intent.getExtras()));
-    Leanplum.track("Push Opened", properties);
     // Pre handles push notification.
     Bundle notification = preHandlePushNotification(context, intent);
     if (notification == null) {
       return;
     }
+    openNotification(context, notification);
+  }
+
+  static void openNotification(Context context, @NonNull Bundle notification) {
+    Log.d("Opening push notification action.");
+    PushTracking.trackOpen(notification);
 
     // Checks if open action is "Open URL" and there is some activity that can handle intent.
     if (isActivityWithIntentStarted(context, notification)) {
@@ -438,7 +445,7 @@ public class LeanplumPushService {
       context.startActivity(actionIntent);
     }
     // Post handles push notification.
-    postHandlePushNotification(context, intent);
+    performPushNotificationAction(notification);
   }
 
   /**
@@ -501,6 +508,10 @@ public class LeanplumPushService {
       Log.d("Could not post handle push notification, extras are null.");
       return;
     }
+    performPushNotificationAction(notification);
+  }
+
+  private static void performPushNotificationAction(@NonNull Bundle notification) {
     // Perform action.
     LeanplumActivityHelper.queueActionUponActive(new VariablesChangedCallback() {
       @Override

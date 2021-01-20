@@ -177,8 +177,12 @@ public class Constants {
     public static final String PUSH_MESSAGE_ID_NO_MUTE = "_lpn";
     public static final String PUSH_MESSAGE_ID_MUTE = "_lpv";
     public static final String PUSH_MESSAGE_ID = "lp_messageId";
+    public static final String PUSH_MESSAGE_NOTIFICATION_ID = "lp_notificationId";
     public static final String PUSH_MESSAGE_TEXT = "lp_message";
     public static final String PUSH_MESSAGE_IMAGE_URL = "lp_imageUrl";
+    public static final String PUSH_MESSAGE_DELIVERY_CHANNEL = "channel";
+    public static final String CHANNEL_INTERNAL_KEY = "_channel_internal";
+    public static final String PUSH_MESSAGE_SILENT_TRACK = "lp_silent_track";
     public static final String REGION = "region";
     public static final String REGION_STATE = "regionState";
     public static final String REGIONS = "regions";

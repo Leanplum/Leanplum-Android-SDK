@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,7 +25,9 @@ import android.content.Context;
 import android.os.Bundle;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import java.util.Map;
 
@@ -57,8 +59,18 @@ public final class LeanplumFirebaseServiceHandler {
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
     try {
       Map<String, String> messageMap = remoteMessage.getData();
+
+      DeliveryChannel channel;
+      if (messageMap.containsKey(Keys.PUSH_MESSAGE_SILENT_TRACK)) {
+        channel = DeliveryChannel.FCM_SILENT_TRACK;
+      } else {
+        channel = DeliveryChannel.FCM;
+      }
+
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
-        LeanplumPushService.handleNotification(context, getBundle(messageMap));
+        Bundle notification = getBundle(messageMap);
+        PushTracking.appendDeliveryChannel(notification, channel);
+        LeanplumPushService.handleNotification(context, notification);
       }
       Log.d("Received push notification message: %s", messageMap.toString());
     } catch (Throwable t) {
