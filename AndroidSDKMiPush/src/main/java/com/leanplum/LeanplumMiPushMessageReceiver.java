@@ -26,6 +26,9 @@ import com.xiaomi.mipush.sdk.MiPushCommandMessage;
 import com.xiaomi.mipush.sdk.MiPushMessage;
 import com.xiaomi.mipush.sdk.PushMessageReceiver;
 
+/**
+ * Implementation of MiPush listener for messages.
+ */
 public class LeanplumMiPushMessageReceiver extends PushMessageReceiver {
 
   private LeanplumMiPushHandler handler = new LeanplumMiPushHandler();

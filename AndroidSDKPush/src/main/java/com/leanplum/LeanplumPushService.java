@@ -241,6 +241,14 @@ public class LeanplumPushService {
     return messageId;
   }
 
+  static boolean shouldMuteNotification(@NonNull Bundle message) {
+    // Mute notifications that have "Mute inside app" set if the app is open.
+    return (LeanplumActivityHelper.getCurrentActivity() != null
+        && !LeanplumActivityHelper.isActivityPaused
+        && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
+        || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE)));
+  }
+
   static void handleNotification(final Context context, final Bundle message) {
     PushTracking.trackDelivery(message);
 
@@ -249,10 +257,7 @@ public class LeanplumPushService {
       return;
     }
 
-    if (LeanplumActivityHelper.getCurrentActivity() != null
-        && !LeanplumActivityHelper.isActivityPaused
-        && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
-        || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE))) {
+    if (shouldMuteNotification(message)) {
       // Mute notifications that have "Mute inside app" set if the app is open.
       return;
     }

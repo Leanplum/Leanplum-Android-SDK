@@ -26,19 +26,24 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Toast;
 import com.leanplum.PushTracking.DeliveryChannel;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.xiaomi.mipush.sdk.ErrorCode;
 import com.xiaomi.mipush.sdk.MiPushClient;
 import com.xiaomi.mipush.sdk.MiPushCommandMessage;
 import com.xiaomi.mipush.sdk.MiPushMessage;
+import com.xiaomi.mipush.sdk.PushMessageReceiver;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
 
-// TODO javadoc as in fcm
+/**
+ * This class encapsulates functionality for handling notification messages and registration ID from
+ * MiPush. Needs to be called from your instance of {@link PushMessageReceiver}.
+ */
 public class LeanplumMiPushHandler {
 
   static String APP_ID;
@@ -49,33 +54,64 @@ public class LeanplumMiPushHandler {
     APP_KEY = miAppKey;
   }
 
+  /**
+   * Receives data message (pass-through message).
+   */
   public void onReceivePassThroughMessage(Context context, MiPushMessage message) {
-    // Handle data message
-    toastAndLog(context, "onReceivePassThroughMessage: id=" + message.getMessageId() + " content=" + message.getContent() + " notifyId="+message.getNotifyId());
+    if (context == null || message == null)
+      return;
+
+    Log.d("Received MiPush data message %s: %s", message.getMessageId(), message.getContent());
   }
 
+  /**
+   * Handle opening of notification message.
+   */
   public void onNotificationMessageClicked(Context context, MiPushMessage message) {
-    // Handle notification message
     if (context == null || message == null) {
       return;
     }
-    toastAndLog(context, "onNotificationMessageClicked = " + message.getMessageId() + " content="+message.getContent() + " notifyId="+message.getNotifyId());
+
+    Log.d("MiPush notification clicked %s: %s", message.getMessageId(), message.getContent());
 
     Map<String, String> messageMap = parsePayload(message.getContent());
-    Bundle notification = createBundle(messageMap);
-    PushTracking.appendDeliveryChannel(notification, DeliveryChannel.MIPUSH);
-    LeanplumPushService.openNotification(context, notification);
+    if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+      Bundle notification = createBundle(messageMap);
+      PushTracking.appendDeliveryChannel(notification, DeliveryChannel.MIPUSH);
+      LeanplumPushService.openNotification(context, notification);
+    }
   }
 
+  /**
+   * Call when notification message is received.
+   */
   public void onNotificationMessageArrived(Context context, MiPushMessage message) {
-    //MiPushClient.clearNotification(context, message.getNotifyId()); TODO clean notification if app is in foreground and "mute inside app" is set
-    toastAndLog(context, "onNotificationMessageArrived: id=" + message.getMessageId() + " content=" + message.getContent() + " notifyId="+message.getNotifyId());
+    if (message == null)
+      return;
+
+    Log.d("Received MiPush notification message %s: %s",
+        message.getMessageId(), message.getContent());
+
+    Map<String, String> messageMap = parsePayload(message.getContent());
+    if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+      Bundle notification = createBundle(messageMap);
+      if (LeanplumPushService.shouldMuteNotification(notification)) {
+        // note that tracking of "Push Delivered" metric happens on server side
+        MiPushClient.clearNotification(context, message.getNotifyId());
+      }
+    }
   }
 
+  /**
+   * Handles result of command.
+   */
   public void onCommandResult(Context context, MiPushCommandMessage message) {
-    toastAndLog(context, "onCommandResult = " + message.getCommand());
+    // no implementation
   }
 
+  /**
+   * Receives registration ID.
+   */
   public void onReceiveRegisterResult(Context context, MiPushCommandMessage message) {
     if (message != null && MiPushClient.COMMAND_REGISTER.equals(message.getCommand())) {
       if (message.getResultCode() == ErrorCode.SUCCESS) {
@@ -83,22 +119,12 @@ public class LeanplumMiPushHandler {
         if (args != null && args.size() > 0) {
           String registrationId = args.get(0);
 
-          LeanplumPushService.getPushProviders()
-              .setRegistrationId(PushProviderType.MIPUSH, registrationId);
-          toastAndLog(context, "regid = " + registrationId);
+          LeanplumPushService.getPushProviders().setRegistrationId(
+              PushProviderType.MIPUSH, registrationId);
         }
       }
     }
-
-    toastAndLog(context, "onReceiveRegisterResult = " + message.getCommand());
   }
-
-  private void toastAndLog(Context context, String message) { // TODO remove logging
-    OperationQueue.sharedInstance().addUiOperation(
-        () -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
-    android.util.Log.e("Xiaomi", message);
-  }
-
 
   private Map<String, String> parsePayload(String payload) {
     Map<String, String> message = new HashMap<>();
