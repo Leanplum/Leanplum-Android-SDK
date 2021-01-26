@@ -34,7 +34,7 @@ import com.xiaomi.mipush.sdk.MiPushClient;
  */
 class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
 
-  private boolean appRegistered = false;
+  boolean appRegistered = false;
 
   /**
    * Constructor called by reflection.

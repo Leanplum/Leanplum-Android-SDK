@@ -25,6 +25,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Toast;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
@@ -126,7 +127,8 @@ public class LeanplumMiPushHandler {
     }
   }
 
-  private Map<String, String> parsePayload(String payload) {
+  @VisibleForTesting
+  Map<String, String> parsePayload(String payload) {
     Map<String, String> message = new HashMap<>();
     if (TextUtils.isEmpty(payload)) {
       return message;

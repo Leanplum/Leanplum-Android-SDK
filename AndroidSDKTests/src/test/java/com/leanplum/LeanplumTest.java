@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -39,6 +39,7 @@ import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ApiConfigLoader;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.FeatureFlagManager;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
@@ -1134,11 +1135,12 @@ public class LeanplumTest extends AbstractTest {
   }
 
   /**
-   * Test push notification registration
+   * Test push notification registration for FCM.
    */
   @Test
-  public void testPushNotificationRegistrationFcm() throws Exception {
+  public void testPushNotificationRegistrationFcm() {
     setupSDK(mContext, "/responses/simple_start_response.json");
+    String regId = "regId";
 
     // Verify request.
     RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
@@ -1146,10 +1148,32 @@ public class LeanplumTest extends AbstractTest {
       public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
         assertEquals(RequestBuilder.ACTION_SET_DEVICE_ATTRIBUTES, apiMethod);
         assertNotNull(params);
+        assertEquals(regId, params.get(Params.DEVICE_FCM_PUSH_TOKEN));
       }
     });
     // Register for push notification.
-    Leanplum.setRegistrationId(PushProviderType.FCM, LeanplumPushService.LEANPLUM_SENDER_ID);
+    Leanplum.setRegistrationId(PushProviderType.FCM, regId);
+  }
+
+  /**
+   * Test push notification registration for MiPush.
+   */
+  @Test
+  public void testPushNotificationRegistrationMiPush() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+    String regId = "regId";
+
+    // Verify request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(RequestBuilder.ACTION_SET_DEVICE_ATTRIBUTES, apiMethod);
+        assertNotNull(params);
+        assertEquals(regId, params.get(Params.DEVICE_MIPUSH_TOKEN));
+      }
+    });
+    // Register for push notification.
+    Leanplum.setRegistrationId(PushProviderType.MIPUSH, regId);
   }
 
   /**

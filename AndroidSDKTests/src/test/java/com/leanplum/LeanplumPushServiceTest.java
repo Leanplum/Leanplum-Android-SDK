@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -101,7 +101,7 @@ import static org.robolectric.Shadows.shadowOf;
     "android.*"
 })
 @PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class,
-    SharedPreferencesUtil.class, Util.class, PushProviders.class})
+    SharedPreferencesUtil.class, Util.class, PushProviders.class, LeanplumMiPushProvider.class})
 public class LeanplumPushServiceTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
@@ -138,6 +138,7 @@ public class LeanplumPushServiceTest {
   @After
   public void tearDown() throws Exception {
     PowerMockito.doCallRealMethod().when(PushProviders.class, "createFcm");
+    PowerMockito.doCallRealMethod().when(PushProviders.class, "createMiPush");
     TestClassUtil.setField(LeanplumPushService.class, "pushProviders", new PushProviders());
   }
 
@@ -169,9 +170,16 @@ public class LeanplumPushServiceTest {
   public void testOnStartUpdatesRegistrationIds() throws Exception {
     spy(PushProviders.class);
 
+    // FCM
     LeanplumFcmProvider fcmProviderMock = spy(new LeanplumFcmProvider());
     doNothing().when(fcmProviderMock).updateRegistrationId();
     PowerMockito.doReturn(fcmProviderMock).when(PushProviders.class, "createFcm");
+
+    // MiPush
+    LeanplumMiPushProvider miPushProviderMock = spy(new LeanplumMiPushProvider());
+    doNothing().when(miPushProviderMock).updateRegistrationId();
+    PowerMockito.doReturn(miPushProviderMock).when(PushProviders.class, "createMiPush");
+
     PushProviders pushProviders = new PushProviders();
     TestClassUtil.setField(LeanplumPushService.class, "pushProviders", pushProviders);
 
@@ -181,6 +189,7 @@ public class LeanplumPushServiceTest {
 
     onStartMethod.invoke(LeanplumPushService.class);
     verify(fcmProviderMock, times(1)).updateRegistrationId();
+    verify(miPushProviderMock, times(1)).updateRegistrationId();
   }
 
   /**

@@ -246,7 +246,7 @@ public class LeanplumPushService {
     return (LeanplumActivityHelper.getCurrentActivity() != null
         && !LeanplumActivityHelper.isActivityPaused
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
-        || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE)));
+            || message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE)));
   }
 
   static void handleNotification(final Context context, final Bundle message) {

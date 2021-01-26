@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -47,7 +47,6 @@ import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -100,18 +99,19 @@ public class LeanplumCloudMessagingProviderTest {
     mockStatic(Leanplum.class);
     mockStatic(SharedPreferencesUtil.class);
     when(Leanplum.class, "getContext").thenReturn(RuntimeEnvironment.application);
+    String propertyName = "propertyName";
 
     LeanplumCloudMessagingProvider cloudMessagingProvider = new LeanplumCloudMessagingProvider() {
       @Override
       protected String getSharedPrefsPropertyName() {
-        return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
+        return propertyName;
       }
       @Override
       public void updateRegistrationId() {
       }
       @Override
       public PushProviderType getType() {
-        return PushProviderType.FCM;
+        return null; // value does not matter for the test
       }
       @Override
       public void unregister() {
@@ -122,7 +122,7 @@ public class LeanplumCloudMessagingProviderTest {
     whenNew(LeanplumCloudMessagingProvider.class).withNoArguments().thenReturn(
         cloudMessagingProviderMock);
     when(SharedPreferencesUtil.class, "getString", context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_FCM_TOKEN_ID).thenReturn("stored_token");
+        propertyName).thenReturn("stored_token");
     doNothing().when(cloudMessagingProviderMock).storeRegistrationId(anyString());
 
     // Test if a token gets send to the backend when no previous token exists.

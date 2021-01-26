@@ -32,7 +32,7 @@ import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PushProviders {
+class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
   private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
 

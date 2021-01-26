@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -1562,7 +1562,6 @@ public class Leanplum {
         break;
       case MIPUSH:
         attributeName = Constants.Params.DEVICE_MIPUSH_TOKEN;
-        if (true) return; // TODO remove line to send to server
         break;
       default:
         return;
