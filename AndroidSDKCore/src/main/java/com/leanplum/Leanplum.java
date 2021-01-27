@@ -708,7 +708,7 @@ public class Leanplum {
     if (!TextUtils.isEmpty(fcmRegistrationId)) {
       params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
     }
-    if (false && !TextUtils.isEmpty(miPushRegistrationId)) { // TODO fix to send to server when done with mipush
+    if (!TextUtils.isEmpty(miPushRegistrationId)) {
       params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, fcmRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());

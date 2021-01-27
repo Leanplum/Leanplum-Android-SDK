@@ -24,12 +24,11 @@ package com.leanplum;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.OperationQueue;
 import com.xiaomi.mipush.sdk.ErrorCode;
 import com.xiaomi.mipush.sdk.MiPushClient;
 import com.xiaomi.mipush.sdk.MiPushCommandMessage;
@@ -62,7 +61,7 @@ public class LeanplumMiPushHandler {
     if (context == null || message == null)
       return;
 
-    Log.d("Received MiPush data message %s: %s", message.getMessageId(), message.getContent());
+    Log.d("Received MiPush data message %s: %s", message.getMessageId(), getContentLog(message));
   }
 
   /**
@@ -73,7 +72,7 @@ public class LeanplumMiPushHandler {
       return;
     }
 
-    Log.d("MiPush notification clicked %s: %s", message.getMessageId(), message.getContent());
+    Log.d("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
 
     Map<String, String> messageMap = parsePayload(message.getContent());
     if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
@@ -91,7 +90,7 @@ public class LeanplumMiPushHandler {
       return;
 
     Log.d("Received MiPush notification message %s: %s",
-        message.getMessageId(), message.getContent());
+        message.getMessageId(), getContentLog(message));
 
     Map<String, String> messageMap = parsePayload(message.getContent());
     if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
@@ -143,7 +142,7 @@ public class LeanplumMiPushHandler {
         message.put(key, val.toString());
       }
     } catch (Throwable t) {
-      Log.e("Error parsing MiPush payload=" + payload, t);
+      Log.e("Error parsing MiPush payload: " + payload, t);
     }
     return message;
   }
@@ -156,5 +155,13 @@ public class LeanplumMiPushHandler {
       }
     }
     return bundle;
+  }
+
+  private String getContentLog(@NonNull MiPushMessage message) {
+    String content = message.getContent();
+    if (!TextUtils.isEmpty(content)) {
+      return content;
+    }
+    return "(empty content)";
   }
 }
