@@ -709,7 +709,7 @@ public class Leanplum {
       params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
     }
     if (!TextUtils.isEmpty(miPushRegistrationId)) {
-      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, fcmRegistrationId);
+      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, miPushRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
