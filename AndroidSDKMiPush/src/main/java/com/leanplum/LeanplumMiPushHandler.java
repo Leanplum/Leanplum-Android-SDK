@@ -46,12 +46,12 @@ import org.json.JSONObject;
  */
 public class LeanplumMiPushHandler {
 
-  static String APP_ID;
-  static String APP_KEY;
+  static String MI_APP_ID;
+  static String MI_APP_KEY;
 
   public static void setApplication(String miAppId, String miAppKey) {
-    APP_ID = miAppId;
-    APP_KEY = miAppKey;
+    MI_APP_ID = miAppId;
+    MI_APP_KEY = miAppKey;
   }
 
   /**

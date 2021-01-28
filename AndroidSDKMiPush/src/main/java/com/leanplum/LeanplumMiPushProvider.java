@@ -49,12 +49,16 @@ class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
   }
 
   private void registerApp(@NonNull Context context) {
-    if (TextUtils.isEmpty(LeanplumMiPushHandler.APP_ID)
-        || TextUtils.isEmpty(LeanplumMiPushHandler.APP_KEY)) {
-      Log.e("You need to provide appId and appKey for MiPush to work.");
+    String miAppId = LeanplumMiPushHandler.MI_APP_ID;
+    String miAppKey = LeanplumMiPushHandler.MI_APP_KEY;
+
+    if (TextUtils.isEmpty(miAppId) || TextUtils.isEmpty(miAppKey)) {
+      Log.e("You need to provide appId and appKey for MiPush to work."
+          + "Call LeanplumMiPushHandler.setApplication(miAppId, miAppKey) before Leanplum.start()");
       return;
     }
-    MiPushClient.registerPush(context, LeanplumMiPushHandler.APP_ID, LeanplumMiPushHandler.APP_KEY);
+
+    MiPushClient.registerPush(context, miAppId, miAppKey);
     appRegistered = true;
   }
 

@@ -72,8 +72,8 @@ class PushProviders {
           (IPushProvider) Class.forName(FCM_PROVIDER_CLASS).getConstructor().newInstance();
       return fcmProvider;
     } catch (Throwable t) {
-      Log.e("FCM not found. Did you forget to include FCM module dependency "
-          + "\"com.leanplum:leanplum-fcm\"?", t);
+      Log.i("FCM module not found. "
+          + "For Firebase messaging include dependency \"com.leanplum:leanplum-fcm\".");
       return null;
     }
   }
@@ -84,8 +84,8 @@ class PushProviders {
           (IPushProvider) Class.forName(MIPUSH_PROVIDER_CLASS).getConstructor().newInstance();
       return miPushProvider;
     } catch (Throwable t) {
-      Log.e("MiPush not found. Did you forget to include MiPush module dependency "
-          + "\"com.leanplum:leanplum-mipush\"?", t);
+      Log.i("MiPush module not found. "
+          + "For Mi Push messaging include dependency \"com.leanplum:leanplum-mipush\".");
       return null;
     }
   }

@@ -241,8 +241,14 @@ public class LeanplumPushService {
     return messageId;
   }
 
+  /**
+   * If "Mute inside app" is set for this message and app is currently open the notification
+   * should not be shown.
+   *
+   * @param message Bundle with parameters.
+   * @return True if notification has "Mute inside app" set and app is opened.
+   */
   static boolean shouldMuteNotification(@NonNull Bundle message) {
-    // Mute notifications that have "Mute inside app" set if the app is open.
     return (LeanplumActivityHelper.getCurrentActivity() != null
         && !LeanplumActivityHelper.isActivityPaused
         && (message.containsKey(Keys.PUSH_MESSAGE_ID_MUTE_WITH_ACTION)
