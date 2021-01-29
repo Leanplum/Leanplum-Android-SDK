@@ -280,14 +280,34 @@ public class VarCache {
       for (Object var : varsKeys) {
         merged.add(var);
       }
-      for (Object varSubscript : diffKeys) {
-        String strSubscript = (String) varSubscript;
-        int subscript = Integer.parseInt(strSubscript.substring(1, strSubscript.length() - 1));
-        Object var = diffMap != null ? diffMap.get(strSubscript) : null;
-        while (subscript >= merged.size()) {
-          merged.add(null);
+      
+      // Merge values from server
+      // Array values from server come as Dictionary
+      // Example:
+      // string[] items = new string[] { "Item 1", "Item 2"};
+      // args.With<string[]>("Items", items); // Action Context arg value
+      // "vars": {
+      //      "Items": {
+      //                  "[1]": "Item 222", // Modified value from server
+      //                  "[0]": "Item 111"  // Modified value from server
+      //              }
+      //  }
+      // Prevent error when loading variable diffs where the diff is an Array and not Dictionary
+      if (diffMap != null) {
+        for (Object varSubscript : diffKeys) {
+          if (varSubscript instanceof String) {
+            String strSubscript = (String) varSubscript;
+            if (strSubscript.startsWith("[") && strSubscript.endsWith("]")) {
+              // Get the index from the string key: "[0]" -> 0
+              int subscript = Integer.parseInt(strSubscript.substring(1, strSubscript.length() - 1));
+              Object var = diffMap != null ? diffMap.get(strSubscript) : null;
+              while (subscript >= merged.size()) {
+                merged.add(null);
+              }
+              merged.set(subscript, mergeHelper(merged.get(subscript), var));
+            }
+          }
         }
-        merged.set(subscript, mergeHelper(merged.get(subscript), var));
       }
       return merged;
     }
