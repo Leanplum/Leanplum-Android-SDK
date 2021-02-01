@@ -297,11 +297,11 @@ public class VarCache {
         for (Object varSubscript : diffKeys) {
           if (varSubscript instanceof String) {
             String strSubscript = (String) varSubscript;
-            if (strSubscript.startsWith("[") && strSubscript.endsWith("]")) {
+            if (strSubscript.length() > 2 && strSubscript.startsWith("[") && strSubscript.endsWith("]")) {
               // Get the index from the string key: "[0]" -> 0
               int subscript = Integer.parseInt(strSubscript.substring(1, strSubscript.length() - 1));
-              Object var = diffMap != null ? diffMap.get(strSubscript) : null;
-              while (subscript >= merged.size()) {
+              Object var = diffMap.get(strSubscript);
+              while (subscript >= merged.size() && merged.size() < Short.MAX_VALUE) {
                 merged.add(null);
               }
               merged.set(subscript, mergeHelper(merged.get(subscript), var));
