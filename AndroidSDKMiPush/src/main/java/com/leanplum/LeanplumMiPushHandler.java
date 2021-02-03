@@ -27,7 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.PushTracking.DeliveryChannel;
-import com.leanplum.internal.Constants;
+import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import com.xiaomi.mipush.sdk.ErrorCode;
 import com.xiaomi.mipush.sdk.MiPushClient;
@@ -75,7 +75,10 @@ public class LeanplumMiPushHandler {
     Log.d("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
 
     Map<String, String> messageMap = parsePayload(message.getContent());
-    if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+
+    if (isLeanplumPush(messageMap)) {
+      resolveMessageDescription(messageMap, message);
+
       Bundle notification = createBundle(messageMap);
       PushTracking.appendDeliveryChannel(notification, DeliveryChannel.MIPUSH);
       LeanplumPushService.openNotification(context, notification);
@@ -93,7 +96,10 @@ public class LeanplumMiPushHandler {
         message.getMessageId(), getContentLog(message));
 
     Map<String, String> messageMap = parsePayload(message.getContent());
-    if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+
+    if (isLeanplumPush(messageMap)) {
+      resolveMessageDescription(messageMap, message);
+
       Bundle notification = createBundle(messageMap);
       if (LeanplumPushService.shouldMuteNotification(notification)) {
         // note that tracking of "Push Delivered" metric happens on server side
@@ -163,5 +169,21 @@ public class LeanplumMiPushHandler {
       return content;
     }
     return "(empty content)";
+  }
+
+  private boolean isLeanplumPush(@NonNull Map<String, String> message) {
+    return message.containsKey(Keys.PUSH_VERSION);
+  }
+
+  private void resolveMessageDescription(
+      @NonNull Map<String, String> messageMap,
+      @NonNull MiPushMessage miPushMessage) {
+    // Server optimisation to get the message text from Mi Push message description and avoid
+    // sending the same text multiple times
+    String lpMessageText = messageMap.get(Keys.PUSH_MESSAGE_TEXT);
+    if (TextUtils.isEmpty(lpMessageText)) {
+      String description = miPushMessage.getDescription();
+      messageMap.put(Keys.PUSH_MESSAGE_TEXT, description);
+    }
   }
 }

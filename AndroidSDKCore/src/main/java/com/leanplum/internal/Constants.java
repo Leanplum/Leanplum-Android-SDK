@@ -179,6 +179,7 @@ public class Constants {
     public static final String PUSH_MESSAGE_ID = "lp_messageId";
     public static final String PUSH_MESSAGE_NOTIFICATION_ID = "lp_notificationId";
     public static final String PUSH_MESSAGE_TEXT = "lp_message";
+    public static final String PUSH_VERSION = "lp_version";
     public static final String PUSH_MESSAGE_IMAGE_URL = "lp_imageUrl";
     public static final String PUSH_MESSAGE_DELIVERY_CHANNEL = "channel";
     public static final String CHANNEL_INTERNAL_KEY = "_channel_internal";
