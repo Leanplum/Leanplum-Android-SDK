@@ -1654,48 +1654,41 @@ public class LeanplumTest extends AbstractTest {
     assertEquals(4, VarCache.variants().size());
   }
 
-//  TODO: Currently hasStarted flag is not set if network is down.
-//   This must be discussed and fixed as well.
-//
-//  @Test
-//  public void testStartChangeCallBackForOffline() throws Exception {
-//    final Semaphore semaphore = new Semaphore(1);
-//    semaphore.acquire();
-//
-//    //Offline Mode.
-//     ResponseHelper.seedResponseNull();
-//
-//    // Expected request params.
-//    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
-//        "city", "(detect)",
-//        "country", "(detect)",
-//        "location", "(detect)",
-//        "region", "(detect)",
-//        "locale", "en_US"
-//    );
-//
-//    // Validate request.
-//    // Validate request.
-//    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
-//      @Override
-//      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-//        assertEquals(RequestBuilder.ACTION_START, apiMethod);
-//        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
-//        assertTrue(params.values().containsAll(expectedRequestParams.values()));
-//      }
-//    });
-//
-//
-//    Leanplum.start(mContext, new StartCallback() {
-//      @Override
-//      public void onResponse(boolean success) {
-//        assertTrue(success);
-//        semaphore.release();
-//      }
-//    });
-//    assertTrue(Leanplum.hasStarted());
-//
-//  }
+  @Test
+  public void testStartChangeCallBackForOffline() throws Exception {
+    //Offline Mode.
+     ResponseHelper.seedResponseNull();
+
+    // Expected request params.
+    final HashMap<String, Object> expectedRequestParams = CollectionUtil.newHashMap(
+        "city", "(detect)",
+        "country", "(detect)",
+        "location", "(detect)",
+        "region", "(detect)",
+        "locale", "en_US"
+    );
+
+    // Validate request.
+    // Validate request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
+        assertEquals(RequestBuilder.ACTION_START, apiMethod);
+        assertTrue(params.keySet().containsAll(expectedRequestParams.keySet()));
+        assertTrue(params.values().containsAll(expectedRequestParams.values()));
+      }
+    });
+
+
+    Leanplum.start(mContext, new StartCallback() {
+      @Override
+      public void onResponse(boolean success) {
+        assertFalse(success); // in offline mode the success flag is false and isStarted is true
+      }
+    });
+    assertTrue(Leanplum.hasStarted());
+
+  }
 
   @Test
   public void testVariableChangeCallBacksForOffline() throws Exception {

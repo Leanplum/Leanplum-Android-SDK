@@ -228,7 +228,7 @@ public class RequestSender {
 
     if (Constants.isDevelopmentModeEnabled || RequestType.IMMEDIATE.equals(request.getType())) {
       try {
-        if (validateConfig()) {
+        if (validateConfig(request)) {
           sendRequests();
         }
       } catch (Throwable t) {
@@ -237,7 +237,7 @@ public class RequestSender {
     }
   }
 
-  private boolean validateConfig() {
+  private boolean validateConfig(@NonNull Request request) {
     if (APIConfig.getInstance().appId() == null) {
       Log.e("Cannot send request. appId is not set.");
       return false;
@@ -250,6 +250,9 @@ public class RequestSender {
 
     if (!Util.isConnected()) {
       Log.d("Device is offline, will try sending requests again later.");
+      if (request.error != null) {
+        request.error.error(new Exception("Leanplum: device is offline"));
+      }
       return false;
     }
 
