@@ -7,8 +7,18 @@ public class ShadowOperationQueue extends OperationQueue {
     }
 
     @Override
-    boolean addOperation(Runnable operation) {
+    public boolean addOperation(Runnable operation) {
         operation.run();
         return true;
+    }
+
+    @Override
+    public void addParallelOperation(Runnable operation) {
+        operation.run();
+    }
+
+    @Override
+    public void addUiOperation(Runnable operation) {
+        operation.run();
     }
 }

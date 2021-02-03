@@ -25,7 +25,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import com.leanplum.Leanplum;
@@ -374,15 +373,14 @@ public class FileManager {
       final List<Pattern> compiledExcludePatterns = compilePatterns(patternsToExclude);
 
       if (isAsync) {
-        Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
+        OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
           @Override
-          protected Void doInBackground(Void... params) {
+          public void run() {
             try {
               enableResourceSyncing(compiledIncludePatterns, compiledExcludePatterns);
             } catch (Throwable t) {
               Util.handleException(t);
             }
-            return null;
           }
         });
       } else {

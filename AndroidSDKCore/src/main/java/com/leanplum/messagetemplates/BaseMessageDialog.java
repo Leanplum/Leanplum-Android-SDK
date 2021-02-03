@@ -208,8 +208,13 @@ public class BaseMessageDialog extends Dialog {
     if (isClosing) {
       return;
     }
+    if(isHtml && htmlOptions != null && htmlOptions.getActionContext() != null)
+      Leanplum.triggerMessageClosed(htmlOptions.getActionContext());
+    else if(isWeb && webOptions != null && webOptions.getActionContext() != null)
+      Leanplum.triggerMessageClosed(webOptions.getActionContext());
+    else if (options != null && options.getActionContext() != null)
+      Leanplum.triggerMessageClosed(options.getActionContext());
     isClosing = true;
-    Leanplum.triggerMessageClosed();
     Animation animation = createFadeOutAnimation();
     animation.setAnimationListener(new Animation.AnimationListener() {
       @Override

@@ -35,19 +35,26 @@ import com.leanplum.messagetemplates.MessageTemplates.Values;
  */
 @SuppressWarnings("WeakerAccess")
 public class WebInterstitialOptions {
+  private ActionContext actionContext;
   private String url;
   private String closeUrl;
   private boolean hasDismissButton;
 
   protected WebInterstitialOptions(ActionContext context) {
+    this.setActionContext(context);
     this.setUrl(context.stringNamed(Args.URL));
     this.setHasDismissButton(context.booleanNamed(Args.HAS_DISMISS_BUTTON));
     this.setCloseUrl(context.stringNamed(Args.CLOSE_URL));
   }
 
+  private void setActionContext(ActionContext actionContext) {this.actionContext = actionContext;}
+
+  public ActionContext getActionContext() { return  actionContext; }
+
   public String getUrl() {
     return url;
   }
+
 
   private void setUrl(String url) {
     this.url = url;

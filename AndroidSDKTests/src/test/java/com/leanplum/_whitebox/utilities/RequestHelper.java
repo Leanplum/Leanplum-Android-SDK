@@ -24,6 +24,9 @@ import android.util.Log;
 
 import com.leanplum.internal.RequestOld;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -70,6 +73,21 @@ public class RequestHelper extends RequestOld {
     } catch (Exception e) {
       Log.e(RequestHelper.class.getSimpleName(), "Could not access private field \"sent\"");
     }
+  }
+
+  @Override
+  protected void parseResponseBody(JSONObject responseBody, Exception error) {
+    try {
+      // attach the uuid we generated
+      JSONArray jsonArray = responseBody.getJSONArray("response");
+      for (int i = 0; i < jsonArray.length(); i++) {
+        JSONObject jsonObject = jsonArray.getJSONObject(i);
+        jsonObject.put("reqId", requestId());
+      }
+    } catch (Exception e) {
+      // ignore
+    }
+    super.parseResponseBody(responseBody, error);
   }
 
   /**

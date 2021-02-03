@@ -29,7 +29,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.FileManager.DownloadFileResult;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.OsHandler;
+import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -409,7 +409,7 @@ public class Var<T> {
     synchronized (valueChangedHandlers) {
       for (VariableCallback<T> callback : valueChangedHandlers) {
         callback.setVariable(this);
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     }
   }
@@ -449,7 +449,7 @@ public class Var<T> {
       fileIsPending = false;
       for (VariableCallback<T> callback : fileReadyHandlers) {
         callback.setVariable(this);
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
     }
   }

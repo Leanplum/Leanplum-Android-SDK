@@ -122,6 +122,8 @@ public class Constants {
   }
 
   public static class Params {
+    public static final String RESPONSE = "response";
+
     public static final String ACTION = "action";
     public static final String ACTION_DEFINITIONS = "actionDefinitions";
     public static final String APP_ID = "appId";
@@ -172,6 +174,7 @@ public class Constants {
     public static final String VALUE = "value";
     public static final String VARS = "vars";
     public static final String VERSION_NAME = "versionName";
+    public static final String REQUEST_ID = "reqId";
   }
 
   public static class Keys {
@@ -271,9 +274,5 @@ public class Constants {
   public static class Messaging {
     public static final int MAX_STORED_OCCURRENCES_PER_MESSAGE = 100;
     public static final int DEFAULT_PRIORITY = 1000;
-  }
-
-  public static class ClassUtil {
-    public static final String UI_INTERFACE_EDITOR = "com.leanplum.uieditor.LeanplumUIEditor";
   }
 }

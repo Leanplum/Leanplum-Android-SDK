@@ -24,7 +24,6 @@ package com.leanplum.internal;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.AsyncTask;
 
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
@@ -111,6 +110,7 @@ public class LeanplumInternal {
   public static void triggerAction(final ActionContext context,
       final VariablesChangedCallback handledCallback) {
     List<ActionCallback> callbacks;
+    Leanplum.triggerActionTriggered(context);
     synchronized (actionHandlers) {
       List<ActionCallback> handlers = actionHandlers.get(context.actionName());
       if (handlers == null) {
@@ -124,7 +124,7 @@ public class LeanplumInternal {
     }
     final AtomicBoolean handled = new AtomicBoolean(false);
     for (final ActionCallback callback : callbacks) {
-      OsHandler.getInstance().post(new Runnable() {
+      OperationQueue.sharedInstance().addUiOperation(new Runnable() {
         @Override
         public void run() {
           if (callback.onResponse(context) && handledCallback != null) {
@@ -280,15 +280,27 @@ public class LeanplumInternal {
   }
 
   private static int fetchCountDown(ActionContext context, Map<String, Object> messages) {
-    // Get eta.
-    Object countdownObj;
-    if (((BaseActionContext) context).isPreview()) {
-      countdownObj = 5.0;
-    } else {
-      Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(context.messageId));
-      countdownObj = messageConfig.get("countdown");
+    if (context == null || messages == null) {
+      return 0;
     }
-    return ((Number) countdownObj).intValue();
+
+    // Get eta.
+    if (((BaseActionContext) context).isPreview()) {
+      return 5;
+    } else {
+      // We need to lookup by original message id, to avoid looking up messages with
+      // added prefix of __held_back__ to message id.
+      String originalMessageId = context.getOriginalMessageId();
+      if (originalMessageId == null) {
+        return 0;
+      }
+      Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(originalMessageId));
+      Object countdown = messageConfig.get("countdown");
+      if (countdown instanceof Number) {
+        return ((Number) countdown).intValue();
+      }
+      return 0;
+    }
   }
 
   private static Map<String, Object> makeTrackArgs(final String event, double value, String info,
@@ -438,16 +450,15 @@ public class LeanplumInternal {
     Leanplum.addStartResponseHandler(new StartCallback() {
       @Override
       public void onResponse(final boolean success) {
-        // Geocoder query must be executed on background thread.
-        Util.executeAsyncTask(false, new AsyncTask<Void, Void, Void>() {
+        OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
           @Override
-          protected Void doInBackground(Void... voids) {
+          public void run() {
             if (!success) {
-              return null;
+              return;
             }
             if (location == null) {
               Log.e("Location can't be null in setUserLocationAttribute.");
-              return null;
+              return;
             }
             String latLongLocation = String.format(Locale.US, "%.6f,%.6f", location.getLatitude(),
                 location.getLongitude());
@@ -489,7 +500,6 @@ public class LeanplumInternal {
               }
             });
             req.send();
-            return null;
           }
         });
       }
@@ -567,7 +577,7 @@ public class LeanplumInternal {
     synchronized (startIssuedHandlers) {
       LeanplumInternal.setIssuedStart(true);
       for (Runnable callback : startIssuedHandlers) {
-        OsHandler.getInstance().post(callback);
+        OperationQueue.sharedInstance().addUiOperation(callback);
       }
       startIssuedHandlers.clear();
     }
