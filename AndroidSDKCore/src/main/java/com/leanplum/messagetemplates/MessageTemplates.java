@@ -23,6 +23,7 @@ package com.leanplum.messagetemplates;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
@@ -46,6 +47,7 @@ import com.leanplum.messagetemplates.actions.OpenUrlAction;
 public class MessageTemplates {
 
   private static boolean registered = false;
+  private static DialogCustomizer customizer;
 
   private static ActionCallback createCallback(@NonNull MessageTemplate template) {
     return new ActionCallback() {
@@ -83,6 +85,26 @@ public class MessageTemplates {
         return true;
       }
     };
+  }
+
+  /**
+   * Registers customizer to use when creating the message templates.
+   * Call this method before Leanplum.start.
+   *
+   * @param customizer Dialog customizer
+   */
+  public static void setCustomizer(DialogCustomizer customizer) {
+    MessageTemplates.customizer = customizer;
+  }
+
+  /**
+   * Returns the registered customizer.
+   *
+   * @return Dialog customizer
+   */
+  @Nullable
+  public static DialogCustomizer getCustomizer() {
+    return customizer;
   }
 
   /**
