@@ -83,6 +83,32 @@ public class TestPushTracking extends AbstractTest {
   }
 
   @Test
+  public void testTrackDeliveryWithChannelAndTime() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+    String messageId = "id";
+    String sentTime = "123";
+    String expectedTrackParams =
+        "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\""+messageId+"\",\"sentTime\":\""+sentTime+"\"}";
+    String expectedEvent = "Push Delivered";
+
+    // Verify request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> requestParams) {
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
+        assertEquals(expectedEvent, requestParams.get(Params.EVENT));
+        assertEquals(expectedTrackParams, requestParams.get(Constants.Params.PARAMS));
+      }
+    });
+
+    Bundle notification = new Bundle();
+    notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
+    notification.putString(Keys.PUSH_SENT_TIME, sentTime);
+    notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM_SILENT_TRACK);
+    PushTracking.trackDelivery(notification);
+  }
+
+  @Test
   public void testTrackOpen() {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
@@ -124,6 +150,32 @@ public class TestPushTracking extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
+    notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM);
+    PushTracking.trackOpen(notification);
+  }
+
+  @Test
+  public void testTrackOpenWithChannelAndTime() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+    String messageId = "id";
+    String sentTime = "123";
+    String expectedTrackParams =
+        "{\"channel\":\"FCM\",\"messageID\":\""+messageId+"\",\"sentTime\":\""+sentTime+"\"}";
+    String expectedEvent = "Push Opened";
+
+    // Verify request.
+    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
+      @Override
+      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> requestParams) {
+        assertEquals(RequestBuilder.ACTION_TRACK, apiMethod);
+        assertEquals(expectedEvent, requestParams.get(Params.EVENT));
+        assertEquals(expectedTrackParams, requestParams.get(Constants.Params.PARAMS));
+      }
+    });
+
+    Bundle notification = new Bundle();
+    notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
+    notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM);
     PushTracking.trackOpen(notification);
   }

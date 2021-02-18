@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import com.leanplum.internal.Constants.Keys;
 import java.util.HashMap;
@@ -52,22 +53,32 @@ class PushTracking {
 
   static void trackDelivery(@NonNull Bundle message) {
     Map<String,String> properties = new HashMap<>();
-    properties.put("messageID", LeanplumPushService.getMessageId(message));
+    properties.put(Keys.PUSH_METRIC_MESSAGE_ID, LeanplumPushService.getMessageId(message));
+
+    String sentTime = message.getString(Keys.PUSH_SENT_TIME);
+    if (!TextUtils.isEmpty(sentTime)) {
+      properties.put(Keys.PUSH_METRIC_SENT_TIME, sentTime);
+    }
 
     DeliveryChannel channel = getDeliveryChannel(message);
     if (channel != null) {
-      properties.put(Keys.PUSH_MESSAGE_DELIVERY_CHANNEL, channel.name());
+      properties.put(Keys.PUSH_METRIC_CHANNEL, channel.name());
     }
     Leanplum.track("Push Delivered", properties);
   }
 
   static void trackOpen(@NonNull Bundle message) {
     Map<String,String> properties = new HashMap<>();
-    properties.put("messageID", LeanplumPushService.getMessageId(message));
+    properties.put(Keys.PUSH_METRIC_MESSAGE_ID, LeanplumPushService.getMessageId(message));
+
+    String sentTime = message.getString(Keys.PUSH_SENT_TIME);
+    if (!TextUtils.isEmpty(sentTime)) {
+      properties.put(Keys.PUSH_METRIC_SENT_TIME, sentTime);
+    }
 
     DeliveryChannel channel = getDeliveryChannel(message);
     if (channel != null) {
-      properties.put(Keys.PUSH_MESSAGE_DELIVERY_CHANNEL, channel.name());
+      properties.put(Keys.PUSH_METRIC_CHANNEL, channel.name());
     }
     Leanplum.track("Push Opened", properties);
   }
