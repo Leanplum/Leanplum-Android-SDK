@@ -24,7 +24,6 @@ package com.leanplum;
 import static org.junit.Assert.assertEquals;
 
 import android.os.Bundle;
-import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum.internal.Constants;
@@ -78,7 +77,7 @@ public class TestPushTracking extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-    notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM_SILENT_TRACK);
+    notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
     PushTracking.trackDelivery(notification);
   }
 
@@ -104,7 +103,7 @@ public class TestPushTracking extends AbstractTest {
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
-    notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM_SILENT_TRACK);
+    notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
     PushTracking.trackDelivery(notification);
   }
 
@@ -150,7 +149,7 @@ public class TestPushTracking extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-    notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM);
+    notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM);
     PushTracking.trackOpen(notification);
   }
 
@@ -176,7 +175,7 @@ public class TestPushTracking extends AbstractTest {
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
-    notification.putSerializable(Keys.CHANNEL_INTERNAL_KEY, DeliveryChannel.FCM);
+    notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM);
     PushTracking.trackOpen(notification);
   }
 }

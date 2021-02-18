@@ -30,25 +30,13 @@ import java.util.Map;
 
 class PushTracking {
 
-  enum DeliveryChannel {
-    FCM,
-    FCM_SILENT_TRACK,
-    MIPUSH
-  }
-
-  static void appendDeliveryChannel(
-      @NonNull Bundle message,
-      @NonNull DeliveryChannel channel) {
-    message.putSerializable(Keys.CHANNEL_INTERNAL_KEY, channel);
-  }
-
-  static DeliveryChannel getDeliveryChannel(@NonNull Bundle message) {
-    return (DeliveryChannel)message.getSerializable(Keys.CHANNEL_INTERNAL_KEY);
-  }
+  static final String CHANNEL_FCM = "FCM";
+  static final String CHANNEL_FCM_SILENT_TRACK = "FCM_SILENT_TRACK";
+  static final String CHANNEL_MIPUSH = "MIPUSH";
 
   static boolean isFcmSilentPush(@NonNull Bundle message) {
-    DeliveryChannel channel = getDeliveryChannel(message);
-    return DeliveryChannel.FCM_SILENT_TRACK.equals(channel);
+    String channel = message.getString(Keys.CHANNEL_INTERNAL_KEY);
+    return CHANNEL_FCM_SILENT_TRACK.equals(channel);
   }
 
   static void trackDelivery(@NonNull Bundle message) {
@@ -60,10 +48,11 @@ class PushTracking {
       properties.put(Keys.PUSH_METRIC_SENT_TIME, sentTime);
     }
 
-    DeliveryChannel channel = getDeliveryChannel(message);
-    if (channel != null) {
-      properties.put(Keys.PUSH_METRIC_CHANNEL, channel.name());
+    String channel = message.getString(Keys.CHANNEL_INTERNAL_KEY);
+    if (!TextUtils.isEmpty(channel)) {
+      properties.put(Keys.PUSH_METRIC_CHANNEL, channel);
     }
+
     Leanplum.track("Push Delivered", properties);
   }
 
@@ -76,10 +65,11 @@ class PushTracking {
       properties.put(Keys.PUSH_METRIC_SENT_TIME, sentTime);
     }
 
-    DeliveryChannel channel = getDeliveryChannel(message);
-    if (channel != null) {
-      properties.put(Keys.PUSH_METRIC_CHANNEL, channel.name());
+    String channel = message.getString(Keys.CHANNEL_INTERNAL_KEY);
+    if (!TextUtils.isEmpty(channel)) {
+      properties.put(Keys.PUSH_METRIC_CHANNEL, channel);
     }
+
     Leanplum.track("Push Opened", properties);
   }
 

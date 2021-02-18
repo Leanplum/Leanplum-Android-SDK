@@ -26,7 +26,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
-import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import com.xiaomi.mipush.sdk.ErrorCode;
@@ -80,7 +79,7 @@ public class LeanplumMiPushHandler {
       resolveMessageDescription(messageMap, message);
 
       Bundle notification = createBundle(messageMap);
-      PushTracking.appendDeliveryChannel(notification, DeliveryChannel.MIPUSH);
+      notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_MIPUSH);
       LeanplumPushService.openNotification(context, notification);
     }
   }

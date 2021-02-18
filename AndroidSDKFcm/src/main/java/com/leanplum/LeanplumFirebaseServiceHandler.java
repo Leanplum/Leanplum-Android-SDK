@@ -25,7 +25,6 @@ import android.content.Context;
 import android.os.Bundle;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.leanplum.PushTracking.DeliveryChannel;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
@@ -60,16 +59,16 @@ public final class LeanplumFirebaseServiceHandler {
     try {
       Map<String, String> messageMap = remoteMessage.getData();
 
-      DeliveryChannel channel;
+      String channel;
       if (messageMap.containsKey(Keys.PUSH_MESSAGE_SILENT_TRACK)) {
-        channel = DeliveryChannel.FCM_SILENT_TRACK;
+        channel = PushTracking.CHANNEL_FCM_SILENT_TRACK;
       } else {
-        channel = DeliveryChannel.FCM;
+        channel = PushTracking.CHANNEL_FCM;
       }
 
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
         Bundle notification = getBundle(messageMap);
-        PushTracking.appendDeliveryChannel(notification, channel);
+        notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel);
         LeanplumPushService.handleNotification(context, notification);
       }
       Log.d("Received push notification message: %s", messageMap.toString());
