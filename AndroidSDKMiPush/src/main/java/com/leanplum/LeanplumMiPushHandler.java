@@ -73,14 +73,18 @@ public class LeanplumMiPushHandler {
 
     Log.d("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
 
-    Map<String, String> messageMap = parsePayload(message.getContent());
+    try {
+      Map<String, String> messageMap = parsePayload(message.getContent());
 
-    if (isLeanplumPush(messageMap)) {
-      resolveMessageDescription(messageMap, message);
+      if (isLeanplumPush(messageMap)) {
+        resolveMessageDescription(messageMap, message);
 
-      Bundle notification = createBundle(messageMap);
-      notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_MIPUSH);
-      LeanplumPushService.openNotification(context, notification);
+        Bundle notification = createBundle(messageMap);
+        notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_MIPUSH);
+        LeanplumPushService.openNotification(context, notification);
+      }
+    } catch (Throwable t) {
+      Log.exception(t);
     }
   }
 
@@ -94,16 +98,20 @@ public class LeanplumMiPushHandler {
     Log.d("Received MiPush notification message %s: %s",
         message.getMessageId(), getContentLog(message));
 
-    Map<String, String> messageMap = parsePayload(message.getContent());
+    try {
+      Map<String, String> messageMap = parsePayload(message.getContent());
 
-    if (isLeanplumPush(messageMap)) {
-      resolveMessageDescription(messageMap, message);
+      if (isLeanplumPush(messageMap)) {
+        resolveMessageDescription(messageMap, message);
 
-      Bundle notification = createBundle(messageMap);
-      if (LeanplumPushService.shouldMuteNotification(notification)) {
-        // note that tracking of "Push Delivered" metric happens on server side
-        MiPushClient.clearNotification(context, message.getNotifyId());
+        Bundle notification = createBundle(messageMap);
+        if (LeanplumPushService.shouldMuteNotification(notification)) {
+          // note that tracking of "Push Delivered" metric happens on server side
+          MiPushClient.clearNotification(context, message.getNotifyId());
+        }
       }
+    } catch (Throwable t) {
+      Log.exception(t);
     }
   }
 
@@ -118,16 +126,20 @@ public class LeanplumMiPushHandler {
    * Receives registration ID.
    */
   public void onReceiveRegisterResult(Context context, MiPushCommandMessage message) {
-    if (message != null && MiPushClient.COMMAND_REGISTER.equals(message.getCommand())) {
-      if (message.getResultCode() == ErrorCode.SUCCESS) {
-        List<String> args = message.getCommandArguments();
-        if (args != null && args.size() > 0) {
-          String registrationId = args.get(0);
+    try {
+      if (message != null && MiPushClient.COMMAND_REGISTER.equals(message.getCommand())) {
+        if (message.getResultCode() == ErrorCode.SUCCESS) {
+          List<String> args = message.getCommandArguments();
+          if (args != null && args.size() > 0) {
+            String registrationId = args.get(0);
 
-          LeanplumPushService.getPushProviders().setRegistrationId(
-              PushProviderType.MIPUSH, registrationId);
+            LeanplumPushService.getPushProviders().setRegistrationId(
+                PushProviderType.MIPUSH, registrationId);
+          }
         }
       }
+    } catch (Throwable t) {
+      Log.exception(t);
     }
   }
 
