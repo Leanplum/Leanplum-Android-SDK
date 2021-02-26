@@ -43,6 +43,11 @@ class PushTracking {
     Map<String,String> properties = new HashMap<>();
     properties.put(Keys.PUSH_METRIC_MESSAGE_ID, LeanplumPushService.getMessageId(message));
 
+    String notifOccurrenceId = message.getString(Keys.PUSH_NOTIF_OCCURRENCE_ID);
+    if (!TextUtils.isEmpty(notifOccurrenceId)) {
+      properties.put(Keys.PUSH_METRIC_NOTIF_OCCURRENCE_ID, notifOccurrenceId);
+    }
+
     String sentTime = message.getString(Keys.PUSH_SENT_TIME);
     if (!TextUtils.isEmpty(sentTime)) {
       properties.put(Keys.PUSH_METRIC_SENT_TIME, sentTime);
@@ -59,6 +64,11 @@ class PushTracking {
   static void trackOpen(@NonNull Bundle message) {
     Map<String,String> properties = new HashMap<>();
     properties.put(Keys.PUSH_METRIC_MESSAGE_ID, LeanplumPushService.getMessageId(message));
+
+    String notifOccurrenceId = message.getString(Keys.PUSH_NOTIF_OCCURRENCE_ID);
+    if (!TextUtils.isEmpty(notifOccurrenceId)) {
+      properties.put(Keys.PUSH_METRIC_NOTIF_OCCURRENCE_ID, notifOccurrenceId);
+    }
 
     String sentTime = message.getString(Keys.PUSH_SENT_TIME);
     if (!TextUtils.isEmpty(sentTime)) {
