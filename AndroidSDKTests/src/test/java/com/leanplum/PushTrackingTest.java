@@ -33,7 +33,7 @@ import com.leanplum.internal.RequestBuilder;
 import java.util.Map;
 import org.junit.Test;
 
-public class TestPushTracking extends AbstractTest {
+public class PushTrackingTest extends AbstractTest {
 
   @Test
   public void testTrackDelivery() {
@@ -82,12 +82,15 @@ public class TestPushTracking extends AbstractTest {
   }
 
   @Test
-  public void testTrackDeliveryWithChannelAndTime() {
+  public void testTrackDeliveryAllParams() {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
+    String notifOccurrenceId = "occurrence id";
     String sentTime = "123";
     String expectedTrackParams =
-        "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\""+messageId+"\",\"sentTime\":\""+sentTime+"\"}";
+        "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\"" + messageId
+            + "\",\"sentTime\":\"" + sentTime
+            + "\",\"notificationId\":\"" + notifOccurrenceId + "\"}";
     String expectedEvent = "Push Delivered";
 
     // Verify request.
@@ -102,6 +105,7 @@ public class TestPushTracking extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
+    notification.putString(Keys.PUSH_NOTIF_OCCURRENCE_ID, notifOccurrenceId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
     PushTracking.trackDelivery(notification);
@@ -154,12 +158,15 @@ public class TestPushTracking extends AbstractTest {
   }
 
   @Test
-  public void testTrackOpenWithChannelAndTime() {
+  public void testTrackOpenAllParams() {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
+    String notifOccurrenceId = "occurrence id";
     String sentTime = "123";
     String expectedTrackParams =
-        "{\"channel\":\"FCM\",\"messageID\":\""+messageId+"\",\"sentTime\":\""+sentTime+"\"}";
+        "{\"channel\":\"FCM\",\"messageID\":\"" + messageId
+            + "\",\"sentTime\":\"" + sentTime
+            + "\",\"notificationId\":\"" + notifOccurrenceId + "\"}";
     String expectedEvent = "Push Opened";
 
     // Verify request.
@@ -174,6 +181,7 @@ public class TestPushTracking extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
+    notification.putString(Keys.PUSH_NOTIF_OCCURRENCE_ID, notifOccurrenceId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM);
     PushTracking.trackOpen(notification);

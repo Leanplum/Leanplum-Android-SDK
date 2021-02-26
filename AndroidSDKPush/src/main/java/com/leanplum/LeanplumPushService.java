@@ -34,7 +34,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
-import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -370,9 +369,12 @@ public class LeanplumPushService {
     Object notificationIdObject = message.get(Keys.PUSH_MESSAGE_NOTIFICATION_ID);
     if (notificationIdObject instanceof Number) {
       notificationId = ((Number) notificationIdObject).intValue();
-    } else if (notificationIdObject instanceof String
-        && !TextUtils.isEmpty((String) notificationIdObject)) {
-      notificationId = notificationIdObject.hashCode(); // take hash code, because it could be UUID
+    } else if (notificationIdObject instanceof String) {
+      try {
+        notificationId = Integer.parseInt((String) notificationIdObject);
+      } catch (NumberFormatException e) {
+        notificationId = LeanplumPushService.NOTIFICATION_ID;
+      }
     } else if (message.containsKey(Keys.PUSH_MESSAGE_ID)) {
       String value = message.getString(Keys.PUSH_MESSAGE_ID);
       if (value != null) {
