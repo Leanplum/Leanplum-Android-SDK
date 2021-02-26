@@ -112,8 +112,6 @@ public class Leanplum {
   private static boolean locationCollectionEnabled = true;
   private static Context context;
 
-  private static Runnable pushStartCallback;
-
   private static CountAggregator countAggregator = new CountAggregator();
   private static FeatureFlagManager featureFlagManager = FeatureFlagManager.INSTANCE;
 
@@ -1566,7 +1564,7 @@ public class Leanplum {
       default:
         return;
     }
-    pushStartCallback = new Runnable() {
+    Runnable startIssuedHandler = new Runnable() {
       @Override
       public void run() {
         if (Constants.isNoop()) {
@@ -1584,7 +1582,7 @@ public class Leanplum {
         }
       }
     };
-    LeanplumInternal.addStartIssuedHandler(pushStartCallback);
+    LeanplumInternal.addStartIssuedHandler(startIssuedHandler);
   }
 
   /**

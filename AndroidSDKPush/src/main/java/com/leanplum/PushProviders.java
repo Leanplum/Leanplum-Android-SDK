@@ -36,7 +36,7 @@ class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
   private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
 
-  private Map<PushProviderType, IPushProvider> providers = new HashMap<>();
+  private final Map<PushProviderType, IPushProvider> providers = new HashMap<>();
 
   public PushProviders() {
     IPushProvider fcm = createFcm();
@@ -53,16 +53,18 @@ class PushProviders {
   public void updateRegistrationIdsAndBackend() {
     boolean hasAppIDChanged = hasAppIDChanged(APIConfig.getInstance().appId());
 
-    for (IPushProvider provider: providers.values()) {
-      if (hasAppIDChanged) {
-        provider.unregister();
-      }
-      OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
-        @Override
-        public void run() {
-          provider.updateRegistrationId();
+    synchronized (providers) {
+      for (IPushProvider provider : providers.values()) {
+        if (hasAppIDChanged) {
+          provider.unregister();
         }
-      });
+        OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
+          @Override
+          public void run() {
+            provider.updateRegistrationId();
+          }
+        });
+      }
     }
   }
 
@@ -132,9 +134,12 @@ class PushProviders {
    * Update provider's registration ID.
    */
   public void setRegistrationId(PushProviderType type, String registrationId) {
-    IPushProvider provider = providers.get(type);
-    if (provider != null)
-      provider.setRegistrationId(registrationId);
+    synchronized (providers) {
+      IPushProvider provider = providers.get(type);
+      if (provider != null) {
+        provider.setRegistrationId(registrationId);
+      }
+    }
   }
 
 }
