@@ -145,6 +145,15 @@ public class OperationQueue {
     }
 
     /**
+     * Removes pending operation from OperationQueue.
+     */
+    public void removeOperation(Runnable operation) {
+        if (operation != null && handler != null) {
+            handler.removeCallbacks(operation);
+        }
+    }
+
+    /**
      * Remove all pending Operations that are in OperationQueue
      */
     public void removeAllOperations() {

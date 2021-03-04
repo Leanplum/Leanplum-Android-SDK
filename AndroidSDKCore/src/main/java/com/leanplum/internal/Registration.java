@@ -21,47 +21,45 @@
 
 package com.leanplum.internal;
 
-import com.leanplum.Leanplum;
 import com.leanplum.callbacks.StartCallback;
 
+import com.leanplum.internal.Request.RequestType;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Registration {
   public static void registerDevice(String email, final StartCallback callback) {
-    Map<String, Object> params = new HashMap<>();
-    params.put(Constants.Params.EMAIL, email);
-    RequestOld request = RequestOld.post(Constants.Methods.REGISTER_FOR_DEVELOPMENT, params);
+    Request request = RequestBuilder
+        .withRegisterForDevelopmentAction()
+        .andParam(Constants.Params.EMAIL, email)
+        .andType(RequestType.IMMEDIATE)
+        .create();
 
-    request.onResponse(new RequestOld.ResponseCallback() {
+    request.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
         try {
-          boolean success = RequestOld.isResponseSuccess(response);
+          boolean success = RequestUtil.isResponseSuccess(response);
           callback.setSuccess(success);
 
           if (!success) {
-            String error = RequestOld.getResponseError(response);
+            String error = RequestUtil.getResponseError(response);
             Log.e(error);
           }
 
           OperationQueue.sharedInstance().addUiOperation(callback);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
 
-    request.onError(new RequestOld.ErrorCallback() {
+    request.onError(new Request.ErrorCallback() {
       @Override
       public void error(final Exception e) {
         callback.setSuccess(false);
         OperationQueue.sharedInstance().addUiOperation(callback);
       }
     });
-    request.sendIfConnected();
-    Leanplum.countAggregator().incrementCount("register_device");
+    RequestSender.getInstance().send(request);
   }
 }

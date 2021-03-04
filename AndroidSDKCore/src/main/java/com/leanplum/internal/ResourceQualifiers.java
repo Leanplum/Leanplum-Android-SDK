@@ -138,7 +138,7 @@ public class ResourceQualifiers {
           int smallestWidthDp = (int) (Integer) field.get(config);
           return smallestWidthDp >= (Integer) value;
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
         return false;
       }
@@ -176,7 +176,7 @@ public class ResourceQualifiers {
           int screenWidthDp = (int) (Integer) field.get(config);
           return screenWidthDp >= (Integer) value;
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
         return false;
       }
@@ -214,7 +214,7 @@ public class ResourceQualifiers {
           int screenHeightDp = (int) (Integer) field.get(config);
           return screenHeightDp >= (Integer) value;
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
         return false;
       }

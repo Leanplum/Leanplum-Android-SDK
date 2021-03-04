@@ -20,15 +20,18 @@
  */
 package com.leanplum._whitebox.utilities;
 
-import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
+import com.leanplum.internal.http.NetworkOperation;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import org.mockito.Mockito;
 
-import static org.mockito.Matchers.anyObject;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
  * @author Milos Jakovljevic
@@ -62,6 +65,10 @@ public class ResponseHelper {
     return ResponseHelper.class.getResourceAsStream(filename);
   }
 
+  private static NetworkOperation createNetworkOp() throws IOException {
+    return new NetworkOperation("fullPath", "httpMethod", true, 1);
+  }
+
   /**
    * Seeds the response to Util.getResponse method.
    *
@@ -69,9 +76,12 @@ public class ResponseHelper {
    */
   public static void seedResponse(String filename) {
     try {
-      doReturn(parseResponse(filename)).when(Util.class, "getResponse", anyObject());
-    } catch (Exception e) {
-      Log.e("ResponseHelper", "Unable to seed response from file: " + filename);
+      NetworkOperation op = Mockito.spy(createNetworkOp());
+      doReturn(parseResponse(filename)).when(op).getResponse();
+      whenNew(NetworkOperation.class).withAnyArguments().thenReturn(op);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e); // simplify method signature
     }
   }
 
@@ -79,13 +89,40 @@ public class ResponseHelper {
    * Seeds the Null response to Util.getResponse method.
    *
    */
-
-
   public static void seedResponseNull() {
     try {
-      doReturn(false).when(Util.class, Util.isConnected());
+      doReturn(false).when(Util.class, "isConnected");
     } catch (Exception e) {
-      Log.e("ResponseHelper", "Unable to seed response from file: ");
+      throw new RuntimeException(e); // simplify method signature
+    }
+  }
+
+  /**
+   * Seeds Null response to Util.getJsonResponse method.
+   */
+  public static void seedJsonResponseNull() {
+    try {
+      NetworkOperation op = Mockito.spy(createNetworkOp());
+      doReturn(null).when(op).getJsonResponse();
+      whenNew(NetworkOperation.class).withAnyArguments().thenReturn(op);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e); // simplify method signature
+    }
+  }
+
+  /**
+   * Seed response to throw an exception.
+   * Used for testing if request callbacks are invoked in case of exception.
+   */
+  public static void seedJsonResponseException() {
+    try {
+      NetworkOperation op = Mockito.spy(createNetworkOp());
+      doThrow(new IOException()).when(op).getJsonResponse();
+      whenNew(NetworkOperation.class).withAnyArguments().thenReturn(op);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e); // simplify method signature
     }
   }
 }

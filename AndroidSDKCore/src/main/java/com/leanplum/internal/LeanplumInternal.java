@@ -33,6 +33,7 @@ import com.leanplum.LeanplumLocationAccuracyType;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.models.GeofenceEventType;
 
 import org.json.JSONException;
@@ -93,7 +94,7 @@ public class LeanplumInternal {
             try {
               onHasStartedAndRegisteredAsDeveloperAndFinishedSyncing();
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
@@ -202,7 +203,7 @@ public class LeanplumInternal {
                   requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
                   track("Cancel", 0.0, null, null, requestArgs);
                 } catch (Throwable t) {
-                  Util.handleException(t);
+                  Log.exception(t);
                 }
               }
             });
@@ -270,7 +271,7 @@ public class LeanplumInternal {
               try {
                 Leanplum.triggerMessageDisplayed(actionContext);
               } catch (Throwable t) {
-                Util.handleException(t);
+                Log.exception(t);
               }
             }
           });
@@ -334,7 +335,7 @@ public class LeanplumInternal {
       final Map<String, Object> requestParams = makeTrackArgs(event, value, info, params, args);
       trackInternalWhenStarted(event, params, requestParams);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -346,9 +347,14 @@ public class LeanplumInternal {
 
     try {
       final Map<String, Object> requestParams = makeTrackArgs(event.getName(), value, info, params, args);
-      RequestOld.post(Constants.Methods.TRACK_GEOFENCE, requestParams).sendIfConnected();
+      Request request = RequestBuilder
+          .withTrackGeofenceAction()
+          .andParams(requestParams)
+          .andType(RequestType.IMMEDIATE)
+          .create();
+      RequestSender.getInstance().send(request);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -371,7 +377,7 @@ public class LeanplumInternal {
           try {
             trackInternal(event, params, requestArgs);
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
         }
       });
@@ -387,7 +393,8 @@ public class LeanplumInternal {
    */
   private static void trackInternal(String event, Map<String, ?> params,
       Map<String, Object> requestArgs) {
-    RequestOld.post(Constants.Methods.TRACK, requestArgs).send();
+    Request request = RequestBuilder.withTrackAction().andParams(requestArgs).create();
+    RequestSender.getInstance().send(request);
 
     String eventTriggerName = event;
     String messageId = null;
@@ -484,14 +491,14 @@ public class LeanplumInternal {
               } catch (Throwable ignored) {
               }
             }
-            RequestOld req = RequestOld.post(Constants.Methods.SET_USER_ATTRIBUTES, params);
-            req.onResponse(new RequestOld.ResponseCallback() {
+            Request req = RequestBuilder.withSetUserAttributesAction().andParams(params).create();
+            req.onResponse(new Request.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 callback.response(true);
               }
             });
-            req.onError(new RequestOld.ErrorCallback() {
+            req.onError(new Request.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 callback.response(false);
@@ -499,7 +506,7 @@ public class LeanplumInternal {
                     e.getMessage());
               }
             });
-            req.send();
+            RequestSender.getInstance().send(req);
           }
         });
       }

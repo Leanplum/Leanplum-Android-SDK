@@ -62,8 +62,7 @@ public class LeanplumPushReceiver extends BroadcastReceiver {
         context.sendBroadcast(forwardIntent);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
-    Leanplum.countAggregator().incrementCount("did_receive_remote_notification");
   }
 }

@@ -29,10 +29,15 @@ import com.leanplum.LeanplumDeviceIdMode;
 import com.leanplum.LeanplumInbox;
 import com.leanplum.Var;
 import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum._whitebox.utilities.ImmediateRequestSender;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Log;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestFactory;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.VarCache;
 import com.leanplum.tests.BuildConfig;
 
@@ -80,11 +85,15 @@ public class LeanplumTestHelper {
   public static void setUp() {
     RequestFactory.defaultFactory = new RequestFactory() {
       @Override
-      public RequestOld createRequest(String httpMethod, String apiMethod,
-                                      Map<String, Object> params) {
-        return new RequestHelper(httpMethod, apiMethod, params);
+      public Request createRequest(
+          String httpMethod,
+          String apiMethod,
+          RequestType type,
+          Map<String, Object> params) {
+        return new RequestHelper(httpMethod, apiMethod, type, params);
       }
     };
+    RequestSender.setInstance(new ImmediateRequestSender());
 
     if (BuildConfig.DEBUG) {
       Leanplum.setAppIdForDevelopmentMode(APP_ID, DEVELOPMENT_KEY);
@@ -94,9 +103,7 @@ public class LeanplumTestHelper {
     Leanplum.setDeviceId("leanplum-unit-test-20527411-BF1E-4E84-91AE-2E98CBCF30AF");
     Leanplum.setApiConnectionSettings(API_HOST_NAME, "api", API_SSL);
     Leanplum.setSocketConnectionSettings(SOCKET_HOST_NAME, SOCKET_PORT);
-    Leanplum.enableVerboseLoggingInDevelopmentMode();
-
-    TestClassUtil.setField(RequestOld.class, "DEVELOPMENT_MAX_DELAY_MS", 100);
+    Leanplum.setLogLevel(Log.Level.DEBUG);
   }
 
   /**
@@ -105,10 +112,10 @@ public class LeanplumTestHelper {
   public static void tearDown() {
     reset();
     clear();
-    RequestOld.setAppId(null, null);
-    RequestOld.setDeviceId(null);
-    RequestOld.setToken(null);
-    RequestOld.setUserId(null);
+    APIConfig.getInstance().setAppId(null, null);
+    APIConfig.getInstance().setDeviceId(null);
+    APIConfig.getInstance().setToken(null);
+    APIConfig.getInstance().setUserId(null);
     Leanplum.setApplicationContext(null);
   }
 
@@ -134,6 +141,10 @@ public class LeanplumTestHelper {
     List onceNoDownloadsHandlers = (List) TestClassUtil.getField(Leanplum.class,
         "onceNoDownloadsHandlers");
     onceNoDownloadsHandlers.clear();
+    List messageDisplayedHandlers =
+        (List) TestClassUtil.getField(Leanplum.class, "messageDisplayedHandlers");
+    messageDisplayedHandlers.clear();
+
     LeanplumInternal.getActionHandlers().clear();
     LeanplumInternal.getUserAttributeChanges().clear();
     Leanplum.countAggregator().getAndClearCounts();
@@ -144,11 +155,9 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(Leanplum.class, "deviceIdMode", LeanplumDeviceIdMode.MD5_MAC_ADDRESS);
     TestClassUtil.setField(Leanplum.class, "customDeviceId", null);
     TestClassUtil.setField(Leanplum.class, "userSpecifiedDeviceId", false);
-    TestClassUtil.setField(Leanplum.class, "initializedMessageTemplates", false);
     LeanplumInternal.setStartedInBackground(false);
     TestClassUtil.setField(LeanplumInternal.class, "inForeground", false);
 
-    TestClassUtil.setField(Leanplum.class, "heartbeatExecutor", null);
     TestClassUtil.setField(Leanplum.class, "context", null);
     TestClassUtil.setField(Leanplum.class, "pushStartCallback", null);
 

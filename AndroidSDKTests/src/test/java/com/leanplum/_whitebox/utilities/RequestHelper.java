@@ -20,24 +20,22 @@
  */
 package com.leanplum._whitebox.utilities;
 
-import android.util.Log;
+import com.leanplum.internal.Request;
 
-import com.leanplum.internal.RequestOld;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
  * @author Milos Jakovljevic
  */
-public class RequestHelper extends RequestOld {
+public class RequestHelper extends Request {
   private static RequestHandler sRequestHandler = null;
 
-  public RequestHelper(String httpMethod, String apiMethod, Map<String, Object> params) {
-    super(httpMethod, apiMethod, params);
+  public RequestHelper(
+      String httpMethod,
+      String apiMethod,
+      RequestType type,
+      Map<String, Object> params) {
+    super(httpMethod, apiMethod, type, params);
 
     // execute handler with request params
     if (sRequestHandler != null) {
@@ -54,40 +52,6 @@ public class RequestHelper extends RequestOld {
    */
   public static void addRequestHandler(RequestHandler handler) {
     sRequestHandler = handler;
-  }
-
-  @Override
-  public void sendEventually() {
-    // workaround to send request now and not save it into prefs for later use
-    try {
-      Field sentField = RequestOld.class.getDeclaredField("sent");
-      sentField.setAccessible(true);
-
-      boolean sent = sentField.getBoolean(this);
-
-      if (!sent) {
-        super.sendEventually();
-        super.sendIfConnected();
-      }
-
-    } catch (Exception e) {
-      Log.e(RequestHelper.class.getSimpleName(), "Could not access private field \"sent\"");
-    }
-  }
-
-  @Override
-  protected void parseResponseBody(JSONObject responseBody, Exception error) {
-    try {
-      // attach the uuid we generated
-      JSONArray jsonArray = responseBody.getJSONArray("response");
-      for (int i = 0; i < jsonArray.length(); i++) {
-        JSONObject jsonObject = jsonArray.getJSONObject(i);
-        jsonObject.put("reqId", requestId());
-      }
-    } catch (Exception e) {
-      // ignore
-    }
-    super.parseResponseBody(responseBody, error);
   }
 
   /**

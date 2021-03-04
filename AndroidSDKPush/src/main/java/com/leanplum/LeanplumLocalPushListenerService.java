@@ -67,7 +67,7 @@ public class LeanplumLocalPushListenerService extends JobIntentService {
                 LeanplumPushService.handleNotification(this, extras);
             }
         } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
         }
     }
 }

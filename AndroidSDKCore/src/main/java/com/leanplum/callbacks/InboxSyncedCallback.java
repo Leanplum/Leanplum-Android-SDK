@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,7 +22,7 @@
 package com.leanplum.callbacks;
 
 /**
- * Callback that gets run when forceContentUpdate was called.
+ * Callback that gets run when inbox finishes syncing of messages.
  *
  * @author Anna Orlova
  */
@@ -38,7 +38,7 @@ public abstract class InboxSyncedCallback implements Runnable {
   }
 
   /**
-   * Call when forceContentUpdate was called.
+   * Called when inbox finishes syncing of messages.
    * @param success True if syncing was successful.
    */
   public abstract void onForceContentUpdate(boolean success);

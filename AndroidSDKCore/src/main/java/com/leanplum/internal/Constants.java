@@ -36,11 +36,11 @@ public class Constants {
   public static int SOCKET_PORT = 443;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
-  public static String LEANPLUM_VERSION = BuildConfig.SDK_VERSION + '.' + BuildConfig.BUILD_NUMBER;
+  public static String LEANPLUM_VERSION = BuildConfig.SDK_VERSION;
   public static String CLIENT = "android";
   public static String LEANPLUM_SUPPORTED_ENCODING = "gzip";
 
-  static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
+  public static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";
   static final String INVALID_MAC_ADDRESS_HASH = "0f607264fc6318a92b9e13c65db7cd3c";
 
@@ -76,8 +76,6 @@ public class Constants {
     public static final String ATTRIBUTES_KEY = "__leanplum_attributes";
     public static final String TOKEN_KEY = "__leanplum_token";
     public static final String MESSAGES_KEY = "__leanplum_messages";
-    public static final String UPDATE_RULES_KEY = "__leanplum_update_rules";
-    public static final String EVENT_RULES_KEY = "__leanplum_event_rules";
     public static final String REGIONS_KEY = "regions";
     public static final String MESSAGE_TRIGGER_OCCURRENCES_KEY =
         "__leanplum_message_trigger_occurrences_%s";
@@ -88,37 +86,11 @@ public class Constants {
     public static final String INBOX_KEY = "__leanplum_newsfeed";
     public static final String LEANPLUM_PUSH = "__leanplum_push__";
     public static final String APP_ID = "__app_id";
-    public static final String PROPERTY_TOKEN_ID = "registration_id";
+    public static final String PROPERTY_FCM_TOKEN_ID = "registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
     public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
     public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";
     public static final String NOTIFICATION_GROUPS_KEY = "__leanplum_notification_groups";
-  }
-
-  public static class Methods {
-    public static final String ADVANCE = "advance";
-    public static final String DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
-    public static final String DOWNLOAD_FILE = "downloadFile";
-    public static final String GET_INBOX_MESSAGES = "getNewsfeedMessages";
-    public static final String GET_VARS = "getVars";
-    public static final String HEARTBEAT = "heartbeat";
-    public static final String LOG = "log";
-    public static final String MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
-    public static final String MULTI = "multi";
-    public static final String PAUSE_SESSION = "pauseSession";
-    public static final String PAUSE_STATE = "pauseState";
-    public static final String REGISTER_FOR_DEVELOPMENT = "registerDevice";
-    public static final String RESUME_SESSION = "resumeSession";
-    public static final String RESUME_STATE = "resumeState";
-    public static final String SET_DEVICE_ATTRIBUTES = "setDeviceAttributes";
-    public static final String SET_TRAFFIC_SOURCE_INFO = "setTrafficSourceInfo";
-    public static final String SET_USER_ATTRIBUTES = "setUserAttributes";
-    public static final String SET_VARS = "setVars";
-    public static final String START = "start";
-    public static final String STOP = "stop";
-    public static final String TRACK = "track";
-    public static final String TRACK_GEOFENCE = "trackGeofence";
-    public static final String UPLOAD_FILE = "uploadFile";
   }
 
   public static class Params {
@@ -135,7 +107,7 @@ public class Constants {
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_MODEL = "deviceModel";
     public static final String DEVICE_NAME = "deviceName";
-    public static final String DEVICE_PUSH_TOKEN = "gcmRegistrationId";
+    public static final String DEVICE_FCM_PUSH_TOKEN = "gcmRegistrationId";
     public static final String DEVICE_SYSTEM_NAME = "systemName";
     public static final String DEVICE_SYSTEM_VERSION = "systemVersion";
     public static final String EMAIL = "email";
@@ -171,10 +143,12 @@ public class Constants {
     public static final String UPDATE_DATE = "updateDate";
     public static final String USER_ID = "userId";
     public static final String USER_ATTRIBUTES = "userAttributes";
+    public static final String UUID = "uuid";
     public static final String VALUE = "value";
     public static final String VARS = "vars";
     public static final String VERSION_NAME = "versionName";
     public static final String REQUEST_ID = "reqId";
+    public static final String STACK_TRACE = "stackTrace";
   }
 
   public static class Keys {
@@ -194,8 +168,6 @@ public class Constants {
     public static final String LOCATION_ACCURACY_TYPE = "locationAccuracyType";
     public static final String MESSAGE_DATA = "messageData";
     public static final String MESSAGES = "messages";
-    public static final String UPDATE_RULES = "interfaceRules";
-    public static final String EVENT_RULES = "interfaceEvents";
     public static final String INBOX_MESSAGES = "newsfeedMessages";
     public static final String PUSH_MESSAGE_ACTION = "_lpx";
     public static final String PUSH_MESSAGE_ID_NO_MUTE_WITH_ACTION = "_lpm";
@@ -259,7 +231,6 @@ public class Constants {
     public static final String CHAIN_MESSAGE_ACTION_NAME = "Chain to Existing Message";
     public static final String DEFAULT_PUSH_MESSAGE = "Push message goes here.";
     public static final String SDK_LOG = "sdkLog";
-    public static final String SDK_ERROR = "sdkError";
     public static final String SDK_COUNT = "sdkCount";
     public static final String FILE_PREFIX = "__file__";
   }

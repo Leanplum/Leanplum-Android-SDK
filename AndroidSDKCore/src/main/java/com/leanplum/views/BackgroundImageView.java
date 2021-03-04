@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -31,6 +31,7 @@ import android.graphics.Paint.Style;
 import android.graphics.PorterDuff.Mode;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout.LayoutParams;
 
 import com.leanplum.utils.BitmapUtil;
@@ -45,7 +46,7 @@ import androidx.appcompat.widget.AppCompatImageView;
  */
 public class BackgroundImageView extends AppCompatImageView {
   private Paint paint = new Paint();
-  private boolean fullscreen;
+  private boolean roundedCorners;
   private Matrix emptyMatrix = new Matrix();
   private boolean loadedBitmap;
 
@@ -59,10 +60,30 @@ public class BackgroundImageView extends AppCompatImageView {
     init();
   }
 
+  /**
+   * This constructor is left for backward compatibility with the samples of message templates.
+   */
   public BackgroundImageView(Context context, boolean fullscreen) {
     super(context);
     init();
-    this.fullscreen = fullscreen;
+    roundedCorners = !fullscreen;
+  }
+
+  public BackgroundImageView(
+      Context context,
+      int backgroundColor,
+      Bitmap backgroundImage,
+      boolean roundedCorners) {
+    super(context);
+
+    this.roundedCorners = roundedCorners;
+
+    setScaleType(ImageView.ScaleType.CENTER_CROP);
+    setImageBitmap(backgroundImage);
+
+    ViewUtils.applyBackground(this, backgroundColor, roundedCorners);
+
+    init();
   }
 
   private void init() {
@@ -74,7 +95,7 @@ public class BackgroundImageView extends AppCompatImageView {
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
-    if (fullscreen) {
+    if (!roundedCorners) {
       return;
     }
     if (loadedBitmap) {

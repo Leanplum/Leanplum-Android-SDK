@@ -1,41 +1,22 @@
 package com.leanplum.internal;
 
-import com.leanplum.__setup.LeanplumTestApp;
-import com.leanplum._whitebox.utilities.ResponseHelper;
+import com.leanplum.__setup.AbstractTest;
 
+import com.leanplum.internal.http.LeanplumHttpConnection;
+import com.leanplum.internal.http.NetworkOperation;
+import java.io.IOException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-
-import java.net.HttpURLConnection;
 
 import static junit.framework.Assert.assertNotNull;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Tests for {@link Util} class.
  *
  * @author Hrishi Amravatkar
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(
-    sdk = 16,
-    application = LeanplumTestApp.class
-)
-@PowerMockIgnore({
-    "org.mockito.*",
-    "org.robolectric.*",
-    "org.json.*",
-    "org.powermock.*",
-    "android.*"
-})
-@PrepareForTest({Util.class})
-public class UtilTest {
+public class UtilTest extends AbstractTest {
 
   /**
    * Runs before every test case.
@@ -44,41 +25,60 @@ public class UtilTest {
   public void setUp() {
   }
 
+  private NetworkOperation createNetworkOp() throws IOException {
+    return new NetworkOperation("a", "b", true, 1);
+  }
+
 
   /**
-   * Test for {@link Util#getJsonResponse(HttpURLConnection op)} that returns no gzip unmarshalled data.
+   * Test for {@link LeanplumHttpConnection#getJsonResponse()} that returns no gzip unmarshalled data.
    */
   @Test
   public void getNonGzipEncodedResponseWithNoContentEncodingTest() throws Exception {
-    HttpURLConnection mockHttpUrlConnection = mock(HttpURLConnection.class);
-    when(mockHttpUrlConnection.getInputStream()).thenReturn(ResponseHelper.class.getResourceAsStream("/responses/simple_start_response.json"));
-    when(mockHttpUrlConnection.getResponseCode()).thenReturn(200);
-    assertNotNull(Util.getJsonResponse(mockHttpUrlConnection));
+    NetworkOperation op = createNetworkOp();
+    assertNotNull(op.getJsonResponse());
   }
 
   /**
-   * Test for {@link Util#getJsonResponse(HttpURLConnection op)} that returns gzip unmarshalled data.
+   * Test for {@link LeanplumHttpConnection#getJsonResponse()} that returns gzip unmarshalled data.
    */
   @Test
   public void getGzipEncodedResponseWithContentEndingTest() throws Exception {
-    HttpURLConnection mockHttpUrlConnection = mock(HttpURLConnection.class);
-    when(mockHttpUrlConnection.getInputStream()).thenReturn(ResponseHelper.class.getResourceAsStream("/responses/simple_start_response.json.gz"));
-    when(mockHttpUrlConnection.getResponseCode()).thenReturn(200);
-    when(mockHttpUrlConnection.getHeaderField("content-encoding")).thenReturn("gzip");
-    assertNotNull(Util.getJsonResponse(mockHttpUrlConnection));
+    boolean gzip = true;
+    prepareHttpsURLConnection(200, "/responses/simple_start_response.json.gz", null, gzip);
+    NetworkOperation op = createNetworkOp();
+    assertNotNull(op.getJsonResponse());
   }
 
 
   /**
-   * Test for {@link Util#getJsonResponse(HttpURLConnection op)} that returns gzip unmarshalled error data.
+   * Test for {@link LeanplumHttpConnection#getJsonResponse()} that returns gzip unmarshalled error data.
    */
   @Test
   public void getGzipEncodedErrorResponseWithContentEndingTest() throws Exception {
-    HttpURLConnection mockHttpUrlConnection = mock(HttpURLConnection.class);
-    when(mockHttpUrlConnection.getErrorStream()).thenReturn(ResponseHelper.class.getResourceAsStream("/responses/simple_start_response.json.gz"));
-    when(mockHttpUrlConnection.getResponseCode()).thenReturn(403);
-    when(mockHttpUrlConnection.getHeaderField("content-encoding")).thenReturn("gzip");
-    assertNotNull(Util.getJsonResponse(mockHttpUrlConnection));
+    boolean gzip = true;
+    prepareHttpsURLConnection(403, null, "/responses/simple_start_response.json.gz", gzip);
+    NetworkOperation op = createNetworkOp();
+    assertNotNull(op.getJsonResponse());
+  }
+
+  /**
+   * Test that {@link Log#exception(Throwable)} is successfully mocked to rethrow the
+   * argument exception.
+   */
+  @Test
+  public void testHandleExceptionMocked() {
+    Assert.assertThrows(Throwable.class, () -> Log.exception(new Exception()));
+  }
+
+  /**
+   * Test that {@link AbstractTest#resumeLeanplumExceptionHandling()} is returning the default
+   * behaviour of {@link Log#exception(Throwable)}.
+   */
+  @Test
+  public void testHandleExceptionDefault() throws Exception {
+    resumeLeanplumExceptionHandling();
+    Log.exception(new Exception());
   }
 
 }

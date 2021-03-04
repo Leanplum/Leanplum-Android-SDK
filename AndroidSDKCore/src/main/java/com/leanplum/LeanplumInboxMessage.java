@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -29,7 +29,9 @@ import com.leanplum.internal.Constants;
 import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 
 import org.json.JSONObject;
@@ -80,7 +82,7 @@ public class LeanplumInboxMessage {
       return new File(path).getAbsolutePath();
     }
     if (!LeanplumInbox.getInstance().isInboxImagePrefetchingEnabled()) {
-      Log.w("Inbox Message image path is null because you're calling disableImagePrefetching. " +
+      Log.d("Inbox Message image path is null because you're calling disableImagePrefetching. " +
           "Consider using imageURL method or remove disableImagePrefetching.");
     }
     return null;
@@ -113,7 +115,7 @@ public class LeanplumInboxMessage {
           CollectionUtil.uncheckedCast(getContext().objectNamed(Constants.Keys.DATA));
       object = JsonConverter.mapToJsonObject(mapData);
     } catch (Throwable t) {
-      Log.w("Unable to parse JSONObject for Data field of inbox message.");
+      Log.d("Unable to parse JSONObject for Data field of inbox message.");
     }
     return object;
   }
@@ -185,6 +187,32 @@ public class LeanplumInboxMessage {
   }
 
   /**
+   * Mark the inbox message as read without invoking its open action.
+   */
+  public void markAsRead() {
+    try {
+      if (Constants.isNoop()) {
+        return;
+      }
+
+      if (!isRead) {
+        setIsRead(true);
+
+        int unreadCount = LeanplumInbox.getInstance().unreadCount() - 1;
+        LeanplumInbox.getInstance().updateUnreadCount(unreadCount);
+
+        Request req = RequestBuilder
+            .withMarkInboxMessageAsReadAction()
+            .andParam(Constants.Params.INBOX_MESSAGE_ID, messageId)
+            .create();
+        RequestSender.getInstance().send(req);
+      }
+    } catch (Throwable t) {
+      Log.exception(t);
+    }
+  }
+
+  /**
    * Read the inbox message, marking it as read and invoking its open action.
    */
   public void read() {
@@ -193,21 +221,11 @@ public class LeanplumInboxMessage {
         return;
       }
 
-      if (!this.isRead) {
-        setIsRead(true);
+      markAsRead();
 
-        int unreadCount = LeanplumInbox.getInstance().unreadCount() - 1;
-        LeanplumInbox.getInstance().updateUnreadCount(unreadCount);
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
-        RequestOld req = RequestOld.post(Constants.Methods.MARK_INBOX_MESSAGE_AS_READ,
-            params);
-        req.send();
-      }
-      this.context.runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
+      getContext().runTrackedActionNamed(Constants.Values.DEFAULT_PUSH_ACTION);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -218,7 +236,7 @@ public class LeanplumInboxMessage {
     try {
       LeanplumInbox.getInstance().removeMessage(messageId);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 

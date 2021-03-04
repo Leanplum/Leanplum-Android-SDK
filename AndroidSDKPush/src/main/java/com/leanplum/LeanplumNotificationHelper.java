@@ -84,7 +84,7 @@ class LeanplumNotificationHelper {
     if (!TextUtils.isEmpty(channelId)) {
       return new NotificationCompat.Builder(context, channelId);
     } else {
-      Log.w("Failed to post notification, there are no notification channels configured.");
+      Log.e("Failed to post notification, there are no notification channels configured.");
       return null;
     }
   }
@@ -111,7 +111,7 @@ class LeanplumNotificationHelper {
     if (!TextUtils.isEmpty(channelId)) {
       return new Notification.Builder(context, channelId);
     } else {
-      Log.w("Failed to post notification, there are no notification channels configured.");
+      Log.e("Failed to post notification, there are no notification channels configured.");
       return null;
     }
   }
@@ -143,7 +143,7 @@ class LeanplumNotificationHelper {
           if (!TextUtils.isEmpty(channelId)) {
             builder = new NotificationCompat.Builder(context, channelId);
           } else {
-            Log.w("Failed to post notification to specified channel.");
+            Log.e("Failed to post notification to specified channel.");
           }
         } else {
           // If channel isn't supplied, try to look up for default channel.
@@ -183,7 +183,7 @@ class LeanplumNotificationHelper {
           if (!TextUtils.isEmpty(channelId)) {
             builder = new Notification.Builder(context, channelId);
           } else {
-            Log.w("Failed to post notification to specified channel.");
+            Log.e("Failed to post notification to specified channel.");
           }
         } else {
           // If channel isn't supplied, try to look up for default channel.
@@ -501,8 +501,7 @@ class LeanplumNotificationHelper {
     if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
       bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
       if (bigPicture == null) {
-        Log.w(String.format("Image download failed for push notification with big picture. " +
-            "No image will be included with the push notification. Image URL: %s.", imageUrl));
+        Log.d("Failed to download image for push notification: %s", imageUrl);
       }
     }
     return bigPicture;

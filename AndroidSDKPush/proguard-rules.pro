@@ -337,7 +337,7 @@
 -keep class com.leanplum.LeanplumPushService  { *; }
 -keep class com.leanplum.LeanplumCloudMessagingProvider{ *; }
 
--keep class com.leanplum.messagetemplates.BaseMessageOptions { *; }
+-keep class com.leanplum.messagetemplates.options.BaseMessageOptions { *; }
 
 -dontwarn android.support.v7.**
 -keep class android.support.v7.** { *; }

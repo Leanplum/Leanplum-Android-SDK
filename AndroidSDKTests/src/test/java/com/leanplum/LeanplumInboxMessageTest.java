@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,20 +20,25 @@
  */
 package com.leanplum;
 
+import android.os.Build.VERSION_CODES;
 import com.leanplum.internal.Constants;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Tests covering Inbox Messages.
@@ -41,27 +46,47 @@ import static org.junit.Assert.assertTrue;
  * @author Sayaan Saha
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = VERSION_CODES.P) // temporarily fix issue with Robolectric and Android SDK 29
 public class LeanplumInboxMessageTest {
+
+  private LeanplumInboxMessage createMessageTestData(
+      String messageId,
+      boolean isRead,
+      long deliveryMillis,
+      long expirationMillis) {
+
+    HashMap<String, Object> map = new HashMap<>();
+    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
+    if (deliveryMillis != 0)
+      map.put(Constants.Keys.DELIVERY_TIMESTAMP, deliveryMillis);
+    if (expirationMillis != 0)
+      map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expirationMillis);
+    map.put(Constants.Keys.IS_READ, isRead);
+    LeanplumInboxMessage message = LeanplumInboxMessage.createFromJsonMap(messageId, map);
+    return message;
+  }
+
+  private LeanplumInboxMessage createMessageTestData(String messageId, boolean isRead) {
+    return createMessageTestData(messageId, isRead, 100, 200);
+  }
+
   /**
    * Test creating a message from json.
    */
   @Test
   public void testCreateFromJsonMap() {
-    Date delivery = new Date(100);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, true);
+    String messageId = "message##Id";
+    long deliveryMillis = 100;
+    long expirationMillis = 200;
 
-    LeanplumInboxMessage message = LeanplumInboxMessage.createFromJsonMap("message##Id", map);
-    assertEquals("message##Id", message.getMessageId());
-    assertEquals(delivery, message.getDeliveryTimestamp());
-    assertEquals(expiration, message.getExpirationTimestamp());
+    LeanplumInboxMessage message =
+        createMessageTestData(messageId, true, deliveryMillis, expirationMillis);
+
+    assertEquals(messageId, message.getMessageId());
+    assertEquals(deliveryMillis, message.getDeliveryTimestamp().getTime());
+    assertEquals(expirationMillis, message.getExpirationTimestamp().getTime());
     assertTrue(message.isRead());
     assertNull(message.getData());
-
     assertNull(message.getImageFilePath());
     assertNull(message.getImageUrl());
   }
@@ -71,15 +96,9 @@ public class LeanplumInboxMessageTest {
    */
   @Test
   public void testCreateFromJsonMapInvalidMessageIdIsRejected() {
-    Date delivery = new Date(100);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, true);
+    String invalidMessageId = "messageId";
+    LeanplumInboxMessage invalidMessage = createMessageTestData(invalidMessageId, true);
 
-    LeanplumInboxMessage invalidMessage = LeanplumInboxMessage.createFromJsonMap("messageId", map);
     assertNull(invalidMessage);
   }
 
@@ -88,23 +107,15 @@ public class LeanplumInboxMessageTest {
    */
   @Test
   public void testReadAndUnreadCount() {
-    Date delivery = new Date(100);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, false);
-    LeanplumInboxMessage message = LeanplumInboxMessage
-        .createFromJsonMap("messageId##00", map);
-    int intialUnreadCount = LeanplumInbox.getInstance().unreadCount();
+    LeanplumInboxMessage message = createMessageTestData("messageId##00", false);
+    int initialUnreadCount = LeanplumInbox.getInstance().unreadCount();
 
-    assertEquals(false, message.isRead());
+    assertFalse(message.isRead());
 
     message.read();
 
-    assertEquals(true, message.isRead());
-    assertEquals(intialUnreadCount - 1, LeanplumInbox.getInstance().unreadCount());
+    assertTrue(message.isRead());
+    assertEquals(initialUnreadCount - 1, LeanplumInbox.getInstance().unreadCount());
   }
 
   /**
@@ -112,21 +123,13 @@ public class LeanplumInboxMessageTest {
    */
   @Test
   public void testIsActive() {
-    Date delivery = new Date(100);
-    Calendar date = Calendar.getInstance();
-    Date expiration = new Date(date.getTimeInMillis() + 100000);
+    long deliveryMillis = 100;
+    long expirationMillis = new Date().getTime() + 100000; // current time + 100000
 
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, false);
-    LeanplumInboxMessage message = LeanplumInboxMessage
-        .createFromJsonMap("messageId##00", map);
+    LeanplumInboxMessage message =
+        createMessageTestData("messageId##00", false, deliveryMillis, expirationMillis);
 
-    Boolean active = message.isActive();
-
-    assertTrue(active);
+    assertTrue(message.isActive());
   }
 
   /**
@@ -135,19 +138,8 @@ public class LeanplumInboxMessageTest {
    */
   @Test
   public void testIsActiveWithExpiredMessage() {
-    Date delivery = new Date(200);
-    Date expiration = new Date(200);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.EXPIRATION_TIMESTAMP, expiration.getTime());
-    map.put(Constants.Keys.IS_READ, false);
-    LeanplumInboxMessage message = LeanplumInboxMessage
-        .createFromJsonMap("messageId##00", map);
-
-    Boolean isActive = message.isActive();
-
-    assertFalse(isActive);
+    LeanplumInboxMessage message = createMessageTestData("messageId##00", false, 200, 200);
+    assertFalse(message.isActive());
   }
 
   /**
@@ -155,16 +147,50 @@ public class LeanplumInboxMessageTest {
    */
   @Test
   public void testIsActiveWithNullTimestamp() {
-    Date delivery = new Date(100);
-    HashMap<String, Object> map = new HashMap<>();
-    map.put(Constants.Keys.MESSAGE_DATA, new HashMap<String, Object>());
-    map.put(Constants.Keys.DELIVERY_TIMESTAMP, delivery.getTime());
-    map.put(Constants.Keys.IS_READ, false);
-    LeanplumInboxMessage message = LeanplumInboxMessage
-        .createFromJsonMap("messageId##00", map);
+    long deliveryMillis = 100;
+    long noExpiration = 0;
+    LeanplumInboxMessage message =
+        createMessageTestData("messageId##00", false, deliveryMillis, noExpiration);
 
-    Boolean isActive = message.isActive();
+    assertTrue(message.isActive());
+  }
 
-    assertTrue(isActive);
+  /**
+   * Test markAsRead does not execute Open Action.
+   */
+  @Test
+  public void testMarkAsRead() {
+    LeanplumInboxMessage realMessage = createMessageTestData("messageId##00", false);
+    LeanplumInboxMessage message = Mockito.spy(realMessage);
+
+    ActionContext context = Mockito.mock(ActionContext.class);
+    Mockito.when(message.getContext()).thenReturn(context);
+
+    assertFalse(message.isRead());
+
+    message.markAsRead();
+
+    assertTrue(message.isRead());
+    verify(context, never()).runTrackedActionNamed("Open action");
+  }
+
+  /**
+   * Test read() calls markAsRead and executes Open Action.
+   */
+  @Test
+  public void testReadCallsMarkAsRead() {
+    LeanplumInboxMessage realMessage = createMessageTestData("messageId##00", false);
+    LeanplumInboxMessage message = Mockito.spy(realMessage);
+
+    ActionContext context = Mockito.mock(ActionContext.class);
+    Mockito.when(message.getContext()).thenReturn(context);
+
+    assertFalse(message.isRead());
+
+    message.read();
+
+    assertTrue(message.isRead());
+    verify(message, times(1)).markAsRead();
+    verify(context, times(1)).runTrackedActionNamed("Open action");
   }
 }

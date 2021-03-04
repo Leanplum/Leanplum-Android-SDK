@@ -53,7 +53,6 @@ public class Socket {
   private static final String TAG = "Leanplum";
   private static final String EVENT_CONTENT_RESPONSE = "getContentResponse";
   private static final String EVENT_UPDATE_VARS = "updateVars";
-  private static final String EVENT_PREVIEW_UPDATE_RULES = "previewUpdateRules";
   private static final String EVENT_TRIGGER = "trigger";
   private static final String EVENT_GET_VARIABLES = "getVariables";
   private static final String EVENT_GET_ACTIONS = "getActions";
@@ -86,7 +85,7 @@ public class Socket {
 
       @Override
       public void onDisconnect(int code, String reason) {
-        Log.i("Disconnected from development server");
+        Log.d("Disconnected from development server");
         connected = false;
         connecting = false;
         authSent = false;
@@ -95,24 +94,23 @@ public class Socket {
       @Override
       public void onConnect() {
         if (!authSent) {
-          Log.i("Connected to development server");
+          Log.d("Connected to development server");
           try {
             Map<String, String> args = Util.newMap(
-                Constants.Params.APP_ID, RequestOld.appId(),
-                Constants.Params.DEVICE_ID, RequestOld.deviceId());
+                Constants.Params.APP_ID, APIConfig.getInstance().appId(),
+                Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
             try {
               sio.emit("auth", new JSONArray(Collections.singletonList(new JSONObject(args))));
             } catch (JSONException e) {
               e.printStackTrace();
             }
           } catch (Throwable t) {
-            Util.handleException(t);
+            Log.exception(t);
           }
           authSent = true;
           connected = true;
           connecting = false;
         }
-        Leanplum.countAggregator().incrementCount("connect_to_app_id");
       }
 
       @Override
@@ -124,9 +122,6 @@ public class Socket {
               break;
             case EVENT_TRIGGER:
               handleTriggerEvent(arguments);
-              break;
-            case EVENT_PREVIEW_UPDATE_RULES:
-              previewUpdateRules(arguments);
               break;
             case EVENT_GET_VARIABLES:
               handleGetVariablesEvent();
@@ -144,7 +139,7 @@ public class Socket {
               break;
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     };
@@ -163,7 +158,7 @@ public class Socket {
         try {
           reconnect();
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     }, 0, 5000);
@@ -194,13 +189,12 @@ public class Socket {
    */
   public <T> void sendEvent(String eventName, Map<String, T> data) {
     try {
-      Log.p("Sending event: " + eventName + " & data over socket:\n" + data);
+      Log.d("Sending event: %s with data: %s over socket", eventName, data);
       sio.emit(eventName,
           new JSONArray(Collections.singletonList(JsonConverter.mapToJsonObject(data))));
     } catch (JSONException e) {
-      Log.e("Failed to create JSON data object: " + e.getMessage());
+      Log.d("Failed to create JSON data object: " + e.getMessage());
     }
-    Leanplum.countAggregator().incrementCount("send_event_socket");
   }
 
   /**
@@ -267,7 +261,7 @@ public class Socket {
     try {
       emailArg = arguments.getJSONObject(0).getString("email");
     } catch (JSONException e) {
-      Log.v("Socket - No developer e-mail provided.");
+      Log.d("Socket - No developer e-mail provided.");
     }
     final String email = (emailArg == null) ? "a Leanplum account" : emailArg;
     OperationQueue.sharedInstance().addUiOperation(new Runnable() {
@@ -306,26 +300,11 @@ public class Socket {
         return;
       }
       VarCache.applyVariableDiffs(
-          JsonConverter.mapFromJson(object), null, null, null, null, null, null);
+          JsonConverter.mapFromJson(object), null, null, null, null);
     } catch (JSONException e) {
       Log.e("Couldn't applyVars for preview.", e);
     } catch (Throwable e) {
-      Util.handleException(e);
-    }
-  }
-
-  void previewUpdateRules(JSONArray arguments) {
-    try {
-      JSONObject packetData = arguments.getJSONObject(0);
-      JSONArray rules = packetData.optJSONArray("rules");
-
-      if (rules != null) {
-        List<Map<String, Object>> ruleDiffs = JsonConverter.listFromJson(rules);
-        VarCache.applyUpdateRuleDiffs(ruleDiffs);
-      }
-    } catch (Exception e) {
-      Log.e("Error parsing data");
-      return;
+      Log.exception(e);
     }
   }
 

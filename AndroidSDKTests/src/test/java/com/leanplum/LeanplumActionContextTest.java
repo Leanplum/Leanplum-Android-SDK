@@ -28,6 +28,7 @@ import com.leanplum.__setup.AbstractTest;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
@@ -47,6 +48,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -93,9 +96,9 @@ public class LeanplumActionContextTest extends AbstractTest {
         assertFalse(actionContext.booleanNamed("9"));
         assertFalse(actionContext.booleanNamed("10"));
 
-        // Verify handleException method is never called.
+        // Verify Log.exception method is never called.
         verifyStatic(never());
-        Util.handleException(any(Throwable.class));
+        Log.exception(any(Throwable.class));
     }
 
     /**
@@ -111,9 +114,9 @@ public class LeanplumActionContextTest extends AbstractTest {
         }}, "messageId");
         assertFalse(actionContext.booleanNamed(""));
 
-        // Verify handleException method is never called.
+        // Verify Log.exception method is never called.
         verifyStatic(never());
-        Util.handleException(any(Throwable.class));
+        Log.exception(any(Throwable.class));
     }
 
     /**
@@ -190,7 +193,7 @@ public class LeanplumActionContextTest extends AbstractTest {
     }
 
     @Test
-    public void testValues() {
+    public void testValues() throws Exception {
         ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
             put("1", true);
             put("2", false);
@@ -215,6 +218,8 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         assertNotNull(actionContext.numberNamed("7"));
         assertNull(actionContext.numberNamed(null));
+
+        resumeLeanplumExceptionHandling();
         assertEquals(0.0, actionContext.numberNamed("6"));
     }
 
@@ -264,10 +269,26 @@ public class LeanplumActionContextTest extends AbstractTest {
             put("test_2", 10);
         }};
 
-        verifyStatic(times(1));
+        Map<String, String> requestArgs = new HashMap<>();
+        requestArgs.put(Constants.Params.MESSAGE_ID, "messageId");
+
         actionContext.track("test_event", 0.0, map);
-        verifyStatic(never());
+        verifyStatic(times(1));
+        LeanplumInternal.track(
+            eq("test_event"),
+            eq(0.0),
+            isNull(String.class),
+            eq(map),
+            eq(requestArgs));
+
         actionContext.track(null, 0.0, map);
+        verifyStatic(never());
+        LeanplumInternal.track(
+            isNull(String.class),
+            any(Double.class),
+            any(String.class),
+            any(Map.class),
+            any(Map.class));
     }
 
     @Test
@@ -287,8 +308,7 @@ public class LeanplumActionContextTest extends AbstractTest {
         // Add chained message to VarCache.
         VarCache.applyVariableDiffs(null, new HashMap<>(
                 ImmutableMap.<String, Object>of(Long.toString(chainedMessageId),
-                ImmutableMap.<String, Object>of())),
-                null, null, null, null, null);
+                ImmutableMap.<String, Object>of())), null, null, null);
         // Since it now exists locally, we should return false for forceContentUpdate.
         Assert.assertFalse(ActionContext.shouldForceContentUpdateForChainedMessage(
                 JsonConverter.fromJson(jsonData)));

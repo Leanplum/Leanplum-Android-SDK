@@ -46,8 +46,8 @@ class LeanplumEventCallbackManager {
    * @param responseCallback Response callback.
    * @param errorCallback Error callback.
    */
-  void addCallbacks(RequestOld request, RequestOld.ResponseCallback responseCallback,
-      RequestOld.ErrorCallback errorCallback) {
+  void addCallbacks(Request request, Request.ResponseCallback responseCallback,
+      Request.ErrorCallback errorCallback) {
     if (request == null) {
       return;
     }
@@ -56,8 +56,7 @@ class LeanplumEventCallbackManager {
       return;
     }
 
-    callbacks.put(request.requestId(), new LeanplumEventCallbacks(responseCallback, errorCallback));
-    Leanplum.countAggregator().incrementCount("add_event_callback_at");
+    callbacks.put(request.getRequestId(), new LeanplumEventCallbacks(responseCallback, errorCallback));
   }
 
   /**
@@ -83,9 +82,9 @@ class LeanplumEventCallbackManager {
 
       if (reqId != null && callbacks != null) {
         // get the response for specified reqId
-        final JSONObject response = RequestOld.getResponseForId(body, reqId);
+        final JSONObject response = RequestUtil.getResponseForId(body, reqId);
         if (response != null) {
-          boolean isSuccess = RequestOld.isResponseSuccess(response);
+          boolean isSuccess = RequestUtil.isResponseSuccess(response);
 
           // if response for event is successful, execute success callback
           if (isSuccess) {
@@ -100,8 +99,8 @@ class LeanplumEventCallbackManager {
             });
           } else {
             // otherwise find the error message and execute error callback
-            final String responseError = RequestOld.getResponseError(response);
-            final String msg = RequestOld.getReadableErrorMessage(responseError);
+            final String responseError = RequestUtil.getResponseError(response);
+            final String msg = RequestUtil.getReadableErrorMessage(responseError);
 
             OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
               @Override
@@ -160,15 +159,13 @@ class LeanplumEventCallbackManager {
     for (String key : keys) {
       callbacks.remove(key);
     }
-
-    Leanplum.countAggregator().incrementCount("invoke_error_callbacks_on_responses");
   }
 
   private static class LeanplumEventCallbacks {
-    private RequestOld.ResponseCallback responseCallback;
-    private RequestOld.ErrorCallback errorCallback;
+    private Request.ResponseCallback responseCallback;
+    private Request.ErrorCallback errorCallback;
 
-    LeanplumEventCallbacks(RequestOld.ResponseCallback responseCallback, RequestOld.ErrorCallback
+    LeanplumEventCallbacks(Request.ResponseCallback responseCallback, Request.ErrorCallback
         errorCallback) {
       this.responseCallback = responseCallback;
       this.errorCallback = errorCallback;

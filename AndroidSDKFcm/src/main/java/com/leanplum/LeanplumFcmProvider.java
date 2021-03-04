@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,91 +21,59 @@
 
 package com.leanplum;
 
-import android.content.Context;
-import android.nfc.Tag;
 import android.text.TextUtils;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
-import com.leanplum.internal.LeanplumManifestHelper;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Util;
-
-import java.util.Collections;
 
 import androidx.annotation.NonNull;
 
 /**
  * Leanplum provider for work with Firebase.
+ * Class is instantiated by reflection using default constructor.
  *
  * @author Anna Orlova
  */
 class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
-  @Override
-  public String getRegistrationId() {
-    return this.getStoredRegistrationPreferences(Leanplum.getContext());
+  /**
+   * Constructor called by reflection.
+   */
+  public LeanplumFcmProvider() {
   }
 
   @Override
-  public void getCurrentRegistrationIdAndUpdateBackend() {
+  protected String getSharedPrefsPropertyName() {
+    return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
+  }
+
+  @Override
+  public PushProviderType getType() {
+    return PushProviderType.FCM;
+  }
+
+  @Override
+  public void updateRegistrationId() {
     FirebaseInstanceId.getInstance().getInstanceId()
         .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
           @Override
           public void onComplete(@NonNull Task<InstanceIdResult> task) {
             if (!task.isSuccessful()) {
-              Log.e("getInstanceId failed");
+              Exception exc = task.getException();
+              Log.e("getInstanceId failed:\n" + Log.getStackTraceString(exc));
               return;
             }
             // Get new Instance ID token
             String tokenId = task.getResult().getToken();
             if (!TextUtils.isEmpty(tokenId)) {
-                onRegistrationIdReceived(Leanplum.getContext(), tokenId);
+                setRegistrationId(tokenId);
               }
             }
         });
-  }
-
-  @Override
-  public boolean isInitialized() {
-    return true;
-  }
-
-  @Override
-  public boolean isManifestSetup() {
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return false;
-    }
-
-    try {
-      boolean hasPushReceiver = LeanplumManifestHelper.checkComponent(LeanplumManifestHelper.ApplicationComponent.RECEIVER,
-          LeanplumManifestHelper.LP_PUSH_RECEIVER, false, null,
-          Collections.singletonList(LeanplumManifestHelper.LP_PUSH_FCM_MESSAGING_SERVICE), context.getPackageName());
-
-      boolean hasPushFirebaseMessagingService = LeanplumManifestHelper.checkComponent(
-          LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumManifestHelper.LP_PUSH_FCM_MESSAGING_SERVICE, false, null,
-          Collections.singletonList(LeanplumManifestHelper.FCM_MESSAGING_EVENT), context.getPackageName());
-
-      boolean hasRegistrationService = LeanplumManifestHelper.checkComponent(
-          LeanplumManifestHelper.ApplicationComponent.SERVICE,
-          LeanplumPushRegistrationService.class.getName(), false, null, null, context.getPackageName());
-
-      boolean hasServices = hasPushFirebaseMessagingService &&
-          hasRegistrationService;
-
-      if (hasPushReceiver && hasServices) {
-        Log.i("Firebase Messaging is setup correctly.");
-        return true;
-      }
-    } catch (Throwable t) {
-      Util.handleException(t);
-    }
-    Log.e("Failed to setup Firebase Messaging, check your manifest configuration.");
-    return false;
   }
 
   @Override

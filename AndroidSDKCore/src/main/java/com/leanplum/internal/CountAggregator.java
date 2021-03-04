@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Counter is not currently used and will be removed in the future.
+ * It is still functional both on client and server side.
+ */
 public class CountAggregator {
     private Set<String> enabledCounters = new HashSet<>();
     private final Map<String, Integer> counts = new HashMap<>();
@@ -58,7 +62,8 @@ public class CountAggregator {
             Integer count = entry.getValue();
             Map<String, Object> params = makeParams(name, count);
             try {
-                RequestOld.post(Constants.Methods.LOG, params).sendEventually();
+                Request request = RequestBuilder.withLogAction().andParams(params).create();
+                RequestSender.getInstance().send(request);
             } catch (Throwable t) {
                 android.util.Log.e("Leanplum", "Unable to send count.", t);
             }

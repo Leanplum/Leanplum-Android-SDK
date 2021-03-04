@@ -24,17 +24,21 @@ package com.leanplum;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.Nullable;
 import com.leanplum.callbacks.InboxChangedCallback;
 import com.leanplum.callbacks.InboxSyncedCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.AESCrypt;
+import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.CollectionUtil;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
-import com.leanplum.internal.RequestOld;
-import com.leanplum.internal.Util;
+import com.leanplum.internal.Request.RequestType;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONObject;
@@ -132,7 +136,7 @@ public class LeanplumInbox {
         }
       });
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return messageIds;
   }
@@ -235,7 +239,7 @@ public class LeanplumInbox {
       }
       triggerChanged();
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -253,10 +257,11 @@ public class LeanplumInbox {
       return;
     }
 
-    Map<String, Object> params = new HashMap<>();
-    params.put(Constants.Params.INBOX_MESSAGE_ID, messageId);
-    RequestOld req = RequestOld.post(Constants.Methods.DELETE_INBOX_MESSAGE, params);
-    req.send();
+    Request req = RequestBuilder
+        .withDeleteInboxMessageAction()
+        .andParam(Constants.Params.INBOX_MESSAGE_ID, messageId)
+        .create();
+    RequestSender.getInstance().send(req);
   }
 
   void triggerChanged() {
@@ -280,6 +285,19 @@ public class LeanplumInbox {
     }
   }
 
+  private void triggerInboxSyncedWithStatus(
+      boolean success,
+      @Nullable InboxSyncedCallback oneTimeCallback) {
+
+    if (oneTimeCallback != null) {
+      addSyncedHandler(oneTimeCallback);
+      triggerInboxSyncedWithStatus(success);
+      removeSyncedHandler(oneTimeCallback);
+    } else {
+      triggerInboxSyncedWithStatus(success);
+    }
+  }
+
   void load() {
     if (Constants.isNoop()) {
       return;
@@ -287,12 +305,12 @@ public class LeanplumInbox {
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(
         "__leanplum__", Context.MODE_PRIVATE);
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       update(new HashMap<String, LeanplumInboxMessage>(), 0, false);
       return;
     }
     int unreadCount = 0;
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
     String newsfeedString = aesContext.decodePreference(
         defaults, Constants.Defaults.INBOX_KEY, "{}");
     Map<String, Object> newsfeed = JsonConverter.fromJson(newsfeedString);
@@ -322,7 +340,7 @@ public class LeanplumInbox {
     if (Constants.isNoop()) {
       return;
     }
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       return;
     }
     Context context = Leanplum.getContext();
@@ -337,18 +355,35 @@ public class LeanplumInbox {
       messages.put(messageId, data);
     }
     String messagesJson = JsonConverter.toJson(messages);
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
     editor.putString(Constants.Defaults.INBOX_KEY, aesContext.encrypt(messagesJson));
     SharedPreferencesUtil.commitChanges(editor);
   }
 
-  void downloadMessages() {
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   */
+  public void downloadMessages() {
+    downloadMessages(null);
+  }
+
+  /**
+   * Forces downloading of inbox messages from the server. After messages are downloaded the
+   * appropriate callbacks will fire.
+   *
+   * @param callback The callback to invoke when messages are downloaded.
+   */
+  public void downloadMessages(@Nullable InboxSyncedCallback callback) {
     if (Constants.isNoop()) {
       return;
     }
 
-    final RequestOld req = RequestOld.post(Constants.Methods.GET_INBOX_MESSAGES, null);
-    req.onResponse(new RequestOld.ResponseCallback() {
+    Request req = RequestBuilder
+        .withGetInboxMessagesAction()
+        .andType(RequestType.IMMEDIATE)
+        .create();
+    req.onResponse(new Request.ResponseCallback() {
       @Override
       public void response(JSONObject response) {
         try {
@@ -359,7 +394,7 @@ public class LeanplumInbox {
 
           JSONObject messagesDict = response.optJSONObject(Constants.Keys.INBOX_MESSAGES);
           if (messagesDict == null) {
-            Log.e("No inbox messages found in the response from the server.", response);
+            Log.e("No inbox messages found in the response from the server. %s", response);
             return;
           }
           int unreadCount = 0;
@@ -392,7 +427,7 @@ public class LeanplumInbox {
 
           if (!willDownladImages) {
             update(messages, unreadCount, true);
-            triggerInboxSyncedWithStatus(true);
+            triggerInboxSyncedWithStatus(true, callback);
             return;
           }
 
@@ -402,22 +437,22 @@ public class LeanplumInbox {
                 @Override
                 public void variablesChanged() {
                   update(messages, totalUnreadCount, true);
-                  triggerInboxSyncedWithStatus(true);
+                  triggerInboxSyncedWithStatus(true, callback);
                 }
               });
         } catch (Throwable t) {
-          triggerInboxSyncedWithStatus(false);
-          Util.handleException(t);
+          triggerInboxSyncedWithStatus(false, callback);
+          Log.exception(t);
         }
       }
     });
-    req.onError(new RequestOld.ErrorCallback() {
+    req.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
-        triggerInboxSyncedWithStatus(false);
+        triggerInboxSyncedWithStatus(false, callback);
       }
     });
-    req.sendIfConnected();
+    RequestSender.getInstance().send(req);
   }
 
   /**
@@ -436,9 +471,8 @@ public class LeanplumInbox {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
-    Leanplum.countAggregator().incrementCount("all_messages_inbox");
     return messages;
   }
 

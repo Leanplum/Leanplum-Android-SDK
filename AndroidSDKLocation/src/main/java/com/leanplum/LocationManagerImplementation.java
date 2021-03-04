@@ -404,7 +404,7 @@ class LocationManagerImplementation implements
       updateTrackedGeofences();
       requestLocation();
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -440,7 +440,7 @@ class LocationManagerImplementation implements
         try {
           setUserAttributesForLocationUpdate(location, locationAccuracyType);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
 
@@ -451,7 +451,7 @@ class LocationManagerImplementation implements
   }
 
   /**
-   * RequestOld location for user location update if googleApiClient is connected.
+   * Request location for user location update if googleApiClient is connected.
    */
   // Suppressing missing permission warning which since it is up to client to add location
   // permission to their manifest.

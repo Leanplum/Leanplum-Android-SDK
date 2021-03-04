@@ -159,7 +159,7 @@ public class LeanplumResources extends Resources {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return super.getDrawable(id);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,79 +22,103 @@
 package com.leanplum.internal;
 
 
-import com.leanplum.core.BuildConfig;
+import com.leanplum.LeanplumException;
+import com.leanplum.internal.Request.RequestType;
+import com.leanplum.monitoring.ExceptionHandler;
 
-import java.util.HashMap;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
- * Handles logging within the Leanplum SDK.
- *
- * @author Ben Marten
+ * Log class used to log messages to console and backend, as well as logging to backend.
  */
 public class Log {
-  public enum LeanplumLogType {
-    /**
-     * Always visible to customers. Sent to us when remote logging is enabled.
-     */
-    ERROR,
 
-    /**
-     * Always visible to customers. Sent to us when remote logging is enabled.
-     */
-    WARNING,
+  private static int level = Level.INFO;
 
-    /**
-     * Always visible to customers. Sent to us when remote logging is enabled.
-     */
-    INFO,
-
-    /**
-     * Visible to customers only when verbose logging is enabled. Sent to us when remote logging is
-     * enabled.
-     */
-    VERBOSE,
-
-    /**
-     * Not visible to customers. Sent to us when remote logging is enabled.
-     */
-    PRIVATE,
-
-    /**
-     * Used only for Leanplum SDK debugging. Not visible to customers. Not sent to us when remote
-     * logging is enabled.
-     */
-    DEBUG
+  /**
+   * Sets log level.
+   * @param level level to set
+   */
+  public static void setLogLevel(int level) {
+    Log.level = level;
   }
 
-  private static final ThreadLocal<Boolean> isLogging = new ThreadLocal<Boolean>() {
-    @Override
-    protected Boolean initialValue() {
-      return false;
+  public static void e(String msg, Object... args) {
+    log(LogType.ERROR, msg, args);
+  }
+
+  public static void e(String msg, Throwable throwable) {
+    if (msg != null && msg.contains("%s")) {
+      log(LogType.ERROR, msg, getStackTraceString(throwable));
+    } else {
+      log(LogType.ERROR, msg + "\n" + getStackTraceString(throwable));
     }
-  };
-
-  public static void e(Object... objects) {
-    log(LeanplumLogType.ERROR, CollectionUtil.concatenateArray(objects, ", "));
   }
 
-  public static void w(Object... objects) {
-    log(LeanplumLogType.WARNING, CollectionUtil.concatenateArray(objects, ", "));
+  public static void i(String msg, Object... args) {
+    log(LogType.INFO, msg, args);
   }
 
-  public static void i(Object... objects) {
-    log(LeanplumLogType.INFO, CollectionUtil.concatenateArray(objects, ", "));
+  public static void d(String msg, Object... args) {
+    log(LogType.DEBUG, msg, args);
   }
 
-  public static void v(Object... objects) {
-    log(LeanplumLogType.VERBOSE, CollectionUtil.concatenateArray(objects, ", "));
-  }
+  /**
+   * Logs exception to server
+   * @param throwable to log
+   */
+  public static void exception(Throwable throwable) {
+    ExceptionHandler.getInstance().reportException(throwable);
 
-  public static void p(Object... objects) {
-    log(LeanplumLogType.PRIVATE, CollectionUtil.concatenateArray(objects, ", "));
-  }
+    if (throwable instanceof OutOfMemoryError) {
+      if (Constants.isDevelopmentModeEnabled) {
+        throw (OutOfMemoryError) throwable;
+      }
+      return;
+    }
 
-  public static void d(Object... objects) {
-    log(LeanplumLogType.DEBUG, CollectionUtil.concatenateArray(objects, ", "));
+    // Propagate Leanplum generated exceptions.
+    if (throwable instanceof LeanplumException) {
+      if (Constants.isDevelopmentModeEnabled) {
+        throw (LeanplumException) throwable;
+      }
+      return;
+    }
+
+    Log.e("Internal error: %s", throwable.getMessage());
+
+    String versionName;
+    try {
+      versionName = Util.getVersionName();
+    } catch (Throwable t2) {
+      versionName = "(Unknown)";
+    }
+
+    try {
+      String message = throwable.getMessage();
+      if (message != null) {
+        message = throwable.toString() + " (" + message + ')';
+      } else {
+        message = throwable.toString();
+      }
+
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter writer = new PrintWriter(stringWriter);
+      writer.println(message);
+
+      throwable.printStackTrace(writer);
+
+      Request request = RequestBuilder.withLogAction()
+          .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
+          .andParam(Constants.Params.VERSION_NAME, versionName)
+          .andParam(Constants.Params.MESSAGE, stringWriter.toString())
+          .andType(RequestType.IMMEDIATE)
+          .create();
+      RequestSender.getInstance().send(request);
+    } catch (Throwable t2) {
+      Log.e("Unable to send error report: %s", t2.getMessage());
+    }
   }
 
   /**
@@ -107,92 +131,50 @@ public class Log {
    * @param type The log type level of the message.
    * @param message The message to be logged.
    */
-  public static void log(LeanplumLogType type, String message) {
-    String tag = generateTag(type);
-    String prefix = generateMessagePrefix();
-
-    switch (type) {
-      case ERROR:
-        android.util.Log.e(tag, prefix + message);
-        maybeSendLog(tag + prefix + message);
-        return;
-      case WARNING:
-        android.util.Log.w(tag, prefix + message);
-        maybeSendLog(tag + prefix + message);
-        return;
-      case INFO:
-        android.util.Log.i(tag, prefix + message);
-        maybeSendLog(tag + prefix + message);
-        return;
-      case VERBOSE:
-        if (Constants.isDevelopmentModeEnabled
-            && Constants.enableVerboseLoggingInDevelopmentMode) {
-          android.util.Log.v(tag, prefix + message);
-          maybeSendLog(tag + prefix + message);
-        }
-        return;
-      case PRIVATE:
-        maybeSendLog(tag + prefix + message);
-        return;
-      default: // DEBUG
-        if (BuildConfig.DEBUG) {
-          android.util.Log.d(tag, prefix + message);
-        }
-    }
-  }
-
-  /**
-   * Generates tag for logging purpose in format [LogType][Leanplum]
-   *
-   * @param type log type
-   * @return generated tag
-   */
-  private static String generateTag(LeanplumLogType type) {
-    return "[" + type.name() + "][Leanplum]";
-  }
-
-  /**
-   * Generates a log message prefix based on current class and method name in format
-   * [ClassName::MethodName::LineNumber].
-   * This shouldn't be called directly, since getting className and methodName is hardcoded and
-   * extracted based on StackTrace.
-   *
-   * @return a message prefix for logging purpose
-   */
-  private static String generateMessagePrefix() {
-    // Since this is called from log method, caller method should be on index 5.
-    int callerIndex = 5;
-    int minimumStackTraceIndex = 5;
-
-    StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-    if (stackTraceElements.length >= minimumStackTraceIndex) {
-      String tag = "[";
-      tag += stackTraceElements[callerIndex].getClassName();
-      tag += "::";
-      tag += stackTraceElements[callerIndex].getMethodName();
-      tag += "::";
-      tag += stackTraceElements[callerIndex].getLineNumber();
-      tag += "]: ";
-      return tag;
-    }
-    return "";
-  }
-
-  private static void maybeSendLog(String message) {
-    if (!Constants.loggingEnabled || isLogging.get()) {
-      return;
-    }
-
-    isLogging.set(true);
+  public static void log(LogType type, String message, Object... args) {
     try {
-      HashMap<String, Object> params = new HashMap<>();
-      params.put(Constants.Params.TYPE, Constants.Values.SDK_LOG);
-      params.put(Constants.Params.MESSAGE, message);
-      RequestOld.post(Constants.Methods.LOG, params).sendEventually();
+      String tag = formatTag(type);
+      String msg = String.format(message, args);
+
+      switch (type) {
+        case ERROR:
+          if (level >= Level.ERROR) {
+            android.util.Log.e(tag, msg);
+            break;
+          }
+        case INFO:
+          if (level >= Level.INFO) {
+            android.util.Log.i(tag, msg);
+          }
+          break;
+        case DEBUG:
+          if (level >= Level.DEBUG) {
+            android.util.Log.d(tag, msg);
+          }
+          break;
+      }
+      handleLogMessage(tag, msg);
     } catch (Throwable t) {
-      android.util.Log.e("Leanplum", "Unable to send log.", t);
-    } finally {
-      isLogging.remove();
+      // ignored
+    }
+  }
+
+  private static String formatTag(LogType type) {
+    return "[Leanplum][" + type.name() + "]";
+  }
+
+  /**
+   * Handles logs that are supposed to be sent to backend
+   * @param tag message tag
+   * @param msg message to log
+   */
+  private static void handleLogMessage(String tag, String msg) {
+    if (Constants.loggingEnabled) {
+      Request request = RequestBuilder.withLogAction()
+          .andParam(Constants.Params.TYPE, Constants.Values.SDK_LOG)
+          .andParam(Constants.Params.MESSAGE, tag + msg)
+          .create();
+      RequestSender.getInstance().send(request);
     }
   }
 
@@ -203,5 +185,30 @@ public class Log {
    */
   public static String getStackTraceString(Throwable throwable) {
     return android.util.Log.getStackTraceString(throwable);
+  }
+
+  public enum LogType {
+    DEBUG,
+    INFO,
+    ERROR
+  }
+
+  public static class Level {
+    /**
+     * Disables logging.
+     */
+    public static final int OFF = 0;
+    /**
+     * Logs only errors, enabled by default.
+     */
+    public static final int ERROR = 1;
+    /**
+     * Logs informational messages including errors.
+     */
+    public static final int INFO = 2;
+    /**
+     * Enables all levels including DEBUG logging of the SDK.
+     */
+    public static final int DEBUG = 3;
   }
 }

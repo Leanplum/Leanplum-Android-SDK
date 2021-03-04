@@ -31,7 +31,7 @@ public class ExceptionHandler {
       }
     } catch (ClassNotFoundException t) {
       Log.i("LeanplumExceptionHandler could not initialize Exception Reporting." +
-              "This is expected if you have not included the leanplum-monitoring module");
+          "This is expected if you have not included the leanplum-monitoring module");
     } catch (Throwable t) {
       Log.e("LeanplumExceptionHandler", t);
     }
@@ -44,7 +44,6 @@ public class ExceptionHandler {
       } catch (Throwable t) {
         Log.e("LeanplumExceptionHandler", t);
       }
-      Leanplum.countAggregator().incrementCount("report_exception");
     }
 
   }

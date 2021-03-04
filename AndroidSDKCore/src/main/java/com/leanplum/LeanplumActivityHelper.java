@@ -32,6 +32,7 @@ import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.LeanplumInternal;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 
 import java.util.Collections;
@@ -115,7 +116,7 @@ public class LeanplumActivityHelper {
         try {
           onStop(activity);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
 
@@ -127,7 +128,7 @@ public class LeanplumActivityHelper {
             Leanplum.advanceTo(activity.getLocalClassName());
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
 
@@ -136,7 +137,7 @@ public class LeanplumActivityHelper {
         try {
           onPause(activity);
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
 
@@ -204,7 +205,7 @@ public class LeanplumActivityHelper {
         onPause(activity);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -233,7 +234,7 @@ public class LeanplumActivityHelper {
         onResume(activity);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -267,7 +268,7 @@ public class LeanplumActivityHelper {
         onStop(activity);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -286,7 +287,7 @@ public class LeanplumActivityHelper {
         }
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 

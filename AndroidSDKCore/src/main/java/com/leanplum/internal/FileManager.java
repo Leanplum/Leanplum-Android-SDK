@@ -30,8 +30,6 @@ import android.text.TextUtils;
 import com.leanplum.Leanplum;
 import com.leanplum.Var;
 
-import org.json.JSONObject;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -100,7 +98,7 @@ public class FileManager {
           try {
             inputStream.close();
           } catch (IOException e) {
-            Log.w("Failed to close InputStream.", e.getMessage());
+            Log.d("Failed to close InputStream.", e.getMessage());
           }
         }
       }
@@ -111,29 +109,14 @@ public class FileManager {
           if (FileManager.filenameToURLs != null && FileManager.filenameToURLs.containsKey(stringValue) && urlValue == null) {
             urlValue = FileManager.filenameToURLs.get(stringValue);
           }
-          RequestOld downloadRequest = RequestOld.get(Constants.Methods.DOWNLOAD_FILE, null);
-          downloadRequest.onResponse(new RequestOld.ResponseCallback() {
-            @Override
-            public void response(JSONObject response) {
-              if (onComplete != null) {
-                onComplete.run();
-              }
-            }
-          });
-          downloadRequest.onError(new RequestOld.ErrorCallback() {
-            @Override
-            public void error(Exception e) {
-              if (onComplete != null) {
-                onComplete.run();
-              }
-            }
-          });
-          downloadRequest.downloadFile(stringValue, urlValue);
+
+          FileTransferManager.getInstance().downloadFile(
+              stringValue, urlValue, onComplete, onComplete);
+
           return DownloadFileResult.DOWNLOADING;
         }
       }
     }
-    Leanplum.countAggregator().incrementCount("maybe_download_file");
     return DownloadFileResult.NONE;
   }
 
@@ -153,7 +136,7 @@ public class FileManager {
           try {
             is.close();
           } catch (IOException e) {
-            Log.w("Failed to close InputStream.", e.getMessage());
+            Log.d("Failed to close InputStream.", e.getMessage());
           }
         }
       }
@@ -325,14 +308,14 @@ public class FileManager {
         }
       }
     } catch (IOException e) {
-      Log.w("Error occurred when trying " +
+      Log.d("Error occurred when trying " +
           "to enable resource syncing." + e.getMessage());
     } finally {
       if (apk != null) {
         try {
           apk.close();
         } catch (IOException e) {
-          Log.w("Failed to close ZipInputStream.", e.getMessage());
+          Log.d("Failed to close ZipInputStream.", e.getMessage());
         }
       }
     }
@@ -379,7 +362,7 @@ public class FileManager {
             try {
               enableResourceSyncing(compiledIncludePatterns, compiledExcludePatterns);
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
@@ -387,7 +370,7 @@ public class FileManager {
         enableResourceSyncing(compiledIncludePatterns, compiledExcludePatterns);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -426,7 +409,7 @@ public class FileManager {
           try {
             inputStream.close();
           } catch (Exception e) {
-            Log.w("Failed to close InputStream: " + e);
+            Log.d("Failed to close InputStream: " + e);
           }
         }
       }
@@ -501,7 +484,7 @@ public class FileManager {
       }
       return new FileInputStream(new File(value));
     } catch (IOException e) {
-      Log.w("Failed to load a stream." + e.getMessage());
+      Log.d("Failed to load a stream." + e.getMessage());
       return null;
     }
   }

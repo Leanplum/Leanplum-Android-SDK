@@ -23,10 +23,9 @@ package com.leanplum.internal;
 import com.google.common.collect.Sets;
 import com.leanplum.__setup.AbstractTest;
 
+import com.leanplum.internal.Request.RequestType;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.util.HashSet;
 import java.util.Arrays;
@@ -37,7 +36,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Grace Gu
  */
-@PrepareForTest({ RequestOld.class })
 public class CountAggregatorTest extends AbstractTest {
   @Test
   public void testIncrementDisabledCount() {
@@ -132,18 +130,27 @@ public class CountAggregatorTest extends AbstractTest {
 
   @Test
   public void testSendAllCounts() throws Exception {
+    RequestFactory.defaultFactory = null;
     CountAggregator countAggregator = new CountAggregator();
     String testString = "test";
     countAggregator.setEnabledCounters(Sets.newHashSet(testString));
     countAggregator.incrementCount(testString);
 
-    PowerMockito.mockStatic(RequestOld.class);
     Map<String, Object> expectedParams = countAggregator.makeParams(testString, 1);
-    PowerMockito.doReturn(Mockito.mock(RequestOld.class)).when(RequestOld.class, "post", Constants.Methods.LOG, expectedParams);
+
+    PowerMockito
+        .whenNew(Request.class)
+        .withAnyArguments()
+        .thenReturn(PowerMockito.mock(Request.class));
 
     countAggregator.sendAllCounts();
 
-    PowerMockito.verifyStatic();
-    RequestOld.post(Constants.Methods.LOG, expectedParams);
+    PowerMockito
+        .verifyNew(Request.class)
+        .withArguments(
+            RequestBuilder.POST,
+            RequestBuilder.ACTION_LOG,
+            RequestType.DEFAULT,
+            expectedParams);
   }
 }

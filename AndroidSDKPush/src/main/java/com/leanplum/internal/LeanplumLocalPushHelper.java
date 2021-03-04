@@ -130,10 +130,10 @@ class LeanplumLocalPushHelper {
       editor.putLong(String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), eta);
       SharedPreferencesUtil.commitChanges(editor);
 
-      Log.i("Scheduled notification.");
+      Log.d("Scheduling local notification.");
       return true;
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return false;
     }
   }
@@ -146,9 +146,9 @@ class LeanplumLocalPushHelper {
    */
   static void cancelLocalPush(Context context, String messageId) {
     try {
-      Intent intentAlarm = new Intent(context, LeanplumLocalPushListenerService.class);
+      Intent intentAlarm = LeanplumLocalPushListenerService.getIntent(context);
       AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-      PendingIntent existingIntent = PendingIntent.getService(
+      PendingIntent existingIntent = PendingIntent.getBroadcast(
           context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
       if (alarmManager != null && existingIntent != null) {
         alarmManager.cancel(existingIntent);

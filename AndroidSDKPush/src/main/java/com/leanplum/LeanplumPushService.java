@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,20 +34,22 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
-import com.leanplum.internal.Constants.Methods;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.RequestOld;
+import com.leanplum.internal.Request.RequestType;
+import com.leanplum.internal.RequestBuilder;
+import com.leanplum.internal.Request;
+import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
-import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,13 +94,12 @@ public class LeanplumPushService {
    */
   public static final String LEANPLUM_MESSAGE_ID = "lp_message_id";
 
-  private static final String LEANPLUM_PUSH_SERVICE_FCM = "com.leanplum.LeanplumPushServiceFcm";
   private static final int NOTIFICATION_ID = 1;
   private static final String OPEN_URL = "Open URL";
   private static final String URL = "URL";
   private static final String OPEN_ACTION = "Open";
   private static Class<? extends Activity> callbackClass;
-  private static LeanplumCloudMessagingProvider provider;
+  private static final PushProviders pushProviders = new PushProviders();
   private static LeanplumPushNotificationCustomizer customizer;
   private static boolean useNotificationBuilderCustomizer = false;
 
@@ -107,12 +108,9 @@ public class LeanplumPushService {
    *
    * @return LeanplumCloudMessagingProvider - current provider
    */
-  static LeanplumCloudMessagingProvider getCloudMessagingProvider() {
-    return provider;
-  }
-
-  static void setCloudMessagingProvider(LeanplumCloudMessagingProvider cloudMessagingProvider) {
-    provider = cloudMessagingProvider;
+  @NonNull
+  static PushProviders getPushProviders() {
+    return pushProviders;
   }
 
   /**
@@ -171,11 +169,13 @@ public class LeanplumPushService {
           } else {
             // Try downloading the messages again if it doesn't exist.
             // Maybe the message was created while the app was running.
-            Map<String, Object> params = new HashMap<>();
-            params.put(Params.INCLUDE_DEFAULTS, Boolean.toString(false));
-            params.put(Params.INCLUDE_MESSAGE_ID, messageId);
-            RequestOld req = RequestOld.post(Methods.GET_VARS, params);
-            req.onResponse(new RequestOld.ResponseCallback() {
+            Request req = RequestBuilder
+                .withGetVarsAction()
+                .andParam(Params.INCLUDE_DEFAULTS, Boolean.toString(false))
+                .andParam(Params.INCLUDE_MESSAGE_ID, messageId)
+                .andType(RequestType.IMMEDIATE)
+                .create();
+            req.onResponse(new Request.ResponseCallback() {
               @Override
               public void response(JSONObject response) {
                 try {
@@ -199,25 +199,25 @@ public class LeanplumPushService {
                       messages = null;
                     }
                     if (values != null || messages != null) {
-                      VarCache.applyVariableDiffs(values, messages, null, null, regions, variants, null);
+                      VarCache.applyVariableDiffs(values, messages, regions, variants, null);
                     }
                   }
                   onComplete.variablesChanged();
                 } catch (Throwable t) {
-                  Util.handleException(t);
+                  Log.exception(t);
                 }
               }
             });
-            req.onError(new RequestOld.ErrorCallback() {
+            req.onError(new Request.ErrorCallback() {
               @Override
               public void error(Exception e) {
                 onComplete.variablesChanged();
               }
             });
-            req.sendIfConnected();
+            RequestSender.getInstance().send(req);
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -266,8 +266,6 @@ public class LeanplumPushService {
     // Leanplum.track("Displayed", 0.0, null, null, requestArgs);
 
     showNotification(context, message);
-
-    Leanplum.countAggregator().incrementCount("handle_notification");
   }
 
   /**
@@ -341,7 +339,7 @@ public class LeanplumPushService {
           customizer.customize(notificationCompatBuilder, message);
         }
       } catch (Throwable t) {
-        Log.e("Unable to customize push notification: ", Log.getStackTraceString(t));
+        Log.e("Unable to customize push notification: %s", Log.getStackTraceString(t));
         return;
       }
     } else {
@@ -398,9 +396,8 @@ public class LeanplumPushService {
       Log.e("Unable to show push notification.", e);
     } catch (Throwable t) {
       Log.e("Unable to show push notification.", t);
-      Util.handleException(t);
+      Log.exception(t);
     }
-    Leanplum.countAggregator().incrementCount("show_with_title");
   }
 
   static void openNotification(Context context, Intent intent) {
@@ -465,7 +462,7 @@ public class LeanplumPushService {
 
       return arguments;
     } catch (Throwable ignored) {
-      Log.i("Failed to parse notification bundle.");
+      Log.d("Failed to parse notification bundle.");
     }
     return null;
   }
@@ -480,12 +477,12 @@ public class LeanplumPushService {
    */
   public static Bundle preHandlePushNotification(Context context, Intent intent) {
     if (intent == null) {
-      Log.i("Unable to pre handle push notification, Intent is null.");
+      Log.d("Unable to pre handle push notification, Intent is null.");
       return null;
     }
     Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.i("Unable to pre handle push notification, extras are null.");
+      Log.d("Unable to pre handle push notification, extras are null.");
       return null;
     }
     return notification;
@@ -501,7 +498,7 @@ public class LeanplumPushService {
   public static void postHandlePushNotification(Context context, Intent intent) {
     final Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.i("Could not post handle push notification, extras are null.");
+      Log.d("Could not post handle push notification, extras are null.");
       return;
     }
     // Perform action.
@@ -536,19 +533,19 @@ public class LeanplumPushService {
                                 try {
                                   LeanplumInternal.performTrackedAction(actionName, messageId);
                                 } catch (Throwable t) {
-                                  Util.handleException(t);
+                                  Log.exception(t);
                                 }
                               }
                             });
                       } catch (Throwable t) {
-                        Util.handleException(t);
+                        Log.exception(t);
                       }
                     }
                   });
             }
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
         }
       }
     });
@@ -637,25 +634,7 @@ public class LeanplumPushService {
       unregisterIntent.setPackage("com.google.android.gms");
       context.startService(unregisterIntent);
     } catch (Throwable t) {
-      Util.handleException(t);
-    }
-  }
-
-  /**
-   * Registers the application with FCM servers asynchronously.
-   * <p>
-   * Stores the registration ID and app versionCode in the application's shared preferences.
-   */
-  private static void registerInBackground() {
-    try {
-      Context context = Leanplum.getContext();
-      if (context == null) {
-        Log.e("Failed to register application with FCM. Your application context is not set.");
-        return;
-      }
-      Intent registerIntent = new Intent(context, LeanplumPushRegistrationService.class);
-      context.startService(registerIntent);
-    } catch (Throwable ignored) {
+      Log.exception(t);
     }
   }
 
@@ -663,62 +642,7 @@ public class LeanplumPushService {
    * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
-    Class leanplumFcmPushServiceClass = null;
-
-    try {
-      leanplumFcmPushServiceClass = Class.forName(LEANPLUM_PUSH_SERVICE_FCM);
-    } catch (Throwable ignored) {
-    }
-
-    if (leanplumFcmPushServiceClass != null) {
-      try {
-        leanplumFcmPushServiceClass.getDeclaredMethod("onStart").invoke(null);
-      } catch (Throwable ignored) {
-      }
-    }
-  }
-
-  /**
-   * Initialize push service.
-   */
-  static void initPushService() {
-    if (!provider.isInitialized() || !provider.isManifestSetup()) {
-      return;
-    }
-    if (hasAppIDChanged(RequestOld.appId())) {
-      provider.unregister();
-    }
-    registerInBackground();
-  }
-
-  /**
-   * Check if current application id is different from stored one.
-   *
-   * @param currentAppId - Current application id.
-   * @return True if application id was stored before and doesn't equal to current.
-   */
-  private static boolean hasAppIDChanged(String currentAppId) {
-    if (currentAppId == null) {
-      return false;
-    }
-
-    Context context = Leanplum.getContext();
-    if (context == null) {
-      return false;
-    }
-
-    String storedAppId = SharedPreferencesUtil.getString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.APP_ID);
-    if (!currentAppId.equals(storedAppId)) {
-      Log.v("Saving the application id in the shared preferences.");
-      SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-          Constants.Defaults.APP_ID, currentAppId);
-      // Check application id was stored before.
-      if (!SharedPreferencesUtil.DEFAULT_STRING_VALUE.equals(storedAppId)) {
-        return true;
-      }
-    }
-    return false;
+    pushProviders.updateRegistrationIdsAndBackend();
   }
 
   /**
@@ -728,7 +652,7 @@ public class LeanplumPushService {
    * @param context The application context.
    * @param currentContext Current application context.
    */
-  static void showDeviceRegistedPush(Context context, Context currentContext) {
+  static void showDeviceRegisteredPush(Context context, Context currentContext) {
     try {
       NotificationCompat.Builder builder =
           LeanplumNotificationHelper.getDefaultCompatNotificationBuilder(context,
@@ -747,7 +671,7 @@ public class LeanplumPushService {
       // mId allows you to update the notification later on.
       mNotificationManager.notify(0, builder.build());
     } catch (Throwable t) {
-      Log.i("Device is registered.");
+      // ignore
     }
   }
 }

@@ -86,7 +86,7 @@ public class ActionManager {
         return locationManager;
       } catch (Throwable t) {
         if (!loggedLocationManagerFailure) {
-          Log.w("Geofencing support requires leanplum-location module and Google Play " +
+          Log.i("Geofencing support requires leanplum-location module and Google Play " +
               "Services v8.1 and higher.\n" +
               "Add this to your build.gradle file:\n" +
               "implementation 'com.google.android.gms:play-services-location:8.3.0+'\n" +
@@ -139,7 +139,7 @@ public class ActionManager {
             return false;
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
           return false;
         }
       }
@@ -170,14 +170,14 @@ public class ActionManager {
                 .invoke(new Object(), context, messageId);
             boolean didCancel = existingEta > System.currentTimeMillis();
             if (didCancel) {
-              Log.i("Cancelled notification");
+              Log.d("Cancelled notification");
             }
             return didCancel;
           } catch (Throwable throwable) {
             return false;
           }
         } catch (Throwable t) {
-          Util.handleException(t);
+          Log.exception(t);
           return false;
         }
       }
@@ -450,7 +450,6 @@ public class ActionManager {
     int occurrences = getMessageTriggerOccurrences(messageId);
     occurrences++;
     saveMessageTriggerOccurrences(occurrences, messageId);
-    Leanplum.countAggregator().incrementCount("record_message_trigger");
   }
 
   /**

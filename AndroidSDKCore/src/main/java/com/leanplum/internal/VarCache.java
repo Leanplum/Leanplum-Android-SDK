@@ -30,6 +30,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
 import com.leanplum.internal.FileManager.HashResults;
+import com.leanplum.internal.Request.RequestType;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
@@ -58,7 +59,7 @@ import java.util.regex.Pattern;
 public class VarCache {
   private static final Map<String, Var<?>> vars = new ConcurrentHashMap<>();
   private static final Map<String, Object> fileAttributes = new HashMap<>();
-  private static final Map<String, InputStream> fileStreams = new HashMap<>();
+  private static final Map<String, StreamProvider> fileStreams = new HashMap<>();
 
   /**
    * The default values set by the client. This is not thread-safe so traversals should be
@@ -72,15 +73,11 @@ public class VarCache {
   private static Map<String, Object> diffs = new HashMap<>();
   private static Map<String, Object> regions = new HashMap<>();
   private static Map<String, Object> messageDiffs = new HashMap<>();
-  private static List<Map<String, Object>> updateRuleDiffs;
-  private static List<Map<String, Object>> eventRuleDiffs;
   private static Map<String, Object> devModeValuesFromServer;
   private static Map<String, Object> devModeFileAttributesFromServer;
   private static Map<String, Object> devModeActionDefinitionsFromServer;
   private static List<Map<String, Object>> variants = new ArrayList<>();
   private static CacheUpdateBlock updateBlock;
-  private static CacheUpdateBlock interfaceUpdateBlock;
-  private static CacheUpdateBlock eventsUpdateBlock;
   private static boolean hasReceivedDiffs = false;
   private static Map<String, Object> messages = new HashMap<>();
   private static Object merged;
@@ -125,40 +122,75 @@ public class VarCache {
     return null;
   }
 
-  public static boolean registerFile(
-      String stringValue, String defaultValue,
-      InputStream defaultStream, boolean isResource, String resourceHash, int resourceSize) {
-    if (Constants.isDevelopmentModeEnabled) {
-      if (!Constants.isNoop()) {
-        if (defaultStream == null) {
-          return false;
-        }
-        Map<String, Object> variationAttributes = new HashMap<>();
-        Map<String, Object> attributes = new HashMap<>();
-        if (isResource) {
-          attributes.put(Constants.Keys.HASH, resourceHash);
-          attributes.put(Constants.Keys.SIZE, resourceSize);
-        } else {
-          if (Constants.hashFilesToDetermineModifications && Util.isSimulator()) {
-            HashResults result = FileManager.fileMD5HashCreateWithPath(defaultStream);
-            if (result != null) {
-              attributes.put(Constants.Keys.HASH, result.hash);
-              attributes.put(Constants.Keys.SIZE, result.size);
-            }
-          } else {
-            int size = FileManager.getFileSize(
-                FileManager.fileValue(stringValue, defaultValue, null));
-            attributes.put(Constants.Keys.SIZE, size);
-          }
-        }
-        variationAttributes.put("", attributes);
-        fileAttributes.put(stringValue, variationAttributes);
-        fileStreams.put(stringValue, defaultStream);
-        maybeUploadNewFiles();
+  @FunctionalInterface
+  public interface StreamProvider {
+    InputStream openStream();
+  }
+
+  private static boolean isStreamAvailable(StreamProvider stream) {
+    if (stream == null)
+      return false;
+
+    try {
+      InputStream is = stream.openStream();
+      if (is != null) {
+        is.close();
+        return true;
       }
-      return true;
+    } catch (Throwable ignore) {
     }
     return false;
+  }
+
+  public static void registerFile(
+      String stringValue, StreamProvider defaultStream, String hash, int size) {
+
+    if (!isStreamAvailable(defaultStream)
+        || !Constants.isDevelopmentModeEnabled
+        || Constants.isNoop()) {
+      return;
+    }
+
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put(Constants.Keys.HASH, hash);
+    attributes.put(Constants.Keys.SIZE, size);
+
+    Map<String, Object> variationAttributes = new HashMap<>();
+    variationAttributes.put("", attributes);
+
+    fileStreams.put(stringValue, defaultStream);
+    fileAttributes.put(stringValue, variationAttributes);
+    maybeUploadNewFiles();
+  }
+
+  public static void registerFile(
+      String stringValue, String defaultValue, StreamProvider defaultStream) {
+
+    if (!isStreamAvailable(defaultStream)
+        || !Constants.isDevelopmentModeEnabled
+        || Constants.isNoop()) {
+      return;
+    }
+
+    Map<String, Object> variationAttributes = new HashMap<>();
+    Map<String, Object> attributes = new HashMap<>();
+
+    if (Constants.hashFilesToDetermineModifications && Util.isSimulator()) {
+      HashResults result = FileManager.fileMD5HashCreateWithPath(defaultStream.openStream());
+      if (result != null) {
+        attributes.put(Constants.Keys.HASH, result.hash);
+        attributes.put(Constants.Keys.SIZE, result.size);
+      }
+    } else {
+      int size = FileManager.getFileSize(
+          FileManager.fileValue(stringValue, defaultValue, null));
+      attributes.put(Constants.Keys.SIZE, size);
+    }
+
+    variationAttributes.put("", attributes);
+    fileStreams.put(stringValue, defaultStream);
+    fileAttributes.put(stringValue, variationAttributes);
+    maybeUploadNewFiles();
   }
 
   private static void updateValues(String name, String[] nameComponents, Object value, String kind,
@@ -248,14 +280,34 @@ public class VarCache {
       for (Object var : varsKeys) {
         merged.add(var);
       }
-      for (Object varSubscript : diffKeys) {
-        String strSubscript = (String) varSubscript;
-        int subscript = Integer.parseInt(strSubscript.substring(1, strSubscript.length() - 1));
-        Object var = diffMap != null ? diffMap.get(strSubscript) : null;
-        while (subscript >= merged.size()) {
-          merged.add(null);
+      
+      // Merge values from server
+      // Array values from server come as Dictionary
+      // Example:
+      // string[] items = new string[] { "Item 1", "Item 2"};
+      // args.With<string[]>("Items", items); // Action Context arg value
+      // "vars": {
+      //      "Items": {
+      //                  "[1]": "Item 222", // Modified value from server
+      //                  "[0]": "Item 111"  // Modified value from server
+      //              }
+      //  }
+      // Prevent error when loading variable diffs where the diff is an Array and not Dictionary
+      if (diffMap != null) {
+        for (Object varSubscript : diffKeys) {
+          if (varSubscript instanceof String) {
+            String strSubscript = (String) varSubscript;
+            if (strSubscript.length() > 2 && strSubscript.startsWith("[") && strSubscript.endsWith("]")) {
+              // Get the index from the string key: "[0]" -> 0
+              int subscript = Integer.parseInt(strSubscript.substring(1, strSubscript.length() - 1));
+              Object var = diffMap.get(strSubscript);
+              while (subscript >= merged.size() && merged.size() < Short.MAX_VALUE) {
+                merged.add(null);
+              }
+              merged.set(subscript, mergeHelper(merged.get(subscript), var));
+            }
+          }
         }
-        merged.set(subscript, mergeHelper(merged.get(subscript), var));
       }
       return merged;
     }
@@ -307,14 +359,6 @@ public class VarCache {
     return messageDiffs;
   }
 
-  public static List<Map<String, Object>> getUpdateRuleDiffs() {
-    return updateRuleDiffs;
-  }
-
-  public static List<Map<String, Object>> getEventRuleDiffs() {
-    return eventRuleDiffs;
-  }
-
   public static Map<String, Object> regions() {
     return regions;
   }
@@ -341,12 +385,10 @@ public class VarCache {
     }
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       applyVariableDiffs(
           new HashMap<String, Object>(),
           new HashMap<String, Object>(),
-          new ArrayList<Map<String, Object>>(),
-          new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>(),
           new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>());
@@ -354,40 +396,34 @@ public class VarCache {
     }
     try {
       // Crypt functions return input text if there was a problem.
-      AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+      AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
       String variables = aesContext.decodePreference(
           defaults, Constants.Defaults.VARIABLES_KEY, "{}");
       String messages = aesContext.decodePreference(
           defaults, Constants.Defaults.MESSAGES_KEY, "{}");
-      String updateRules = aesContext.decodePreference(
-          defaults, Constants.Defaults.UPDATE_RULES_KEY, "[]");
-      String eventRules = aesContext.decodePreference(
-          defaults, Constants.Defaults.EVENT_RULES_KEY, "[]");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
       String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
       applyVariableDiffs(
           JsonConverter.fromJson(variables),
           JsonConverter.fromJson(messages),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(updateRules)),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(eventRules)),
           JsonConverter.fromJson(regions),
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
           JsonConverter.fromJson(variantDebugInfo));
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
         if (Util.isValidDeviceId(deviceId)) {
-          RequestOld.setDeviceId(deviceId);
+          APIConfig.getInstance().setDeviceId(deviceId);
         } else {
-          Log.w("Invalid stored device id found: \"" + deviceId + "\"; discarding.");
+          Log.d("Invalid stored device id found: \"" + deviceId + "\"; discarding.");
         }
       }
       String userId = aesContext.decodePreference(defaults, Constants.Params.USER_ID, null);
       if (userId != null) {
         if (Util.isValidUserId(userId)) {
-          RequestOld.setUserId(userId);
+          APIConfig.getInstance().setUserId(userId);
         } else {
-          Log.w("Invalid stored user id found: \"" + userId + "\"; discarding.");
+          Log.d("Invalid stored user id found: \"" + userId + "\"; discarding.");
         }
       }
       String loggingEnabled = aesContext.decodePreference(defaults, Constants.Keys.LOGGING_ENABLED,
@@ -399,14 +435,13 @@ public class VarCache {
       Log.e("Could not load variable diffs.\n" + Log.getStackTraceString(e));
     }
     userAttributes();
-    Leanplum.countAggregator().incrementCount("load_diffs");
   }
 
   public static void saveDiffs() {
     if (Constants.isNoop()) {
       return;
     }
-    if (RequestOld.token() == null) {
+    if (APIConfig.getInstance().token() == null) {
       return;
     }
     Context context = Leanplum.getContext();
@@ -414,32 +449,13 @@ public class VarCache {
     SharedPreferences.Editor editor = defaults.edit();
 
     // Crypt functions return input text if there was a problem.
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
+
     String variablesCipher = aesContext.encrypt(JsonConverter.toJson(diffs));
     editor.putString(Constants.Defaults.VARIABLES_KEY, variablesCipher);
 
     String messagesCipher = aesContext.encrypt(JsonConverter.toJson(messages));
     editor.putString(Constants.Defaults.MESSAGES_KEY, messagesCipher);
-
-    try {
-      if (updateRuleDiffs != null && !updateRuleDiffs.isEmpty()) {
-        String updateRulesCipher = aesContext.encrypt(
-            JsonConverter.listToJsonArray(updateRuleDiffs).toString());
-        editor.putString(Constants.Defaults.UPDATE_RULES_KEY, updateRulesCipher);
-      }
-    } catch (JSONException e) {
-      Log.e("Error converting updateRuleDiffs to JSON", e);
-    }
-
-    try {
-      if (eventRuleDiffs != null && !eventRuleDiffs.isEmpty()) {
-        String eventRulesCipher = aesContext.encrypt(
-            JsonConverter.listToJsonArray(eventRuleDiffs).toString());
-        editor.putString(Constants.Defaults.EVENT_RULES_KEY, eventRulesCipher);
-      }
-    } catch (JSONException e) {
-      Log.e("Error converting eventRuleDiffs to JSON", e);
-    }
 
     String regionsCipher = aesContext.encrypt(JsonConverter.toJson(regions));
     editor.putString(Constants.Defaults.REGIONS_KEY, regionsCipher);
@@ -459,13 +475,11 @@ public class VarCache {
           aesContext.encrypt(JsonConverter.toJson(variantDebugInfo)));
     }
 
-    editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(RequestOld.deviceId()));
-    editor.putString(Constants.Params.USER_ID, aesContext.encrypt(RequestOld.userId()));
+    editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(APIConfig.getInstance().deviceId()));
+    editor.putString(Constants.Params.USER_ID, aesContext.encrypt(APIConfig.getInstance().userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
         aesContext.encrypt(String.valueOf(Constants.loggingEnabled)));
     SharedPreferencesUtil.commitChanges(editor);
-
-    Leanplum.countAggregator().incrementCount("send_diffs");
   }
 
   /**
@@ -502,8 +516,8 @@ public class VarCache {
           !overrideFile.equals(var.defaultValue())) {
         Map<String, Object> variationAttributes = CollectionUtil.uncheckedCast(fileAttributes.get
             (overrideFile));
-        InputStream stream = fileStreams.get(overrideFile);
-        if (variationAttributes != null && stream != null) {
+        StreamProvider streamProvider = fileStreams.get(overrideFile);
+        if (variationAttributes != null && streamProvider != null) {
           var.setOverrideResId(getResIdFromPath(var.stringValue()));
         }
       }
@@ -513,8 +527,6 @@ public class VarCache {
   public static void applyVariableDiffs(
       Map<String, Object> diffs,
       Map<String, Object> messages,
-      List<Map<String, Object>> updateRules,
-      List<Map<String, Object>> eventRules,
       Map<String, Object> regions,
       List<Map<String, Object>> variants,
       Map<String, Object> variantDebugInfo) {
@@ -526,7 +538,10 @@ public class VarCache {
       // Have to copy the dictionary because a dictionary variable may add a new sub-variable,
       // modifying the variable dictionary.
       for (String name : new HashMap<>(vars).keySet()) {
-        vars.get(name).update();
+        Var<?> var = vars.get(name);
+        if (var != null) {
+          var.update();
+        }
       }
       fileVariableFinish();
     }
@@ -577,19 +592,6 @@ public class VarCache {
       }
     }
 
-    boolean interfaceUpdated = false;
-    if (updateRules != null) {
-      interfaceUpdated = !(updateRules.equals(updateRuleDiffs));
-      updateRuleDiffs = new ArrayList<>(updateRules);
-      VarCache.downloadUpdateRulesImages();
-    }
-
-    boolean eventsUpdated = false;
-    if (eventRules != null) {
-      eventsUpdated = !(eventRules.equals(eventRuleDiffs));
-      eventRuleDiffs = new ArrayList<>(eventRules);
-    }
-
     if (variants != null) {
       VarCache.variants = variants;
     }
@@ -603,38 +605,6 @@ public class VarCache {
     if (!silent) {
       saveDiffs();
       triggerHasReceivedDiffs();
-
-      if (interfaceUpdated && interfaceUpdateBlock != null) {
-        interfaceUpdateBlock.updateCache();
-      }
-
-      if (eventsUpdated && eventsUpdateBlock != null) {
-        eventsUpdateBlock.updateCache();
-      }
-    }
-    Leanplum.countAggregator().incrementCount("apply_variable_diffs");
-  }
-
-  static void applyUpdateRuleDiffs(List<Map<String, Object>> updateRuleDiffs) {
-    VarCache.updateRuleDiffs = updateRuleDiffs;
-    VarCache.downloadUpdateRulesImages();
-    if (interfaceUpdateBlock != null) {
-      interfaceUpdateBlock.updateCache();
-    }
-    VarCache.saveDiffs();
-  }
-
-  private static void downloadUpdateRulesImages() {
-    for (Map value : VarCache.updateRuleDiffs) {
-      List changes = (List) value.get("changes");
-      for (Object change : changes) {
-        Map<String, String> castedChange = CollectionUtil.uncheckedCast(change);
-        String key = castedChange.get("key");
-        if (key != null && key.contains("image")) {
-          String name = castedChange.get("value");
-          FileManager.maybeDownloadFile(true, name, null, null, null);
-        }
-      }
     }
   }
 
@@ -706,7 +676,12 @@ public class VarCache {
         params.put(Constants.Params.ACTION_DEFINITIONS, JsonConverter.toJson(actionDefinitions));
       }
       params.put(Constants.Params.FILE_ATTRIBUTES, JsonConverter.toJson(fileAttributes));
-      RequestOld.post(Constants.Methods.SET_VARS, params).sendIfConnected();
+      Request request = RequestBuilder
+          .withSetVarsAction()
+          .andParams(params)
+          .andType(RequestType.IMMEDIATE)
+          .create();
+      RequestSender.getInstance().send(request);
     }
 
     return changed;
@@ -735,7 +710,7 @@ public class VarCache {
       Map<String, Object> serverAttributes = CollectionUtil.uncheckedCast(
           (serverVariationAttributes != null ? serverVariationAttributes.get("") : null));
       if (FileManager.isNewerLocally(localAttributes, serverAttributes)) {
-        Log.v("Will upload file " + name + ". Local attributes: " +
+        Log.d("Will upload file " + name + ". Local attributes: " +
             localAttributes + "; server attributes: " + serverAttributes);
 
         String hash = (String) localAttributes.get(Constants.Keys.HASH);
@@ -748,11 +723,8 @@ public class VarCache {
         // Upload in batch if we can't put any more files in
         if ((totalSize > Constants.Files.MAX_UPLOAD_BATCH_SIZES && filenames.size() > 0)
             || filenames.size() >= Constants.Files.MAX_UPLOAD_BATCH_FILES) {
-          Map<String, Object> params = new HashMap<>();
-          params.put(Constants.Params.DATA, fileData.toString());
 
-          RequestOld.post(Constants.Methods.UPLOAD_FILE, params).sendFilesNow(filenames,
-              streams);
+          FileTransferManager.getInstance().sendFilesNow(fileData, filenames, streams);
 
           filenames = new ArrayList<>();
           fileData = new ArrayList<>();
@@ -775,14 +747,17 @@ public class VarCache {
           Log.e("Unable to upload files.\n" + Log.getStackTraceString(e));
           fileData.add(new JSONObject());
         }
-        streams.add(fileStreams.get(name));
+        InputStream is = null;
+        StreamProvider streamProvider = fileStreams.get(name);
+        if (streamProvider != null) {
+          is = streamProvider.openStream();
+        }
+        streams.add(is);
       }
     }
 
     if (filenames.size() > 0) {
-      Map<String, Object> params = new HashMap<>();
-      params.put(Constants.Params.DATA, fileData.toString());
-      RequestOld.post(Constants.Methods.UPLOAD_FILE, params).sendFilesNow(filenames, streams);
+      FileTransferManager.getInstance().sendFilesNow(fileData, filenames, streams);
     }
   }
 
@@ -807,17 +782,6 @@ public class VarCache {
 
   public static void onUpdate(CacheUpdateBlock block) {
     updateBlock = block;
-    Leanplum.countAggregator().incrementCount("on_update_varcache");
-  }
-
-  public static void onInterfaceUpdate(CacheUpdateBlock block) {
-    interfaceUpdateBlock = block;
-    Leanplum.countAggregator().incrementCount("on_interface_update");
-  }
-
-  public static void onEventsUpdate(CacheUpdateBlock block) {
-    eventsUpdateBlock = block;
-    Leanplum.countAggregator().incrementCount("on_events_update");
   }
 
   public static List<Map<String, Object>> variants() {
@@ -882,7 +846,7 @@ public class VarCache {
     if (userAttributes == null) {
       Context context = Leanplum.getContext();
       SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
-      AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+      AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
       try {
         userAttributes = JsonConverter.fromJson(
             aesContext.decodePreference(defaults, Constants.Defaults.ATTRIBUTES_KEY, "{}"));
@@ -895,7 +859,7 @@ public class VarCache {
   }
 
   public static void saveUserAttributes() {
-    if (Constants.isNoop() || RequestOld.appId() == null || userAttributes == null) {
+    if (Constants.isNoop() || APIConfig.getInstance().appId() == null || userAttributes == null) {
       return;
     }
     Context context = Leanplum.getContext();
@@ -903,11 +867,9 @@ public class VarCache {
     SharedPreferences.Editor editor = defaults.edit();
     // Crypt functions return input text if there was a problem.
     String plaintext = JsonConverter.toJson(userAttributes);
-    AESCrypt aesContext = new AESCrypt(RequestOld.appId(), RequestOld.token());
+    AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
     editor.putString(Constants.Defaults.ATTRIBUTES_KEY, aesContext.encrypt(plaintext));
     SharedPreferencesUtil.commitChanges(editor);
-
-    Leanplum.countAggregator().incrementCount("save_user_attributes");
   }
 
   public static void clearUserContent() {

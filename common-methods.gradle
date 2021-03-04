@@ -1,8 +1,9 @@
 // Export methods by turning them into closures
 ext {
-    COMPILE_SDK_VERSION = 28
+    COMPILE_SDK_VERSION = 29
     APPCOMPAT_LIBRARY_VERSION = '1.2.0'
     MIN_SDK_VERSION = 14
+    JAVA_VERSION = JavaVersion.VERSION_1_8
 
     LEANPLUM_GROUP_ID = 'com.leanplum'
     LEANPLUM_ARTIFACT_ID = 'leanplum'
@@ -16,19 +17,10 @@ ext {
     PROGUARD_FILES = 'proguard-rules.pro'
     CONSUMER_PROGUARD_FILES = 'consumer-proguard-rules.pro'
 
-    pomWithXml = this.&pomWithXml
     publishing_task = this.&publishing_task
-    pomConfig = this.&pomConfig
 }
 
-def publishing_task(libraryArtifactId, packageName) {
-
-    task makeJar(type: Copy) {
-        from('build/intermediates/packaged-classes/release/')
-        into('build/outputs/jar/')
-        include('classes.jar')
-        rename('classes.jar', packageName + '.jar')
-    }
+def publishing_task(libraryArtifactId) {
 
     task androidJavadocs(type: Javadoc) {
         failOnError false
@@ -38,44 +30,54 @@ def publishing_task(libraryArtifactId, packageName) {
     }
 
     task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-        classifier = 'javadoc'
+        archiveClassifier = 'javadoc'
         from androidJavadocs.destinationDir
     }
 
     task androidSourcesJar(type: Jar) {
-        classifier = 'sources'
+        archiveClassifier = 'sources'
         from android.sourceSets.main.java.srcDirs
     }
 
-    publishing {
-        publications {
-            aar(MavenPublication) {
-                groupId LEANPLUM_GROUP_ID
-                version LEANPLUM_SDK_VERSION
-                artifactId libraryArtifactId
+    afterEvaluate {
+        publishing {
+            publications {
+                aar(MavenPublication) {
+                    groupId LEANPLUM_GROUP_ID
+                    version LEANPLUM_SDK_VERSION
+                    artifactId libraryArtifactId
 
-                artifact("$buildDir/outputs/aar/" + packageName + ".aar")
-                artifact androidJavadocsJar
-                artifact androidSourcesJar
+                    // Apply the component for the release build variant
+                    from components.release
 
-                // The publication doesn't know about our dependencies,
-                // so we have to manually add them to the pom.
+                    artifact androidJavadocsJar
+                    artifact androidSourcesJar
 
-                pomWithXml(pom, 'aar', libraryArtifactId)
-            }
+                    // publish jar
+                    artifact("$buildDir/intermediates/aar_main_jar/release/classes.jar")
 
-            jar(MavenPublication) {
-                groupId LEANPLUM_GROUP_ID
-                version LEANPLUM_SDK_VERSION
-                artifactId libraryArtifactId
-
-                artifact("$buildDir/outputs/jar/" + packageName + ".jar")
-                artifact androidJavadocsJar
-                artifact androidSourcesJar
-
-                // The publication doesn't know about our dependencies,
-                // so we have to manually add them to the pom.
-                pomWithXml(pom, 'jar', libraryArtifactId)
+                    pom {
+                        packaging = 'aar'
+                        name = libraryArtifactId
+                        description = 'The Leanplum SDK messaging platform'
+                        url = 'https://github.com/Leanplum/Leanplum-Android-SDK'
+                        licenses {
+                            license {
+                                name = 'The Apache Software License, Version 2.0'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                distribution = 'repo'
+                            }
+                        }
+                        developers {
+                            developer {
+                                name = 'Leanplum'
+                            }
+                        }
+                        scm {
+                            url = 'https://github.com/Leanplum/Leanplum-Android-SDK'
+                        }
+                    }
+                }
             }
         }
     }
@@ -90,7 +92,7 @@ def publishing_task(libraryArtifactId, packageName) {
                 password = System.getenv('ARTIFACTORY_PASSWORD')
             }
             defaults {
-                publications('aar', 'jar')
+                publications('aar')
                 publishArtifacts = true
 
                 properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
@@ -99,11 +101,10 @@ def publishing_task(libraryArtifactId, packageName) {
         }
     }
 
-
     bintray {
         user = System.getenv('BINTRAY_USER')
         key = System.getenv('BINTRAY_API_KEY')
-        publications = ['aar', 'jar']
+        publications = ['aar']
         pkg {
             repo = 'maven'
             name = libraryArtifactId
@@ -112,68 +113,10 @@ def publishing_task(libraryArtifactId, packageName) {
             vcsUrl = 'https://github.com/Leanplum/Leanplum-Android-SDK.git'
             version {
                 name = LEANPLUM_SDK_VERSION
-                released  = new Date()
+                released = new Date()
                 vcsTag = LEANPLUM_SDK_VERSION
             }
             publish = true
-        }
-    }
-}
-
-def pomWithXml(pom, libraryType, libraryArtifactId) {
-    pom.withXml {
-        def root = asNode()
-        if('jar'==libraryType){
-            root.appendNode('packaging', 'aar') // Default to aar packaging.
-        }
-        def dependenciesNode = root.appendNode('dependencies')
-        // Iterate over the compile dependencies (we don't want the test ones),
-        // adding a <dependency> node for each.
-        configurations.api.allDependencies.each {
-            pomConfig(it, dependenciesNode)
-        }
-        configurations.releaseApi.allDependencies.each {
-            pomConfig(it, dependenciesNode)
-        }
-        root.appendNode('description', 'The Leanplum SDK messaging platform')
-        root.appendNode('name', libraryArtifactId)
-        root.appendNode('url', 'https://github.com/Leanplum/Leanplum-Android-SDK')
-        def scmNode = root.appendNode('scm')
-        scmNode.appendNode('url', 'https://github.com/Leanplum/Leanplum-Android-SDK')
-        def developersNode = root.appendNode('developers')
-        def developerNode = developersNode.appendNode('developer')
-        developerNode.appendNode('name', 'Leanplum')
-        def licensesNode = root.appendNode('licenses')
-        def licenseNode = licensesNode.appendNode('license')
-        licenseNode.appendNode('name', 'The Apache Software License, Version 2.0')
-        licenseNode.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
-        licenseNode.appendNode('distribution', 'repo')
-    }
-}
-
-def pomConfig(itParam, dependenciesNode) {
-    if (itParam.group != null && itParam.name != null) {
-        def dependencyNode = dependenciesNode.appendNode('dependency')
-        if (itParam.name == 'AndroidSDKCore') {
-            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
-            dependencyNode.appendNode('artifactId', LEANPLUM_CORE_ARTIFACT_ID)
-            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
-        } else if (itParam.name == 'AndroidSDKLocation') {
-            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
-            dependencyNode.appendNode('artifactId', LEANPLUM_LOCATION_ARTIFACT_ID)
-            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
-        } else if (itParam.name == 'AndroidSDKPush') {
-            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
-            dependencyNode.appendNode('artifactId', LEANPLUM_PUSH_ARTIFACT_ID)
-            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
-        } else if (itParam.name == 'AndroidSDKFcm') {
-            dependencyNode.appendNode('groupId', LEANPLUM_GROUP_ID)
-            dependencyNode.appendNode('artifactId', LEANPLUM_FCM_ARTIFACT_ID)
-            dependencyNode.appendNode('version', LEANPLUM_SDK_VERSION)
-        } else {
-            dependencyNode.appendNode('groupId', itParam.group)
-            dependencyNode.appendNode('artifactId', itParam.name)
-            dependencyNode.appendNode('version', itParam.version)
         }
     }
 }

@@ -39,11 +39,16 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import static junit.framework.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -64,7 +69,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     "org.powermock.*",
     "android.*"
 })
-@PrepareForTest({LeanplumCloudMessagingProvider.class, SharedPreferencesUtil.class})
+@PrepareForTest({Leanplum.class, LeanplumCloudMessagingProvider.class, SharedPreferencesUtil.class})
 public class LeanplumCloudMessagingProviderTest {
   @Rule
   public PowerMockRule rule = new PowerMockRule();
@@ -86,64 +91,53 @@ public class LeanplumCloudMessagingProviderTest {
 
   /**
    * Test if registrationId is sent to the server when a new registrationId is received. {@link
-   * LeanplumCloudMessagingProvider#onRegistrationIdReceived}
+   * LeanplumCloudMessagingProvider#setRegistrationId}
    *
    * @throws Exception
    */
   @Test
   public void testOnRegistrationIdReceived() throws Exception {
+    mockStatic(Leanplum.class);
     mockStatic(SharedPreferencesUtil.class);
+    when(Leanplum.class, "getContext").thenReturn(RuntimeEnvironment.application);
+
     LeanplumCloudMessagingProvider cloudMessagingProvider = new LeanplumCloudMessagingProvider() {
       @Override
-      public String getRegistrationId() {
-        return null;
+      protected String getSharedPrefsPropertyName() {
+        return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
       }
-
       @Override
-      public void getCurrentRegistrationIdAndUpdateBackend() {
-
+      public void updateRegistrationId() {
       }
-
       @Override
-      public boolean isInitialized() {
-        return false;
+      public PushProviderType getType() {
+        return PushProviderType.FCM;
       }
-
-      @Override
-      public boolean isManifestSetup() {
-        return false;
-      }
-
       @Override
       public void unregister() {
-
       }
     };
     LeanplumCloudMessagingProvider cloudMessagingProviderMock = PowerMockito.mock(
         LeanplumCloudMessagingProvider.class);
     whenNew(LeanplumCloudMessagingProvider.class).withNoArguments().thenReturn(
         cloudMessagingProviderMock);
-    // Mock getString from SharedPreferencesUtil for registration id and sendRegistrationIdToBackend
-    // of LeanplumCloudMessagingProvider class, referenced in onRegistrationIdReceived.
     when(SharedPreferencesUtil.class, "getString", context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_TOKEN_ID).thenReturn("stored_token");
-    doNothing().when(cloudMessagingProviderMock).storePreferences(context.getApplicationContext());
-    doNothing().when(LeanplumCloudMessagingProvider.class, "sendRegistrationIdToBackend",
-        "new_token");
+        Constants.Defaults.PROPERTY_FCM_TOKEN_ID).thenReturn("stored_token");
+    doNothing().when(cloudMessagingProviderMock).storeRegistrationId(anyString());
 
     // Test if a token gets send to the backend when no previous token exists.
-    cloudMessagingProvider.onRegistrationIdReceived(context, "new_token");
-    verifyPrivate(LeanplumCloudMessagingProvider.class, times(1)).invoke(
-        "sendRegistrationIdToBackend", "new_token");
+    cloudMessagingProvider.setRegistrationId("new_token");
+    verifyStatic(times(1));
+    Leanplum.setRegistrationId(any(PushProviderType.class), eq("new_token"));
 
     // Test if new token gets send to backend when a previous token exists.
-    cloudMessagingProvider.onRegistrationIdReceived(context, "new_token1");
-    verifyPrivate(LeanplumCloudMessagingProvider.class, times(1)).invoke(
-        "sendRegistrationIdToBackend", "new_token1");
+    cloudMessagingProvider.setRegistrationId("new_token1");
+    verifyStatic(times(1));
+    Leanplum.setRegistrationId(any(PushProviderType.class), eq("new_token1"));
 
     // Test if a new token is not sent to the backend when a token equals to the stored token.
-    cloudMessagingProvider.onRegistrationIdReceived(context, "stored_token");
-    verifyPrivate(LeanplumCloudMessagingProvider.class, times(0)).invoke(
-        "sendRegistrationIdToBackend", "stored_token");
+    cloudMessagingProvider.setRegistrationId("stored_token");
+    verifyStatic(never());
+    Leanplum.setRegistrationId(any(PushProviderType.class), eq("stored_token"));
   }
 }

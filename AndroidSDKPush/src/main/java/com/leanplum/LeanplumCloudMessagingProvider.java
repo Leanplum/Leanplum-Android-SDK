@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +23,9 @@ package com.leanplum;
 
 import android.content.Context;
 
+import android.text.TextUtils;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -32,113 +35,53 @@ import com.leanplum.utils.SharedPreferencesUtil;
  *
  * @author Anna Orlova
  */
-abstract class LeanplumCloudMessagingProvider {
-  private static String tokenId;
+abstract class LeanplumCloudMessagingProvider implements IPushProvider {
 
   /**
-   * Gets the registration Id associated with current messaging provider.
-   *
-   * @return Registration Id.
+   * Returns the name of the property in shared preferences where this provider's ID is saved.
    */
-  static String getCurrentRegistrationId() {
-    return tokenId;
-  }
+  protected abstract String getSharedPrefsPropertyName();
 
-
-  /**
-   * Sends the registration ID to the server over HTTP.
-   */
-  private static void sendRegistrationIdToBackend(String registrationId) {
-    Leanplum.setRegistrationId(registrationId);
-  }
-
-  /**
-   * Registration app for Cloud Messaging.
-   *
-   * @return String - registration id for app.
-   */
-  public abstract String getRegistrationId();
-
-
-  /**
-   * Gets the registration Id from FirebaseInstaceId with current messaging provider.
-   * And update the backend
-   */
-  public abstract void getCurrentRegistrationIdAndUpdateBackend();
-
-  /**
-   * Whether Messaging Provider is initialized correctly.
-   *
-   * @return True if provider is initialized, false otherwise.
-   */
-  public abstract boolean isInitialized();
-
-  /**
-   * Whether app manifest is setup correctly.
-   *
-   * @return True if manifest is setup, false otherwise.
-   */
-  public abstract boolean isManifestSetup();
-
-  /**
-   * Unregister from cloud messaging.
-   */
-  public abstract void unregister();
-
-  /**
-   * Callback should be invoked when Registration ID is received from provider.
-   *
-   * @param context The application context.
-   * @param tokenId Registration Id.
-   */
-  void onRegistrationIdReceived(Context context, String tokenId) {
-    if (tokenId == null) {
-      Log.w("Registration ID is undefined.");
+  @Override
+  public void setRegistrationId(String registrationId) {
+    if (TextUtils.isEmpty(registrationId)) {
+      Log.d("Registration ID for %s is undefined.", getType());
       return;
     }
-    LeanplumCloudMessagingProvider.tokenId = tokenId;
-    Log.i("Device registered for push notifications with registration token", tokenId);
-    // Check if received push notification token is different from stored one and send new one to
-    // server.
-    if (!LeanplumCloudMessagingProvider.tokenId.equals(SharedPreferencesUtil.getString(
-        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID))) {
-      SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-          Constants.Defaults.PROPERTY_TOKEN_ID, tokenId);
-      sendRegistrationIdToBackend(LeanplumCloudMessagingProvider.tokenId);
+
+    Log.d("Registering for %s push notifications with ID %s", getType(), registrationId);
+
+    if (!registrationId.equals(getRegistrationId())) {
+      storeRegistrationId(registrationId);
+      Log.d("Sending registration ID to backend.");
+      Leanplum.setRegistrationId(getType(), registrationId);
     }
   }
 
-  /**
-   * Stores the registration ID in the application's {@code SharedPreferences}.
-   *
-   * @param context The application context.
-   */
-  public void storePreferences(Context context) {
-    Log.v("Saving the registration ID in the shared preferences.");
-    SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_TOKEN_ID, tokenId);
+  @VisibleForTesting
+  void storeRegistrationId(@NonNull String registrationId) {
+    Context context = Leanplum.getContext();
+    if (context == null) {
+      return;
+    }
+
+    Log.d("Saving the registration ID %s in the shared preferences.", registrationId);
+    SharedPreferencesUtil.setString(
+        context,
+        Constants.Defaults.LEANPLUM_PUSH,
+        getSharedPrefsPropertyName(),
+        registrationId);
   }
 
+  @Override
+  public String getRegistrationId() {
+    Context context = Leanplum.getContext();
+    if (context == null)
+      return null;
 
-  /**
-   * Stores the registration ID in the application's {@code SharedPreferences}.
-   *
-   * @param context The application context.
-   */
-  public void storePreferences(Context context, String registrationIdValue) {
-    Log.v("Saving the registration ID in the shared preferences.");
-    SharedPreferencesUtil.setString(context, Constants.Defaults.LEANPLUM_PUSH,
-        Constants.Defaults.PROPERTY_TOKEN_ID, registrationIdValue);
-  }
-
-  /**
-   * Get the registration ID in the application's {@code SharedPreferences}.
-   *
-   * @param context The application context.
-   */
-  public String getStoredRegistrationPreferences(Context context) {
-    Log.v("Return the registration ID in the shared preferences.");
     return SharedPreferencesUtil.getString(
-        context, Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_TOKEN_ID);
+        context,
+        Constants.Defaults.LEANPLUM_PUSH,
+        getSharedPrefsPropertyName());
   }
 }

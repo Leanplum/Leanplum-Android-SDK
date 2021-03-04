@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2020, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,6 +22,21 @@
 package com.leanplum.messagetemplates;
 
 import android.content.Context;
+import androidx.annotation.NonNull;
+import com.leanplum.ActionArgs;
+import com.leanplum.ActionContext;
+import com.leanplum.Leanplum;
+import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.PostponableAction;
+import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.messagetemplates.actions.AlertMessage;
+import com.leanplum.messagetemplates.actions.CenterPopupMessage;
+import com.leanplum.messagetemplates.actions.InterstitialMessage;
+import com.leanplum.messagetemplates.actions.RichHtmlMessage;
+import com.leanplum.messagetemplates.actions.WebInterstitialMessage;
+import com.leanplum.messagetemplates.actions.ConfirmMessage;
+import com.leanplum.messagetemplates.actions.OpenUrlAction;
 
 /**
  * Registers all of the built-in message templates.
@@ -29,102 +44,103 @@ import android.content.Context;
  * @author Andrew First
  */
 public class MessageTemplates {
-  static class Args {
-    // Open URL
-    static final String URL = "URL";
-
-    // Alert/confirm arguments.
-    static final String TITLE = "Title";
-    static final String MESSAGE = "Message";
-    static final String ACCEPT_TEXT = "Accept text";
-    static final String CANCEL_TEXT = "Cancel text";
-    static final String DISMISS_TEXT = "Dismiss text";
-    static final String ACCEPT_ACTION = "Accept action";
-    static final String CANCEL_ACTION = "Cancel action";
-    static final String DISMISS_ACTION = "Dismiss action";
-
-    // Center popup/interstitial arguments.
-    static final String TITLE_TEXT = "Title.Text";
-    static final String TITLE_COLOR = "Title.Color";
-    static final String MESSAGE_TEXT = "Message.Text";
-    static final String MESSAGE_COLOR = "Message.Color";
-    static final String ACCEPT_BUTTON_TEXT = "Accept button.Text";
-    static final String ACCEPT_BUTTON_BACKGROUND_COLOR = "Accept button.Background color";
-    static final String ACCEPT_BUTTON_TEXT_COLOR = "Accept button.Text color";
-    static final String BACKGROUND_IMAGE = "Background image";
-    static final String BACKGROUND_COLOR = "Background color";
-    static final String LAYOUT_WIDTH = "Layout.Width";
-    static final String LAYOUT_HEIGHT = "Layout.Height";
-    static final String HTML_WIDTH = "HTML Width";
-    static final String HTML_HEIGHT = "HTML Height";
-    static final String HTML_Y_OFFSET = "HTML Y Offset";
-    static final String HTML_TAP_OUTSIDE_TO_CLOSE = "Tap Outside to Close";
-    static final String HTML_ALIGN = "HTML Align";
-    static final String HTML_ALIGN_TOP = "Top";
-    static final String HTML_ALIGN_BOTTOM = "Bottom";
-
-    // Web interstitial arguments.
-    static final String CLOSE_URL = "Close URL";
-    static final String HAS_DISMISS_BUTTON = "Has dismiss button";
-
-    // HTML Template arguments.
-    static final String OPEN_URL = "Open URL";
-    static final String TRACK_URL = "Track URL";
-    static final String ACTION_URL = "Action URL";
-    static final String TRACK_ACTION_URL = "Track Action URL";
-  }
-
-  static class Values {
-    static final String ALERT_MESSAGE = "Alert message goes here.";
-    static final String CONFIRM_MESSAGE = "Confirmation message goes here.";
-    static final String POPUP_MESSAGE = "Popup message goes here.";
-    static final String INTERSTITIAL_MESSAGE = "Interstitial message goes here.";
-    static final String OK_TEXT = "OK";
-    static final String YES_TEXT = "Yes";
-    static final String NO_TEXT = "No";
-    static final int CENTER_POPUP_WIDTH = 300;
-    static final int CENTER_POPUP_HEIGHT = 250;
-    static final int DEFAULT_HTML_HEIGHT = 0;
-    static final String DEFAULT_HTML_ALING = Args.HTML_ALIGN_TOP;
-
-    // Open URL.
-    static final String DEFAULT_URL = "http://www.example.com";
-    static final String DEFAULT_BASE_URL = "http://leanplum/";
-    // Web interstitial values.
-    static final String DEFAULT_CLOSE_URL = DEFAULT_BASE_URL + "close";
-    static final boolean DEFAULT_HAS_DISMISS_BUTTON = true;
-
-    // HTML Template values.
-    public static final String FILE_PREFIX = "__file__";
-    public static final String HTML_TEMPLATE_PREFIX = "__file__Template";
-    static final String DEFAULT_OPEN_URL = DEFAULT_BASE_URL + "loadFinished";
-    static final String DEFAULT_TRACK_URL = DEFAULT_BASE_URL + "track";
-    static final String DEFAULT_ACTION_URL = DEFAULT_BASE_URL + "runAction";
-    static final String DEFAULT_TRACK_ACTION_URL = DEFAULT_BASE_URL + "runTrackedAction";
-
-  }
 
   private static boolean registered = false;
 
-  static String getApplicationName(Context context) {
-    int stringId = context.getApplicationInfo().labelRes;
-    if (stringId == 0) {
-      return context.getApplicationInfo().loadLabel(context.getPackageManager()).toString();
-    }
-    return context.getString(stringId);
+  private static ActionCallback createCallback(@NonNull MessageTemplate template) {
+    return new ActionCallback() {
+      @Override
+      public boolean onResponse(ActionContext actionContext) {
+        LeanplumActivityHelper.queueActionUponActive(
+            new PostponableAction() {
+              @Override
+              public void run() {
+                template.handleAction(actionContext);
+              }
+            });
+        return true;
+      }
+    };
   }
 
-  public synchronized static void register(Context currentContext) {
+  private static ActionCallback createCallbackWaitVarsAndFiles(@NonNull MessageTemplate template) {
+    return new ActionCallback() {
+      @Override
+      public boolean onResponse(ActionContext actionContext) {
+        Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(
+            new VariablesChangedCallback() {
+              @Override
+              public void variablesChanged() {
+                LeanplumActivityHelper.queueActionUponActive(
+                    new PostponableAction() {
+                      @Override
+                      public void run() {
+                        template.handleAction(actionContext);
+                      }
+                    });
+              }
+            });
+        return true;
+      }
+    };
+  }
+
+  /**
+   * Registers a message template to respond to a given action.
+   * Will be shown in the templates group in Dashboard.
+   *
+   * @param template Wrapper for action name, action arguments and handler.
+   * @param context Android context
+   */
+  public static void registerTemplate(
+      @NonNull MessageTemplate template,
+      @NonNull Context context) {
+    register(template, context, Leanplum.ACTION_KIND_MESSAGE | Leanplum.ACTION_KIND_ACTION);
+  }
+
+  /**
+   * Registers an action template to respond to a given action.
+   * Will be shown in the actions group in Dashboard.
+   *
+   * @param template Wrapper for action name, action arguments and handler.
+   * @param context Android context
+   */
+  public static void registerAction(
+      @NonNull MessageTemplate template,
+      @NonNull Context context) {
+    register(template, context, Leanplum.ACTION_KIND_ACTION);
+  }
+
+  private static void register(
+      @NonNull MessageTemplate template,
+      @NonNull Context context,
+      int kind) {
+
+    String name = template.getName();
+    ActionArgs args = template.createActionArgs(context);
+
+    ActionCallback callback;
+    if (template.waitFilesAndVariables() || args.containsFile()) { // checks args just in case
+      callback = createCallbackWaitVarsAndFiles(template);
+    } else {
+      callback = createCallback(template);
+    }
+
+    Leanplum.defineAction(name, kind, args, callback);
+  }
+
+  public synchronized static void register(Context context) {
     if (registered) {
       return;
     }
     registered = true;
-    OpenURL.register();
-    Alert.register(currentContext);
-    Confirm.register(currentContext);
-    CenterPopup.register(currentContext);
-    Interstitial.register(currentContext);
-    WebInterstitial.register();
-    HTMLTemplate.register();
+
+    registerAction(new OpenUrlAction(), context);
+    registerTemplate(new AlertMessage(), context);
+    registerTemplate(new ConfirmMessage(), context);
+    registerTemplate(new CenterPopupMessage(), context);
+    registerTemplate(new InterstitialMessage(), context);
+    registerTemplate(new WebInterstitialMessage(), context);
+    registerTemplate(new RichHtmlMessage(), context);
   }
 }

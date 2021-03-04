@@ -204,7 +204,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       return VarCache.getMergedValueFromComponentArray(
           VarCache.getNameComponents(name), args);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return null;
     }
   }
@@ -221,7 +221,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     try {
       return fillTemplate(object.toString());
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return object.toString();
     }
   }
@@ -282,7 +282,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       }
       return stream;
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return null;
     }
   }
@@ -301,7 +301,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       }
       return convertToBoolean(object.toString());
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return false;
     }
   }
@@ -334,7 +334,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       }
       return Double.valueOf(object.toString());
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
       return 0.0;
     }
   }
@@ -369,7 +369,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
         createActionContextForMessageId(messageAction.toString(), args, messageId, name, false);
       }
     }
-    Leanplum.countAggregator().incrementCount("run_action_named");
   }
 
   /**
@@ -391,7 +390,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             try {
               Leanplum.triggerMessageDisplayed(actionContext);
             } catch (Throwable t) {
-              Util.handleException(t);
+              Log.exception(t);
             }
           }
         });
@@ -401,7 +400,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       }
       return true;
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
     return false;
   }
@@ -525,9 +524,8 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       }
       runActionNamed(name);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
-    Leanplum.countAggregator().incrementCount("run_tracked_action_named");
   }
 
   /**
@@ -559,7 +557,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
         LeanplumInternal.track(event, value, info, params, requestArgs);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -575,7 +573,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
         LeanplumInternal.track(event, value, null, params, requestArgs);
       }
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
@@ -583,7 +581,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     try {
       ActionManager.getInstance().muteFutureMessagesOfKind(messageId);
     } catch (Throwable t) {
-      Util.handleException(t);
+      Log.exception(t);
     }
   }
 
