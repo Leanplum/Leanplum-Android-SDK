@@ -58,6 +58,7 @@ class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
       return;
     }
 
+    Log.d("Calling MiPushClient.registerPush");
     MiPushClient.registerPush(context, miAppId, miAppKey);
     appRegistered = true;
   }
