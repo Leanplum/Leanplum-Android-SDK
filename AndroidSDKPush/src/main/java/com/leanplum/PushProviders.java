@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import android.content.Context;
+import android.os.Build;
 import android.text.TextUtils;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.APIConfig;
@@ -82,9 +83,14 @@ class PushProviders {
 
   private static IPushProvider createMiPush() {
     try {
-      IPushProvider miPushProvider =
-          (IPushProvider) Class.forName(MIPUSH_PROVIDER_CLASS).getConstructor().newInstance();
-      return miPushProvider;
+      Class<?> clazz = Class.forName(MIPUSH_PROVIDER_CLASS);
+
+      if (Build.MANUFACTURER != null && !Build.MANUFACTURER.toLowerCase().contains("xiaomi")) {
+        Log.d("Will not initialize MiPush provider for non-Xiaomi device.");
+        return null;
+      }
+
+      return (IPushProvider) clazz.getConstructor().newInstance();
     } catch (Throwable t) {
       Log.i("MiPush module not found. "
           + "For Mi Push messaging include dependency \"com.leanplum:leanplum-mipush\".");
