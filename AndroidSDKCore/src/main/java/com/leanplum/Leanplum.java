@@ -110,6 +110,7 @@ public class Leanplum {
   private static String customAppVersion = null;
   private static boolean userSpecifiedDeviceId;
   private static boolean locationCollectionEnabled = true;
+  private static volatile boolean pushDeliveryTrackingEnabled = true;
   private static Context context;
 
   private static CountAggregator countAggregator = new CountAggregator();
@@ -2300,5 +2301,21 @@ public class Leanplum {
     if (uploadInterval != null) {
       RequestSenderTimer.get().setTimerInterval(uploadInterval);
     }
+  }
+
+  /**
+   * Enable or disable push delivery tracking. It is enabled by default.
+   */
+  public static void setPushDeliveryTracking(boolean enable) {
+    pushDeliveryTrackingEnabled = enable;
+  }
+
+  /**
+   * Returns whether the push delivery tracking is enabled.
+   *
+   * @return True if push delivery tracking is enabled, false otherwise.
+   */
+  public static boolean isPushDeliveryTrackingEnabled() {
+    return pushDeliveryTrackingEnabled;
   }
 }

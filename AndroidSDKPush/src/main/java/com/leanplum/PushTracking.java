@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import com.leanplum.internal.Constants.Keys;
+import com.leanplum.internal.Log;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,6 +41,11 @@ class PushTracking {
   }
 
   static void trackDelivery(@NonNull Bundle message) {
+    if (!Leanplum.isPushDeliveryTrackingEnabled()) {
+      Log.d("Push delivery tracking is disabled for " + LeanplumPushService.getMessageId(message));
+      return;
+    }
+
     Map<String,String> properties = new HashMap<>();
     properties.put(Keys.PUSH_METRIC_MESSAGE_ID, LeanplumPushService.getMessageId(message));
 
