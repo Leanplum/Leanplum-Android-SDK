@@ -24,6 +24,8 @@ package com.leanplum.messagetemplates.controllers;
 import android.app.Activity;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
+import com.leanplum.messagetemplates.DialogCustomizer;
+import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.messagetemplates.options.InterstitialOptions;
 
 /**
@@ -44,7 +46,10 @@ public class InterstitialController extends AbstractPopupController {
 
   @Override
   void applyWindowDecoration() {
-    // no implementation
+    DialogCustomizer customizer = MessageTemplates.getCustomizer();
+    if (customizer != null) {
+      customizer.customizeInterstitial(this, contentView);
+    }
   }
 
   @Override
