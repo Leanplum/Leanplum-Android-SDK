@@ -874,7 +874,7 @@ public class VarCache {
 
   public static void clearUserContent() {
     vars.clear();
-    variants = null;
+    variants = new ArrayList<>();
     variantDebugInfo.clear();
 
     diffs.clear();
@@ -905,7 +905,7 @@ public class VarCache {
     devModeValuesFromServer = null;
     devModeFileAttributesFromServer = null;
     devModeActionDefinitionsFromServer = null;
-    variants = null;
+    variants = new ArrayList<>();
     updateBlock = null;
     hasReceivedDiffs = false;
     messages = null;
