@@ -76,7 +76,7 @@ public class VarCache {
   private static Map<String, Object> devModeValuesFromServer;
   private static Map<String, Object> devModeFileAttributesFromServer;
   private static Map<String, Object> devModeActionDefinitionsFromServer;
-  private static List<Map<String, Object>> variants = new ArrayList<>();
+  private static volatile List<Map<String, Object>> variants = new ArrayList<>();
   private static CacheUpdateBlock updateBlock;
   private static boolean hasReceivedDiffs = false;
   private static Map<String, Object> messages = new HashMap<>();
@@ -874,7 +874,7 @@ public class VarCache {
 
   public static void clearUserContent() {
     vars.clear();
-    variants.clear();
+    variants = new ArrayList<>();
     variantDebugInfo.clear();
 
     diffs.clear();
@@ -905,7 +905,7 @@ public class VarCache {
     devModeValuesFromServer = null;
     devModeFileAttributesFromServer = null;
     devModeActionDefinitionsFromServer = null;
-    variants.clear();
+    variants = new ArrayList<>();
     updateBlock = null;
     hasReceivedDiffs = false;
     messages = null;
