@@ -356,6 +356,11 @@ public class RichHtmlOptions {
     public String type;
   }
 
+  public boolean isBanner() {
+    String templateName = getActionContext().getArgs().get(Values.HTML_TEMPLATE_PREFIX).toString();
+    return templateName.toLowerCase().contains("banner");
+  }
+
   /**
    * Banners with property TabOutsideToClose = false need to be treated differently
    * so they do not block interaction with other dialogs and the keyboard.

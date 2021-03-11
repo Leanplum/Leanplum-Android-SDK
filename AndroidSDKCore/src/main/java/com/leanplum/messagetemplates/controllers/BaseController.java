@@ -24,13 +24,17 @@ package com.leanplum.messagetemplates.controllers;
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.core.R;
+import com.leanplum.messagetemplates.DialogCustomizer;
+import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.utils.SizeUtil;
 import com.leanplum.views.CloseButton;
 import com.leanplum.views.ViewUtils;
@@ -62,11 +66,12 @@ abstract class BaseController extends Dialog {
       CloseButton closeButton = createCloseButton(messageView);
       contentView.addView(closeButton);
     }
+
+    applyWindowDecoration();
+
     setContentView(contentView, contentView.getLayoutParams());
 
     contentView.setAnimation(ViewUtils.createFadeInAnimation(350));
-
-    applyWindowDecoration();
   }
 
   private RelativeLayout createContentView() {

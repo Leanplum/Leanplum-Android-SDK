@@ -27,6 +27,8 @@ import android.os.Build;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
+import com.leanplum.messagetemplates.DialogCustomizer;
+import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.messagetemplates.options.CenterPopupOptions;
 import com.leanplum.utils.SizeUtil;
 
@@ -55,6 +57,10 @@ public class CenterPopupController extends AbstractPopupController {
     window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
     if (Build.VERSION.SDK_INT >= 14) {
       window.setDimAmount(0.7f);
+    }
+    DialogCustomizer customizer = MessageTemplates.getCustomizer();
+    if (customizer != null) {
+      customizer.customizeCenterPopup(this, contentView);
     }
   }
 
