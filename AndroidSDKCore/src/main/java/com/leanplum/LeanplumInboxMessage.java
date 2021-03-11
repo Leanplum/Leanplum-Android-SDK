@@ -131,7 +131,7 @@ public class LeanplumInboxMessage {
               CollectionUtil.uncheckedCast(getContext().objectNamed(Constants.Values.DEFAULT_PUSH_ACTION));
       object = JsonConverter.mapToJsonObject(mapData);
     } catch (Throwable t) {
-      Log.w("Unable to parse JSONObject for Action field of inbox message.");
+      Log.d("Unable to parse JSONObject for Action field of inbox message.");
     }
     return object;
   }
