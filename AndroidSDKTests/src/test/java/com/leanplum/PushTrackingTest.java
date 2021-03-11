@@ -98,7 +98,7 @@ public class PushTrackingTest extends AbstractTest {
     String expectedTrackParams =
         "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
-            + "\",\"notificationId\":\"" + notifOccurrenceId + "\"}";
+            + "\",\"occurrenceId\":\"" + notifOccurrenceId + "\"}";
     String expectedEvent = "Push Delivered";
 
     // Verify request.
@@ -200,7 +200,7 @@ public class PushTrackingTest extends AbstractTest {
     String expectedTrackParams =
         "{\"channel\":\"FCM\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
-            + "\",\"notificationId\":\"" + notifOccurrenceId + "\"}";
+            + "\",\"occurrenceId\":\"" + notifOccurrenceId + "\"}";
     String expectedEvent = "Push Opened";
 
     // Verify request.
