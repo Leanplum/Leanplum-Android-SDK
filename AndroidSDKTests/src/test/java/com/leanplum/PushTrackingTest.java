@@ -31,9 +31,17 @@ import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.RequestBuilder;
 import java.util.Map;
+import org.junit.After;
 import org.junit.Test;
+import static org.mockito.Mockito.*;
+import org.powermock.api.mockito.PowerMockito;
 
 public class PushTrackingTest extends AbstractTest {
+
+  @After
+  public void tearDown() {
+    Leanplum.setPushDeliveryTracking(true);
+  }
 
   @Test
   public void testTrackDelivery() {
@@ -90,7 +98,7 @@ public class PushTrackingTest extends AbstractTest {
     String expectedTrackParams =
         "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
-            + "\",\"notificationId\":\"" + notifOccurrenceId + "\"}";
+            + "\",\"occurrenceId\":\"" + notifOccurrenceId + "\"}";
     String expectedEvent = "Push Delivered";
 
     // Verify request.
@@ -109,6 +117,32 @@ public class PushTrackingTest extends AbstractTest {
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
     PushTracking.trackDelivery(notification);
+  }
+
+  @Test
+  public void testTrackDeliveryEnabled() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    Bundle notification = new Bundle();
+    notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, "id");
+    PushTracking.trackDelivery(notification);
+
+    PowerMockito.verifyStatic(times(1));
+    Leanplum.track(anyString(), anyMap());
+  }
+
+  @Test
+  public void testTrackDeliveryDisabled() {
+    Leanplum.setPushDeliveryTracking(false);
+
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    Bundle notification = new Bundle();
+    notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, "id");
+    PushTracking.trackDelivery(notification);
+
+    PowerMockito.verifyStatic(times(0));
+    Leanplum.track(anyString(), anyMap());
   }
 
   @Test
@@ -166,7 +200,7 @@ public class PushTrackingTest extends AbstractTest {
     String expectedTrackParams =
         "{\"channel\":\"FCM\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
-            + "\",\"notificationId\":\"" + notifOccurrenceId + "\"}";
+            + "\",\"occurrenceId\":\"" + notifOccurrenceId + "\"}";
     String expectedEvent = "Push Opened";
 
     // Verify request.

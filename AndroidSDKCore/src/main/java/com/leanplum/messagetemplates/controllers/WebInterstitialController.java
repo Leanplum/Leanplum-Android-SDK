@@ -32,6 +32,8 @@ import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import com.leanplum.Leanplum;
+import com.leanplum.messagetemplates.DialogCustomizer;
+import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 
 /**
@@ -61,7 +63,10 @@ public class WebInterstitialController extends BaseController {
 
   @Override
   void applyWindowDecoration() {
-    // no implementation
+    DialogCustomizer customizer = MessageTemplates.getCustomizer();
+    if (customizer != null) {
+      customizer.customizeWebInterstitial(this, contentView);
+    }
   }
 
   @Override

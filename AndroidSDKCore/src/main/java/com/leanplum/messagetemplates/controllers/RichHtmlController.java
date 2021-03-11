@@ -43,6 +43,8 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
+import com.leanplum.messagetemplates.DialogCustomizer;
+import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.messagetemplates.options.RichHtmlOptions;
 import com.leanplum.utils.SizeUtil;
 import java.io.UnsupportedEncodingException;
@@ -116,6 +118,16 @@ public class RichHtmlController extends BaseController {
         contentView.setGravity(Gravity.BOTTOM);
       }
     }
+
+    DialogCustomizer customizer = MessageTemplates.getCustomizer();
+    if (customizer != null) {
+      if (richOptions.isBanner()) {
+        customizer.customizeBanner(this, contentView);
+      } else {
+        customizer.customizeRichInterstitial(this, contentView);
+      }
+    }
+
   }
 
   @Override
