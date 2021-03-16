@@ -656,4 +656,13 @@ public class Util {
     Log.d("Could not extract resource id from provided resource name: ", resourceName);
     return 0;
   }
+
+  /**
+   * Checks if device is manufactured by Xiaomi.
+   *
+   * @return True if device is manufactured by Xiaomi.
+   */
+  public static boolean isXiaomiDevice() {
+    return Build.MANUFACTURER != null && Build.MANUFACTURER.toLowerCase().contains("xiaomi");
+  }
 }

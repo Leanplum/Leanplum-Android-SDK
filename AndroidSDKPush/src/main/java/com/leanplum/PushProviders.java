@@ -29,6 +29,7 @@ import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -85,7 +86,7 @@ class PushProviders {
     try {
       Class<?> clazz = Class.forName(MIPUSH_PROVIDER_CLASS);
 
-      if (Build.MANUFACTURER != null && !Build.MANUFACTURER.toLowerCase().contains("xiaomi")) {
+      if (!Util.isXiaomiDevice()) {
         Log.d("Will not initialize MiPush provider for non-Xiaomi device.");
         return null;
       }
