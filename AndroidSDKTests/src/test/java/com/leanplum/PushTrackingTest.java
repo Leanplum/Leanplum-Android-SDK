@@ -93,12 +93,12 @@ public class PushTrackingTest extends AbstractTest {
   public void testTrackDeliveryAllParams() {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
-    String notifOccurrenceId = "occurrence id";
+    String occurrenceId = "occurrence id";
     String sentTime = "123";
     String expectedTrackParams =
         "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
-            + "\",\"occurrenceId\":\"" + notifOccurrenceId + "\"}";
+            + "\",\"occurrenceId\":\"" + occurrenceId + "\"}";
     String expectedEvent = "Push Delivered";
 
     // Verify request.
@@ -113,7 +113,7 @@ public class PushTrackingTest extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-    notification.putString(Keys.PUSH_NOTIF_OCCURRENCE_ID, notifOccurrenceId);
+    notification.putString(Keys.PUSH_OCCURRENCE_ID, occurrenceId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
     PushTracking.trackDelivery(notification);
@@ -195,12 +195,12 @@ public class PushTrackingTest extends AbstractTest {
   public void testTrackOpenAllParams() {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
-    String notifOccurrenceId = "occurrence id";
+    String occurrenceId = "occurrence id";
     String sentTime = "123";
     String expectedTrackParams =
         "{\"channel\":\"FCM\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
-            + "\",\"occurrenceId\":\"" + notifOccurrenceId + "\"}";
+            + "\",\"occurrenceId\":\"" + occurrenceId + "\"}";
     String expectedEvent = "Push Opened";
 
     // Verify request.
@@ -215,7 +215,7 @@ public class PushTrackingTest extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-    notification.putString(Keys.PUSH_NOTIF_OCCURRENCE_ID, notifOccurrenceId);
+    notification.putString(Keys.PUSH_OCCURRENCE_ID, occurrenceId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM);
     PushTracking.trackOpen(notification);
