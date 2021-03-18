@@ -188,7 +188,7 @@ public class Constants {
     public static final String CHANNEL_INTERNAL_KEY = "_channel_internal";
     public static final String PUSH_MESSAGE_SILENT_TRACK = "lp_silent_track";
     public static final String PUSH_SENT_TIME = "lp_sent_time";
-    public static final String PUSH_OCCURRENCE_ID = "lp_occurrenceId";
+    public static final String PUSH_OCCURRENCE_ID = "lp_occurrence_id";
     public static final String REGION = "region";
     public static final String REGION_STATE = "regionState";
     public static final String REGIONS = "regions";
