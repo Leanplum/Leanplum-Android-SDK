@@ -159,7 +159,6 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(LeanplumInternal.class, "inForeground", false);
 
     TestClassUtil.setField(Leanplum.class, "context", null);
-    TestClassUtil.setField(Leanplum.class, "pushStartCallback", null);
 
     LeanplumInbox newsfeed = (LeanplumInbox) TestClassUtil.getField(LeanplumInbox.class,
         "instance");

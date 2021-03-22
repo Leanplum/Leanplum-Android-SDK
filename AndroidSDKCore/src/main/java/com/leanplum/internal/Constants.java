@@ -87,6 +87,7 @@ public class Constants {
     public static final String LEANPLUM_PUSH = "__leanplum_push__";
     public static final String APP_ID = "__app_id";
     public static final String PROPERTY_FCM_TOKEN_ID = "registration_id";
+    public static final String PROPERTY_MIPUSH_TOKEN_ID = "mipush_registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
     public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
     public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";
@@ -108,6 +109,7 @@ public class Constants {
     public static final String DEVICE_MODEL = "deviceModel";
     public static final String DEVICE_NAME = "deviceName";
     public static final String DEVICE_FCM_PUSH_TOKEN = "gcmRegistrationId";
+    public static final String DEVICE_MIPUSH_TOKEN = "miPushRegId";
     public static final String DEVICE_SYSTEM_NAME = "systemName";
     public static final String DEVICE_SYSTEM_VERSION = "systemVersion";
     public static final String EMAIL = "email";
@@ -175,8 +177,18 @@ public class Constants {
     public static final String PUSH_MESSAGE_ID_NO_MUTE = "_lpn";
     public static final String PUSH_MESSAGE_ID_MUTE = "_lpv";
     public static final String PUSH_MESSAGE_ID = "lp_messageId";
+    public static final String PUSH_MESSAGE_NOTIFICATION_ID = "lp_notificationId";
     public static final String PUSH_MESSAGE_TEXT = "lp_message";
+    public static final String PUSH_VERSION = "lp_version";
     public static final String PUSH_MESSAGE_IMAGE_URL = "lp_imageUrl";
+    public static final String PUSH_METRIC_SENT_TIME = "sentTime";
+    public static final String PUSH_METRIC_OCCURRENCE_ID = "occurrenceId";
+    public static final String PUSH_METRIC_CHANNEL = "channel";
+    public static final String PUSH_METRIC_MESSAGE_ID = "messageID";
+    public static final String CHANNEL_INTERNAL_KEY = "_channel_internal";
+    public static final String PUSH_MESSAGE_SILENT_TRACK = "lp_silent_track";
+    public static final String PUSH_SENT_TIME = "lp_sent_time";
+    public static final String PUSH_OCCURRENCE_ID = "lp_occurrence_id";
     public static final String REGION = "region";
     public static final String REGION_STATE = "regionState";
     public static final String REGIONS = "regions";

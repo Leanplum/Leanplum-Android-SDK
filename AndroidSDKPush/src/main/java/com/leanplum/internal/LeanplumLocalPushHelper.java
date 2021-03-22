@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import android.os.Build;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumLocalPushListenerService;
@@ -123,7 +124,13 @@ class LeanplumLocalPushHelper {
       PendingIntent operation = PendingIntent.getBroadcast(
           context, messageId.hashCode(), intentAlarm,
           PendingIntent.FLAG_UPDATE_CURRENT);
-      alarmManager.set(AlarmManager.RTC_WAKEUP, eta, operation);
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && Util.isXiaomiDevice()) {
+        // Improve delivery of local pushes, particularly for offline and locked devices.
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, eta, operation);
+      } else {
+        alarmManager.set(AlarmManager.RTC_WAKEUP, eta, operation);
+      }
 
       // Save notification so we can cancel it later.
       SharedPreferences.Editor editor = preferences.edit();

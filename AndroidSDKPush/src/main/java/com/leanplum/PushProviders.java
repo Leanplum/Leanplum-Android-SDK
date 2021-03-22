@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,41 +22,51 @@
 package com.leanplum;
 
 import android.content.Context;
+import android.os.Build;
 import android.text.TextUtils;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PushProviders {
+class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
+  private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
 
-  private Map<PushProviderType, IPushProvider> providers = new HashMap<>();
+  private final Map<PushProviderType, IPushProvider> providers = new HashMap<>();
 
   public PushProviders() {
     IPushProvider fcm = createFcm();
     if (fcm != null) {
       providers.put(PushProviderType.FCM, fcm);
     }
+
+    IPushProvider miPush = createMiPush();
+    if (miPush != null) {
+      providers.put(PushProviderType.MIPUSH, miPush);
+    }
   }
 
   public void updateRegistrationIdsAndBackend() {
     boolean hasAppIDChanged = hasAppIDChanged(APIConfig.getInstance().appId());
 
-    for (IPushProvider provider: providers.values()) {
-      if (hasAppIDChanged) {
-        provider.unregister();
-      }
-      OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
-        @Override
-        public void run() {
-          provider.updateRegistrationId();
+    synchronized (providers) {
+      for (IPushProvider provider : providers.values()) {
+        if (hasAppIDChanged) {
+          provider.unregister();
         }
-      });
+        OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
+          @Override
+          public void run() {
+            provider.updateRegistrationId();
+          }
+        });
+      }
     }
   }
 
@@ -66,8 +76,25 @@ public class PushProviders {
           (IPushProvider) Class.forName(FCM_PROVIDER_CLASS).getConstructor().newInstance();
       return fcmProvider;
     } catch (Throwable t) {
-      Log.e("FCM not found. Did you forget to include FCM module dependency "
-          + "\"com.leanplum:leanplum-fcm\"?", t);
+      Log.i("FCM module not found. "
+          + "For Firebase messaging include dependency \"com.leanplum:leanplum-fcm\".");
+      return null;
+    }
+  }
+
+  private static IPushProvider createMiPush() {
+    try {
+      Class<?> clazz = Class.forName(MIPUSH_PROVIDER_CLASS);
+
+      if (!Util.isXiaomiDevice()) {
+        Log.d("Will not initialize MiPush provider for non-Xiaomi device.");
+        return null;
+      }
+
+      return (IPushProvider) clazz.getConstructor().newInstance();
+    } catch (Throwable t) {
+      Log.i("MiPush module not found. "
+          + "For Mi Push messaging include dependency \"com.leanplum:leanplum-mipush\".");
       return null;
     }
   }
@@ -114,9 +141,12 @@ public class PushProviders {
    * Update provider's registration ID.
    */
   public void setRegistrationId(PushProviderType type, String registrationId) {
-    IPushProvider provider = providers.get(type);
-    if (provider != null)
-      provider.setRegistrationId(registrationId);
+    synchronized (providers) {
+      IPushProvider provider = providers.get(type);
+      if (provider != null) {
+        provider.setRegistrationId(registrationId);
+      }
+    }
   }
 
 }

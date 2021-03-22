@@ -1,0 +1,46 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+apply from: "../common-methods.gradle"
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    defaultConfig {
+        minSdkVersion MIN_SDK_VERSION
+        defaultConfig {
+            consumerProguardFiles 'consumer-proguard-rules.pro'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JAVA_VERSION
+        targetCompatibility JAVA_VERSION
+    }
+}
+
+dependencies {
+    debugApi project(':AndroidSDKCore')
+    releaseApi project(':AndroidSDKCore')
+    debugApi project(':AndroidSDKPush')
+    releaseApi project(':AndroidSDKPush')
+
+    // MiPush SDK is located in libs
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+task generateJavadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    destinationDir = file("./javadoc/")
+    failOnError false
+}
+
+publishing_task(LEANPLUM_MIPUSH_ARTIFACT_ID)

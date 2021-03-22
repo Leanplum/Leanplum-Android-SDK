@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -110,9 +110,8 @@ public class Leanplum {
   private static String customAppVersion = null;
   private static boolean userSpecifiedDeviceId;
   private static boolean locationCollectionEnabled = true;
+  private static volatile boolean pushDeliveryTrackingEnabled = true;
   private static Context context;
-
-  private static Runnable pushStartCallback;
 
   private static CountAggregator countAggregator = new CountAggregator();
   private static FeatureFlagManager featureFlagManager = FeatureFlagManager.INSTANCE;
@@ -692,6 +691,8 @@ public class Leanplum {
 
     String fcmRegistrationId = SharedPreferencesUtil.getString(context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
+    String miPushRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID);
 
     HashMap<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
@@ -705,6 +706,9 @@ public class Leanplum {
     params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
     if (!TextUtils.isEmpty(fcmRegistrationId)) {
       params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
+    }
+    if (!TextUtils.isEmpty(miPushRegistrationId)) {
+      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, miPushRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
@@ -1555,10 +1559,13 @@ public class Leanplum {
       case FCM:
         attributeName = Constants.Params.DEVICE_FCM_PUSH_TOKEN;
         break;
+      case MIPUSH:
+        attributeName = Constants.Params.DEVICE_MIPUSH_TOKEN;
+        break;
       default:
         return;
     }
-    pushStartCallback = new Runnable() {
+    Runnable startIssuedHandler = new Runnable() {
       @Override
       public void run() {
         if (Constants.isNoop()) {
@@ -1576,7 +1583,7 @@ public class Leanplum {
         }
       }
     };
-    LeanplumInternal.addStartIssuedHandler(pushStartCallback);
+    LeanplumInternal.addStartIssuedHandler(startIssuedHandler);
   }
 
   /**
@@ -2294,5 +2301,21 @@ public class Leanplum {
     if (uploadInterval != null) {
       RequestSenderTimer.get().setTimerInterval(uploadInterval);
     }
+  }
+
+  /**
+   * Enable or disable push delivery tracking. It is enabled by default.
+   */
+  public static void setPushDeliveryTracking(boolean enable) {
+    pushDeliveryTrackingEnabled = enable;
+  }
+
+  /**
+   * Returns whether the push delivery tracking is enabled.
+   *
+   * @return True if push delivery tracking is enabled, false otherwise.
+   */
+  public static boolean isPushDeliveryTrackingEnabled() {
+    return pushDeliveryTrackingEnabled;
   }
 }
