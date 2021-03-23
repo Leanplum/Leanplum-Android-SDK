@@ -36,6 +36,8 @@ public class Log {
 
   private static int level = Level.INFO;
 
+  private static final int LOGGER_MAX_LEN = 4000; // bytes
+
   /**
    * Sets log level.
    * @param level level to set
@@ -149,13 +151,22 @@ public class Log {
           break;
         case DEBUG:
           if (level >= Level.DEBUG) {
-            android.util.Log.d(tag, msg);
+            largeLogD(tag, msg);
           }
           break;
       }
       handleLogMessage(tag, msg);
     } catch (Throwable t) {
       // ignored
+    }
+  }
+
+  private static void largeLogD(String tag, String msg) {
+    if (msg.length() > LOGGER_MAX_LEN) {
+      android.util.Log.d(tag, msg.substring(0, LOGGER_MAX_LEN));
+      largeLogD(tag, msg.substring(LOGGER_MAX_LEN));
+    } else {
+      android.util.Log.d(tag, msg);
     }
   }
 
