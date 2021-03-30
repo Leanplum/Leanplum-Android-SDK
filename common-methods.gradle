@@ -80,6 +80,19 @@ def publishing_task(libraryArtifactId) {
                     }
                 }
             }
+
+            repositories {
+                maven {
+                    name = "sonatype"
+                    url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+                    credentials {
+                        username = System.getenv('SONATYPE_OSSRH_USER')
+                        password = System.getenv('SONATYPE_OSSRH_PASSWORD')
+                    }
+                }
+            }
+
         }
     }
 
@@ -119,5 +132,17 @@ def publishing_task(libraryArtifactId) {
             }
             publish = true
         }
+    }
+
+    signing {
+        def signingKey = null
+        def signingKeyBase64 = System.getenv('SIGNING_KEY_BASE64')
+        if (signingKeyBase64 != null) {
+            signingKey = new String(Base64.getDecoder().decode((String) signingKeyBase64))
+        }
+        def signingPassword = System.getenv('SIGNING_PASSWORD')
+
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications
     }
 }

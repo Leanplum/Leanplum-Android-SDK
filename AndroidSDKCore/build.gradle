@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 apply from: "../common-methods.gradle"
 
 android {
@@ -33,6 +34,8 @@ android {
         targetCompatibility JAVA_VERSION
     }
 }
+
+
 
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
