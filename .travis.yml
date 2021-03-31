@@ -58,6 +58,6 @@ after_deploy:
 deploy:
   - provider: script
     skip_cleanup: true
-    script: ./gradlew artifactoryPublish publishAarPublicationToSonatypeRepository bintrayUpload
+    script: ./gradlew artifactoryPublish publishAarPublicationToSonatypeRepository
     on:
       tags: true
