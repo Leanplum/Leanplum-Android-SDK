@@ -1,8 +1,9 @@
-apply plugin: 'com.android.library'
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
+plugins {
+    id 'com.android.library'
+    id 'com.jfrog.artifactory' version '4.13.0'
+    id 'maven-publish'
+    id 'signing'
+}
 apply from: "../common-methods.gradle"
 
 allprojects {
