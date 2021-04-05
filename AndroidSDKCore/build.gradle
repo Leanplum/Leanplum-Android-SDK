@@ -36,8 +36,6 @@ android {
     }
 }
 
-
-
 dependencies {
     // Compile dependencies will be added as dependency in pom file.
     api "androidx.legacy:legacy-support-v4:1.0.0"
