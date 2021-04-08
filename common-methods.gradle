@@ -80,6 +80,19 @@ def publishing_task(libraryArtifactId) {
                     }
                 }
             }
+
+            repositories {
+                maven {
+                    name = "sonatype"
+                    url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+                    credentials {
+                        username = System.getenv('SONATYPE_OSSRH_USER')
+                        password = System.getenv('SONATYPE_OSSRH_PASSWORD')
+                    }
+                }
+            }
+
         }
     }
 
@@ -102,22 +115,15 @@ def publishing_task(libraryArtifactId) {
         }
     }
 
-    bintray {
-        user = System.getenv('BINTRAY_USER')
-        key = System.getenv('BINTRAY_API_KEY')
-        publications = ['aar']
-        pkg {
-            repo = 'maven'
-            name = libraryArtifactId
-            userOrg = 'leanplum'
-            licenses = ['Apache-2.0']
-            vcsUrl = 'https://github.com/Leanplum/Leanplum-Android-SDK.git'
-            version {
-                name = LEANPLUM_SDK_VERSION
-                released = new Date()
-                vcsTag = LEANPLUM_SDK_VERSION
-            }
-            publish = true
+    signing {
+        def signingKey = null
+        def signingKeyBase64 = System.getenv('SIGNING_KEY_BASE64')
+        if (signingKeyBase64 != null) {
+            signingKey = new String(Base64.getDecoder().decode((String) signingKeyBase64))
         }
+        def signingPassword = System.getenv('SIGNING_PASSWORD')
+
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications
     }
 }
