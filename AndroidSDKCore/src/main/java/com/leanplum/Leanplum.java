@@ -630,18 +630,14 @@ public class Leanplum {
    * Checks for leanplum notifications modules and if someone present - invoke onStart method.
    */
   private static void checkAndStartNotificationsModules() {
-    if (Util.hasPlayServices()) {
-      try {
-        Log.d("Trying to starting LeanplumPushService");
+    try {
+      Log.d("Trying to start LeanplumPushService");
 
-        Class.forName(LEANPLUM_PUSH_SERVICE)
-            .getDeclaredMethod("onStart")
-            .invoke(null);
-      } catch (Throwable ignored) {
-        // ignored
-      }
-    } else {
-      Log.d("No valid Google Play Services APK found.");
+      Class.forName(LEANPLUM_PUSH_SERVICE)
+          .getDeclaredMethod("onStart")
+          .invoke(null);
+    } catch (Throwable ignored) {
+      // ignored
     }
   }
 
