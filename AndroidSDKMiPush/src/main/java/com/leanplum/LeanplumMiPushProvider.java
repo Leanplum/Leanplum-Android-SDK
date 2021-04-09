@@ -34,18 +34,11 @@ import com.xiaomi.mipush.sdk.MiPushClient;
  */
 class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
 
-  boolean appRegistered = false;
-
   /**
    * Constructor called by reflection.
    */
   public LeanplumMiPushProvider() {
-    if (Leanplum.getContext() != null) {
-      // there is theoretical possibility for context to be null
-      registerApp(Leanplum.getContext());
-    } else {
-      Log.e("MiPush app not registered because context is null");
-    }
+    registerApp(Leanplum.getContext());
   }
 
   private void registerApp(@NonNull Context context) {
@@ -60,7 +53,6 @@ class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
 
     Log.d("Calling MiPushClient.registerPush");
     MiPushClient.registerPush(context, miAppId, miAppKey);
-    appRegistered = true;
   }
 
   @Override
@@ -85,10 +77,6 @@ class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
   public void updateRegistrationId() {
     if (Leanplum.getContext() == null)
       return;
-
-    if (!appRegistered) {
-      registerApp(Leanplum.getContext());
-    }
 
     String regId = MiPushClient.getRegId(Leanplum.getContext());
     if (!TextUtils.isEmpty(regId)) {

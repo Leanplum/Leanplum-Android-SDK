@@ -663,6 +663,7 @@ public class LeanplumPushService {
    * Call this when Leanplum starts. This method will call by reflection from AndroidSDKCore.
    */
   static void onStart() {
+    pushProviders.init();
     pushProviders.updateRegistrationIdsAndBackend();
   }
 

@@ -22,7 +22,6 @@
 package com.leanplum;
 
 import android.content.Context;
-import android.os.Build;
 import android.text.TextUtils;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.APIConfig;
@@ -31,16 +30,30 @@ import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Util;
 import com.leanplum.utils.SharedPreferencesUtil;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
   private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
 
-  private final Map<PushProviderType, IPushProvider> providers = new HashMap<>();
+  private final Map<PushProviderType, IPushProvider> providers = new ConcurrentHashMap<>();
+  private boolean initialized = false;
 
   public PushProviders() {
+    init();
+  }
+
+  public synchronized void init() { // synchronize access to 'initialized' variable
+    if (initialized) {
+      return;
+    }
+
+    if (Leanplum.getContext() == null) {
+      // init() method will be called for second time from LeanplumPushService.onStart
+      return;
+    }
+
     IPushProvider fcm = createFcm();
     if (fcm != null) {
       providers.put(PushProviderType.FCM, fcm);
@@ -50,6 +63,8 @@ class PushProviders {
     if (miPush != null) {
       providers.put(PushProviderType.MIPUSH, miPush);
     }
+
+    initialized = true;
   }
 
   public void updateRegistrationIdsAndBackend() {
