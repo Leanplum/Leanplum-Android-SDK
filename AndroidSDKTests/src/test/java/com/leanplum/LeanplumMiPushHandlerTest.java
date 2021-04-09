@@ -116,22 +116,4 @@ public class LeanplumMiPushHandlerTest extends AbstractTest {
     assertEquals(nestedItem, handler.parsePayload("{\"lp_version\":\"1\", \"lp_channel\":{\"importance\":3,\"name\":\"rondo-channel\",\"id\":\"123\"}, \"lp_message\":\"Push message goes here.\", \"_lpm\":\"4700540011347968\", \"_lpx\":{\"__name__\":\"Request App Rating\"}}"));
   }
 
-  @Test
-  public void testSetApplicationFail() {
-    String appId = "";
-    String appKey = "";
-    LeanplumMiPushHandler.setApplication(appId, appKey);
-    LeanplumMiPushProvider provider = new LeanplumMiPushProvider();
-    assertFalse(provider.appRegistered);
-  }
-
-  @Test
-  public void testSetApplication() {
-    String appId = "id";
-    String appKey = "key";
-    LeanplumMiPushHandler.setApplication(appId, appKey);
-    LeanplumMiPushProvider provider = new LeanplumMiPushProvider();
-    assertTrue(provider.appRegistered);
-  }
-
 }
