@@ -71,6 +71,11 @@ class PushProviders {
   }
 
   private static IPushProvider createFcm() {
+    if (!Util.hasPlayServices()) {
+      Log.i("No valid Google Play Services APK found. FCM will not initialize.");
+      return null;
+    }
+
     try {
       IPushProvider fcmProvider =
           (IPushProvider) Class.forName(FCM_PROVIDER_CLASS).getConstructor().newInstance();

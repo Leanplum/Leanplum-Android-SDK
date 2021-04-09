@@ -117,10 +117,11 @@ public class LeanplumPushServiceTest {
    */
   @Before
   public void setUp() {
-    mockStatic(LeanplumPushService.class);
+    mockStatic(Util.class);
     spy(LeanplumPushService.class);
-    spy(Util.class);
     spy(PushProviders.class);
+
+    when(Util.hasPlayServices()).thenReturn(true);
 
     this.context = RuntimeEnvironment.application;
     assertNotNull(this.context);
