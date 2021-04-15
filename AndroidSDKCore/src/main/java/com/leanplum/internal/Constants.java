@@ -180,11 +180,13 @@ public class Constants {
     public static final String PUSH_MESSAGE_NOTIFICATION_ID = "lp_notificationId";
     public static final String PUSH_MESSAGE_TEXT = "lp_message";
     public static final String PUSH_VERSION = "lp_version";
+    public static final String PUSH_NOTIFICATION_CHANNEL = "lp_channel";
     public static final String PUSH_MESSAGE_IMAGE_URL = "lp_imageUrl";
     public static final String PUSH_METRIC_SENT_TIME = "sentTime";
     public static final String PUSH_METRIC_OCCURRENCE_ID = "occurrenceId";
     public static final String PUSH_METRIC_CHANNEL = "channel";
     public static final String PUSH_METRIC_MESSAGE_ID = "messageID";
+    public static final String PUSH_METRIC_NOTIFICATIONS_ENABLED = "notificationsEnabled";
     public static final String CHANNEL_INTERNAL_KEY = "_channel_internal";
     public static final String PUSH_MESSAGE_SILENT_TRACK = "lp_silent_track";
     public static final String PUSH_SENT_TIME = "lp_sent_time";

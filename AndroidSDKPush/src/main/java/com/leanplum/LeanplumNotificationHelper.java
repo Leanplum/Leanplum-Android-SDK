@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,12 +22,13 @@ package com.leanplum;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -40,7 +41,9 @@ import android.text.TextUtils;
 import android.util.TypedValue;
 import android.widget.RemoteViews;
 
+import androidx.core.app.NotificationManagerCompat;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;
 import com.leanplum.utils.BitmapUtil;
@@ -134,7 +137,7 @@ class LeanplumNotificationHelper {
     // If we are targeting API 26, try to find supplied channel to post notification.
     if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
-        String channel = message.getString("lp_channel");
+        String channel = message.getString(Keys.PUSH_NOTIFICATION_CHANNEL);
         if (!TextUtils.isEmpty(channel)) {
           // Create channel if it doesn't exist and post notification to that channel.
           Map<String, Object> channelDetails = JsonConverter.fromJson(channel);
@@ -174,7 +177,7 @@ class LeanplumNotificationHelper {
     // If we are targeting API 26, try to find supplied channel to post notification.
     if (BuildUtil.isNotificationChannelSupported(context)) {
       try {
-        String channel = message.getString("lp_channel");
+        String channel = message.getString(Keys.PUSH_NOTIFICATION_CHANNEL);
         if (!TextUtils.isEmpty(channel)) {
           // Create channel if it doesn't exist and post notification to that channel.
           Map<String, Object> channelDetails = JsonConverter.fromJson(channel);
@@ -196,6 +199,39 @@ class LeanplumNotificationHelper {
       builder = new Notification.Builder(context);
     }
     return builder;
+  }
+
+  public static boolean areNotificationsEnabled(Context context, Bundle message) {
+    if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+      // all notifications are turned off
+      return false;
+    }
+
+    String channelJson = message.getString(Keys.PUSH_NOTIFICATION_CHANNEL);
+    if (TextUtils.isEmpty(channelJson)) {
+      return true; // no specific channel
+    }
+
+    Map<String, Object> channelDetails = JsonConverter.fromJson(channelJson);
+    String channelId = (String) channelDetails.get("id");
+    if (TextUtils.isEmpty(channelId)) {
+      return true; // no specific channel
+    }
+
+    return isChannelEnabled(context, channelId);
+  }
+
+  private static boolean isChannelEnabled(Context context, String channelId) {
+    if (BuildUtil.isNotificationChannelSupported(context)) {
+      NotificationChannel channel =
+          NotificationManagerCompat.from(context).getNotificationChannel(channelId);
+
+      if (channel != null) {
+        return channel.getImportance() > NotificationManager.IMPORTANCE_NONE;
+      }
+    }
+
+    return true;
   }
 
   /**

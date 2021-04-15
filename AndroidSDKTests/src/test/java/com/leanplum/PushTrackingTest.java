@@ -23,6 +23,7 @@ package com.leanplum;
 
 import static org.junit.Assert.assertEquals;
 
+import android.content.Context;
 import android.os.Bundle;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.RequestHelper;
@@ -32,11 +33,26 @@ import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.RequestBuilder;
 import java.util.Map;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
-import org.powermock.api.mockito.PowerMockito;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
+@PrepareForTest({
+    LeanplumNotificationHelper.class,
+    PushTracking.class
+})
 public class PushTrackingTest extends AbstractTest {
+
+  @Before
+  public void setUp() {
+    mockStatic(LeanplumNotificationHelper.class);
+    when(LeanplumNotificationHelper.areNotificationsEnabled(any(Context.class), any(Bundle.class))).thenReturn(true);
+  }
 
   @After
   public void tearDown() {
@@ -47,7 +63,8 @@ public class PushTrackingTest extends AbstractTest {
   public void testTrackDelivery() {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
-    String expectedTrackParams = "{\"messageID\":\"id\"}";
+    String expectedTrackParams = "{\"messageID\":\"" + messageId
+        + "\",\"notificationsEnabled\":\"true\"}";
     String expectedEvent = "Push Delivered";
 
     // Verify request.
@@ -62,7 +79,7 @@ public class PushTrackingTest extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
-    PushTracking.trackDelivery(notification);
+    PushTracking.trackDelivery(mContext, notification);
   }
 
   @Test
@@ -70,7 +87,8 @@ public class PushTrackingTest extends AbstractTest {
     setupSDK(mContext, "/responses/simple_start_response.json");
     String messageId = "id";
     String expectedTrackParams =
-        "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\""+messageId+"\"}";
+        "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\"" + messageId
+            + "\",\"notificationsEnabled\":\"true\"}";
     String expectedEvent = "Push Delivered";
 
     // Verify request.
@@ -86,7 +104,7 @@ public class PushTrackingTest extends AbstractTest {
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, messageId);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
-    PushTracking.trackDelivery(notification);
+    PushTracking.trackDelivery(mContext, notification);
   }
 
   @Test
@@ -98,6 +116,7 @@ public class PushTrackingTest extends AbstractTest {
     String expectedTrackParams =
         "{\"channel\":\"FCM_SILENT_TRACK\",\"messageID\":\"" + messageId
             + "\",\"sentTime\":\"" + sentTime
+            + "\",\"notificationsEnabled\":\"true"
             + "\",\"occurrenceId\":\"" + occurrenceId + "\"}";
     String expectedEvent = "Push Delivered";
 
@@ -116,7 +135,7 @@ public class PushTrackingTest extends AbstractTest {
     notification.putString(Keys.PUSH_OCCURRENCE_ID, occurrenceId);
     notification.putString(Keys.PUSH_SENT_TIME, sentTime);
     notification.putString(Keys.CHANNEL_INTERNAL_KEY, PushTracking.CHANNEL_FCM_SILENT_TRACK);
-    PushTracking.trackDelivery(notification);
+    PushTracking.trackDelivery(mContext, notification);
   }
 
   @Test
@@ -125,7 +144,7 @@ public class PushTrackingTest extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, "id");
-    PushTracking.trackDelivery(notification);
+    PushTracking.trackDelivery(mContext, notification);
 
     PowerMockito.verifyStatic(times(1));
     Leanplum.track(anyString(), anyMap());
@@ -139,7 +158,7 @@ public class PushTrackingTest extends AbstractTest {
 
     Bundle notification = new Bundle();
     notification.putString(Keys.PUSH_MESSAGE_ID_NO_MUTE, "id");
-    PushTracking.trackDelivery(notification);
+    PushTracking.trackDelivery(mContext, notification);
 
     PowerMockito.verifyStatic(times(0));
     Leanplum.track(anyString(), anyMap());
