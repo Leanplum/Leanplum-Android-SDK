@@ -31,6 +31,7 @@ import android.os.Build;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumLocalPushListenerService;
+import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.io.Serializable;
@@ -71,7 +72,7 @@ class LeanplumLocalPushHelper {
         } else if (existingEta >= eta) {
           PendingIntent existingIntent = PendingIntent.getBroadcast(
               context, messageId.hashCode(), intentAlarm,
-              PendingIntent.FLAG_UPDATE_CURRENT);
+              BuildUtil.createIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT));
           alarmManager.cancel(existingIntent);
         }
       }
@@ -123,7 +124,7 @@ class LeanplumLocalPushHelper {
       // Schedule notification.
       PendingIntent operation = PendingIntent.getBroadcast(
           context, messageId.hashCode(), intentAlarm,
-          PendingIntent.FLAG_UPDATE_CURRENT);
+          BuildUtil.createIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT));
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && Util.isXiaomiDevice()) {
         // Improve delivery of local pushes, particularly for offline and locked devices.
@@ -156,7 +157,8 @@ class LeanplumLocalPushHelper {
       Intent intentAlarm = LeanplumLocalPushListenerService.getIntent(context);
       AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
       PendingIntent existingIntent = PendingIntent.getBroadcast(
-          context, messageId.hashCode(), intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
+          context, messageId.hashCode(), intentAlarm,
+          BuildUtil.createIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT));
       if (alarmManager != null && existingIntent != null) {
         alarmManager.cancel(existingIntent);
       }

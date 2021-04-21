@@ -46,6 +46,7 @@ import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
 import com.leanplum.models.GeofenceEventType;
+import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.util.ArrayList;
@@ -395,7 +396,8 @@ class LocationManagerImplementation implements
   private PendingIntent getTransitionPendingIntent() {
     Context context = Leanplum.getContext();
     Intent intent = new Intent(context, ReceiveTransitionsIntentService.class);
-    return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    return PendingIntent.getService(context, 0, intent,
+        BuildUtil.createIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT));
   }
 
   @Override
