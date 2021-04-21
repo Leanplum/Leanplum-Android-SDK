@@ -34,8 +34,10 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -207,31 +209,40 @@ class LeanplumNotificationHelper {
       return false;
     }
 
-    String channelJson = message.getString(Keys.PUSH_NOTIFICATION_CHANNEL);
-    if (TextUtils.isEmpty(channelJson)) {
-      return true; // no specific channel
+    if (BuildUtil.isNotificationChannelSupported(context)) {
+      String channelId = resolveChannelId(context, message);
+      return !TextUtils.isEmpty(channelId) && isChannelEnabled(context, channelId);
+    } else {
+      return true;
     }
-
-    Map<String, Object> channelDetails = JsonConverter.fromJson(channelJson);
-    String channelId = (String) channelDetails.get("id");
-    if (TextUtils.isEmpty(channelId)) {
-      return true; // no specific channel
-    }
-
-    return isChannelEnabled(context, channelId);
   }
 
-  private static boolean isChannelEnabled(Context context, String channelId) {
-    if (BuildUtil.isNotificationChannelSupported(context)) {
-      NotificationChannel channel =
-          NotificationManagerCompat.from(context).getNotificationChannel(channelId);
-
-      if (channel != null) {
-        return channel.getImportance() > NotificationManager.IMPORTANCE_NONE;
+  private static String resolveChannelId(Context context, Bundle message) {
+    String channelJson = message.getString(Keys.PUSH_NOTIFICATION_CHANNEL);
+    if (!TextUtils.isEmpty(channelJson)) {
+      Map<String, Object> channelDetails = JsonConverter.fromJson(channelJson);
+      String channelId = (String) channelDetails.get("id");
+      if (!TextUtils.isEmpty(channelId)) {
+        return channelId;
       }
     }
 
-    return true;
+    // try default channel if other is not provided
+    String defaultChannelId = LeanplumNotificationChannel.getDefaultNotificationChannelId(context);
+    if (!TextUtils.isEmpty(defaultChannelId)) {
+      return defaultChannelId;
+    }
+
+    return null;
+  }
+
+  @RequiresApi(api = VERSION_CODES.O)
+  private static boolean isChannelEnabled(Context context, String channelId) {
+      NotificationChannel channel =
+          NotificationManagerCompat.from(context).getNotificationChannel(channelId);
+
+      return channel != null &&
+          channel.getImportance() > NotificationManager.IMPORTANCE_NONE;
   }
 
   /**
