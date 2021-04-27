@@ -255,7 +255,7 @@ public class LeanplumPushService {
   }
 
   static void handleNotification(final Context context, final Bundle message) {
-    PushTracking.trackDelivery(message);
+    PushTracking.trackDelivery(context, message);
 
     if (PushTracking.isFcmSilentPush(message)) {
       // This type of push is used to measure rate.
