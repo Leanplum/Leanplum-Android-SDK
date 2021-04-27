@@ -21,6 +21,7 @@
 
 package com.leanplum;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
@@ -40,7 +41,7 @@ class PushTracking {
     return CHANNEL_FCM_SILENT_TRACK.equals(channel);
   }
 
-  static void trackDelivery(@NonNull Bundle message) {
+  static void trackDelivery(@NonNull Context context, @NonNull Bundle message) {
     if (!Leanplum.isPushDeliveryTrackingEnabled()) {
       Log.d("Push delivery tracking is disabled for " + LeanplumPushService.getMessageId(message));
       return;
@@ -63,6 +64,10 @@ class PushTracking {
     if (!TextUtils.isEmpty(channel)) {
       properties.put(Keys.PUSH_METRIC_CHANNEL, channel);
     }
+
+    boolean notificationsEnabled =
+        LeanplumNotificationHelper.areNotificationsEnabled(context, message);
+    properties.put(Keys.PUSH_METRIC_NOTIFICATIONS_ENABLED, Boolean.toString(notificationsEnabled));
 
     Leanplum.track("Push Delivered", properties);
   }
