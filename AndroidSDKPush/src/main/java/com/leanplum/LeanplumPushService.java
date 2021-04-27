@@ -308,7 +308,7 @@ public class LeanplumPushService {
     intent.addCategory("lpAction");
     intent.putExtras(message);
     PendingIntent contentIntent = PendingIntent.getBroadcast(context.getApplicationContext(),
-        new Random().nextInt(), intent, 0);
+        new Random().nextInt(), intent, BuildUtil.createIntentFlags(0));
 
     String title = Util.getApplicationName(context.getApplicationContext());
     if (message.getString("title") != null) {
@@ -651,7 +651,8 @@ public class LeanplumPushService {
     try {
       Intent unregisterIntent = new Intent("com.google.android.c2dm.intent.UNREGISTER");
       Context context = Leanplum.getContext();
-      unregisterIntent.putExtra("app", PendingIntent.getBroadcast(context, 0, new Intent(), 0));
+      unregisterIntent.putExtra("app",
+          PendingIntent.getBroadcast(context, 0, new Intent(), BuildUtil.createIntentFlags(0)));
       unregisterIntent.setPackage("com.google.android.gms");
       context.startService(unregisterIntent);
     } catch (Throwable t) {
@@ -686,7 +687,7 @@ public class LeanplumPushService {
           .setContentTitle("Leanplum")
           .setContentText("Your device is registered.");
       builder.setContentIntent(PendingIntent.getActivity(
-          currentContext.getApplicationContext(), 0, new Intent(), 0));
+          currentContext.getApplicationContext(), 0, new Intent(), BuildUtil.createIntentFlags(0)));
       NotificationManager mNotificationManager =
           (NotificationManager) currentContext.getSystemService(
               Context.NOTIFICATION_SERVICE);

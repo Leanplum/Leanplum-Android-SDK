@@ -20,6 +20,7 @@
  */
 package com.leanplum.utils;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Build;
 
@@ -52,5 +53,18 @@ public class BuildUtil {
       targetSdk = context.getApplicationInfo().targetSdkVersion;
     }
     return targetSdk;
+  }
+
+  /**
+   * Adds immutable property to the intent flags. Mandatory when targeting API 31.
+   *
+   * @param flags The default flags.
+   * @return Flags with additional immutable property set.
+   */
+  public static int createIntentFlags(int flags) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      return flags | PendingIntent.FLAG_IMMUTABLE;
+    }
+    return flags;
   }
 }
