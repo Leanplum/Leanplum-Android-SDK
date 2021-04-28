@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 apply from: "../common-methods.gradle"
 apply plugin: 'com.facebook.testing.screenshot'
 
