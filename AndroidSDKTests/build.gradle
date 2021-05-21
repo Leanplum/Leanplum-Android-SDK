@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.facebook.testing.screenshot:plugin:0.12.0'
+        classpath 'com.facebook.testing.screenshot:plugin:0.14.0'
     }
 }
 
@@ -87,7 +87,7 @@ dependencies {
     androidTestImplementation "com.crittercism.dexmaker:dexmaker:1.4"
     androidTestImplementation "com.crittercism.dexmaker:dexmaker-mockito:1.4"
     androidTestImplementation "com.crittercism.dexmaker:dexmaker-dx:1.4"
-    implementation 'com.facebook.testing.screenshot:core:0.12.0'
+    implementation 'com.facebook.testing.screenshot:core:0.14.0'
 }
 
 task jarTests(type: Jar, dependsOn: "assembleDebugUnitTest") {
