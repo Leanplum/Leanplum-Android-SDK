@@ -45,12 +45,6 @@ android {
                 logger.lifecycle("Running test: " + descriptor)
             }
 
-            // MiPush jar is causing java.lang.VerifyError in Robolectric. Possible cause is that
-            // the library was proguarded like app instead of library.
-            // Check https://github.com/robolectric/robolectric/issues/2750 for details.
-            // To fix tests in Android Studio add "-noverify" jvm option to JUnit run configuration template.
-            jvmArgs '-noverify'
-
         }
         unitTests {
             includeAndroidResources = true
@@ -67,7 +61,7 @@ dependencies {
     implementation project(':AndroidSDKPush')
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
-    implementation project(':AndroidSDKMiPush')
+    testImplementation project(':AndroidSDKMiPush') // add dep for unit tests only, fails otherwise
     implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
     implementation 'com.google.android.gms:play-services-location:17.0.0'
 
