@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -246,25 +247,6 @@ public class LeanplumPushServiceTest {
     Intent deepLinkIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/"));
     deepLinkIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     assertEquals(deepLinkIntent.toString().trim(), result.toString().trim());
-  }
-
-
-  /**
-   * Test for {@link LeanplumPushService#activityHasIntent(Context, Intent)}  that should return
-   * false if there is no activity that can handle intent.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void activityHasIntentTest() throws Exception {
-    LeanplumPushService pushService = new LeanplumPushService();
-    Method activityHasIntentMethod = LeanplumPushService.class.
-        getDeclaredMethod("activityHasIntent", Context.class, Intent.class);
-    activityHasIntentMethod.setAccessible(true);
-    Intent deepLinkIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/"));
-    deepLinkIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    Boolean result = (Boolean) activityHasIntentMethod.invoke(pushService, context, deepLinkIntent);
-    assertTrue(!result);
   }
 
   @Test
