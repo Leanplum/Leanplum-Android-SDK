@@ -73,6 +73,8 @@ public class Constants {
     public static final String ITEM_KEY = "__leanplum_unsynced_%d";
     public static final String UUID_KEY = "__leanplum_uuid";
     public static final String VARIABLES_KEY = "__leanplum_variables";
+    public static final String VARIABLES_JSON_KEY = "__leanplum_variables_json";
+    public static final String VARIABLES_SIGN_KEY = "__leanplum_variables_signature";
     public static final String ATTRIBUTES_KEY = "__leanplum_attributes";
     public static final String TOKEN_KEY = "__leanplum_token";
     public static final String MESSAGES_KEY = "__leanplum_messages";
@@ -210,6 +212,7 @@ public class Constants {
     public static final String TOKEN = "token";
     public static final String VARIANTS = "variants";
     public static final String VARS = "vars";
+    public static final String VARS_SIGNATURE = "varsSignature";
     public static final String VARS_FROM_CODE = "varsFromCode";
     public static final String NOTIFICATION_CHANNELS = "notificationChannels";
     public static final String DEFAULT_NOTIFICATION_CHANNEL = "defaultNotificationChannel";

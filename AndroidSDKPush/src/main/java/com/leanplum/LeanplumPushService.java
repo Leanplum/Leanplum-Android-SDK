@@ -192,15 +192,29 @@ public class LeanplumPushService {
                         response.optJSONObject(Constants.Keys.REGIONS));
                     List<Map<String, Object>> variants = JsonConverter.listFromJson(
                         response.optJSONArray(Constants.Keys.VARIANTS));
+
+                    JSONObject varsJsonObj = response.optJSONObject(Constants.Keys.VARS);
+                    String varsJson = (varsJsonObj != null) ? varsJsonObj.toString() : null;
+                    String varsSignature = response.optString(Constants.Keys.VARS_SIGNATURE);
+
                     if (!Constants.canDownloadContentMidSessionInProduction ||
                         VarCache.getDiffs().equals(values)) {
                       values = null;
+                      varsJson = null;
+                      varsSignature = null;
                     }
                     if (VarCache.getMessageDiffs().equals(messages)) {
                       messages = null;
                     }
                     if (values != null || messages != null) {
-                      VarCache.applyVariableDiffs(values, messages, regions, variants, null);
+                      VarCache.applyVariableDiffs(
+                          values,
+                          messages,
+                          regions,
+                          variants,
+                          null,
+                          varsJson,
+                          varsSignature);
                     }
                   }
                   onComplete.variablesChanged();

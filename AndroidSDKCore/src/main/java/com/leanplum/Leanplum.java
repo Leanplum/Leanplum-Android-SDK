@@ -551,7 +551,9 @@ public class Leanplum {
             new HashMap<>(),
             new HashMap<>(),
             new ArrayList<>(),
-            new HashMap<>());
+            new HashMap<>(),
+            null,
+            null);
         LeanplumInbox.getInstance().update(new HashMap<>(), 0, false);
         return;
       }
@@ -956,13 +958,23 @@ public class Leanplum {
         response.optJSONArray(Constants.Keys.VARIANTS));
     Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
             response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
+    JSONObject varsJsonObj = response.optJSONObject(Constants.Keys.VARS);
+    String varsJson = (varsJsonObj != null) ? varsJsonObj.toString() : null;
+    String varsSignature = response.optString(Constants.Keys.VARS_SIGNATURE);
 
     if (alwaysApply
         || !values.equals(VarCache.getDiffs())
         || !messages.equals(VarCache.getMessageDiffs())
         || !variants.equals(VarCache.variants())
         || !regions.equals(VarCache.regions())) {
-      VarCache.applyVariableDiffs(values, messages, regions, variants, variantDebugInfo);
+      VarCache.applyVariableDiffs(
+          values,
+          messages,
+          regions,
+          variants,
+          variantDebugInfo,
+          varsJson,
+          varsSignature);
     }
   }
 
@@ -2155,6 +2167,14 @@ public class Leanplum {
       return new ArrayList<>();
     }
     return variants;
+  }
+
+  /**
+   * TODO javadoc
+   * @return
+   */
+  public static LPVars getVars() {
+    return VarCache.getVars();
   }
 
   /**
