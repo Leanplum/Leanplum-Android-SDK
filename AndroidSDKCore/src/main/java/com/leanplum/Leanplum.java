@@ -25,6 +25,7 @@ import android.content.Context;
 import android.location.Location;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
@@ -2170,11 +2171,14 @@ public class Leanplum {
   }
 
   /**
-   * TODO javadoc
-   * @return
+   * Returns the last received variables, signed cryptographically.
+   *
+   * @return {@link SecuredVars} instance containing variable's JSON and signature. If signature
+   * wasn't downloaded from server it will return null.
    */
-  public static LPVars getVars() {
-    return VarCache.getVars();
+  @Nullable
+  public static SecuredVars securedVars() {
+    return VarCache.getSecuredVars();
   }
 
   /**

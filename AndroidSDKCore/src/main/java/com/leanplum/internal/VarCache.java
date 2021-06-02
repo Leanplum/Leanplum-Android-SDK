@@ -24,9 +24,11 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import android.text.TextUtils;
+import androidx.annotation.Nullable;
 import com.leanplum.ActionContext;
 import com.leanplum.CacheUpdateBlock;
-import com.leanplum.LPVars;
+import com.leanplum.SecuredVars;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
@@ -395,7 +397,7 @@ public class VarCache {
           new HashMap<String, Object>(),
           new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>(),
-          "",// null or empty ??
+          "", // reset value, if null it won't reset
           "");
       return;
     }
@@ -616,9 +618,6 @@ public class VarCache {
 
     if (varsJson != null) {
       VarCache.varsJson = varsJson;
-    }
-
-    if (varsSignature != null) {
       VarCache.varsSignature = varsSignature;
     }
 
@@ -894,8 +893,12 @@ public class VarCache {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
-  public static LPVars getVars() {
-    return new LPVars(varsJson, varsSignature);
+  @Nullable
+  public static SecuredVars getSecuredVars() {
+    if (TextUtils.isEmpty(varsJson) || TextUtils.isEmpty(varsSignature)) {
+      return null;
+    }
+    return new SecuredVars(varsJson, varsSignature);
   }
 
   public static void clearUserContent() {
