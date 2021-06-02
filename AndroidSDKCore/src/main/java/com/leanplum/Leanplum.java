@@ -553,8 +553,8 @@ public class Leanplum {
             new HashMap<>(),
             new ArrayList<>(),
             new HashMap<>(),
-            null,
-            null);
+            "",
+            "");
         LeanplumInbox.getInstance().update(new HashMap<>(), 0, false);
         return;
       }
@@ -2171,7 +2171,8 @@ public class Leanplum {
   }
 
   /**
-   * Returns the last received variables, signed cryptographically.
+   * Returns the last received signed variables. If signature was not provided from server the
+   * result of this method will be null.
    *
    * @return {@link SecuredVars} instance containing variable's JSON and signature. If signature
    * wasn't downloaded from server it will return null.

@@ -63,8 +63,8 @@ public class VarCache {
   private static final Map<String, Var<?>> vars = new ConcurrentHashMap<>();
   private static final Map<String, Object> fileAttributes = new HashMap<>();
   private static final Map<String, StreamProvider> fileStreams = new HashMap<>();
-  private static String varsJson;
-  private static String varsSignature;
+  private static volatile String varsJson;
+  private static volatile String varsSignature;
 
   /**
    * The default values set by the client. This is not thread-safe so traversals should be
@@ -397,7 +397,7 @@ public class VarCache {
           new HashMap<String, Object>(),
           new ArrayList<Map<String, Object>>(),
           new HashMap<String, Object>(),
-          "", // reset value, if null it won't reset
+          "",
           "");
       return;
     }
@@ -411,7 +411,7 @@ public class VarCache {
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
       String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
-      String varsJson = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_JSON_KEY, null);
+      String varsJson = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_JSON_KEY, "{}");
       String varsSignature = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_SIGN_KEY, null);
       applyVariableDiffs(
           JsonConverter.fromJson(variables),
