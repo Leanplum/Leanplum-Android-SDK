@@ -63,10 +63,7 @@ import java.util.TreeSet;
  */
 class LeanplumNotificationHelper {
 
-  private static final int BIGPICTURE_TEXT_TOP_PADDING = -14;
-  private static final int BIGPICTURE_TEXT_SIZE = 14;
   private static final String LEANPLUM_DEFAULT_PUSH_ICON = "leanplum_default_push_icon";
-  private static final int MAX_ONE_LINE_TEXT_LENGTH = 37;
 
   /**
    * If notification channels are supported this method will try to create
@@ -303,8 +300,7 @@ class LeanplumNotificationHelper {
   }
 
   /**
-   * Calls setStyle for notificationBuilder and it tries modify notification layout to support two
-   * lines.
+   * Calls setStyle for notificationBuilder.
    *
    * @param notificationBuilder current Notification.Builder.
    * @param bigPictureStyle current Notification.BigPictureStyle.
@@ -314,30 +310,12 @@ class LeanplumNotificationHelper {
     if (Build.VERSION.SDK_INT < 16 || notificationBuilder == null || bigPictureStyle == null) {
       return;
     }
-    try {
-      notificationBuilder.setStyle(bigPictureStyle);
 
-      if (Build.VERSION.SDK_INT >= 24) {
-        // By default we cannot reach getStandardView method on API>=24. If we call
-        // createBigContentView, Android will call getStandardView method and we can get
-        // modified RemoteView.
-        try {
-          RemoteViews remoteView = notificationBuilder.createBigContentView();
-          if (remoteView != null) {
-            // We need to set received RemoteView as a custom big content view.
-            notificationBuilder.setCustomBigContentView(remoteView);
-          }
-        } catch (Throwable t) {
-          Log.e("Cannot modify push notification layout.", t);
-        }
-      }
-    } catch (Throwable t) {
-      Log.e("Cannot set BigPicture style for push notification.", t);
-    }
+    notificationBuilder.setStyle(bigPictureStyle);
   }
 
   /**
-   * Gets Notification.BigPictureStyle with 2 lines text.
+   * Gets Notification.BigPictureStyle with 1 line title and 1 line summary.
    *
    * @param message Push notification Bundle.
    * @param bigPicture Bitmap for BigPictureStyle notification.
@@ -352,34 +330,10 @@ class LeanplumNotificationHelper {
       return null;
     }
 
-    Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle() {
-      @Override
-      protected RemoteViews getStandardView(int layoutId) {
-        RemoteViews remoteViews = super.getStandardView(layoutId);
-        if (messageText != null && messageText.length() >= MAX_ONE_LINE_TEXT_LENGTH) {
-          // Modifications of standard push RemoteView.
-          try {
-            int id = Resources.getSystem().getIdentifier("text", "id", "android");
-            remoteViews.setBoolean(id, "setSingleLine", false);
-            remoteViews.setInt(id, "setLines", 2);
-            if (Build.VERSION.SDK_INT < 23) {
-              // Make text smaller.
-              remoteViews.setViewPadding(id, 0, BIGPICTURE_TEXT_TOP_PADDING, 0, 0);
-              remoteViews.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, BIGPICTURE_TEXT_SIZE);
-            }
-          } catch (Throwable throwable) {
-            Log.e("Cannot modify push notification layout.");
-          }
-        }
-        return remoteViews;
-      }
-    };
-
-    bigPictureStyle.bigPicture(bigPicture)
+    return new Notification.BigPictureStyle()
+        .bigPicture(bigPicture)
         .setBigContentTitle(title)
-        .setSummaryText(message.getString(Constants.Keys.PUSH_MESSAGE_TEXT));
-
-    return bigPictureStyle;
+        .setSummaryText(messageText);
   }
 
   /**
