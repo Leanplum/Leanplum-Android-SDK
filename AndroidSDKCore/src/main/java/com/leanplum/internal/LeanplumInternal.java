@@ -264,10 +264,16 @@ public class LeanplumInternal {
           ActionManager.getInstance().recordHeldBackImpression(
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
         } else {
+//          if (shouldSuppressMessage(actionContext)) { TODO uncomment when done
+//            continue;
+//          }
+
           LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
             @Override
             public void variablesChanged() {
               try {
+                // record impression if we have at least one handler
+                ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
                 Leanplum.triggerMessageDisplayed(actionContext);
               } catch (Throwable t) {
                 Log.exception(t);
@@ -277,6 +283,14 @@ public class LeanplumInternal {
         }
       }
     }
+  }
+
+  private static boolean shouldSuppressMessage(ActionContext context) {
+    // TODO do not suppress local push
+
+    // [done] check if message caps are reached
+
+    return ActionManager.getInstance().shouldSuppressMessages();
   }
 
   private static int fetchCountDown(ActionContext context, Map<String, Object> messages) {

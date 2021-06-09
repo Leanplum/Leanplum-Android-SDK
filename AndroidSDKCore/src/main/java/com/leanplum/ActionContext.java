@@ -388,7 +388,17 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
           @Override
           public void variablesChanged() {
             try {
+              // We do not want to count occurrences for action kind, because in multi message
+              // campaigns the Open URL action is not a message. Also if the user has defined
+              // actions of type Action we do not want to count them.
+              int actionKind = VarCache.getActionDefinitionType(actionContext.name);
+              if (actionKind == Leanplum.ACTION_KIND_ACTION) {
+                ActionManager.getInstance().recordChainedActionImpression(messageId);
+              } else {
+                ActionManager.getInstance().recordMessageImpression(messageId);
+              }
               Leanplum.triggerMessageDisplayed(actionContext);
+
             } catch (Throwable t) {
               Log.exception(t);
             }

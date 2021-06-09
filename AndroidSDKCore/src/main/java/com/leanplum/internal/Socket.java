@@ -225,6 +225,7 @@ public class Socket {
         ((BaseActionContext) context).setIsPreview(true);
         context.update();
         LeanplumInternal.triggerAction(context);
+        ActionManager.getInstance().recordMessageImpression(context.getMessageId());
         Leanplum.triggerMessageDisplayed(context);
       }
     } catch (JSONException e) {

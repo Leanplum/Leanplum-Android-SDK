@@ -82,6 +82,7 @@ public class VarCache {
   private static Map<String, Object> devModeFileAttributesFromServer;
   private static Map<String, Object> devModeActionDefinitionsFromServer;
   private static volatile List<Map<String, Object>> variants = new ArrayList<>();
+  private static volatile List<Map<String, Object>> localCaps = new ArrayList<>();
   private static CacheUpdateBlock updateBlock;
   private static boolean hasReceivedDiffs = false;
   private static Map<String, Object> messages = new HashMap<>();
@@ -480,6 +481,8 @@ public class VarCache {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
     }
 
+    // TODO write localCaps
+
     if (variantDebugInfo != null) {
       editor.putString(
           Constants.Keys.VARIANT_DEBUG_INFO,
@@ -611,6 +614,8 @@ public class VarCache {
     if (variants != null) {
       VarCache.variants = variants;
     }
+
+    // TODO init localCaps
 
     if (variantDebugInfo != null) {
       VarCache.setVariantDebugInfo(variantDebugInfo);
@@ -809,6 +814,10 @@ public class VarCache {
     return variants;
   }
 
+  public static List<Map<String, Object>> localCaps() {
+    return localCaps;
+  }
+
   public static Map<String, Object> actionDefinitions() {
     return actionDefinitions;
   }
@@ -901,9 +910,21 @@ public class VarCache {
     return new SecuredVars(varsJson, varsSignature);
   }
 
+  public static int getActionDefinitionType(String actionName) {
+    Object actionDef = actionDefinitions().get(actionName);
+    if (actionDef instanceof Map<?, ?>) {
+      Integer kind = (Integer) ((Map<?, ?>) actionDef).get("kind");
+      if (kind != null) {
+        return kind;
+      }
+    }
+    return 0;
+  }
+
   public static void clearUserContent() {
     vars.clear();
     variants = new ArrayList<>();
+    localCaps = new ArrayList<>();
     variantDebugInfo.clear();
     varsJson = null;
     varsSignature = null;
@@ -937,6 +958,7 @@ public class VarCache {
     devModeFileAttributesFromServer = null;
     devModeActionDefinitionsFromServer = null;
     variants = new ArrayList<>();
+    localCaps = new ArrayList<>();
     updateBlock = null;
     hasReceivedDiffs = false;
     messages = null;

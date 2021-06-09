@@ -1305,7 +1305,6 @@ public class Leanplum {
   }
 
   public static void triggerMessageDisplayed(ActionContext actionContext) {
-    ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
     synchronized (messageDisplayedHandlers) {
       for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
         MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
