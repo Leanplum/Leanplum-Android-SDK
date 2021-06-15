@@ -24,8 +24,11 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import android.text.TextUtils;
+import androidx.annotation.Nullable;
 import com.leanplum.ActionContext;
 import com.leanplum.CacheUpdateBlock;
+import com.leanplum.SecuredVars;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
@@ -60,6 +63,8 @@ public class VarCache {
   private static final Map<String, Var<?>> vars = new ConcurrentHashMap<>();
   private static final Map<String, Object> fileAttributes = new HashMap<>();
   private static final Map<String, StreamProvider> fileStreams = new HashMap<>();
+  private static volatile String varsJson;
+  private static volatile String varsSignature;
 
   /**
    * The default values set by the client. This is not thread-safe so traversals should be
@@ -391,7 +396,9 @@ public class VarCache {
           new HashMap<String, Object>(),
           new HashMap<String, Object>(),
           new ArrayList<Map<String, Object>>(),
-          new HashMap<String, Object>());
+          new HashMap<String, Object>(),
+          "",
+          "");
       return;
     }
     try {
@@ -404,12 +411,16 @@ public class VarCache {
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
       String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
+      String varsJson = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_JSON_KEY, "{}");
+      String varsSignature = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_SIGN_KEY, null);
       applyVariableDiffs(
           JsonConverter.fromJson(variables),
           JsonConverter.fromJson(messages),
           JsonConverter.fromJson(regions),
           JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
-          JsonConverter.fromJson(variantDebugInfo));
+          JsonConverter.fromJson(variantDebugInfo),
+          varsJson,
+          varsSignature);
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
         if (Util.isValidDeviceId(deviceId)) {
@@ -475,6 +486,9 @@ public class VarCache {
           aesContext.encrypt(JsonConverter.toJson(variantDebugInfo)));
     }
 
+    editor.putString(Constants.Defaults.VARIABLES_JSON_KEY, aesContext.encrypt(varsJson));
+    editor.putString(Constants.Defaults.VARIABLES_SIGN_KEY, aesContext.encrypt(varsSignature));
+
     editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(APIConfig.getInstance().deviceId()));
     editor.putString(Constants.Params.USER_ID, aesContext.encrypt(APIConfig.getInstance().userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
@@ -529,7 +543,9 @@ public class VarCache {
       Map<String, Object> messages,
       Map<String, Object> regions,
       List<Map<String, Object>> variants,
-      Map<String, Object> variantDebugInfo) {
+      Map<String, Object> variantDebugInfo,
+      String varsJson,
+      String varsSignature) {
     if (diffs != null) {
       VarCache.diffs = diffs;
       computeMergedDictionary();
@@ -598,6 +614,11 @@ public class VarCache {
 
     if (variantDebugInfo != null) {
       VarCache.setVariantDebugInfo(variantDebugInfo);
+    }
+
+    if (varsJson != null) {
+      VarCache.varsJson = varsJson;
+      VarCache.varsSignature = varsSignature;
     }
 
     contentVersion++;
@@ -872,10 +893,20 @@ public class VarCache {
     SharedPreferencesUtil.commitChanges(editor);
   }
 
+  @Nullable
+  public static SecuredVars getSecuredVars() {
+    if (TextUtils.isEmpty(varsJson) || TextUtils.isEmpty(varsSignature)) {
+      return null;
+    }
+    return new SecuredVars(varsJson, varsSignature);
+  }
+
   public static void clearUserContent() {
     vars.clear();
     variants = new ArrayList<>();
     variantDebugInfo.clear();
+    varsJson = null;
+    varsSignature = null;
 
     diffs.clear();
     messageDiffs.clear();
@@ -913,5 +944,7 @@ public class VarCache {
     silent = false;
     contentVersion = 0;
     userAttributes = null;
+    varsJson = null;
+    varsSignature = null;
   }
 }

@@ -59,17 +59,16 @@ public class OpenUrlAction implements MessageTemplate {
     List<ResolveInfo> resolveInfoList =
         context.getPackageManager().queryIntentActivities(uriIntent, 0);
 
-    if (resolveInfoList.isEmpty())
-      return;
-
     // If url can be handled by current app - set package name to intent, so url
     // will be open by current app. Skip chooser dialog.
-    for (ResolveInfo resolveInfo : resolveInfoList) {
-      if (resolveInfo != null && resolveInfo.activityInfo != null &&
-          resolveInfo.activityInfo.name != null) {
-        if (resolveInfo.activityInfo.name.contains(
-            context.getPackageName())) {
-          uriIntent.setPackage(resolveInfo.activityInfo.packageName);
+    if (!resolveInfoList.isEmpty()) {
+      for (ResolveInfo resolveInfo : resolveInfoList) {
+        if (resolveInfo != null && resolveInfo.activityInfo != null &&
+            resolveInfo.activityInfo.name != null) {
+          if (resolveInfo.activityInfo.name.contains(
+              context.getPackageName())) {
+            uriIntent.setPackage(resolveInfo.activityInfo.packageName);
+          }
         }
       }
     }

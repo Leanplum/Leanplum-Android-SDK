@@ -34,7 +34,7 @@ dependencies {
     api project(':AndroidSDKPush')
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
-    compileOnly('com.google.firebase:firebase-messaging:[17.3.4,)') {
+    compileOnly('com.google.firebase:firebase-messaging:[17.3.4, 21.1.0]') {
         exclude module: 'support-v4'
     }
 }

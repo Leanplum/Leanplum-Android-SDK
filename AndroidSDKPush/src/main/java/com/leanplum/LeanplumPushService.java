@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -191,15 +192,29 @@ public class LeanplumPushService {
                         response.optJSONObject(Constants.Keys.REGIONS));
                     List<Map<String, Object>> variants = JsonConverter.listFromJson(
                         response.optJSONArray(Constants.Keys.VARIANTS));
+
+                    JSONObject varsJsonObj = response.optJSONObject(Constants.Keys.VARS);
+                    String varsJson = (varsJsonObj != null) ? varsJsonObj.toString() : null;
+                    String varsSignature = response.optString(Constants.Keys.VARS_SIGNATURE);
+
                     if (!Constants.canDownloadContentMidSessionInProduction ||
                         VarCache.getDiffs().equals(values)) {
                       values = null;
+                      varsJson = null;
+                      varsSignature = null;
                     }
                     if (VarCache.getMessageDiffs().equals(messages)) {
                       messages = null;
                     }
                     if (values != null || messages != null) {
-                      VarCache.applyVariableDiffs(values, messages, regions, variants, null);
+                      VarCache.applyVariableDiffs(
+                          values,
+                          messages,
+                          regions,
+                          variants,
+                          null,
+                          varsJson,
+                          varsSignature);
                     }
                   }
                   onComplete.variablesChanged();
@@ -579,13 +594,18 @@ public class LeanplumPushService {
     String action = notification.getString(Keys.PUSH_MESSAGE_ACTION);
     if (action != null && action.contains(OPEN_URL)) {
       Intent deepLinkIntent = getDeepLinkIntent(notification);
-      if (deepLinkIntent != null && activityHasIntent(context, deepLinkIntent)) {
+      if (deepLinkIntent != null) {
+        resolveIntentActivity(context, deepLinkIntent);
         String messageId = LeanplumPushService.getMessageId(notification);
         if (messageId != null) {
           ActionContext actionContext = new ActionContext(
               ActionManager.PUSH_NOTIFICATION_ACTION_NAME, null, messageId);
           actionContext.track(OPEN_ACTION, 0.0, null);
-          context.startActivity(deepLinkIntent);
+          try {
+            context.startActivity(deepLinkIntent);
+          }  catch (ActivityNotFoundException e) {
+            return false;
+          }
           return true;
         }
       }
@@ -612,9 +632,9 @@ public class LeanplumPushService {
   }
 
   /**
-   * Checks if there is some activity that can handle intent.
+   * Checks if url can be handled by current app to skip chooser dialog.
    */
-  private static Boolean activityHasIntent(Context context, Intent deepLinkIntent) {
+  private static void resolveIntentActivity(Context context, Intent deepLinkIntent) {
     List<ResolveInfo> resolveInfoList =
         context.getPackageManager().queryIntentActivities(deepLinkIntent, 0);
     if (resolveInfoList != null && !resolveInfoList.isEmpty()) {
@@ -622,15 +642,12 @@ public class LeanplumPushService {
         if (resolveInfo != null && resolveInfo.activityInfo != null &&
             resolveInfo.activityInfo.name != null) {
           if (resolveInfo.activityInfo.name.contains(context.getPackageName())) {
-            // If url can be handled by current app - set package name to intent, so url will be
-            // open by current app. Skip chooser dialog.
             deepLinkIntent.setPackage(resolveInfo.activityInfo.packageName);
           }
-          return true;
+          return;
         }
       }
     }
-    return false;
   }
 
   private static Intent getActionIntent(Context context) {
