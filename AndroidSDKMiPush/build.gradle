@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.library'
+    id 'kotlin-android'
     id 'com.jfrog.artifactory' version '4.13.0'
     id 'maven-publish'
     id 'signing'
@@ -29,10 +30,8 @@ android {
 }
 
 dependencies {
-    debugApi project(':AndroidSDKCore')
-    releaseApi project(':AndroidSDKCore')
-    debugApi project(':AndroidSDKPush')
-    releaseApi project(':AndroidSDKPush')
+    api project(':AndroidSDKCore')
+    api project(':AndroidSDKPush')
 
     // MiPush SDK is located in libs
     implementation fileTree(dir: 'libs', include: ['*.jar'])
