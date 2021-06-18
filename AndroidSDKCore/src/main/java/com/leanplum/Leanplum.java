@@ -552,6 +552,7 @@ public class Leanplum {
             new HashMap<>(),
             new HashMap<>(),
             new ArrayList<>(),
+            new ArrayList<>(),
             new HashMap<>(),
             "",
             "");
@@ -957,6 +958,8 @@ public class Leanplum {
         response.optJSONObject(Constants.Keys.REGIONS));
     List<Map<String, Object>> variants = JsonConverter.listFromJsonOrDefault(
         response.optJSONArray(Constants.Keys.VARIANTS));
+    List<Map<String, Object>> localCaps = JsonConverter.listFromJsonOrDefault(
+        response.optJSONArray(Constants.Keys.LOCAL_CAPS));
     Map<String, Object> variantDebugInfo = JsonConverter.mapFromJsonOrDefault(
             response.optJSONObject(Constants.Keys.VARIANT_DEBUG_INFO));
     JSONObject varsJsonObj = response.optJSONObject(Constants.Keys.VARS);
@@ -973,6 +976,7 @@ public class Leanplum {
           messages,
           regions,
           variants,
+          localCaps,
           variantDebugInfo,
           varsJson,
           varsSignature);

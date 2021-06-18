@@ -25,6 +25,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 
+import androidx.annotation.NonNull;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
@@ -285,11 +286,19 @@ public class LeanplumInternal {
     }
   }
 
-  private static boolean shouldSuppressMessage(ActionContext context) {
-    // TODO do not suppress local push
+  /**
+   * Checks if message should be suppressed based on the local IAM caps.
+   *
+   * @param context The message context to check.
+   * @return True if message should  be suppressed, false otherwise.
+   */
+  private static boolean shouldSuppressMessage(@NonNull ActionContext context) {
+    if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(context.actionName())) {
+      // do not suppress local push
+      return false;
+    }
 
-    // [done] check if message caps are reached
-
+    // checks if message caps are reached
     return ActionManager.getInstance().shouldSuppressMessages();
   }
 

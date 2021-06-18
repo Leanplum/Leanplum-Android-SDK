@@ -48,9 +48,9 @@ public class ActionManager {
   private static final long DAY_MILLIS = 24 * HOUR_MILLIS;
   private static final long WEEK_MILLIS = 7 * DAY_MILLIS;
 
-  private Map<String, Map<String, Number>> messageImpressionOccurrences;
-  private Map<String, Number> messageTriggerOccurrences;
-  private Map<String, Number> sessionOccurrences;
+  private final Map<String, Map<String, Number>> messageImpressionOccurrences = new HashMap<>();
+  private final Map<String, Number> messageTriggerOccurrences = new HashMap<>();
+  private final Map<String, Number> sessionOccurrences = new HashMap<>();
 
   private static ActionManager instance;
 
@@ -105,9 +105,6 @@ public class ActionManager {
 
   private ActionManager() {
     listenForLocalNotifications();
-    sessionOccurrences = new HashMap<>();
-    messageImpressionOccurrences = new HashMap<>();
-    messageTriggerOccurrences = new HashMap<>();
   }
 
   private void listenForLocalNotifications() {
@@ -602,7 +599,7 @@ public class ActionManager {
   }
 
   /**
-   * Checks if to suppress message occurrences based on the localCaps data from server.
+   * Checks if message occurrences have reached limits coming from local IAM caps data.
    *
    * @return True to suppress messages, false otherwise.
    */
@@ -685,8 +682,13 @@ public class ActionManager {
 
     for (long id = maxId; id >= minId; id--) {
       Number time = occurrences.get("" + id);
-      if (time != null && startTime <= time.longValue() && time.longValue() <= endTime) {
-        count++;
+      if (time != null) {
+        if (startTime <= time.longValue() && time.longValue() <= endTime) {
+          count++;
+        } else {
+          // occurrences with smaller ids would fall out of time interval
+          return count;
+        }
       }
     }
 
@@ -694,10 +696,6 @@ public class ActionManager {
   }
 
   private int sessionOccurrences() {
-    if (sessionOccurrences == null) {
-      return 0;
-    }
-
     int count = 0;
     for (Map.Entry<String, Number> entry : sessionOccurrences.entrySet()) {
       Number value = entry.getValue();

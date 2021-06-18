@@ -393,11 +393,12 @@ public class VarCache {
     SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
     if (APIConfig.getInstance().token() == null) {
       applyVariableDiffs(
-          new HashMap<String, Object>(),
-          new HashMap<String, Object>(),
-          new HashMap<String, Object>(),
-          new ArrayList<Map<String, Object>>(),
-          new HashMap<String, Object>(),
+          new HashMap<>(),
+          new HashMap<>(),
+          new HashMap<>(),
+          new ArrayList<>(),
+          new ArrayList<>(),
+          new HashMap<>(),
           "",
           "");
       return;
@@ -411,6 +412,7 @@ public class VarCache {
           defaults, Constants.Defaults.MESSAGES_KEY, "{}");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
+      String localCaps = aesContext.decodePreference(defaults, Constants.Keys.LOCAL_CAPS, "[]");
       String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
       String varsJson = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_JSON_KEY, "{}");
       String varsSignature = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_SIGN_KEY, null);
@@ -418,7 +420,8 @@ public class VarCache {
           JsonConverter.fromJson(variables),
           JsonConverter.fromJson(messages),
           JsonConverter.fromJson(regions),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
+          JsonConverter.listFromJson(new JSONArray(variants)),
+          JsonConverter.listFromJson(new JSONArray(localCaps)),
           JsonConverter.fromJson(variantDebugInfo),
           varsJson,
           varsSignature);
@@ -481,7 +484,14 @@ public class VarCache {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
     }
 
-    // TODO write localCaps
+    try {
+      if (localCaps != null && !localCaps.isEmpty()) {
+        String json = JsonConverter.listToJsonArray(localCaps).toString();
+        editor.putString(Constants.Keys.LOCAL_CAPS, aesContext.encrypt(json));
+      }
+    } catch (JSONException e) {
+      Log.e("Error converting " + localCaps + " to JSON.\n" + Log.getStackTraceString(e));
+    }
 
     if (variantDebugInfo != null) {
       editor.putString(
@@ -546,6 +556,7 @@ public class VarCache {
       Map<String, Object> messages,
       Map<String, Object> regions,
       List<Map<String, Object>> variants,
+      List<Map<String, Object>> localCaps,
       Map<String, Object> variantDebugInfo,
       String varsJson,
       String varsSignature) {
@@ -615,7 +626,9 @@ public class VarCache {
       VarCache.variants = variants;
     }
 
-    // TODO init localCaps
+    if (localCaps != null) {
+      VarCache.localCaps = localCaps;
+    }
 
     if (variantDebugInfo != null) {
       VarCache.setVariantDebugInfo(variantDebugInfo);
