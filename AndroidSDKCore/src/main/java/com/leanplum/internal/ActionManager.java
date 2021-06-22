@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import android.text.TextUtils;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
@@ -32,7 +33,6 @@ import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +131,7 @@ public class ActionManager {
             Log.e("Invalid notification countdown: " + countdownObj);
             return false;
           }
-          long eta = System.currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
+          long eta = Clock.getInstance().currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
           // Schedule notification.
           try {
             return (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
@@ -170,7 +170,7 @@ public class ActionManager {
             Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
                 .getDeclaredMethod("cancelLocalPush", Context.class, String.class)
                 .invoke(new Object(), context, messageId);
-            boolean didCancel = existingEta > System.currentTimeMillis();
+            boolean didCancel = existingEta > Clock.getInstance().currentTimeMillis();
             if (didCancel) {
               Log.d("Cancelled notification");
             }
@@ -275,7 +275,7 @@ public class ActionManager {
     if (messageStartTime == null || messageEndTime == null) {
       result.matchedActivePeriod = true;
     } else {
-      long currentTime = new Date().getTime();
+      long currentTime = Clock.getInstance().newDate().getTime();
       result.matchedActivePeriod = currentTime >= (long) messageStartTime &&
           currentTime <= (long) messageEndTime;
     }
@@ -361,7 +361,7 @@ public class ActionManager {
         } else if (units.equals("limitMonth")) {
           time *= 2592000;
         }
-        long now = System.currentTimeMillis();
+        long now = Clock.getInstance().currentTimeMillis();
         int matchedOccurrences = 0;
         for (long i = max.longValue(); i >= min.longValue(); i--) {
           if (occurrences.containsKey("" + i)) {
@@ -521,7 +521,7 @@ public class ActionManager {
       occurrences = new HashMap<>();
       occurrences.put("min", 0L);
       occurrences.put("max", 0L);
-      occurrences.put("0", System.currentTimeMillis());
+      occurrences.put("0", Clock.getInstance().currentTimeMillis());
     } else {
       Number min = occurrences.get("min");
       Number max = occurrences.get("max");
@@ -532,7 +532,7 @@ public class ActionManager {
         max = 0L;
       }
       max = max.longValue() + 1L;
-      occurrences.put("" + max, System.currentTimeMillis());
+      occurrences.put("" + max, Clock.getInstance().currentTimeMillis());
       if (max.longValue() - min.longValue() + 1 >
           Constants.Messaging.MAX_STORED_OCCURRENCES_PER_MESSAGE) {
         occurrences.remove("" + min);
@@ -627,20 +627,22 @@ public class ActionManager {
       }
     }
 
-    return (weekLimit > 0 && weeklyOccurrences() >= weekLimit)
-        || (dayLimit > 0 && dailyOccurrences() >= dayLimit)
-        || (sessionLimit > 0 && sessionOccurrences() >= sessionLimit);
+    return (weekLimit > 0 && weeklyOccurrencesCount() >= weekLimit)
+        || (dayLimit > 0 && dailyOccurrencesCount() >= dayLimit)
+        || (sessionLimit > 0 && sessionOccurrencesCount() >= sessionLimit);
   }
 
-  private int dailyOccurrences() {
-    long endTime = System.currentTimeMillis();
+  @VisibleForTesting
+  int dailyOccurrencesCount() {
+    long endTime = Clock.getInstance().currentTimeMillis();
     long startTime = endTime - DAY_MILLIS;
     return countOccurrences(startTime, endTime);
   }
 
-  private int weeklyOccurrences() {
-    long endTime = System.currentTimeMillis();
-    long startTime = System.currentTimeMillis() - WEEK_MILLIS;
+  @VisibleForTesting
+  int weeklyOccurrencesCount() {
+    long endTime = Clock.getInstance().currentTimeMillis();
+    long startTime = endTime - WEEK_MILLIS;
     return countOccurrences(startTime, endTime);
   }
 
@@ -655,20 +657,18 @@ public class ActionManager {
     int occurrenceCount = 0;
     for (Map.Entry<String, ?> entry : all.entrySet()) {
       if (entry.getKey().startsWith(prefix)) {
-        occurrenceCount += countOccurrences(startTime, endTime, entry);
+        String json = (String) entry.getValue();
+        if (!TextUtils.isEmpty(json) && !json.equals("{}")) {
+          occurrenceCount += countOccurrences(startTime, endTime, json);
+        }
       }
     }
 
     return occurrenceCount;
   }
 
-  private int countOccurrences(long startTime, long endTime, Map.Entry<String, ?> sharedPrefEntry) {
-    String value = (String) sharedPrefEntry.getValue();
-    if (TextUtils.isEmpty(value) || value.equals("{}")) {
-      return 0;
-    }
-
-    Map<String, Number> occurrences = CollectionUtil.uncheckedCast(JsonConverter.fromJson(value));
+  private int countOccurrences(long startTime, long endTime, String json) {
+    Map<String, Number> occurrences = CollectionUtil.uncheckedCast(JsonConverter.fromJson(json));
     Number min = occurrences.get("min");
     Number max = occurrences.get("max");
 
@@ -695,7 +695,8 @@ public class ActionManager {
     return count;
   }
 
-  private int sessionOccurrences() {
+  @VisibleForTesting
+  int sessionOccurrencesCount() {
     int count = 0;
     for (Map.Entry<String, Number> entry : sessionOccurrences.entrySet()) {
       Number value = entry.getValue();
