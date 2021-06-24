@@ -275,7 +275,12 @@ public class LeanplumInternal {
             public void variablesChanged() {
               try {
                 // record impression if we have at least one handler
-                ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
+                if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(actionContext.actionName())) {
+                  // Special case for local push notification. Do not want to count impression.
+                  ActionManager.getInstance().recordLocalPushImpression(actionContext.getMessageId());
+                } else {
+                  ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
+                }
                 Leanplum.triggerMessageDisplayed(actionContext);
               } catch (Throwable t) {
                 Log.exception(t);

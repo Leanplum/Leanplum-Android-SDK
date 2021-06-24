@@ -485,7 +485,7 @@ public class VarCache {
     }
 
     try {
-      if (localCaps != null && !localCaps.isEmpty()) {
+      if (localCaps != null) {
         String json = JsonConverter.listToJsonArray(localCaps).toString();
         editor.putString(Constants.Keys.LOCAL_CAPS, aesContext.encrypt(json));
       }

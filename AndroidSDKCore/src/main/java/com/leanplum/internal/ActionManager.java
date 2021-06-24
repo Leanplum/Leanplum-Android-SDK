@@ -485,6 +485,16 @@ public class ActionManager {
   }
 
   /**
+   * Tracks the event for local push notification.
+   * Do not want to track impression occurrence in such case.
+   *
+   * @param messageId The ID of the action
+   */
+  public void recordLocalPushImpression(String messageId) {
+    trackImpressionEvent(messageId);
+  }
+
+  /**
    * Tracks the correct held back event.
    *
    * @param originalMessageId The original message ID of the held back message.
