@@ -265,9 +265,10 @@ public class LeanplumInternal {
           ActionManager.getInstance().recordHeldBackImpression(
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
         } else {
-//          if (shouldSuppressMessage(actionContext)) { TODO uncomment when done
-//            continue;
-//          }
+          if (shouldSuppressMessage(actionContext)) {
+            Log.d("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
+            continue;
+          }
 
           LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
             @Override
