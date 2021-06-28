@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,6 +24,7 @@ package com.leanplum;
 import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.BaseActionContext;
@@ -33,7 +34,6 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
 import org.json.JSONException;
@@ -57,6 +57,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   private String key;
   private boolean preventRealtimeUpdating = false;
   private ContextualValues contextualValues;
+  private ActionCallback actionNamedHandler;
 
   public static class ContextualValues {
     /**
@@ -351,12 +352,27 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     return actionArgs;
   }
 
+  public void setActionNamedHandler(ActionCallback handler) {
+    actionNamedHandler = handler;
+  }
+
+  private void triggerActionNamedHandler(String name, Map<String, Object> args) {
+    if (actionNamedHandler != null) {
+      ActionContext actionContext = new ActionContext(name, args, messageId);
+      actionContext.parentContext = this;
+      actionNamedHandler.onResponse(actionContext);
+    }
+  }
+
   public void runActionNamed(String name) {
     if (TextUtils.isEmpty(name)) {
       Log.e("runActionNamed - Invalid name parameter provided.");
       return;
     }
     Map<String, Object> args = getChildArgs(name);
+
+    triggerActionNamedHandler(name, args);
+
     if (args == null) {
       return;
     }
@@ -602,5 +618,9 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
 
   public static <T> Map<String, T> mapFromJson(JSONObject jsonObject) throws JSONException {
     return JsonConverter.mapFromJson(jsonObject);
+  }
+
+  public ActionContext getParentContext() {
+    return parentContext;
   }
 }

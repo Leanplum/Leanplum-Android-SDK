@@ -80,6 +80,14 @@ public class RichHtmlController extends BaseController {
   }
 
   @Override
+  protected void runDismissAction() {
+    // need to check state, because touches from banner sometimes trigger more than 1 action
+    if (!isClosing) {
+      richOptions.dismiss();
+    }
+  }
+
+  @Override
   protected void applyWindowDecoration() {
     if (isFullscreen())
       return;
@@ -242,6 +250,7 @@ public class RichHtmlController extends BaseController {
 
   private boolean handleCloseEvent(String url) {
     if (url.contains(richOptions.getCloseUrl())) {
+      runDismissAction();
       cancel();
       String queryComponentsFromUrl = queryComponentsFromUrl(url, "result");
       if (!TextUtils.isEmpty(queryComponentsFromUrl)) {
@@ -411,6 +420,7 @@ public class RichHtmlController extends BaseController {
 
       if (ev.getY() < top || ev.getY() > bottom || ev.getX() < left || ev.getX() > right) {
         if (richOptions.isHtmlTabOutsideToClose()) {
+          runDismissAction();
           cancel();
         }
         activity.dispatchTouchEvent(ev);

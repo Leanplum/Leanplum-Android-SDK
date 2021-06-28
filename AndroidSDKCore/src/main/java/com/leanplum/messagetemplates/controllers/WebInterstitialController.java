@@ -57,6 +57,11 @@ public class WebInterstitialController extends BaseController {
   }
 
   @Override
+  protected void runDismissAction() {
+    webOptions.dismiss();
+  }
+
+  @Override
   boolean isFullscreen() {
     return true;
   }
@@ -106,6 +111,7 @@ public class WebInterstitialController extends BaseController {
 
   private boolean handleCloseEvent(String url) {
     if (url.contains(webOptions.getCloseUrl())) {
+      runDismissAction();
       cancel();
       String[] urlComponents = url.split("\\?");
       if (urlComponents.length > 1) {

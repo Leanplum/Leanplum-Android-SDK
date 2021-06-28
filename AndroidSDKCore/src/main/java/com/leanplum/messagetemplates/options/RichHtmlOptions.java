@@ -372,4 +372,8 @@ public class RichHtmlOptions {
     String templateName = getActionContext().getArgs().get(Values.HTML_TEMPLATE_PREFIX).toString();
     return templateName.toLowerCase().contains("banner") && !isHtmlTabOutsideToClose();
   }
+
+  public void dismiss() {
+    actionContext.runActionNamed(Args.DISMISS_ACTION);
+  }
 }

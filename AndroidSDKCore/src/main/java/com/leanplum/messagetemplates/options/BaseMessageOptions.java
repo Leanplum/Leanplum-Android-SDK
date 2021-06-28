@@ -155,6 +155,10 @@ public abstract class BaseMessageOptions {
     context.runTrackedActionNamed(Args.ACCEPT_ACTION);
   }
 
+  public void dismiss() {
+    context.runActionNamed(Args.DISMISS_ACTION);
+  }
+
   public static ActionArgs toArgs(Context currentContext) {
     return new ActionArgs()
         .with(Args.TITLE_TEXT, Util.getApplicationName(currentContext))
