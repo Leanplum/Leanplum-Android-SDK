@@ -970,6 +970,7 @@ public class Leanplum {
         || !values.equals(VarCache.getDiffs())
         || !messages.equals(VarCache.getMessageDiffs())
         || !variants.equals(VarCache.variants())
+        || !localCaps.equals(VarCache.localCaps())
         || !regions.equals(VarCache.regions())) {
       VarCache.applyVariableDiffs(
           values,
