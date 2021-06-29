@@ -225,6 +225,7 @@ public class Socket {
         ((BaseActionContext) context).setIsPreview(true);
         context.update();
         LeanplumInternal.triggerAction(context);
+        ActionManager.getInstance().recordMessageImpression(context.getMessageId());
         Leanplum.triggerMessageDisplayed(context);
       }
     } catch (JSONException e) {
@@ -300,7 +301,7 @@ public class Socket {
         return;
       }
       VarCache.applyVariableDiffs(
-          JsonConverter.mapFromJson(object), null, null, null, null, null, null);
+          JsonConverter.mapFromJson(object), null, null, null, null, null, null, null);
     } catch (JSONException e) {
       Log.e("Couldn't applyVars for preview.", e);
     } catch (Throwable e) {

@@ -211,6 +211,7 @@ public class Constants {
     public static final String DATA = "Data";
     public static final String TOKEN = "token";
     public static final String VARIANTS = "variants";
+    public static final String LOCAL_CAPS = "localCaps";
     public static final String VARS = "vars";
     public static final String VARS_SIGNATURE = "varsSignature";
     public static final String VARS_FROM_CODE = "varsFromCode";

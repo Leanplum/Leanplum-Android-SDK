@@ -82,6 +82,7 @@ public class VarCache {
   private static Map<String, Object> devModeFileAttributesFromServer;
   private static Map<String, Object> devModeActionDefinitionsFromServer;
   private static volatile List<Map<String, Object>> variants = new ArrayList<>();
+  private static volatile List<Map<String, Object>> localCaps = new ArrayList<>();
   private static CacheUpdateBlock updateBlock;
   private static boolean hasReceivedDiffs = false;
   private static Map<String, Object> messages = new HashMap<>();
@@ -392,11 +393,12 @@ public class VarCache {
     SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
     if (APIConfig.getInstance().token() == null) {
       applyVariableDiffs(
-          new HashMap<String, Object>(),
-          new HashMap<String, Object>(),
-          new HashMap<String, Object>(),
-          new ArrayList<Map<String, Object>>(),
-          new HashMap<String, Object>(),
+          new HashMap<>(),
+          new HashMap<>(),
+          new HashMap<>(),
+          new ArrayList<>(),
+          new ArrayList<>(),
+          new HashMap<>(),
           "",
           "");
       return;
@@ -410,6 +412,7 @@ public class VarCache {
           defaults, Constants.Defaults.MESSAGES_KEY, "{}");
       String regions = aesContext.decodePreference(defaults, Constants.Defaults.REGIONS_KEY, "{}");
       String variants = aesContext.decodePreference(defaults, Constants.Keys.VARIANTS, "[]");
+      String localCaps = aesContext.decodePreference(defaults, Constants.Keys.LOCAL_CAPS, "[]");
       String variantDebugInfo = aesContext.decodePreference(defaults, Constants.Keys.VARIANT_DEBUG_INFO, "{}");
       String varsJson = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_JSON_KEY, "{}");
       String varsSignature = aesContext.decodePreference(defaults, Constants.Defaults.VARIABLES_SIGN_KEY, null);
@@ -417,7 +420,8 @@ public class VarCache {
           JsonConverter.fromJson(variables),
           JsonConverter.fromJson(messages),
           JsonConverter.fromJson(regions),
-          JsonConverter.<Map<String, Object>>listFromJson(new JSONArray(variants)),
+          JsonConverter.listFromJson(new JSONArray(variants)),
+          JsonConverter.listFromJson(new JSONArray(localCaps)),
           JsonConverter.fromJson(variantDebugInfo),
           varsJson,
           varsSignature);
@@ -478,6 +482,15 @@ public class VarCache {
       }
     } catch (JSONException e1) {
       Log.e("Error converting " + variants + " to JSON.\n" + Log.getStackTraceString(e1));
+    }
+
+    try {
+      if (localCaps != null) {
+        String json = JsonConverter.listToJsonArray(localCaps).toString();
+        editor.putString(Constants.Keys.LOCAL_CAPS, aesContext.encrypt(json));
+      }
+    } catch (JSONException e) {
+      Log.e("Error converting " + localCaps + " to JSON.\n" + Log.getStackTraceString(e));
     }
 
     if (variantDebugInfo != null) {
@@ -543,6 +556,7 @@ public class VarCache {
       Map<String, Object> messages,
       Map<String, Object> regions,
       List<Map<String, Object>> variants,
+      List<Map<String, Object>> localCaps,
       Map<String, Object> variantDebugInfo,
       String varsJson,
       String varsSignature) {
@@ -610,6 +624,10 @@ public class VarCache {
 
     if (variants != null) {
       VarCache.variants = variants;
+    }
+
+    if (localCaps != null) {
+      VarCache.localCaps = localCaps;
     }
 
     if (variantDebugInfo != null) {
@@ -809,6 +827,10 @@ public class VarCache {
     return variants;
   }
 
+  public static List<Map<String, Object>> localCaps() {
+    return localCaps;
+  }
+
   public static Map<String, Object> actionDefinitions() {
     return actionDefinitions;
   }
@@ -901,9 +923,21 @@ public class VarCache {
     return new SecuredVars(varsJson, varsSignature);
   }
 
+  public static int getActionDefinitionType(String actionName) {
+    Object actionDef = actionDefinitions().get(actionName);
+    if (actionDef instanceof Map<?, ?>) {
+      Integer kind = (Integer) ((Map<?, ?>) actionDef).get("kind");
+      if (kind != null) {
+        return kind;
+      }
+    }
+    return 0;
+  }
+
   public static void clearUserContent() {
     vars.clear();
     variants = new ArrayList<>();
+    localCaps = new ArrayList<>();
     variantDebugInfo.clear();
     varsJson = null;
     varsSignature = null;
@@ -937,6 +971,7 @@ public class VarCache {
     devModeFileAttributesFromServer = null;
     devModeActionDefinitionsFromServer = null;
     variants = new ArrayList<>();
+    localCaps = new ArrayList<>();
     updateBlock = null;
     hasReceivedDiffs = false;
     messages = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,6 +25,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 
+import androidx.annotation.NonNull;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
@@ -264,10 +265,22 @@ public class LeanplumInternal {
           ActionManager.getInstance().recordHeldBackImpression(
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
         } else {
+          if (shouldSuppressMessage(actionContext)) {
+            Log.d("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
+            continue;
+          }
+
           LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
             @Override
             public void variablesChanged() {
               try {
+                // record impression if we have at least one handler
+                if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(actionContext.actionName())) {
+                  // Special case for local push notification. Do not want to count impression.
+                  ActionManager.getInstance().recordLocalPushImpression(actionContext.getMessageId());
+                } else {
+                  ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
+                }
                 Leanplum.triggerMessageDisplayed(actionContext);
               } catch (Throwable t) {
                 Log.exception(t);
@@ -277,6 +290,22 @@ public class LeanplumInternal {
         }
       }
     }
+  }
+
+  /**
+   * Checks if message should be suppressed based on the local IAM caps.
+   *
+   * @param context The message context to check.
+   * @return True if message should  be suppressed, false otherwise.
+   */
+  private static boolean shouldSuppressMessage(@NonNull ActionContext context) {
+    if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(context.actionName())) {
+      // do not suppress local push
+      return false;
+    }
+
+    // checks if message caps are reached
+    return ActionManager.getInstance().shouldSuppressMessages();
   }
 
   private static int fetchCountDown(ActionContext context, Map<String, Object> messages) {

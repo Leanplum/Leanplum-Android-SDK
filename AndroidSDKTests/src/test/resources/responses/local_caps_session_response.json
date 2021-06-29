@@ -1,0 +1,23 @@
+{
+  "response": [
+    {
+      "regions": {},
+      "fileAttributes": {},
+      "success": true,
+      "messages": {},
+      "vars": {
+        "intVariable": 100,
+        "stringVariable": "test_string"
+      },
+      "variants": [],
+      "localCaps": [
+        {
+          "channel": "IN_APP",
+          "limit": 3,
+          "type": "SESSION"
+        }
+      ],
+      "token": "c2q5to0cTdiZWE2bdkKUQsTs0cQRVkfHkSGoPeqrQWc"
+    }
+  ]
+}

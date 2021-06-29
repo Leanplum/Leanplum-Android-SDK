@@ -192,6 +192,8 @@ public class LeanplumPushService {
                         response.optJSONObject(Constants.Keys.REGIONS));
                     List<Map<String, Object>> variants = JsonConverter.listFromJson(
                         response.optJSONArray(Constants.Keys.VARIANTS));
+                    List<Map<String, Object>> localCaps = JsonConverter.listFromJson(
+                        response.optJSONArray(Constants.Keys.LOCAL_CAPS));
 
                     JSONObject varsJsonObj = response.optJSONObject(Constants.Keys.VARS);
                     String varsJson = (varsJsonObj != null) ? varsJsonObj.toString() : null;
@@ -212,6 +214,7 @@ public class LeanplumPushService {
                           messages,
                           regions,
                           variants,
+                          localCaps,
                           null,
                           varsJson,
                           varsSignature);
