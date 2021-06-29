@@ -63,6 +63,11 @@ abstract class AbstractPopupController extends BaseController {
   }
 
   @Override
+  protected void runDismissAction() {
+    options.dismiss();
+  }
+
+  @Override
   void addMessageChildViews(RelativeLayout parent) {
     ImageView image = createBackgroundImageView(activity);
     parent.addView(image);

@@ -117,6 +117,17 @@ abstract class BaseController extends Dialog {
    */
   abstract void applyWindowDecoration();
 
+  /**
+   * Calls ActionContext.runActionNamed for dismiss action.
+   */
+  protected abstract void runDismissAction();
+
+  @Override
+  public void onBackPressed() {
+    runDismissAction();
+    super.onBackPressed();
+  }
+
   @Override
   public void cancel() {
     if (isClosing) {
@@ -158,7 +169,10 @@ abstract class BaseController extends Dialog {
       closeLayout.setMargins(0, -SizeUtil.dp7, -SizeUtil.dp7, 0);
     }
     closeButton.setLayoutParams(closeLayout);
-    closeButton.setOnClickListener(clickedView -> cancel());
+    closeButton.setOnClickListener(clickedView -> {
+      runDismissAction();
+      cancel();
+    });
     return closeButton;
   }
 
