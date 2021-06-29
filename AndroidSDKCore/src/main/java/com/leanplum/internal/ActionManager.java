@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,6 +24,8 @@ package com.leanplum.internal;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import android.text.TextUtils;
+import androidx.annotation.VisibleForTesting;
 import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
@@ -31,7 +33,6 @@ import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.utils.SharedPreferencesUtil;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +44,13 @@ import java.util.Set;
  * @author Andrew First
  */
 public class ActionManager {
-  private Map<String, Map<String, Number>> messageImpressionOccurrences;
-  private Map<String, Number> messageTriggerOccurrences;
-  private Map<String, Number> sessionOccurrences;
+  private static final long HOUR_MILLIS = 60 * 60 * 1000;
+  private static final long DAY_MILLIS = 24 * HOUR_MILLIS;
+  private static final long WEEK_MILLIS = 7 * DAY_MILLIS;
+
+  private final Map<String, Map<String, Number>> messageImpressionOccurrences = new HashMap<>();
+  private final Map<String, Number> messageTriggerOccurrences = new HashMap<>();
+  private final Map<String, Number> sessionOccurrences = new HashMap<>();
 
   private static ActionManager instance;
 
@@ -100,9 +105,6 @@ public class ActionManager {
 
   private ActionManager() {
     listenForLocalNotifications();
-    sessionOccurrences = new HashMap<>();
-    messageImpressionOccurrences = new HashMap<>();
-    messageTriggerOccurrences = new HashMap<>();
   }
 
   private void listenForLocalNotifications() {
@@ -129,7 +131,7 @@ public class ActionManager {
             Log.e("Invalid notification countdown: " + countdownObj);
             return false;
           }
-          long eta = System.currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
+          long eta = Clock.getInstance().currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
           // Schedule notification.
           try {
             return (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
@@ -168,7 +170,7 @@ public class ActionManager {
             Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
                 .getDeclaredMethod("cancelLocalPush", Context.class, String.class)
                 .invoke(new Object(), context, messageId);
-            boolean didCancel = existingEta > System.currentTimeMillis();
+            boolean didCancel = existingEta > Clock.getInstance().currentTimeMillis();
             if (didCancel) {
               Log.d("Cancelled notification");
             }
@@ -273,7 +275,7 @@ public class ActionManager {
     if (messageStartTime == null || messageEndTime == null) {
       result.matchedActivePeriod = true;
     } else {
-      long currentTime = new Date().getTime();
+      long currentTime = Clock.getInstance().newDate().getTime();
       result.matchedActivePeriod = currentTime >= (long) messageStartTime &&
           currentTime <= (long) messageEndTime;
     }
@@ -359,7 +361,7 @@ public class ActionManager {
         } else if (units.equals("limitMonth")) {
           time *= 2592000;
         }
-        long now = System.currentTimeMillis();
+        long now = Clock.getInstance().currentTimeMillis();
         int matchedOccurrences = 0;
         for (long i = max.longValue(); i >= min.longValue(); i--) {
           if (occurrences.containsKey("" + i)) {
@@ -459,7 +461,8 @@ public class ActionManager {
    * @param originalMessageId The original ID of the held back message.
    */
   public void recordHeldBackImpression(String messageId, String originalMessageId) {
-    recordImpression(messageId, originalMessageId);
+    trackHeldBackEvent(originalMessageId);
+    recordImpression(messageId);
   }
 
   /**
@@ -468,28 +471,52 @@ public class ActionManager {
    * @param messageId The ID of the message
    */
   public void recordMessageImpression(String messageId) {
-    recordImpression(messageId, null);
+    trackImpressionEvent(messageId);
+    recordImpression(messageId);
   }
 
   /**
-   * Records the occurrence of a message and tracks the correct impression event.
+   * Tracks the "Open" event for an action.
+   *
+   * @param messageId The ID of the action
+   */
+  public void recordChainedActionImpression(String messageId) {
+    trackImpressionEvent(messageId);
+  }
+
+  /**
+   * Tracks the event for local push notification.
+   * Do not want to track impression occurrence in such case.
+   *
+   * @param messageId The ID of the action
+   */
+  public void recordLocalPushImpression(String messageId) {
+    trackImpressionEvent(messageId);
+  }
+
+  /**
+   * Tracks the correct held back event.
+   *
+   * @param originalMessageId The original message ID of the held back message.
+   */
+  private void trackHeldBackEvent(String originalMessageId) {
+    Map<String, String> requestArgs = new HashMap<>();
+    requestArgs.put(Constants.Params.MESSAGE_ID, originalMessageId);
+    LeanplumInternal.track(Constants.HELD_BACK_EVENT_NAME, 0.0, null, null, requestArgs);
+  }
+
+  private void trackImpressionEvent(String messageId) {
+    Map<String, String> requestArgs = new HashMap<>();
+    requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
+    LeanplumInternal.track(null, 0.0, null, null, requestArgs);
+  }
+
+  /**
+   * Records the occurrence of a message.
    *
    * @param messageId The ID of the message.
-   * @param originalMessageId The original message ID of the held back message. Supply this only if
-   * the message is held back. Otherwise, use null.
    */
-  private void recordImpression(String messageId, String originalMessageId) {
-    Map<String, String> requestArgs = new HashMap<>();
-    if (originalMessageId != null) {
-      // This is a held back message - track the event with the original message ID.
-      requestArgs.put(Constants.Params.MESSAGE_ID, originalMessageId);
-      LeanplumInternal.track(Constants.HELD_BACK_EVENT_NAME, 0.0, null, null, requestArgs);
-    } else {
-      // Track the message impression and occurrence.
-      requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
-      LeanplumInternal.track(null, 0.0, null, null, requestArgs);
-    }
-
+  private void recordImpression(String messageId) {
     // Record session occurrences.
     Number existing = sessionOccurrences.get(messageId);
     if (existing == null) {
@@ -504,7 +531,7 @@ public class ActionManager {
       occurrences = new HashMap<>();
       occurrences.put("min", 0L);
       occurrences.put("max", 0L);
-      occurrences.put("0", System.currentTimeMillis());
+      occurrences.put("0", Clock.getInstance().currentTimeMillis());
     } else {
       Number min = occurrences.get("min");
       Number max = occurrences.get("max");
@@ -515,7 +542,7 @@ public class ActionManager {
         max = 0L;
       }
       max = max.longValue() + 1L;
-      occurrences.put("" + max, System.currentTimeMillis());
+      occurrences.put("" + max, Clock.getInstance().currentTimeMillis());
       if (max.longValue() - min.longValue() + 1 >
           Constants.Messaging.MAX_STORED_OCCURRENCES_PER_MESSAGE) {
         occurrences.remove("" + min);
@@ -580,4 +607,114 @@ public class ActionManager {
       }
     }
   }
+
+  /**
+   * Checks if message occurrences have reached limits coming from local IAM caps data.
+   *
+   * @return True to suppress messages, false otherwise.
+   */
+  public boolean shouldSuppressMessages() {
+    int dayLimit = 0;
+    int weekLimit = 0;
+    int sessionLimit = 0;
+
+    for (Map<String, Object> cap : VarCache.localCaps()) {
+      if (!"IN_APP".equals(cap.get("channel"))) {
+        continue;
+      }
+      String type = (String) cap.get("type");
+      Integer limit = (Integer) cap.get("limit");
+      if (limit == null) {
+        continue;
+      }
+
+      if ("DAY".equals(type)) {
+        dayLimit = limit;
+      } else if ("WEEK".equals(type)) {
+        weekLimit = limit;
+      } else if ("SESSION".equals(type)) {
+        sessionLimit = limit;
+      }
+    }
+
+    return (weekLimit > 0 && weeklyOccurrencesCount() >= weekLimit)
+        || (dayLimit > 0 && dailyOccurrencesCount() >= dayLimit)
+        || (sessionLimit > 0 && sessionOccurrencesCount() >= sessionLimit);
+  }
+
+  @VisibleForTesting
+  int dailyOccurrencesCount() {
+    long endTime = Clock.getInstance().currentTimeMillis();
+    long startTime = endTime - DAY_MILLIS;
+    return countOccurrences(startTime, endTime);
+  }
+
+  @VisibleForTesting
+  int weeklyOccurrencesCount() {
+    long endTime = Clock.getInstance().currentTimeMillis();
+    long startTime = endTime - WEEK_MILLIS;
+    return countOccurrences(startTime, endTime);
+  }
+
+  private int countOccurrences(long startTime, long endTime) {
+    String prefix = String.format(Constants.Defaults.MESSAGE_IMPRESSION_OCCURRENCES_KEY, "");
+
+    Context context = Leanplum.getContext();
+    SharedPreferences prefs =
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+    Map<String, ?> all = prefs.getAll();
+
+    int occurrenceCount = 0;
+    for (Map.Entry<String, ?> entry : all.entrySet()) {
+      if (entry.getKey().startsWith(prefix)) {
+        String json = (String) entry.getValue();
+        if (!TextUtils.isEmpty(json) && !json.equals("{}")) {
+          occurrenceCount += countOccurrences(startTime, endTime, json);
+        }
+      }
+    }
+
+    return occurrenceCount;
+  }
+
+  private int countOccurrences(long startTime, long endTime, String json) {
+    Map<String, Number> occurrences = CollectionUtil.uncheckedCast(JsonConverter.fromJson(json));
+    Number min = occurrences.get("min");
+    Number max = occurrences.get("max");
+
+    if (min == null || max == null) {
+      return 0;
+    }
+
+    long minId = min.longValue();
+    long maxId = max.longValue();
+    int count = 0;
+
+    for (long id = maxId; id >= minId; id--) {
+      Number time = occurrences.get("" + id);
+      if (time != null) {
+        if (startTime <= time.longValue() && time.longValue() <= endTime) {
+          count++;
+        } else {
+          // occurrences with smaller ids would fall out of time interval
+          return count;
+        }
+      }
+    }
+
+    return count;
+  }
+
+  @VisibleForTesting
+  int sessionOccurrencesCount() {
+    int count = 0;
+    for (Map.Entry<String, Number> entry : sessionOccurrences.entrySet()) {
+      Number value = entry.getValue();
+      if (value != null) {
+        count += value.intValue();
+      }
+    }
+    return count;
+  }
+
 }
