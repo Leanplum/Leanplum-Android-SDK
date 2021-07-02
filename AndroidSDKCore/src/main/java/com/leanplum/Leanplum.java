@@ -1336,6 +1336,10 @@ public class Leanplum {
   @VisibleForTesting
   public static String messageBodyFromContext(ActionContext actionContext) {
     Object messageObject =  actionContext.getArgs().get("Message");
+    if (messageObject == null) {
+      return null;
+    }
+
     if (messageObject instanceof String) {
       return (String) messageObject;
     } else {
