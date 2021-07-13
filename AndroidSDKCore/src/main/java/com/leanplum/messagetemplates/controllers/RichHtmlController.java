@@ -89,8 +89,10 @@ public class RichHtmlController extends BaseController {
 
   @Override
   protected void applyWindowDecoration() {
-    if (isFullscreen())
+    if (isFullscreen()) {
+      customizeDialog();
       return;
+    }
 
     Window window = getWindow();
     if (window == null) {
@@ -127,6 +129,11 @@ public class RichHtmlController extends BaseController {
       }
     }
 
+    customizeDialog();
+
+  }
+
+  private void customizeDialog() {
     DialogCustomizer customizer = MessageTemplates.getCustomizer();
     if (customizer != null) {
       if (richOptions.isBanner()) {
@@ -135,7 +142,6 @@ public class RichHtmlController extends BaseController {
         customizer.customizeRichInterstitial(this, contentView);
       }
     }
-
   }
 
   @Override
