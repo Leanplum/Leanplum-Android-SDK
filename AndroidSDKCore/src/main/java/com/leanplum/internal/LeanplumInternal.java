@@ -324,6 +324,9 @@ public class LeanplumInternal {
         return 0;
       }
       Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(messages.get(originalMessageId));
+      if (messageConfig == null) {
+        return 0;
+      }
       Object countdown = messageConfig.get("countdown");
       if (countdown instanceof Number) {
         return ((Number) countdown).intValue();
