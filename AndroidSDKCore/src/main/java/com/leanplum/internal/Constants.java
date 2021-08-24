@@ -90,6 +90,7 @@ public class Constants {
     public static final String APP_ID = "__app_id";
     public static final String PROPERTY_FCM_TOKEN_ID = "registration_id";
     public static final String PROPERTY_MIPUSH_TOKEN_ID = "mipush_registration_id";
+    public static final String PROPERTY_HMS_TOKEN_ID = "hms_registration_id";
     public static final String PROPERTY_SENDER_IDS = "sender_ids";
     public static final String NOTIFICATION_CHANNELS_KEY = "__leanplum_notification_channels";
     public static final String DEFAULT_NOTIFICATION_CHANNEL_KEY = "__leanplum_default_notification_channels";
@@ -112,6 +113,7 @@ public class Constants {
     public static final String DEVICE_NAME = "deviceName";
     public static final String DEVICE_FCM_PUSH_TOKEN = "gcmRegistrationId";
     public static final String DEVICE_MIPUSH_TOKEN = "miPushRegId";
+    public static final String DEVICE_HMS_TOKEN = "huaweiPushRegId";
     public static final String DEVICE_SYSTEM_NAME = "systemName";
     public static final String DEVICE_SYSTEM_VERSION = "systemVersion";
     public static final String EMAIL = "email";

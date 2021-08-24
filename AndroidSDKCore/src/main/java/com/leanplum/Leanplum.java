@@ -1579,6 +1579,9 @@ public class Leanplum {
       case MIPUSH:
         attributeName = Constants.Params.DEVICE_MIPUSH_TOKEN;
         break;
+      case HMS:
+        attributeName = Constants.Params.DEVICE_HMS_TOKEN;
+        break;
       default:
         return;
     }

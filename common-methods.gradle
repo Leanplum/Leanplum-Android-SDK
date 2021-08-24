@@ -11,6 +11,7 @@ ext {
     LEANPLUM_PUSH_ARTIFACT_ID = 'leanplum-push'
     LEANPLUM_FCM_ARTIFACT_ID = 'leanplum-fcm'
     LEANPLUM_MIPUSH_ARTIFACT_ID = 'leanplum-mipush'
+    LEANPLUM_HMS_ARTIFACT_ID = 'leanplum-hms'
     LEANPLUM_LOCATION_ARTIFACT_ID = 'leanplum-location'
     def sdkVersion = file('../sdk-version.txt').text.replace('\n','')
     LEANPLUM_SDK_VERSION = "$sdkVersion"
