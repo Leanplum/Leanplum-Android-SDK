@@ -43,6 +43,7 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
+import com.leanplum.internal.Log;
 import com.leanplum.messagetemplates.DialogCustomizer;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.messagetemplates.options.RichHtmlOptions;
@@ -210,27 +211,36 @@ public class RichHtmlController extends BaseController {
       @SuppressWarnings("deprecation")
       @Override
       public boolean shouldOverrideUrlLoading(WebView wView, String url) {
-        if (isClosing) // prevent multiple clicks on same button
-          return true;
+        try {
+          if (isClosing) // prevent multiple clicks on same button
+            return true;
 
-        // Open URL event.
-        if (handleOpenEvent(url)){
-          return true;
-        }
+          // Open URL event.
+          if (handleOpenEvent(url)) {
+            return true;
+          }
 
-        // Close URL event.
-        if (handleCloseEvent(url)) {
-          return true;
-        }
+          // Close URL event.
+          if (handleCloseEvent(url)) {
+            return true;
+          }
 
-        // Track URL event.
-        if (handleTrackEvent(url)) {
-          return true;
-        }
+          // Track URL event.
+          if (handleTrackEvent(url)) {
+            return true;
+          }
 
-        // Action URL or track action URL event.
-        if (handleActionEvent(url)) {
-          return true;
+          // Action URL or track action URL event.
+          if (handleActionEvent(url)) {
+            return true;
+          }
+        } catch (Throwable t) {
+          String messageId = "";
+          ActionContext actionContext = richOptions.getActionContext();
+          if (actionContext != null) {
+            messageId = actionContext.getMessageId();
+          }
+          Log.e("Error in Rich Interstitial messageId=" + messageId, t);
         }
 
         return false;
