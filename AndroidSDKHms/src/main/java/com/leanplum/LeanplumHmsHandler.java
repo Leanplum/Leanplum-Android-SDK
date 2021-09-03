@@ -23,12 +23,14 @@ package com.leanplum;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Looper;
 import android.widget.Toast;
 import com.huawei.hms.push.HmsMessageService;
 import com.huawei.hms.push.RemoteMessage;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.OperationQueue;
 import java.util.Map;
 
 /**
@@ -42,13 +44,31 @@ public class LeanplumHmsHandler {
   }
 
   public void onNewToken(String token, Context context) {
-    Toast.makeText(context, "Push token = " + token, Toast.LENGTH_SHORT).show();
+    if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+      OperationQueue.sharedInstance().addParallelOperation(
+          () -> onNewTokenImpl(token, context));
+    } else {
+      onNewTokenImpl(token, context);
+    }
+  }
+
+  private void onNewTokenImpl(String token, Context context) {
+    //Toast.makeText(context, "Push token = " + token, Toast.LENGTH_SHORT).show();
     Log.e("HMS Token = " + token);
 
     // TODO call provider
   }
 
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
+    if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+      OperationQueue.sharedInstance().addParallelOperation(
+          () -> onMessageReceivedImpl(remoteMessage, context));
+    } else {
+      onMessageReceivedImpl(remoteMessage, context);
+    }
+  }
+
+  private void onMessageReceivedImpl(RemoteMessage remoteMessage, Context context) {
     try {
       Map<String, String> messageMap = remoteMessage.getDataOfMap();
 
@@ -59,7 +79,7 @@ public class LeanplumHmsHandler {
         notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel); // TODO is it necessary
         LeanplumPushService.handleNotification(context, notification); // TODO uncomment
       }
-      Log.d("Received HMS notification message: %s", messageMap.toString());
+      Log.i("Received HMS notification message: %s", messageMap.toString());
     } catch (Throwable t) {
       Log.exception(t);
     }
