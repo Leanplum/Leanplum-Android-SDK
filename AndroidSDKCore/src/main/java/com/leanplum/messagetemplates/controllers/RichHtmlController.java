@@ -235,7 +235,12 @@ public class RichHtmlController extends BaseController {
             return true;
           }
         } catch (Throwable t) {
-          Log.e("Error in Rich Interstitial", t);
+          String messageId = "";
+          ActionContext actionContext = richOptions.getActionContext();
+          if (actionContext != null) {
+            messageId = actionContext.getMessageId();
+          }
+          Log.e("Error in Rich Interstitial messageId=" + messageId, t);
         }
 
         return false;
