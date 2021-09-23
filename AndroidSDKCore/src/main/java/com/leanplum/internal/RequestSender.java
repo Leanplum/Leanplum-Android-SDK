@@ -154,7 +154,10 @@ public class RequestSender {
           }
         } else {
           Exception errorException = new Exception("HTTP error " + statusCode);
-          if (statusCode != -1 && statusCode != 408 && !(statusCode >= 500 && statusCode <= 599)) {
+          if (statusCode != -1
+              && statusCode != 408
+              && statusCode != 429
+              && !(statusCode >= 500 && statusCode <= 599)) {
             batchFactory.deleteFinishedBatch(batch);
           }
           invokeCallbacksWithError(errorException);

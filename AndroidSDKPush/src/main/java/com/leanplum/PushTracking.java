@@ -30,7 +30,7 @@ import com.leanplum.internal.Log;
 import java.util.HashMap;
 import java.util.Map;
 
-class PushTracking {
+public class PushTracking {
 
   static final String CHANNEL_FCM = "FCM";
   static final String CHANNEL_FCM_SILENT_TRACK = "FCM_SILENT_TRACK";
@@ -41,7 +41,7 @@ class PushTracking {
     return CHANNEL_FCM_SILENT_TRACK.equals(channel);
   }
 
-  static void trackDelivery(@NonNull Context context, @NonNull Bundle message) {
+  public static void trackDelivery(@NonNull Context context, @NonNull Bundle message) {
     if (!Leanplum.isPushDeliveryTrackingEnabled()) {
       Log.d("Push delivery tracking is disabled for " + LeanplumPushService.getMessageId(message));
       return;
@@ -72,7 +72,7 @@ class PushTracking {
     Leanplum.track("Push Delivered", properties);
   }
 
-  static void trackOpen(@NonNull Bundle message) {
+  public static void trackOpen(@NonNull Bundle message) {
     Map<String,String> properties = new HashMap<>();
     properties.put(Keys.PUSH_METRIC_MESSAGE_ID, LeanplumPushService.getMessageId(message));
 
