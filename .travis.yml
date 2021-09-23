@@ -41,14 +41,14 @@ before_script:
   - echo y | sdkmanager "extras;android;m2repository" >/dev/null
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"; fi;
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M; fi;
-  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
   - ./gradlew assembleRelease testReleaseUnitTest
 
   # wait emulator to come alive and start snapshot tests
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then android-wait-for-emulator; fi;
-  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then adb shell input keyevent 82 &; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then adb shell input keyevent 82 & fi;
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then ./gradlew verifyDebugAndroidTestScreenshotTest; fi;
 
 before_deploy:
