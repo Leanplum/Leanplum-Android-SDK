@@ -29,8 +29,10 @@ import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
 
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.Util;
+import java.util.UUID;
 
 /**
  * Listener Service for local push notifications.
@@ -51,6 +53,7 @@ public class LeanplumLocalPushListenerService extends JobIntentService {
         Intent intent = new Intent();
         intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_SERVICE_CLASS, LP_CLASS_NAME);
         intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_JOB_ID, LP_JOB_ID);
+        intent.putExtra(Keys.LOCAL_PUSH_OCCURRENCE_ID, UUID.randomUUID().toString());
         intent.setClass(context, LeanplumJobStartReceiver.class);
         return intent;
     }

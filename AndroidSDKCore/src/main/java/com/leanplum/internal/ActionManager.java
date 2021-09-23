@@ -31,6 +31,7 @@ import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.util.HashMap;
@@ -58,7 +59,6 @@ public class ActionManager {
   public static final String HELD_BACK_ACTION_NAME = "__held_back";
   private static final String LEANPLUM_LOCAL_PUSH_HELPER =
       "com.leanplum.internal.LeanplumLocalPushHelper";
-  private static final String PREFERENCES_NAME = "__leanplum_messaging__";
   private static LocationManager locationManager;
   private static boolean loggedLocationManagerFailure = false;
 
@@ -157,7 +157,7 @@ public class ActionManager {
           // Get existing eta and clear notification from preferences.
           Context context = Leanplum.getContext();
           SharedPreferences preferences = context.getSharedPreferences(
-              PREFERENCES_NAME, Context.MODE_PRIVATE);
+              Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
           String preferencesKey = String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY,
               messageId);
           long existingEta = preferences.getLong(preferencesKey, 0L);
@@ -193,7 +193,7 @@ public class ActionManager {
     }
     Context context = Leanplum.getContext();
     SharedPreferences preferences = context.getSharedPreferences(
-        PREFERENCES_NAME, Context.MODE_PRIVATE);
+        Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
     String savedValue = preferences.getString(
         String.format(Constants.Defaults.MESSAGE_IMPRESSION_OCCURRENCES_KEY, messageId),
         "{}");
@@ -205,7 +205,7 @@ public class ActionManager {
   public void saveMessageImpressionOccurrences(Map<String, Number> occurrences, String messageId) {
     Context context = Leanplum.getContext();
     SharedPreferences preferences = context.getSharedPreferences(
-        PREFERENCES_NAME, Context.MODE_PRIVATE);
+        Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = preferences.edit();
     editor.putString(
         String.format(Constants.Defaults.MESSAGE_IMPRESSION_OCCURRENCES_KEY, messageId),
@@ -221,7 +221,7 @@ public class ActionManager {
     }
     Context context = Leanplum.getContext();
     SharedPreferences preferences = context.getSharedPreferences(
-        PREFERENCES_NAME, Context.MODE_PRIVATE);
+        Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
     int savedValue = preferences.getInt(
         String.format(Constants.Defaults.MESSAGE_TRIGGER_OCCURRENCES_KEY, messageId), 0);
     messageTriggerOccurrences.put(messageId, savedValue);
@@ -231,7 +231,7 @@ public class ActionManager {
   public void saveMessageTriggerOccurrences(int occurrences, String messageId) {
     Context context = Leanplum.getContext();
     SharedPreferences preferences = context.getSharedPreferences(
-        PREFERENCES_NAME, Context.MODE_PRIVATE);
+        Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = preferences.edit();
     editor.putInt(
         String.format(Constants.Defaults.MESSAGE_TRIGGER_OCCURRENCES_KEY, messageId), occurrences);
@@ -246,7 +246,7 @@ public class ActionManager {
     // 1. Must not be muted.
     Context context = Leanplum.getContext();
     SharedPreferences preferences = context.getSharedPreferences(
-        PREFERENCES_NAME, Context.MODE_PRIVATE);
+        Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
     if (preferences.getBoolean(
         String.format(Constants.Defaults.MESSAGE_MUTED_KEY, messageId), false)) {
       return result;
@@ -558,7 +558,7 @@ public class ActionManager {
     if (messageId != null) {
       Context context = Leanplum.getContext();
       SharedPreferences preferences = context.getSharedPreferences(
-          PREFERENCES_NAME, Context.MODE_PRIVATE);
+          Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
       SharedPreferences.Editor editor = preferences.edit();
       editor.putBoolean(
           String.format(Constants.Defaults.MESSAGE_MUTED_KEY, messageId),
@@ -661,7 +661,7 @@ public class ActionManager {
 
     Context context = Leanplum.getContext();
     SharedPreferences prefs =
-        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        context.getSharedPreferences(Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
     Map<String, ?> all = prefs.getAll();
 
     int occurrenceCount = 0;

@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import com.google.common.collect.ImmutableMap;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
@@ -241,7 +242,7 @@ public class LeanplumActionContextTest extends AbstractTest {
         actionContext.muteFutureMessagesOfSameKind();
 
         SharedPreferences preferences = RuntimeEnvironment.application.getSharedPreferences(
-                "__leanplum_messaging__", Context.MODE_PRIVATE);
+            Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
         boolean muted = preferences.getBoolean(String.format(Constants.Defaults.MESSAGE_MUTED_KEY,
                 "messageId"), false);
         assertTrue(muted);

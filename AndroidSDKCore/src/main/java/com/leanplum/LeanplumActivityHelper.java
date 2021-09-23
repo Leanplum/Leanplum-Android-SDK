@@ -21,20 +21,24 @@
 
 package com.leanplum;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 
 import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Util;
 
+import com.leanplum.internal.OperationQueue;
+import com.leanplum.utils.BuildUtil;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -106,58 +110,98 @@ public class LeanplumActivityHelper {
   }
 
   /**
+   * Class provides additional functionality to handle payloads of push notifications built to
+   * comply with new Android 12 restrictions on using notification trampolines.
+   * The intent contains the message bundle which is used to run the open action and to track
+   * 'Push Opened' and 'Open' events.
+   */
+  @TargetApi(31)
+  static class NoTrampolinesLifecycleCallbacks extends LeanplumLifecycleCallbacks {
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+      super.onActivityResumed(activity);
+
+      if (activity.getIntent() != null) {
+        Bundle extras = activity.getIntent().getExtras();
+        if (extras != null && extras.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
+          OperationQueue.sharedInstance().addParallelOperation(
+              () -> handleNotificationPayload(extras));
+        }
+      }
+    }
+
+    private void handleNotificationPayload(Bundle message) {
+      try {
+        Class.forName("com.leanplum.LeanplumPushService")
+            .getDeclaredMethod("onActivityNotificationClick", Bundle.class)
+            .invoke(null, message);
+      } catch (Throwable t) {
+        Log.e("Push Notification action not run. Did you forget leanplum-push module?", t);
+      }
+    }
+  }
+
+  static class LeanplumLifecycleCallbacks implements ActivityLifecycleCallbacks {
+    @Override
+    public void onActivityStopped(Activity activity) {
+      try {
+        onStop(activity);
+      } catch (Throwable t) {
+        Log.exception(t);
+      }
+    }
+
+    @Override
+    public void onActivityResumed(final Activity activity) {
+      try {
+        onResume(activity);
+        if (Leanplum.isScreenTrackingEnabled()) {
+          Leanplum.advanceTo(activity.getLocalClassName());
+        }
+      } catch (Throwable t) {
+        Log.exception(t);
+      }
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+      try {
+        onPause(activity);
+      } catch (Throwable t) {
+        Log.exception(t);
+      }
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+    }
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    }
+  }
+
+  /**
    * Enables lifecycle callbacks for Android devices with Android OS &gt;= 4.0
    */
   public static void enableLifecycleCallbacks(final Application app) {
     Leanplum.setApplicationContext(app.getApplicationContext());
-    app.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
-      @Override
-      public void onActivityStopped(Activity activity) {
-        try {
-          onStop(activity);
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
-      }
 
-      @Override
-      public void onActivityResumed(final Activity activity) {
-        try {
-          onResume(activity);
-          if (Leanplum.isScreenTrackingEnabled()) {
-            Leanplum.advanceTo(activity.getLocalClassName());
-          }
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
-      }
+    if (BuildUtil.shouldDisableTrampolines(app)) {
+      app.registerActivityLifecycleCallbacks(new NoTrampolinesLifecycleCallbacks());
+    } else {
+      app.registerActivityLifecycleCallbacks(new LeanplumLifecycleCallbacks());
+    }
 
-      @Override
-      public void onActivityPaused(Activity activity) {
-        try {
-          onPause(activity);
-        } catch (Throwable t) {
-          Log.exception(t);
-        }
-      }
-
-      @Override
-      public void onActivityStarted(Activity activity) {
-      }
-
-      @Override
-      public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-      }
-
-      @Override
-      public void onActivityDestroyed(Activity activity) {
-      }
-
-      @Override
-      public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-      }
-
-    });
     registeredCallbacks = true;
     // run pending actions if any upon start
     LeanplumInternal.addStartIssuedHandler(runPendingActionsRunnable);
