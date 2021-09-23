@@ -28,7 +28,7 @@ licenses:
 before_install:
   - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-165.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-165.jar"
   - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
-  - $RUN_SNAPSHOT_TESTS && python -m pip install Tools/Pillow-6.2.2-cp27-cp27mu-manylinux1_x86_64.whl --user # library for image manipulation in snapshot tests
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then python -m pip install Tools/Pillow-6.2.2-cp27-cp27mu-manylinux1_x86_64.whl --user; fi; # library for image manipulation in snapshot tests
 
 before_script:
   # Install Android SDK and run emulator
@@ -39,17 +39,17 @@ before_script:
   - echo y | sdkmanager "platforms;android-$EMU_API" >/dev/null
   - echo y | sdkmanager "platforms;android-$BUILD_API" >/dev/null
   - echo y | sdkmanager "extras;android;m2repository" >/dev/null
-  - $RUN_SNAPSHOT_TESTS && echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"
-  - $RUN_SNAPSHOT_TESTS && echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M
-  - $RUN_SNAPSHOT_TESTS && emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 &; fi;
 
 script:
   - ./gradlew assembleRelease testReleaseUnitTest
 
   # wait emulator to come alive and start snapshot tests
-  - $RUN_SNAPSHOT_TESTS && android-wait-for-emulator
-  - $RUN_SNAPSHOT_TESTS && adb shell input keyevent 82 &
-  - $RUN_SNAPSHOT_TESTS && ./gradlew verifyDebugAndroidTestScreenshotTest
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then android-wait-for-emulator; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then adb shell input keyevent 82 &; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then ./gradlew verifyDebugAndroidTestScreenshotTest; fi;
 
 before_deploy:
   - ./Tools/verifyTag.sh
