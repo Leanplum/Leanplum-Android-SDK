@@ -14,7 +14,7 @@ env:
     # PATH order is important, the 'emulator' script exists in more than one place
     - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
     # If you want to run snapshot tests change value to 'true'. Build time will be increased by 10 minutes.
-    - RUN_SNAPSHOT_TESTS=false
+    - RUN_SNAPSHOT_TESTS=true
 
 android:
   components:
