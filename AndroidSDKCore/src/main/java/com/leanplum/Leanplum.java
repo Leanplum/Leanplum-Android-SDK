@@ -751,7 +751,7 @@ public class Leanplum {
     request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
-        Log.d("Failed to receive start response");
+        Log.i("Failed to receive start response");
         handleStartResponse(null);
       }
     });
@@ -1685,7 +1685,7 @@ public class Leanplum {
       Map<String, ?> params) {
     try {
       if (TextUtils.isEmpty(event)) {
-        Log.d("Failed to trackPurchase, event name is null");
+        Log.i("Failed to trackPurchase, event name is null");
       }
 
       final Map<String, String> requestArgs = new HashMap<>();
@@ -1746,7 +1746,7 @@ public class Leanplum {
   public static void trackGooglePlayPurchase(String eventName, String item, long priceMicros,
       String currencyCode, String purchaseData, String dataSignature, Map<String, ?> params) {
     if (TextUtils.isEmpty(eventName)) {
-      Log.d("Failed to trackGooglePlayPurchase, event name is null");
+      Log.i("Failed to trackGooglePlayPurchase, event name is null");
     }
 
     final Map<String, String> requestArgs = new HashMap<>();
@@ -2137,7 +2137,7 @@ public class Leanplum {
    */
   public static String pathForResource(String filename) {
     if (TextUtils.isEmpty(filename)) {
-      Log.d("pathForResource - Empty filename parameter provided.");
+      Log.i("pathForResource - Empty filename parameter provided.");
       return null;
     }
 

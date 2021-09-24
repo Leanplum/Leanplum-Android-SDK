@@ -60,7 +60,7 @@ public class LeanplumMiPushHandler {
     if (context == null || message == null)
       return;
 
-    Log.d("Received MiPush data message %s: %s", message.getMessageId(), getContentLog(message));
+    Log.i("Received MiPush data message %s: %s", message.getMessageId(), getContentLog(message));
   }
 
   /**
@@ -71,7 +71,7 @@ public class LeanplumMiPushHandler {
       return;
     }
 
-    Log.d("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
+    Log.i("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
 
     try {
       Map<String, String> messageMap = parsePayload(message.getContent());
@@ -95,7 +95,7 @@ public class LeanplumMiPushHandler {
     if (message == null)
       return;
 
-    Log.d("Received MiPush notification message %s: %s",
+    Log.i("Received MiPush notification message %s: %s",
         message.getMessageId(), getContentLog(message));
 
     try {
