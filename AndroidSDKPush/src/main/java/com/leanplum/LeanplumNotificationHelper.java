@@ -502,7 +502,7 @@ class LeanplumNotificationHelper {
     if (!TextUtils.isEmpty(imageUrl) && Build.VERSION.SDK_INT >= 16) {
       bigPicture = BitmapUtil.getScaledBitmap(context, imageUrl);
       if (bigPicture == null) {
-        Log.d("Failed to download image for push notification: %s", imageUrl);
+        Log.i("Failed to download image for push notification: %s", imageUrl);
       }
     }
     return bigPicture;

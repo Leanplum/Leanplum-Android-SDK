@@ -71,7 +71,7 @@ public final class LeanplumFirebaseServiceHandler {
         notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel);
         LeanplumPushService.handleNotification(context, notification);
       }
-      Log.d("Received push notification message: %s", messageMap.toString());
+      Log.i("Received push notification message: %s", messageMap.toString());
     } catch (Throwable t) {
       Log.exception(t);
     }

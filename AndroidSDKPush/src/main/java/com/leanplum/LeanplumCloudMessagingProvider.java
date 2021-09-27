@@ -49,7 +49,7 @@ abstract class LeanplumCloudMessagingProvider implements IPushProvider {
       return;
     }
 
-    Log.d("Registering for %s push notifications with ID %s", getType(), registrationId);
+    Log.i("Registering for %s push notifications with ID %s", getType(), registrationId);
 
     if (!registrationId.equals(getRegistrationId())) {
       storeRegistrationId(registrationId);
