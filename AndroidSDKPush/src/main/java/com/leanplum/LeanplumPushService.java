@@ -605,7 +605,7 @@ public class LeanplumPushService {
 
       return arguments;
     } catch (Throwable ignored) {
-      Log.d("Failed to parse notification bundle.");
+      Log.i("Failed to parse notification bundle.");
     }
     return null;
   }
@@ -620,12 +620,12 @@ public class LeanplumPushService {
    */
   public static Bundle preHandlePushNotification(Context context, Intent intent) {
     if (intent == null) {
-      Log.d("Unable to pre handle push notification, Intent is null.");
+      Log.i("Unable to pre handle push notification, Intent is null.");
       return null;
     }
     Bundle notification = intent.getExtras();
     if (notification == null) {
-      Log.d("Unable to pre handle push notification, extras are null.");
+      Log.i("Unable to pre handle push notification, extras are null.");
       return null;
     }
     return notification;
