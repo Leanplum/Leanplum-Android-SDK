@@ -163,18 +163,6 @@ public class Leanplum {
   }
 
   /**
-   * Optional. By default, Leanplum will hash file variables to determine if they're modified and
-   * need to be uploaded to the server. Use this method to override this setting.
-   *
-   * @param enabled Setting this to false will reduce startup latency in development mode, but it's
-   * possible that Leanplum will always have the most up-to-date versions of your resources.
-   * (Default: true)
-   */
-  public static void setFileHashingEnabledInDevelopmentMode(boolean enabled) {
-    Constants.hashFilesToDetermineModifications = enabled;
-  }
-
-  /**
    * Optional. Whether to enable file uploading in development mode.
    *
    * @param enabled Whether or not files should be uploaded. (Default: true)
@@ -223,15 +211,6 @@ public class Leanplum {
 
     Constants.NETWORK_TIMEOUT_SECONDS = seconds;
     Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = downloadSeconds;
-  }
-
-  /**
-   * Advanced: Whether new variables can be downloaded mid-session. By default, this is disabled.
-   * Currently, if this is enabled, new variables can only be downloaded if a push notification is
-   * sent while the app is running, and the notification's metadata hasn't be downloaded yet.
-   */
-  public static void setCanDownloadContentMidSessionInProductionMode(boolean value) {
-    Constants.canDownloadContentMidSessionInProduction = value;
   }
 
   /**
@@ -824,7 +803,7 @@ public class Leanplum {
         APIConfig.getInstance().setToken(token);
         APIConfig.getInstance().saveToken();
 
-        applyContentInResponse(response, true);
+        applyContentInResponse(response);
 
         VarCache.saveUserAttributes();
 
@@ -947,9 +926,8 @@ public class Leanplum {
    * Applies the variables, messages, or update rules in a start or getVars response.
    *
    * @param response The response containing content.
-   * @param alwaysApply Always apply the content regardless of whether the content changed.
    */
-  private static void applyContentInResponse(JSONObject response, boolean alwaysApply) {
+  private static void applyContentInResponse(JSONObject response) {
     Map<String, Object> values = JsonConverter.mapFromJsonOrDefault(
         response.optJSONObject(Constants.Keys.VARS));
     Map<String, Object> messages = JsonConverter.mapFromJsonOrDefault(
@@ -966,22 +944,15 @@ public class Leanplum {
     String varsJson = (varsJsonObj != null) ? varsJsonObj.toString() : null;
     String varsSignature = response.optString(Constants.Keys.VARS_SIGNATURE);
 
-    if (alwaysApply
-        || !values.equals(VarCache.getDiffs())
-        || !messages.equals(VarCache.getMessageDiffs())
-        || !variants.equals(VarCache.variants())
-        || !localCaps.equals(VarCache.localCaps())
-        || !regions.equals(VarCache.regions())) {
-      VarCache.applyVariableDiffs(
-          values,
-          messages,
-          regions,
-          variants,
-          localCaps,
-          variantDebugInfo,
-          varsJson,
-          varsSignature);
-    }
+    VarCache.applyVariableDiffs(
+        values,
+        messages,
+        regions,
+        variants,
+        localCaps,
+        variantDebugInfo,
+        varsJson,
+        varsSignature);
   }
 
   /**
@@ -2079,7 +2050,7 @@ public class Leanplum {
             if (response == null) {
               Log.e("No response received from the server. Please contact us to investigate.");
             } else {
-              applyContentInResponse(response, false);
+              applyContentInResponse(response);
               if (response.optBoolean(Constants.Keys.SYNC_INBOX, false)) {
                 LeanplumInbox.getInstance().downloadMessages();
               } else {

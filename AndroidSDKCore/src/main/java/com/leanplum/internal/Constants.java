@@ -54,13 +54,11 @@ public class Constants {
   static final int MAX_USER_ID_LENGTH = 400;
 
   public static String defaultDeviceId = null;
-  public static boolean hashFilesToDetermineModifications = true;
   public static boolean isDevelopmentModeEnabled = false;
   public static boolean loggingEnabled = false;
   public static boolean isTestMode = false;
   public static boolean enableVerboseLoggingInDevelopmentMode = false;
   public static boolean enableFileUploadingInDevelopmentMode = true;
-  public static boolean canDownloadContentMidSessionInProduction = false;
   static boolean isInPermanentFailureState = false;
 
   public static boolean isNoop() {

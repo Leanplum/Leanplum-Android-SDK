@@ -181,7 +181,7 @@ public class VarCache {
     Map<String, Object> variationAttributes = new HashMap<>();
     Map<String, Object> attributes = new HashMap<>();
 
-    if (Constants.hashFilesToDetermineModifications && Util.isSimulator()) {
+    if (Util.isSimulator()) {
       HashResults result = FileManager.fileMD5HashCreateWithPath(defaultStream.openStream());
       if (result != null) {
         attributes.put(Constants.Keys.HASH, result.hash);
