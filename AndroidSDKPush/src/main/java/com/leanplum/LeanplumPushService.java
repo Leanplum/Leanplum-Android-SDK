@@ -199,26 +199,15 @@ public class LeanplumPushService {
                     String varsJson = (varsJsonObj != null) ? varsJsonObj.toString() : null;
                     String varsSignature = response.optString(Constants.Keys.VARS_SIGNATURE);
 
-                    if (!Constants.canDownloadContentMidSessionInProduction ||
-                        VarCache.getDiffs().equals(values)) {
-                      values = null;
-                      varsJson = null;
-                      varsSignature = null;
-                    }
-                    if (VarCache.getMessageDiffs().equals(messages)) {
-                      messages = null;
-                    }
-                    if (values != null || messages != null) {
-                      VarCache.applyVariableDiffs(
-                          values,
-                          messages,
-                          regions,
-                          variants,
-                          localCaps,
-                          null,
-                          varsJson,
-                          varsSignature);
-                    }
+                    VarCache.applyVariableDiffs(
+                        values,
+                        messages,
+                        regions,
+                        variants,
+                        localCaps,
+                        null,
+                        varsJson,
+                        varsSignature);
                   }
                   onComplete.variablesChanged();
                 } catch (Throwable t) {
