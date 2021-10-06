@@ -20,6 +20,9 @@ android:
   components:
     - tools
 
+jdk:
+  - oraclejdk11
+
 licenses:
   - 'android-sdk-preview-license-.+'
   - 'android-sdk-license-.+'
