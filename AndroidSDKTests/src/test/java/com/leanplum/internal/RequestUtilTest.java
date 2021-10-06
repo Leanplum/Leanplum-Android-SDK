@@ -25,7 +25,13 @@ import java.util.Map;
         sdk = 16,
         application = LeanplumTestApp.class
 )
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "org.json.*",
+    "org.powermock.*",
+    "jdk.internal.reflect.*"
+})
 public class RequestUtilTest extends TestCase {
     private final String POST = "POST";
     /**

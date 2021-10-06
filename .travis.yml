@@ -4,8 +4,8 @@ language: android
 
 env:
   global:
-    - BUILD_API=30
-    - BUILD_TOOLS=30.0.3
+    - BUILD_API=31
+    - BUILD_TOOLS=31.0.0
     - ABI=x86
     - EMU_API=22
     - EMU_FLAVOR=default

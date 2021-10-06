@@ -45,7 +45,13 @@ import static org.junit.Assert.assertNull;
     sdk = 21,
     application = LeanplumTestApp.class
 )
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "org.json.*",
+    "org.powermock.*",
+    "jdk.internal.reflect.*"
+})
 public class JsonConverterTest {
   private static final Map<String, Object> map =
       CollectionUtil.newLinkedHashMap(

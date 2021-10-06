@@ -56,7 +56,13 @@ import java.util.concurrent.Semaphore;
                 ShadowLooper.class,
         }
 )
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "org.json.*",
+    "org.powermock.*",
+    "jdk.internal.reflect.*"
+})
 public class RequestSenderTest extends TestCase {
   public final String POST = "POST";
   /**

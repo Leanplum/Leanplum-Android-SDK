@@ -46,7 +46,8 @@ import org.robolectric.annotation.Config;
     "org.robolectric.*",
     "org.json.*",
     "org.powermock.*",
-    "android.*"
+    "android.*",
+    "jdk.internal.reflect.*"
 })
 public class SocketTest {
   @Test

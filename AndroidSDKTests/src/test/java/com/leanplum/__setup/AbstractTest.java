@@ -97,7 +97,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     "javax.net.ssl.*",
     "javax.xml.*",
     "org.xml.sax.*",
-    "org.w3c.dom.*"
+    "org.w3c.dom.*",
+    "jdk.internal.reflect.*"
 })
 @PrepareForTest(value = {
     Leanplum.class,
