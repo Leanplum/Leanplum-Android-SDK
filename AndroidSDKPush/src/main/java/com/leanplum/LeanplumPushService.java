@@ -36,6 +36,8 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
+import com.leanplum.LeanplumActivityHelper.NoTrampolinesLifecycleCallbacks;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
@@ -44,6 +46,8 @@ import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.PushActionPersistenceKt;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
@@ -52,6 +56,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
 
+import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -311,11 +316,7 @@ public class LeanplumPushService {
       return;
     }
 
-    Intent intent = new Intent(context, LeanplumPushReceiver.class);
-    intent.addCategory("lpAction");
-    intent.putExtras(message);
-    PendingIntent contentIntent = PendingIntent.getBroadcast(context.getApplicationContext(),
-        new Random().nextInt(), intent, BuildUtil.createIntentFlags(0));
+    PendingIntent contentIntent = createContentIntent(context, message);
 
     String title = Util.getApplicationName(context.getApplicationContext());
     if (message.getString("title") != null) {
@@ -422,6 +423,77 @@ public class LeanplumPushService {
     }
   }
 
+  /**
+   * Creates the notification's content intent for this message.
+   */
+  private static PendingIntent createContentIntent(Context context, Bundle message) {
+    PendingIntent contentIntent;
+
+    if (BuildUtil.shouldDisableTrampolines(context)) {
+      Intent intent = createActivityIntent(context, message);
+      contentIntent = PendingIntent.getActivity(
+          context,
+          new Random().nextInt(),
+          intent,
+          BuildUtil.createIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT));
+    } else {
+      Intent intent = createBroadcastIntent(context, message);
+      contentIntent = PendingIntent.getBroadcast(
+          context.getApplicationContext(),
+          new Random().nextInt(),
+          intent,
+          BuildUtil.createIntentFlags(0));
+    }
+    return contentIntent;
+  }
+
+  /**
+   * Creates intent object for LeanplumPushReceiver which will forward execution to either client
+   * or Leanplum code.
+   */
+  private static Intent createBroadcastIntent(Context context, Bundle message) {
+    Intent intent = new Intent(context, LeanplumPushReceiver.class);
+    intent.addCategory("lpAction");
+    intent.putExtras(message);
+    return intent;
+  }
+
+  /**
+   * Creates intent object to start activity based on the message payload.
+   */
+  @TargetApi(31)
+  private static Intent createActivityIntent(Context context, Bundle message) {
+
+    // 'Open URL'
+    String action = message.getString(Keys.PUSH_MESSAGE_ACTION);
+    if (action != null && action.contains(OPEN_URL)) {
+      Intent deepLinkIntent = getDeepLinkIntent(message);
+      if (deepLinkIntent != null) {
+        resolveIntentActivity(context, deepLinkIntent);
+        String messageId = LeanplumPushService.getMessageId(message);
+        if (messageId != null) {
+          deepLinkIntent.putExtras(message); // payload will be used to track the open event
+        }
+        return deepLinkIntent;
+      }
+    }
+
+    // 'Open App'
+    Intent actionIntent = getActionIntent(context);
+    if (actionIntent == null) {
+      return null;
+    }
+    actionIntent.putExtras(message);
+    actionIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+    // 'Chain to message'
+
+    // In this case handling of push Open Action will be run from activity lifecycle callbacks and
+    // will call onActivityNotificationClick(context, bundle)
+
+    return actionIntent;
+  }
+
   static void openNotification(Context context, Intent intent) {
     // Pre handles push notification.
     Bundle notification = preHandlePushNotification(context, intent);
@@ -463,6 +535,42 @@ public class LeanplumPushService {
     }
     // Post handles push notification.
     performPushNotificationAction(notification);
+  }
+
+  /**
+   * Called by reflection from {@link NoTrampolinesLifecycleCallbacks} to track events and perform
+   * push notification action.
+   */
+  static void onActivityNotificationClick(@NonNull Bundle notification) {
+    String occurrenceId;
+    if (notification.containsKey(Keys.PUSH_OCCURRENCE_ID)) {
+      occurrenceId = (String) notification.get(Keys.PUSH_OCCURRENCE_ID);
+    } else if (notification.containsKey(Keys.LOCAL_PUSH_OCCURRENCE_ID)){
+      occurrenceId = (String) notification.get(Keys.LOCAL_PUSH_OCCURRENCE_ID);
+    } else {
+      Log.i("Skipping execution of Open Action because occurrenceId is missing.");
+      return;
+    }
+
+    if (PushActionPersistenceKt.isOpened(occurrenceId)) {
+      Log.i("Open Action from activity intent is already executed.");
+    } else {
+      Log.d("Executing Open Action from push notification.");
+      PushActionPersistenceKt.recordOpenAction(occurrenceId);
+      PushTracking.trackOpen(notification);
+
+      if (getDeepLinkIntent(notification) != null) {
+        // track Open event
+        String messageId = LeanplumPushService.getMessageId(notification);
+        if (messageId != null) {
+          ActionContext actionContext = new ActionContext(
+              ActionManager.PUSH_NOTIFICATION_ACTION_NAME, null, messageId);
+          actionContext.track(OPEN_ACTION, 0.0, null);
+        }
+        return;
+      }
+      performPushNotificationAction(notification);
+    }
   }
 
   /**

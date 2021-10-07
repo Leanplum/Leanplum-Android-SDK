@@ -29,6 +29,8 @@ import java.util.Date;
  * mock in unit tests.
  */
 public abstract class Clock {
+  public static final long DAY_MILLIS = 24 * 60 * 60 * 1000;
+  public static final long MONTH_MILLIS = 30 * DAY_MILLIS;
 
   public static final Clock SYSTEM = new Clock() {
     @Override
@@ -68,4 +70,13 @@ public abstract class Clock {
    */
   @NonNull
   abstract Date newDate();
+
+  /**
+   * Checks if time is not from more than 30 days ago.
+   *
+   * @return True if elapsed time is less than a month.
+   */
+  public boolean lessThanMonthAgo(long timeInMillis) {
+    return currentTimeMillis() - timeInMillis < MONTH_MILLIS;
+  }
 }

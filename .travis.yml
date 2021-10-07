@@ -4,13 +4,14 @@ language: android
 
 env:
   global:
-    - BUILD_API=30
-    - BUILD_TOOLS=30.0.3
+    - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
+    - BUILD_API=31
+    - BUILD_TOOLS=31.0.0
     - ABI=x86
     - EMU_API=22
     - EMU_FLAVOR=default
     - ANDROID_HOME=/usr/local/android-sdk
-    - TOOLS=${ANDROID_HOME}/tools
+    - TOOLS=${ANDROID_HOME}/cmdline-tools/latest
     # PATH order is important, the 'emulator' script exists in more than one place
     - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
     # If you want to run snapshot tests change value to 'true'. Build time will be increased by 6 minutes.
@@ -20,26 +21,33 @@ android:
   components:
     - tools
 
+jdk:
+  - oraclejdk11
+
 licenses:
   - 'android-sdk-preview-license-.+'
   - 'android-sdk-license-.+'
   - 'google-gdk-license-.+'
 
 before_install:
-  - sudo wget "https://bouncycastle.org/download/bcprov-ext-jdk15on-165.jar" -O "${JAVA_HOME}/jre/lib/ext/bcprov-ext-jdk15on-165.jar"
-  - sudo echo "security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider" | sudo tee -a ${JAVA_HOME}/jre/lib/security/java.security
-  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then python -m pip install Tools/Pillow-6.2.2-cp27-cp27mu-manylinux1_x86_64.whl --user; fi; # library for image manipulation in snapshot tests
+  # Install cmdline-tools (older tools doesn't support Java 11)
+  - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
+  - mkdir -p ${ANDROID_HOME}/cmdline-tools
+  - unzip -q android-commandline-tools-linux.zip -d ${ANDROID_HOME}/cmdline-tools
+  - mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest
+  # Library for image manipulation in snapshot tests
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then python -m pip install Tools/Pillow-6.2.2-cp27-cp27mu-manylinux1_x86_64.whl --user; fi;
 
 before_script:
   # Install Android SDK and run emulator
   - echo 'count=0' > /home/travis/.android/repositories.cfg # avoid harmless sdkmanager warning
-  - echo y | sdkmanager "platform-tools" >/dev/null
-  - echo y | sdkmanager "tools" >/dev/null
-  - echo y | sdkmanager "build-tools;$BUILD_TOOLS" >/dev/null
-  - echo y | sdkmanager "platforms;android-$EMU_API" >/dev/null
-  - echo y | sdkmanager "platforms;android-$BUILD_API" >/dev/null
-  - echo y | sdkmanager "extras;android;m2repository" >/dev/null
-  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo y | sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"; fi;
+  - echo y | ${TOOLS}/bin/sdkmanager "platform-tools" >/dev/null
+  - echo y | ${TOOLS}/bin/sdkmanager "tools" >/dev/null
+  - echo y | ${TOOLS}/bin/sdkmanager "build-tools;$BUILD_TOOLS" >/dev/null
+  - echo y | ${TOOLS}/bin/sdkmanager "platforms;android-$EMU_API" >/dev/null
+  - echo y | ${TOOLS}/bin/sdkmanager "platforms;android-$BUILD_API" >/dev/null
+  - echo y | ${TOOLS}/bin/sdkmanager "extras;android;m2repository" >/dev/null
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo y | ${TOOLS}/bin/sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"; fi;
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M; fi;
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 

@@ -56,9 +56,14 @@ import static org.junit.Assert.assertTrue;
     sdk = 16,
     application = LeanplumTestApp.class
 )
-@PowerMockIgnore(
-    {"org.mockito.*", "org.robolectric.*", "android.*", "javax.*", "org.bouncycastle.*"}
-)
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "android.*",
+    "javax.*",
+    "org.bouncycastle.*",
+    "jdk.internal.reflect.*"
+})
 public class AESCryptTest {
   private static final String APP_ID = "app_abcdefg1234567";
   private static final String TOKEN = "8416c513ddcfc27b";

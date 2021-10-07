@@ -66,7 +66,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     "org.robolectric.*",
     "org.json.*",
     "org.powermock.*",
-    "android.*"
+    "android.*",
+    "jdk.internal.reflect.*"
 })
 @PrepareForTest({Leanplum.class, LeanplumCloudMessagingProvider.class, SharedPreferencesUtil.class})
 public class LeanplumCloudMessagingProviderTest {

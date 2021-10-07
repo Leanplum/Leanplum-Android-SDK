@@ -55,7 +55,8 @@ import static org.powermock.api.mockito.PowerMockito.spy;
     "org.robolectric.*",
     "org.json.*",
     "org.powermock.*",
-    "android.*"
+    "android.*",
+    "jdk.internal.reflect.*"
 })
 @PrepareForTest({Leanplum.class, Util.class, WebSocketClient.class, Request.class})
 public class WebSocketClientTest {

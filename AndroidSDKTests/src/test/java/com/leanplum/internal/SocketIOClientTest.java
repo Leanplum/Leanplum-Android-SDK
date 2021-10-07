@@ -63,7 +63,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
     "org.robolectric.*",
     "org.json.*",
     "org.powermock.*",
-    "android.*"
+    "android.*",
+    "jdk.internal.reflect.*"
 })
 @PrepareForTest({
     Leanplum.class,

@@ -77,6 +77,7 @@ public class Constants {
     public static final String TOKEN_KEY = "__leanplum_token";
     public static final String MESSAGES_KEY = "__leanplum_messages";
     public static final String REGIONS_KEY = "regions";
+    public static final String MESSAGING_PREF_NAME = "__leanplum_messaging__";
     public static final String MESSAGE_TRIGGER_OCCURRENCES_KEY =
         "__leanplum_message_trigger_occurrences_%s";
     public static final String MESSAGE_IMPRESSION_OCCURRENCES_KEY =
@@ -191,6 +192,7 @@ public class Constants {
     public static final String PUSH_MESSAGE_SILENT_TRACK = "lp_silent_track";
     public static final String PUSH_SENT_TIME = "lp_sent_time";
     public static final String PUSH_OCCURRENCE_ID = "lp_occurrence_id";
+    public static final String LOCAL_PUSH_OCCURRENCE_ID = "internal_occurrence_id";
     public static final String REGION = "region";
     public static final String REGION_STATE = "regionState";
     public static final String REGIONS = "regions";

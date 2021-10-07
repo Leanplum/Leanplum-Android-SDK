@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -43,7 +43,6 @@ import java.util.Map;
  * @author Anna Orlova
  */
 class LeanplumLocalPushHelper {
-  private static final String PREFERENCES_NAME = "__leanplum_messaging__";
 
   /**
    * Schedule local push notification. This method will call by reflection from AndroidSDKCore.
@@ -63,7 +62,7 @@ class LeanplumLocalPushHelper {
       // If there's already one scheduled before the eta, discard this.
       // Otherwise, discard the scheduled one.
       SharedPreferences preferences = context.getSharedPreferences(
-          PREFERENCES_NAME, Context.MODE_PRIVATE);
+          Constants.Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
       long existingEta = preferences.getLong(String.format(
           Constants.Defaults.LOCAL_NOTIFICATION_KEY, messageId), 0L);
       if (existingEta > 0L && existingEta > System.currentTimeMillis()) {

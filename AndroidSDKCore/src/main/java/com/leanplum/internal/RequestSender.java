@@ -154,6 +154,12 @@ public class RequestSender {
           }
         } else {
           Exception errorException = new Exception("HTTP error " + statusCode);
+          String errorMessage = errorException.getMessage();
+          if (responseBody != null) {
+            errorMessage += " " + responseBody.toString();
+          }
+          Log.i(errorMessage);
+
           if (statusCode != -1
               && statusCode != 408
               && statusCode != 429

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -40,6 +40,18 @@ public class BuildUtil {
    */
   public static boolean isNotificationChannelSupported(Context context) {
     return Build.VERSION.SDK_INT >= 26 && getTargetSdkVersion(context) >= 26;
+  }
+
+  /**
+   * Checks whether notification trampolines are not supported.
+   * Targeting Android 12 means you cannot use a service or broadcast receiver as a trampoline to
+   * start an activity. The activity must be started immediately when notification is clicked.
+   *
+   * @param context The application context.
+   * @return True if notification trampolines are not supported.
+   */
+  public static boolean shouldDisableTrampolines(Context context) {
+    return Build.VERSION.SDK_INT >= 31 && getTargetSdkVersion(context) >= 31;
   }
 
   /**

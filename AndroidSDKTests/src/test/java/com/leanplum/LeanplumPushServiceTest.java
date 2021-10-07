@@ -99,7 +99,8 @@ import static org.robolectric.Shadows.shadowOf;
     "org.robolectric.*",
     "org.json.*",
     "org.powermock.*",
-    "android.*"
+    "android.*",
+    "jdk.internal.reflect.*"
 })
 @PrepareForTest({LeanplumPushService.class, LeanplumFcmProvider.class,
     SharedPreferencesUtil.class, Util.class, PushProviders.class, LeanplumMiPushProvider.class})

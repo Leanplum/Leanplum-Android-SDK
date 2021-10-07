@@ -54,7 +54,13 @@ import org.robolectric.util.ReflectionHelpers;
         ShadowLooper.class,
     }
 )
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "org.json.*", "org.powermock.*"})
+@PowerMockIgnore({
+    "org.mockito.*",
+    "org.robolectric.*",
+    "org.json.*",
+    "org.powermock.*",
+    "jdk.internal.reflect.*"
+})
 public class RequestBatchFactoryTest {
 
   @Before
