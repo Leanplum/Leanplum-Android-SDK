@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +34,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Looper;
 import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -664,5 +665,28 @@ public class Util {
    */
   public static boolean isXiaomiDevice() {
     return Build.MANUFACTURER != null && Build.MANUFACTURER.toLowerCase().contains("xiaomi");
+  }
+
+  /**
+   * Checks for EMUI OS.
+   *
+   * @return True if OS is EMUI.
+   */
+  public static boolean isHuaweiDevice() {
+    try {
+      Class<?> clazz = Class.forName("com.huawei.hms.utils.Util"); // TODO Is it working ok? Would it work with new OS, is it the correct way?
+      return (boolean) clazz.getMethod("isEMUI").invoke(null);
+    } catch (Throwable ignore) {
+    }
+    return false;
+  }
+
+  /**
+   * Checks if current thread is the main (UI) thread.
+   *
+   * @return True if the current thread is the main thread.
+   */
+  public static boolean isMainThread() {
+    return Thread.currentThread() == Looper.getMainLooper().getThread();
   }
 }

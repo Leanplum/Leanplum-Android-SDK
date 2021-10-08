@@ -31,6 +31,7 @@ import com.huawei.hmf.tasks.Task;
 import com.huawei.hms.aaid.HmsInstanceId;
 import com.huawei.hms.aaid.entity.AAIDResult;
 import com.huawei.hms.push.HmsMessaging;
+import com.huawei.hms.utils.Util;
 import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.internal.Log;
 
@@ -44,10 +45,6 @@ class LeanplumHmsProvider extends LeanplumCloudMessagingProvider {
    * Constructor called by reflection.
    */
   public LeanplumHmsProvider() {
-  // TODO Use EMUI device for the token
-    // TODO is context not null?
-    // Enable automatic obtaining of token
-    HmsMessaging.getInstance(Leanplum.getContext()).setAutoInitEnabled(true);
   }
 
   @Override
@@ -76,27 +73,7 @@ class LeanplumHmsProvider extends LeanplumCloudMessagingProvider {
     try {
       // Read from agconnect-services.json
       String appId = new AGConnectOptionsBuilder().build(context).getString("client/app_id");
-      Log.e("HMS appId is " + appId);
-      //String appId2 = AGConnectServicesConfig.fromContext(context).getString("client/app_id"); // TODO deprecated?
-      //Log.e("HMS appId2 is " + appId2);
       regId = HmsInstanceId.getInstance(context).getToken(appId, "HCM");
-//      HmsMessaging.getInstance(context).
-      Log.e("HMS regId size = " + regId.length());
-      Log.e("HMS regId is " + regId);
-
-
-//      HmsInstanceId.getInstance(context).getAAID().addOnCompleteListener(
-//          new OnCompleteListener<AAIDResult>() {
-//            @Override
-//            public void onComplete(Task<AAIDResult> task) {
-//              if (task.isSuccessful()) {
-//                Log.e("HMS aaid is " + task.getResult().getId());
-//              } else {
-//                Log.e("HMS aaid fail");
-//              }
-//            }
-//          });
-
     } catch (Throwable e) {
       Log.e("HMS getToken failed:\n" + Log.getStackTraceString(e));
     }

@@ -128,9 +128,14 @@ class PushProviders {
   private static IPushProvider createHms() {
     // TODO check for EMUI device or HMS
     try {
-      IPushProvider hmsProvider =
-          (IPushProvider) Class.forName(HMS_PROVIDER_CLASS).getConstructor().newInstance();
-      return hmsProvider;
+      Class<?> clazz = Class.forName(HMS_PROVIDER_CLASS);
+
+      if (!Util.isHuaweiDevice()) {
+        Log.d("Will not initialize HMS provider for non-Huawei device.");
+        return null;
+      }
+
+      return (IPushProvider) clazz.getConstructor().newInstance();
     } catch (Throwable t) {
       Log.i("HMS module not found. "
           + "For Huawei Push Kit messaging include dependency \"com.leanplum:leanplum-hms\".");

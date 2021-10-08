@@ -23,14 +23,13 @@ package com.leanplum;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Looper;
-import android.widget.Toast;
 import com.huawei.hms.push.HmsMessageService;
 import com.huawei.hms.push.RemoteMessage;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.internal.Util;
 import java.util.Map;
 
 /**
@@ -44,23 +43,20 @@ public class LeanplumHmsHandler {
   }
 
   public void onNewToken(String token, Context context) {
-    if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
-      OperationQueue.sharedInstance().addParallelOperation(
-          () -> onNewTokenImpl(token, context));
+    if (Util.isMainThread()) {
+      OperationQueue.sharedInstance().addParallelOperation(() -> onNewTokenImpl(token, context));
     } else {
       onNewTokenImpl(token, context);
     }
   }
 
   private void onNewTokenImpl(String token, Context context) {
-    //Toast.makeText(context, "Push token = " + token, Toast.LENGTH_SHORT).show();
-    Log.e("HMS Token = " + token);
-
-    // TODO call provider
+    // Send token to backend
+    LeanplumPushService.getPushProviders().setRegistrationId(PushProviderType.HMS, token);
   }
 
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
-    if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+    if (Util.isMainThread()) {
       OperationQueue.sharedInstance().addParallelOperation(
           () -> onMessageReceivedImpl(remoteMessage, context));
     } else {
@@ -71,13 +67,11 @@ public class LeanplumHmsHandler {
   private void onMessageReceivedImpl(RemoteMessage remoteMessage, Context context) {
     try {
       Map<String, String> messageMap = remoteMessage.getDataOfMap();
-
       String channel = PushTracking.CHANNEL_HMS;
-
       if (messageMap.containsKey(Constants.Keys.PUSH_MESSAGE_TEXT)) {
         Bundle notification = getBundle(messageMap);
-        notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel); // TODO is it necessary
-        LeanplumPushService.handleNotification(context, notification); // TODO uncomment
+        notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel);
+        LeanplumPushService.handleNotification(context, notification);
       }
       Log.i("Received HMS notification message: %s", messageMap.toString());
     } catch (Throwable t) {
