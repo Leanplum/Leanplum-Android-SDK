@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
   private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
+  private static String HMS_PROVIDER_CLASS = "com.leanplum.LeanplumHmsProvider";
 
   private final Map<PushProviderType, IPushProvider> providers = new ConcurrentHashMap<>();
   private boolean initialized = false;
@@ -62,6 +63,11 @@ class PushProviders {
     IPushProvider miPush = createMiPush();
     if (miPush != null) {
       providers.put(PushProviderType.MIPUSH, miPush);
+    }
+
+    IPushProvider hms = createHms();
+    if (hms != null) {
+      providers.put(PushProviderType.HMS, hms);
     }
 
     initialized = true;
@@ -115,6 +121,23 @@ class PushProviders {
     } catch (Throwable t) {
       Log.i("MiPush module not found. "
           + "For Mi Push messaging include dependency \"com.leanplum:leanplum-mipush\".");
+      return null;
+    }
+  }
+
+  private static IPushProvider createHms() {
+    try {
+      Class<?> clazz = Class.forName(HMS_PROVIDER_CLASS);
+
+      if (!Util.isHuaweiServicesAvailable(Leanplum.getContext())) {
+        Log.d("Will not initialize HMS provider for non-Huawei device.");
+        return null;
+      }
+
+      return (IPushProvider) clazz.getConstructor().newInstance();
+    } catch (Throwable t) {
+      Log.i("HMS module not found. "
+          + "For Huawei Push Kit messaging include dependency \"com.leanplum:leanplum-hms\".");
       return null;
     }
   }

@@ -672,6 +672,8 @@ public class Leanplum {
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
     String miPushRegistrationId = SharedPreferencesUtil.getString(context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID);
+    String hmsRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID);
 
     HashMap<String, Object> params = new HashMap<>();
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
@@ -688,6 +690,9 @@ public class Leanplum {
     }
     if (!TextUtils.isEmpty(miPushRegistrationId)) {
       params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, miPushRegistrationId);
+    }
+    if (!TextUtils.isEmpty(hmsRegistrationId)) {
+      params.put(Constants.Params.DEVICE_HMS_TOKEN, hmsRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
@@ -1549,6 +1554,9 @@ public class Leanplum {
         break;
       case MIPUSH:
         attributeName = Constants.Params.DEVICE_MIPUSH_TOKEN;
+        break;
+      case HMS:
+        attributeName = Constants.Params.DEVICE_HMS_TOKEN;
         break;
       default:
         return;

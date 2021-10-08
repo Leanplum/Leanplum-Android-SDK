@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +34,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Looper;
 import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -664,5 +665,31 @@ public class Util {
    */
   public static boolean isXiaomiDevice() {
     return Build.MANUFACTURER != null && Build.MANUFACTURER.toLowerCase().contains("xiaomi");
+  }
+
+  /**
+   * Checks for Huawei Mobile Services.
+   *
+   * @return True if Huawei Mobile Services exist.
+   */
+  public static boolean isHuaweiServicesAvailable(Context context) {
+    try {
+      Class<?> clazz = Class.forName("com.huawei.hms.api.HuaweiApiAvailability");
+      Object instance = clazz.getMethod("getInstance").invoke(null);
+      Method isAvailable = clazz.getMethod("isHuaweiMobileServicesAvailable", Context.class);
+      int statusCode = (int) isAvailable.invoke(instance, context);
+      return statusCode == 0;
+    } catch (Throwable ignore) {
+    }
+    return false;
+  }
+
+  /**
+   * Checks if current thread is the main (UI) thread.
+   *
+   * @return True if the current thread is the main thread.
+   */
+  public static boolean isMainThread() {
+    return Thread.currentThread() == Looper.getMainLooper().getThread();
   }
 }

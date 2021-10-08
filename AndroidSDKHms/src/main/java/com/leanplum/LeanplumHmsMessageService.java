@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2021, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,8 +21,29 @@
 
 package com.leanplum;
 
-enum PushProviderType {
-  FCM,
-  MIPUSH,
-  HMS
+import com.huawei.hms.push.HmsMessageService;
+import com.huawei.hms.push.RemoteMessage;
+
+/**
+ * Implementation of Huawei Push Kit message service.
+ */
+public class LeanplumHmsMessageService extends HmsMessageService {
+
+  private final LeanplumHmsHandler handler = new LeanplumHmsHandler();
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    handler.onCreate(getApplicationContext());
+  }
+
+  @Override
+  public void onNewToken(String token) {
+    handler.onNewToken(token, getApplicationContext());
+  }
+
+  @Override
+  public void onMessageReceived(RemoteMessage remoteMessage) {
+    handler.onMessageReceived(remoteMessage, getApplicationContext());
+  }
 }
