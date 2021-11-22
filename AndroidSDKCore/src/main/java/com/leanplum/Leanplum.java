@@ -25,9 +25,11 @@ import android.content.Context;
 import android.location.Location;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.ForceContentUpdateCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
@@ -2026,7 +2028,7 @@ public class Leanplum {
    * inconsistent state or user experience.
    */
   public static void forceContentUpdate() {
-    forceContentUpdate(null);
+    forceContentUpdate(success -> {});
   }
 
   /**
@@ -2037,10 +2039,26 @@ public class Leanplum {
    * @param callback The callback to invoke when the call completes from the server. The callback
    * will fire regardless of whether the variables have changed.
    */
-  @SuppressWarnings("SameParameterValue")
-  public static void forceContentUpdate(final VariablesChangedCallback callback) {
+  public static void forceContentUpdate(VariablesChangedCallback callback) {
+    forceContentUpdate(success -> {
+      if (callback != null) {
+        callback.variablesChanged();
+      }
+    });
+  }
+
+  /**
+   * Forces content to update from the server. If variables have changed, the appropriate callbacks
+   * will fire. Use sparingly as if the app is updated, you'll have to deal with potentially
+   * inconsistent state or user experience.
+   *
+   * @param callback The callback to invoke when the call completes from the server. The callback
+   *                 will fire regardless of whether the variables have changed. Null value is not
+   *                 permitted.
+   */
+  public static void forceContentUpdate(@NonNull ForceContentUpdateCallback callback) {
     if (Constants.isNoop()) {
-      OperationQueue.sharedInstance().addUiOperation(callback);
+      OperationQueue.sharedInstance().addUiOperation(() -> callback.onContentUpdated(false));
       return;
     }
     try {
@@ -2072,7 +2090,7 @@ public class Leanplum {
               Map<String, String> filenameToURLs = parseFilenameToURLs(response);
               FileManager.setFilenameToURLs(filenameToURLs);
             }
-            OperationQueue.sharedInstance().addUiOperation(callback);
+            OperationQueue.sharedInstance().addUiOperation(() -> callback.onContentUpdated(true));
           } catch (Throwable t) {
             Log.exception(t);
           }
@@ -2081,7 +2099,7 @@ public class Leanplum {
       req.onError(new Request.ErrorCallback() {
         @Override
         public void error(Exception e) {
-          OperationQueue.sharedInstance().addUiOperation(callback);
+          OperationQueue.sharedInstance().addUiOperation(() -> callback.onContentUpdated(false));
           LeanplumInbox.getInstance().triggerInboxSyncedWithStatus(false);
         }
       });

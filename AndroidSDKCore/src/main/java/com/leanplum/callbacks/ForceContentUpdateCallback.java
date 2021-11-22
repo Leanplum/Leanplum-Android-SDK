@@ -19,41 +19,17 @@
  * under the License.
  */
 
-package com.leanplum;
-
-import com.leanplum.internal.Constants;
+package com.leanplum.callbacks;
 
 /**
- * Leanplum provider for work with Firebase.
- * Class is instantiated by reflection using default constructor.
- *
- * @author Anna Orlova
+ * Callback with success flag when updating content from server.
  */
-class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
+public interface ForceContentUpdateCallback {
 
   /**
-   * Constructor called by reflection.
+   * Called after content has been updated.
+   *
+   * @param success True if content is successfully updated, false otherwise.
    */
-  public LeanplumFcmProvider() {
-  }
-
-  @Override
-  protected String getSharedPrefsPropertyName() {
-    return Constants.Defaults.PROPERTY_FCM_TOKEN_ID;
-  }
-
-  @Override
-  public PushProviderType getType() {
-    return PushProviderType.FCM;
-  }
-
-  @Override
-  public void updateRegistrationId() {
-    FirebaseUtilKt.updateRegistrationId(this);
-  }
-
-  @Override
-  public void unregister() {
-    FirebaseUtilKt.unregister();
-  }
+  void onContentUpdated(boolean success);
 }
