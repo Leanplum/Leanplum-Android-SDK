@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'com.jfrog.artifactory' version '4.13.0'
+    id 'maven-publish'
+    id 'signing'
+}
+apply from: "../common-methods.gradle"
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    defaultConfig {
+        minSdkVersion 18 // version 18 is needed by agconnect plugin
+        defaultConfig {
+            consumerProguardFiles 'consumer-proguard-rules.pro'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JAVA_VERSION
+        targetCompatibility JAVA_VERSION
+    }
+}
+
+dependencies {
+    api project(':AndroidSDKCore')
+    api project(':AndroidSDKPush')
+
+    implementation 'com.huawei.agconnect:agconnect-core:1.6.0.300'
+    implementation 'com.huawei.hms:push:6.1.0.300'
+}
+
+task generateJavadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    destinationDir = file("./javadoc/")
+    failOnError false
+}
+
+publishing_task(LEANPLUM_HMS_ARTIFACT_ID)
