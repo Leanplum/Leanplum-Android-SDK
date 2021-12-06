@@ -101,6 +101,8 @@ def publishing_task(libraryArtifactId) {
         contextUrl = 'https://repo.leanplum.com'
         publish {
             repository {
+                repoKey = 'libs-release'
+
                 username = System.getenv('ARTIFACTORY_USER')
                 password = System.getenv('ARTIFACTORY_PASSWORD')
             }
