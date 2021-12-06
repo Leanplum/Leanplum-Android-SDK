@@ -98,7 +98,7 @@ def publishing_task(libraryArtifactId) {
     }
 
     artifactory {
-        contextUrl = 'http://artifactory.leanplum.com'
+        contextUrl = 'https://repo.leanplum.com'
         publish {
             repository {
                 repoKey = 'libs-release-local'
