@@ -330,8 +330,7 @@ public class Leanplum {
   }
 
   /**
-   * Sets a custom locale.
-   * Must be called before Leanplum.start().
+   * Sets a custom locale. You should call this before {@link Leanplum#start}.
    */
   public static void setLocale(String locale) {
     if (TextUtils.isEmpty(locale)) {
