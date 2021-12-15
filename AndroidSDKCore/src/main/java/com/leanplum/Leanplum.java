@@ -109,6 +109,7 @@ public class Leanplum {
   private static LeanplumDeviceIdMode deviceIdMode = LeanplumDeviceIdMode.MD5_MAC_ADDRESS;
   private static String customDeviceId;
   private static String customAppVersion = null;
+  private static String customLocale = null;
   private static boolean userSpecifiedDeviceId;
   private static boolean locationCollectionEnabled = true;
   private static volatile boolean pushDeliveryTrackingEnabled = true;
@@ -324,6 +325,17 @@ public class Leanplum {
 
     customDeviceId = deviceId;
     userSpecifiedDeviceId = true;
+  }
+
+  /**
+   * Sets a custom locale. You should call this before {@link Leanplum#start}.
+   */
+  public static void setLocale(String locale) {
+    if (TextUtils.isEmpty(locale)) {
+      Log.i("setLocale - Empty locale parameter provided.");
+    }
+
+    customLocale = locale;
   }
 
   /**
@@ -664,6 +676,11 @@ public class Leanplum {
       versionName = "";
     }
 
+    String locale = Util.getLocale();
+    if (!TextUtils.isEmpty(customLocale)) {
+      locale = customLocale;
+    }
+
     TimeZone localTimeZone = TimeZone.getDefault();
     Date now = new Date();
     int timezoneOffsetSeconds = localTimeZone.getOffset(now.getTime()) / 1000;
@@ -691,7 +708,7 @@ public class Leanplum {
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
-    params.put(Constants.Keys.LOCALE, Util.getLocale());
+    params.put(Constants.Keys.LOCALE, locale);
     params.put(Constants.Keys.COUNTRY, Constants.Values.DETECT);
     params.put(Constants.Keys.REGION, Constants.Values.DETECT);
     params.put(Constants.Keys.CITY, Constants.Values.DETECT);
