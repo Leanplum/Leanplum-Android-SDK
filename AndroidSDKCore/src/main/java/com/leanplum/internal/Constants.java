@@ -43,6 +43,7 @@ public class Constants {
   public static final String LEANPLUM_PACKAGE_IDENTIFIER = BuildConfig.LEANPLUM_PACKAGE_IDENTIFIER;
   static final String INVALID_MAC_ADDRESS = "02:00:00:00:00:00";
   static final String INVALID_MAC_ADDRESS_HASH = "0f607264fc6318a92b9e13c65db7cd3c";
+  static final String INVALID_UUID = "00000000-0000-0000-0000-000000000000";
 
   /**
    * From very old versions of the SDK, leading zeros were stripped from the mac address.
