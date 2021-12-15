@@ -258,6 +258,10 @@ public class Util {
       Log.d(logPrefix + "(sentinel): " + userId);
       return false;
     }
+    if (Constants.INVALID_UUID.equals(userId)) {
+      Log.d(logPrefix + "(zero uuid): " + userId);
+      return false;
+    }
     if (userId.length() > Constants.MAX_USER_ID_LENGTH) {
       Log.d(logPrefix + "(too long): " + userId);
       return false;
@@ -278,7 +282,8 @@ public class Util {
     if (deviceId == null || deviceId.isEmpty() ||
         Constants.INVALID_ANDROID_ID.equals(deviceId) ||
         Constants.INVALID_MAC_ADDRESS_HASH.equals(deviceId) ||
-        Constants.OLD_INVALID_MAC_ADDRESS_HASH.equals(deviceId)) {
+        Constants.OLD_INVALID_MAC_ADDRESS_HASH.equals(deviceId) ||
+        Constants.INVALID_UUID.equals(deviceId)) {
       Log.d(logPrefix + "(sentinel): " + deviceId);
       return false;
     }
