@@ -31,6 +31,7 @@ import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
+import com.leanplum.callbacks.RichStartCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
@@ -92,7 +93,7 @@ public class Leanplum {
   public static final String PURCHASE_EVENT_NAME = "Purchase";
   private static final String LEANPLUM_PUSH_SERVICE = "com.leanplum.LeanplumPushService";
 
-  private static final ArrayList<StartCallback> startHandlers = new ArrayList<>();
+  private static final ArrayList<RichStartCallback> startHandlers = new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> variablesChangedHandlers =
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> noDownloadsHandlers =
@@ -523,7 +524,7 @@ public class Leanplum {
       if (Constants.isNoop()) {
         LeanplumInternal.setHasStarted(true);
         LeanplumInternal.setStartSuccessful(true);
-        triggerStartResponse(true);
+        triggerStartResponse(true, null);
         triggerVariablesChanged();
         triggerVariablesChangedAndNoDownloadsPending();
         VarCache.applyVariableDiffs(
@@ -724,14 +725,14 @@ public class Leanplum {
       @Override
       public void response(JSONObject response) {
         Log.d("Received start response: %s", response);
-        handleStartResponse(response);
+        handleStartResponse(response, null);
       }
     });
     request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
         Log.i("Failed to receive start response");
-        handleStartResponse(null);
+        handleStartResponse(null, e);
       }
     });
     RequestSender.getInstance().send(request);
@@ -739,7 +740,7 @@ public class Leanplum {
     LeanplumInternal.triggerStartIssued();
   }
 
-  private static void handleStartResponse(final JSONObject response) {
+  private static void handleStartResponse(final JSONObject response, final Exception exception) {
     boolean success = RequestUtil.isResponseSuccess(response);
     if (!success) {
       try {
@@ -749,10 +750,17 @@ public class Leanplum {
         // Load the variables that were stored on the device from the last session.
         VarCache.loadDiffs();
 
+        Exception exceptionToReport;
+        if (exception != null) {
+          exceptionToReport = exception;
+        } else {
+          String errorMessage = RequestUtil.getResponseError(response);
+          exceptionToReport = new Exception(errorMessage);
+        }
+        triggerStartResponse(success, exceptionToReport);
       } catch (Throwable t) {
         Log.exception(t);
-      } finally {
-        triggerStartResponse(success);
+        triggerStartResponse(success, t);
       }
     } else {
       try {
@@ -914,10 +922,10 @@ public class Leanplum {
         }
         LeanplumInternal.moveToForeground();
         startRequestTimer();
+        triggerStartResponse(success, null);
       } catch (Throwable t) {
         Log.exception(t);
-      } finally {
-        triggerStartResponse(success);
+        triggerStartResponse(success, t);
       }
     }
   }
@@ -1161,10 +1169,11 @@ public class Leanplum {
     }
   }
 
-  private static void triggerStartResponse(boolean success) {
+  private static void triggerStartResponse(boolean success, Throwable exception) {
     synchronized (startHandlers) {
-      for (StartCallback callback : startHandlers) {
+      for (RichStartCallback callback : startHandlers) {
         callback.setSuccess(success);
+        callback.setThrowable(exception);
         OperationQueue.sharedInstance().addUiOperation(callback);
       }
       startHandlers.clear();

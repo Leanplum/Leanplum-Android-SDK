@@ -22,15 +22,25 @@
 package com.leanplum.callbacks;
 
 /**
- * Simplified RichStartCallback to save backward compatibility.
+ * Callback that gets run when Leanplum is started.
  *
- * @author Andrew First
+ * @author Eugene Komarov
  */
-public abstract class StartCallback extends RichStartCallback {
+public abstract class RichStartCallback implements Runnable {
+    private boolean success;
+    private Throwable throwable;
 
-    public void onResponse(boolean success, Throwable throwable) {
-        onResponse(success);
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 
-    public abstract void onResponse(boolean success);
+    public void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
+    }
+
+    public void run() {
+        this.onResponse(success, throwable);
+    }
+
+    public abstract void onResponse(boolean success, Throwable throwable);
 }
