@@ -51,6 +51,9 @@ public class Log {
   }
 
   public static void e(String msg, Throwable throwable) {
+    if (exceptionListener != null) {
+      exceptionListener.onException(throwable);
+    }
     if (msg != null && msg.contains("%s")) {
       log(LogType.ERROR, msg, getStackTraceString(throwable));
     } else {
@@ -71,6 +74,9 @@ public class Log {
    * @param throwable to log
    */
   public static void exception(Throwable throwable) {
+    if (exceptionListener != null) {
+      exceptionListener.onException(throwable);
+    }
     ExceptionHandler.getInstance().reportException(throwable);
 
     if (throwable instanceof OutOfMemoryError) {
@@ -221,5 +227,20 @@ public class Log {
      * Enables all levels including DEBUG logging of the SDK.
      */
     public static final int DEBUG = 3;
+  }
+
+  public interface ExceptionListener {
+    void onException(Throwable t);
+  }
+
+  private static ExceptionListener exceptionListener;
+
+  /**
+   * Sets listener for all logged exceptions.
+   *
+   * @param listener The listener that will receive all logged exceptions.
+   */
+  public static void setExceptionListener(ExceptionListener listener) {
+    exceptionListener = listener;
   }
 }

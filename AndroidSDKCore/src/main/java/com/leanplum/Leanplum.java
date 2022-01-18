@@ -754,7 +754,7 @@ public class Leanplum {
     request.onError(new Request.ErrorCallback() {
       @Override
       public void error(Exception e) {
-        Log.i("Failed to receive start response");
+        Log.e("Failed to receive start response", e);
         handleStartResponse(null);
       }
     });
