@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Log;
 
 /**
  * Leanplum provider for work with Firebase.
@@ -49,11 +50,19 @@ class LeanplumFcmProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   public void updateRegistrationId() {
-    FirebaseUtilKt.updateRegistrationId(this);
+    try {
+      FirebaseUtilKt.updateRegistrationId(this);
+    } catch (Throwable t) {
+      Log.e("Error getting FCM token", t);
+    }
   }
 
   @Override
   public void unregister() {
-    FirebaseUtilKt.unregister();
+    try {
+      FirebaseUtilKt.unregister();
+    } catch (Throwable t) {
+      Log.e("Error unregistering from FCM", t);
+    }
   }
 }
