@@ -153,10 +153,9 @@ public class RequestSender {
             sendRequests();
           }
         } else {
-          Exception errorException = new Exception("HTTP error " + statusCode);
-          String errorMessage = errorException.getMessage();
+          String errorMessage = "HTTP error " + statusCode;
           if (responseBody != null) {
-            errorMessage += " " + responseBody.toString();
+            errorMessage += ": " + responseBody.toString();
           }
           Log.i(errorMessage);
 
@@ -166,6 +165,8 @@ public class RequestSender {
               && !(statusCode >= 500 && statusCode <= 599)) {
             batchFactory.deleteFinishedBatch(batch);
           }
+
+          Exception errorException = new Exception(errorMessage);
           invokeCallbacksWithError(errorException);
         }
       } catch (JSONException e) {
