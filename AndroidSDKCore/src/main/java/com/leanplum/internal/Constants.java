@@ -29,11 +29,6 @@ import com.leanplum.core.BuildConfig;
  * @author Andrew First.
  */
 public class Constants {
-  public static String API_HOST_NAME = "api.leanplum.com";
-  public static String API_SERVLET = "api";
-  public static boolean API_SSL = true;
-  public static String SOCKET_HOST = "dev.leanplum.com";
-  public static int SOCKET_PORT = 443;
   public static int NETWORK_TIMEOUT_SECONDS = 10;
   public static int NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS = 10;
   public static String LEANPLUM_VERSION = BuildConfig.SDK_VERSION;
@@ -76,6 +71,11 @@ public class Constants {
     public static final String VARIABLES_SIGN_KEY = "__leanplum_variables_signature";
     public static final String ATTRIBUTES_KEY = "__leanplum_attributes";
     public static final String TOKEN_KEY = "__leanplum_token";
+    public static final String API_HOST_KEY = "__leanplum_api_host";
+    public static final String API_PATH_KEY = "__leanplum_api_path";
+    public static final String API_SSL_KEY = "__leanplum_api_ssl";
+    public static final String SOCKET_HOST_KEY = "__leanplum_socket_host";
+    public static final String SOCKET_PORT_KEY = "__leanplum_socket_port";
     public static final String MESSAGES_KEY = "__leanplum_messages";
     public static final String REGIONS_KEY = "regions";
     public static final String MESSAGING_PREF_NAME = "__leanplum_messaging__";
@@ -155,6 +155,9 @@ public class Constants {
     public static final String VERSION_NAME = "versionName";
     public static final String REQUEST_ID = "reqId";
     public static final String STACK_TRACE = "stackTrace";
+    public static final String API_HOST = "apiHost";
+    public static final String API_PATH = "apiPath";
+    public static final String DEV_SERVER_HOST = "devServerHost";
   }
 
   public static class Keys {

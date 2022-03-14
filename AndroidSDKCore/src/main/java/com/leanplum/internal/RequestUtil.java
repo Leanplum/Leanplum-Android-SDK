@@ -1,5 +1,8 @@
 package com.leanplum.internal;
 
+import android.text.TextUtils;
+import com.leanplum.Leanplum;
+import com.leanplum.internal.Constants.Params;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -97,5 +100,75 @@ public class RequestUtil {
             errorMessage = "API error: " + errorMessage;
         }
         return errorMessage;
+    }
+
+    /**
+     * JSON with API config looks like:
+     * {
+     * 	"response": [{
+     * 		"success": false,
+     * 		"devServerHost": "dev.leanplum.com",
+     * 		"apiHost": "api.leanplum.com",
+     * 		"apiPath": "api",
+     * 		"error": { "message": "App endpoint configuration mismatch." }
+     *  }]
+     * }
+     *
+     * @param responseBody The JSON response.
+     * @return True if API was updated, false otherwise.
+     */
+    public static boolean updateApiConfig(JSONObject responseBody) {
+        try {
+            if (!responseBody.isNull(Constants.Params.RESPONSE)) {
+                JSONArray responseArray = responseBody.getJSONArray(Constants.Params.RESPONSE);
+                for (int i = 0; i < responseArray.length(); i++) {
+                    JSONObject item = responseArray.getJSONObject(i);
+                    if (isResponseSuccess(item)) {
+                        continue;
+                    }
+                    if (item != null) {
+                        String apiHost = item.optString(Params.API_HOST);
+                        String apiPath = item.optString(Params.API_PATH);
+                        String devServerHost = item.optString(Params.DEV_SERVER_HOST);
+                        // Prevent setting the same API config and request retry loop
+                        boolean configUpdated = false;
+
+                        boolean hasNewApiHost = !TextUtils.isEmpty(apiHost)
+                            && !apiHost.equals(APIConfig.getInstance().getApiHost());
+                        boolean hasNewApiPath = !TextUtils.isEmpty(apiPath)
+                            && !apiPath.equals(APIConfig.getInstance().getApiPath());
+                        boolean hasNewSocketHost = !TextUtils.isEmpty(devServerHost)
+                            && !devServerHost.equals(APIConfig.getInstance().getSocketHost());
+
+                        // API config
+                        if (hasNewApiHost || hasNewApiPath) {
+                            configUpdated = true;
+                            if (TextUtils.isEmpty(apiHost)) {
+                                apiHost = APIConfig.getInstance().getApiHost();
+                            }
+                            if (TextUtils.isEmpty(apiPath)) {
+                                apiPath = APIConfig.getInstance().getApiPath();
+                            }
+                            boolean ssl = APIConfig.getInstance().getApiSSL();
+                            Log.d("Changing API endpoint to " + apiHost + "/" + apiPath);
+                            Leanplum.setApiConnectionSettings(apiHost, apiPath, ssl);
+                        }
+
+                        // Socket config
+                        if (hasNewSocketHost) {
+                            configUpdated = true;
+                            int socketPort = APIConfig.getInstance().getSocketPort();
+                            Log.d("Changing socket to " + devServerHost + ":" + socketPort);
+                            Leanplum.setSocketConnectionSettings(devServerHost, socketPort);
+                        }
+
+                        return configUpdated;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            Log.e("Error parsing response for API config", e);
+        }
+        return false;
     }
 }

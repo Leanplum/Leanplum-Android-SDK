@@ -583,12 +583,28 @@ public class LeanplumInternal {
         if (!success) {
           return;
         }
-        if (Constants.isDevelopmentModeEnabled && !Constants.isNoop()) {
-          Socket.getInstance();
-        }
         maybePerformActions(new String[] {"start", "resume"}, null,
             LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, null);
         recordAttributeChanges();
+      }
+    });
+
+    connectDevelopmentServer();
+  }
+
+  public static void connectDevelopmentServer() {
+    Leanplum.addStartResponseHandler(new StartCallback() {
+      @Override
+      public void onResponse(boolean success) {
+        if (!success) {
+          return;
+        }
+        if (!inForeground) {
+          return;
+        }
+        if (Constants.isDevelopmentModeEnabled && !Constants.isNoop()) {
+          Socket.connectSocket();
+        }
       }
     });
   }

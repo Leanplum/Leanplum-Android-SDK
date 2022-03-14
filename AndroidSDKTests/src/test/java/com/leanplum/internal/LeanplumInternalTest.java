@@ -91,12 +91,11 @@ public class LeanplumInternalTest {
     when(LeanplumInternal.class, "isStartSuccessful").thenReturn(false);
     LeanplumInternal.moveToForeground();
     verifyStatic(never());
-    Socket.getInstance();
+    Socket.connectSocket();
 
     // Test for successful connection to Leanplum.
     when(LeanplumInternal.class, "isStartSuccessful").thenReturn(true);
     assertTrue(LeanplumInternal.isStartSuccessful());
-    when(Socket.getInstance()).thenReturn(null);
     Field inForegroundField = LeanplumInternal.class.getDeclaredField("inForeground");
     assertNotNull(inForegroundField);
     inForegroundField.setAccessible(true);
@@ -113,6 +112,6 @@ public class LeanplumInternalTest {
 
     LeanplumInternal.moveToForeground();
     verifyStatic();
-    Socket.getInstance();
+    Socket.connectSocket();
   }
 }

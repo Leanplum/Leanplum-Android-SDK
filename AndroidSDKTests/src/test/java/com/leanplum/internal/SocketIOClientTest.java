@@ -20,12 +20,14 @@
  */
 package com.leanplum.internal;
 
+import android.app.Application;
 import android.content.Context;
 
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
 import org.json.JSONArray;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,9 +93,14 @@ public class SocketIOClientTest {
    */
   @Test
   public void testUserAgentString() throws Exception {
+    Application context = RuntimeEnvironment.application;
+    Assert.assertNotNull(context);
+    Leanplum.setApplicationContext(context);
+
     mockStatic(Util.class);
     mockStatic(APIConfig.class);
     spy(Leanplum.class);
+
     SocketIOClient socketIOClient = new SocketIOClient(new URI(""), new SocketIOClient.Handler() {
       @Override
       public void onConnect() {

@@ -99,7 +99,9 @@ public class FileTransferManager {
       @Override
       public void run() {
         try {
-          downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
+          String apiHost = APIConfig.getInstance().getApiHost();
+          String apiPath = APIConfig.getInstance().getApiPath();
+          downloadHelper(request, apiHost, apiPath, path, url, dict);
         } catch (Throwable t) {
           Log.exception(t);
         }
@@ -125,7 +127,7 @@ public class FileTransferManager {
             servlet,
             dict,
             httpMethod,
-            Constants.API_SSL,
+            APIConfig.getInstance().getApiSSL(),
             Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
       } else {
         op = new NetworkOperation(
@@ -251,10 +253,10 @@ public class FileTransferManager {
 
           try {
             op = new UploadOperation(
-                Constants.API_HOST_NAME,
-                Constants.API_SERVLET,
+                APIConfig.getInstance().getApiHost(),
+                APIConfig.getInstance().getApiPath(),
                 request.getHttpMethod(),
-                Constants.API_SSL,
+                APIConfig.getInstance().getApiSSL(),
                 60);
 
             if (op.uploadFiles(filesToUpload, streams, dict)) {
