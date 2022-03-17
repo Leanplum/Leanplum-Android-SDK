@@ -27,6 +27,7 @@ import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import java.net.SocketException;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
@@ -59,7 +60,7 @@ class WebSocketClient {
   private static final String TAG = "WebSocketClient";
 
   private URI mURI;
-  private Listener mListener;
+  private volatile Listener mListener;
   private java.net.Socket mSocket;
   private Thread mThread;
   private HandlerThread mHandlerThread;
@@ -177,6 +178,11 @@ class WebSocketClient {
           Log.d("Websocket SSL error!", ex);
           mListener.onDisconnect(0, "SSL");
 
+        } catch (SocketException se) {
+          // Probably exception is thrown by any of the Socket.read methods when connection was closed
+          Log.d("WebSocketClient - Socket closed");
+          mListener.onDisconnect(0, "Socket");
+
         } catch (Exception e) {
           mListener.onError(e);
         }
@@ -190,6 +196,9 @@ class WebSocketClient {
   }
 
   public void disconnect() {
+    Log.d("WebSocketClient.disconnect()");
+    mListener = new DummyListener();
+
     if (mSocket != null) {
       mHandler.post(new Runnable() {
         @Override
@@ -199,6 +208,9 @@ class WebSocketClient {
               mSocket.close();
               mSocket = null;
             }
+
+            mHandlerThread.quit();
+
           } catch (IOException e) {
             Log.d("Error while disconnecting", e);
             mListener.onError(e);
@@ -284,6 +296,28 @@ class WebSocketClient {
     void onDisconnect(int code, String reason);
 
     void onError(Exception error);
+  }
+
+  /**
+   * In some cases the socket connection couldn't be closed from the disconnect() method,
+   * so we need a way to stop it from updating the Leanplum model.
+   */
+  private static final class DummyListener implements Listener {
+    @Override
+    public void onConnect() {
+    }
+    @Override
+    public void onMessage(String message) {
+    }
+    @Override
+    public void onMessage(byte[] data) {
+    }
+    @Override
+    public void onDisconnect(int code, String reason) {
+    }
+    @Override
+    public void onError(Exception error) {
+    }
   }
 
   private SSLSocketFactory getSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {

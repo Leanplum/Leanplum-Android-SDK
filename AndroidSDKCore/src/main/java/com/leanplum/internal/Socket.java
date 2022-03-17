@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,11 +25,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
+import android.text.TextUtils;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.callbacks.VariablesChangedCallback;
 
+import java.io.IOException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,7 +39,6 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -59,18 +60,82 @@ public class Socket {
   private static final String EVENT_REGISTER_DEVICE = "registerDevice";
   private static final String EVENT_APPLY_VARS = "applyVars";
 
-  private static Socket instance = new Socket();
-  private SocketIOClient sio;
+  private static Socket instance;
+  private static boolean requestNewConnection;
+
+  private volatile SocketIOClient sio;
+  private Timer reconnectTimer;
   private boolean authSent;
   private boolean connected = false;
   private boolean connecting = false;
+
+  private String socketHost;
+  private int socketPort;
 
   public Socket() {
     createSocketClient();
   }
 
-  public static Socket getInstance() {
-    return instance;
+  /**
+   * Start socket, if it hasn't been, or reconnect it in case of a host or port change.
+   */
+  public static synchronized void connectSocket() {
+    if (instance == null) {
+      instance = new Socket();
+    } else {
+      // Reconnect socket if host or port are changed
+
+      String newHost = APIConfig.getInstance().getSocketHost();
+      int newPort = APIConfig.getInstance().getSocketPort();
+
+      String currentHost = instance.socketHost;
+      int currentPort = instance.socketPort;
+
+      boolean reconnect = false;
+      if (!TextUtils.isEmpty(currentHost) && !currentHost.equals(newHost)) {
+        reconnect = true;
+      }
+      if (currentPort != 0 && currentPort != newPort) {
+        reconnect = true;
+      }
+
+      if (reconnect) {
+        reconnectSocket();
+      }
+    }
+  }
+
+  private static synchronized void reconnectSocket() {
+    if (instance != null) {
+      if (instance.connecting) {
+        // wait until connected, then disconnect
+        requestNewConnection = true;
+      } else {
+        // already connected, no problem to disconnect
+        instance.disconnect();
+        instance = new Socket();
+        requestNewConnection = false;
+      }
+    }
+  }
+
+  /**
+   * For testing purposes only.
+   *
+   * Before disconnecting make sure connection process is done.
+   */
+  public static synchronized void disconnectSocket() {
+    if (instance != null) {
+      instance.disconnect();
+      instance = null;
+    }
+  }
+
+  private void updateConnectionStatus(boolean flag) {
+    connecting = flag;
+    if (!connecting && requestNewConnection) {
+      reconnectSocket();
+    }
   }
 
   private void createSocketClient() {
@@ -80,27 +145,29 @@ public class Socket {
         Log.e("Development socket error", error);
 
         // if error happens during connecting, reset flag
-        connecting = false;
+        updateConnectionStatus(false);
       }
 
       @Override
       public void onDisconnect(int code, String reason) {
         Log.d("Disconnected from development server");
         connected = false;
-        connecting = false;
+        updateConnectionStatus(false);
         authSent = false;
       }
 
       @Override
       public void onConnect() {
         if (!authSent) {
-          Log.d("Connected to development server");
+          Log.d("Connected to development server " + socketHost + ":" + socketPort);
           try {
             Map<String, String> args = Util.newMap(
                 Constants.Params.APP_ID, APIConfig.getInstance().appId(),
                 Constants.Params.DEVICE_ID, APIConfig.getInstance().deviceId());
             try {
-              sio.emit("auth", new JSONArray(Collections.singletonList(new JSONObject(args))));
+              if (sio != null) {
+                sio.emit("auth", new JSONArray(Collections.singletonList(new JSONObject(args))));
+              }
             } catch (JSONException e) {
               e.printStackTrace();
             }
@@ -109,7 +176,7 @@ public class Socket {
           }
           authSent = true;
           connected = true;
-          connecting = false;
+          updateConnectionStatus(false);
         }
       }
 
@@ -145,13 +212,15 @@ public class Socket {
     };
 
     try {
-      sio = new SocketIOClient(new URI("https://" + Constants.SOCKET_HOST + ":" +
-          Constants.SOCKET_PORT), socketIOClientHandler);
+      socketHost = APIConfig.getInstance().getSocketHost();
+      socketPort = APIConfig.getInstance().getSocketPort();
+      URI socketUri = new URI("https://" + socketHost + ":" + socketPort);
+      sio = new SocketIOClient(socketUri, socketIOClientHandler);
     } catch (URISyntaxException e) {
       Log.e(e.getMessage());
     }
     connect();
-    Timer reconnectTimer = new Timer();
+    reconnectTimer = new Timer();
     reconnectTimer.schedule(new TimerTask() {
       @Override
       public void run() {
@@ -168,8 +237,25 @@ public class Socket {
    * Connect to the remote socket.
    */
   private void connect() {
-    connecting = true;
-    sio.connect();
+    updateConnectionStatus(true);
+    if (sio != null) {
+      sio.connect();
+    }
+  }
+
+  private void disconnect() {
+    try {
+      if (reconnectTimer != null) {
+        reconnectTimer.cancel();
+        reconnectTimer = null;
+      }
+      if (sio != null) {
+        sio.disconnect();
+        sio = null;
+      }
+    } catch (IOException e) {
+      Log.e("Disconnect error", e);
+    }
   }
 
   /**
@@ -190,8 +276,10 @@ public class Socket {
   public <T> void sendEvent(String eventName, Map<String, T> data) {
     try {
       Log.d("Sending event: %s with data: %s over socket", eventName, data);
-      sio.emit(eventName,
-          new JSONArray(Collections.singletonList(JsonConverter.mapToJsonObject(data))));
+      if (sio != null) {
+        sio.emit(eventName,
+            new JSONArray(Collections.singletonList(JsonConverter.mapToJsonObject(data))));
+      }
     } catch (JSONException e) {
       Log.d("Failed to create JSON data object: " + e.getMessage());
     }

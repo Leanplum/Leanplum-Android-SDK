@@ -130,17 +130,23 @@ public class RequestSender {
     try {
       try {
         op = new NetworkOperation(
-            Constants.API_HOST_NAME,
-            Constants.API_SERVLET,
+            APIConfig.getInstance().getApiHost(),
+            APIConfig.getInstance().getApiPath(),
             multiRequestArgs,
             RequestBuilder.POST,
-            Constants.API_SSL,
+            APIConfig.getInstance().getApiSSL(),
             Constants.NETWORK_TIMEOUT_SECONDS);
 
         JSONObject responseBody = op.getJsonResponse();
         int statusCode = op.getResponseCode();
 
         if (statusCode >= 200 && statusCode <= 299) {
+          if (RequestUtil.updateApiConfig(responseBody)) {
+            // API config is changed and we need to send requests again
+            sendRequests();
+            return;
+          }
+
           // Parse response body and trigger callbacks
           invokeCallbacks(responseBody);
 

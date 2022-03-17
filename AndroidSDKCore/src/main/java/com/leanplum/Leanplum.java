@@ -56,6 +56,7 @@ import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.RequestSenderTimer;
 import com.leanplum.internal.RequestUtil;
+import com.leanplum.internal.Socket;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
@@ -124,25 +125,23 @@ public class Leanplum {
   }
 
   /**
-   * Optional. Sets the API server. The API path is of the form http[s]://hostname/servletName
+   * Optional. Sets the API server. The API path is of the form http[s]://hostName/apiPath
    *
    * @param hostName The name of the API host, such as www.leanplum.com
-   * @param servletName The name of the API servlet, such as api
+   * @param apiPath The name of the API servlet, such as api
    * @param ssl Whether to use SSL
    */
-  public static void setApiConnectionSettings(String hostName, String servletName, boolean ssl) {
+  public static void setApiConnectionSettings(String hostName, String apiPath, boolean ssl) {
     if (TextUtils.isEmpty(hostName)) {
-      Log.i("setApiConnectionSettings - Empty hostname parameter provided.");
+      Log.i("setApiConnectionSettings - Empty hostName parameter provided.");
       return;
     }
-    if (TextUtils.isEmpty(servletName)) {
-      Log.i("setApiConnectionSettings - Empty servletName parameter provided.");
+    if (TextUtils.isEmpty(apiPath)) {
+      Log.i("setApiConnectionSettings - Empty apiPath parameter provided.");
       return;
     }
 
-    Constants.API_HOST_NAME = hostName;
-    Constants.API_SERVLET = servletName;
-    Constants.API_SSL = ssl;
+    APIConfig.getInstance().setApiConfig(hostName, apiPath, ssl);
   }
 
   /**
@@ -161,8 +160,11 @@ public class Leanplum {
       return;
     }
 
-    Constants.SOCKET_HOST = hostName;
-    Constants.SOCKET_PORT = port;
+    String currentSocketHost = APIConfig.getInstance().getSocketHost();
+    if (!hostName.equals(currentSocketHost)) {
+      APIConfig.getInstance().setSocketConfig(hostName, port);
+      LeanplumInternal.connectDevelopmentServer();
+    }
   }
 
   /**
@@ -582,7 +584,7 @@ public class Leanplum {
         LeanplumInternal.getUserAttributeChanges().add(validAttributes);
       }
 
-      APIConfig.getInstance().loadToken();
+      APIConfig.getInstance(); // load prefs
       VarCache.setSilent(true);
       VarCache.loadDiffs();
       VarCache.setSilent(false);
@@ -825,7 +827,6 @@ public class Leanplum {
 
         String token = response.optString(Constants.Keys.TOKEN, null);
         APIConfig.getInstance().setToken(token);
-        APIConfig.getInstance().saveToken();
 
         applyContentInResponse(response);
 
