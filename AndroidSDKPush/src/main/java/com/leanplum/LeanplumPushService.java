@@ -38,6 +38,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import com.leanplum.LeanplumActivityHelper.NoTrampolinesLifecycleCallbacks;
+import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
@@ -534,7 +535,7 @@ public class LeanplumPushService {
       context.startActivity(actionIntent);
     }
     // Post handles push notification.
-    performPushNotificationAction(notification);
+    performActionAfterIssuedStart(notification);
   }
 
   /**
@@ -569,7 +570,7 @@ public class LeanplumPushService {
         }
         return;
       }
-      performPushNotificationAction(notification);
+      performActionAfterIssuedStart(notification);
     }
   }
 
@@ -633,7 +634,13 @@ public class LeanplumPushService {
       Log.d("Could not post handle push notification, extras are null.");
       return;
     }
-    performPushNotificationAction(notification);
+    performActionAfterIssuedStart(notification);
+  }
+
+  private static void performActionAfterIssuedStart(@NonNull Bundle notification) {
+    LeanplumInternal.addStartIssuedHandler(() -> {
+      performPushNotificationAction(notification);
+    });
   }
 
   private static void performPushNotificationAction(@NonNull Bundle notification) {
