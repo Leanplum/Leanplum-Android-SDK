@@ -120,7 +120,7 @@ public class RichHtmlOptions {
 
   /**
    * Replace all keys with __file__ prefix to keys without __file__ prefix and replace value of
-   * those keys with local path to file.
+   * those keys with local path to file. In case of URL it will leave the value unchanged.
    *
    * @param map Map with arguments from ActionContext.
    * @param htmlTemplateName Name of file with HTML template.
@@ -143,13 +143,18 @@ public class RichHtmlOptions {
         if (filePath == null) {
           continue;
         }
-        File f = new File(filePath);
-        String localPath = "file://" + f.getAbsolutePath();
-        if (localPath.contains(Leanplum.getContext().getPackageName())) {
-          map.put(key.replace(Values.FILE_PREFIX, ""),
-              localPath.replace(" ", "%20"));
+        if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+          map.put(key.replace(Values.FILE_PREFIX, ""), filePath);
+          map.remove(key);
+        } else {
+          File f = new File(filePath);
+          String localPath = "file://" + f.getAbsolutePath();
+          if (localPath.contains(Leanplum.getContext().getPackageName())) {
+            map.put(key.replace(Values.FILE_PREFIX, ""),
+                localPath.replace(" ", "%20"));
+          }
+          map.remove(key);
         }
-        map.remove(key);
       }
     }
     return map;
