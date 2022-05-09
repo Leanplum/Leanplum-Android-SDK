@@ -122,13 +122,25 @@ public class FileTransferManager {
     String httpMethod = request.getHttpMethod();
     try {
       if (url == null) {
-        op = new NetworkOperation(
-            hostName,
-            servlet,
-            dict,
-            httpMethod,
-            APIConfig.getInstance().getApiSSL(),
-            Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
+        // Download it directly if the argument is URL.
+        // Otherwise continue with the api request.
+        if (path != null && (path.startsWith("http://") || path.startsWith("https://"))) {
+          op = new NetworkOperation(
+              path,
+              httpMethod,
+              path.startsWith("https://"),
+              Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
+
+        } else {
+          op = new NetworkOperation(
+              hostName,
+              servlet,
+              dict,
+              httpMethod,
+              APIConfig.getInstance().getApiSSL(),
+              Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
+        }
+
       } else {
         op = new NetworkOperation(
             url,
