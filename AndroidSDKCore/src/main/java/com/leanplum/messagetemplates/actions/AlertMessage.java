@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -42,6 +42,8 @@ import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 public class AlertMessage implements MessageTemplate {
   private static final String ALERT = "Alert";
 
+  private AlertDialog alertDialog;
+
   @NonNull
   @Override
   public String getName() {
@@ -59,20 +61,34 @@ public class AlertMessage implements MessageTemplate {
   }
 
   @Override
-  public void handleAction(ActionContext context) {
+  public boolean present(ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
-      return;
+      return false;
     }
 
-    new AlertDialog.Builder(activity)
+    alertDialog = new AlertDialog.Builder(activity)
         .setTitle(context.stringNamed(Args.TITLE))
         .setMessage(context.stringNamed(Args.MESSAGE))
         .setCancelable(false)
         .setPositiveButton(
             context.stringNamed(Args.DISMISS_TEXT),
-            (dialog, id) -> context.runActionNamed(Args.DISMISS_ACTION))
-        .create()
-        .show();
+            (dialog, id) -> {
+              context.runActionNamed(Args.DISMISS_ACTION);
+              alertDialog = null;
+            })
+        .create();
+    alertDialog.show();
+    return true;
+  }
+
+  @Override
+  public boolean dismiss(ActionContext context) {
+    if (alertDialog != null) {
+      alertDialog.dismiss();
+      alertDialog = null;
+      context.actionDismissed();
+    }
+    return true;
   }
 }

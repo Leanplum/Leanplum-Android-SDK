@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,10 +26,10 @@ import android.app.Activity;
 import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 
+import com.leanplum.actions.ActionManagerExecutionKt;
 import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;
@@ -321,8 +321,8 @@ public class LeanplumActivityHelper {
    */
   public static void queueActionUponActive(Runnable action) {
     try {
-      if (currentActivity != null && !currentActivity.isFinishing() && !isActivityPaused &&
-          (!(action instanceof PostponableAction) || !isActivityClassIgnored(currentActivity))) {
+      boolean respectIgnoredActivities = action instanceof PostponableAction;
+      if (canPresentMessages(respectIgnoredActivities)) {
         action.run();
       } else {
         synchronized (pendingActions) {
@@ -332,6 +332,16 @@ public class LeanplumActivityHelper {
     } catch (Throwable t) {
       Log.exception(t);
     }
+  }
+
+  /**
+   * Checks whether activity is in foreground and is not in ignored list.
+   */
+  static boolean canPresentMessages(boolean respectIgnoredActivities) {
+    return currentActivity != null
+        && !currentActivity.isFinishing()
+        && !isActivityPaused
+        && (!respectIgnoredActivities || !isActivityClassIgnored(currentActivity));
   }
 
   /**

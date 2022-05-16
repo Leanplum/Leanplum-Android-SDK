@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -42,6 +42,8 @@ import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 public class ConfirmMessage implements MessageTemplate {
   private static final String CONFIRM = "Confirm";
 
+  private AlertDialog alertDialog;
+
   @NonNull
   @Override
   public String getName() {
@@ -50,7 +52,7 @@ public class ConfirmMessage implements MessageTemplate {
 
   @NonNull
   @Override
-  public ActionArgs createActionArgs(Context context) {
+  public ActionArgs createActionArgs(@NonNull Context context) {
     return new ActionArgs()
         .with(Args.TITLE, Util.getApplicationName(context))
         .with(Args.MESSAGE, Values.CONFIRM_MESSAGE)
@@ -61,20 +63,38 @@ public class ConfirmMessage implements MessageTemplate {
   }
 
   @Override
-  public void handleAction(ActionContext context) {
+  public boolean present(@NonNull ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing())
-      return;
+    if (activity == null || activity.isFinishing()) {
+      return false;
+    }
 
-    new AlertDialog.Builder(activity)
+    alertDialog = new AlertDialog.Builder(activity)
         .setTitle(context.stringNamed(Args.TITLE))
         .setMessage(context.stringNamed(Args.MESSAGE))
         .setCancelable(false)
         .setPositiveButton(context.stringNamed(Args.ACCEPT_TEXT),
-            (dialog, id) -> context.runTrackedActionNamed(Args.ACCEPT_ACTION))
+            (dialog, id) -> {
+              context.runTrackedActionNamed(Args.ACCEPT_ACTION);
+              alertDialog = null;
+            })
         .setNegativeButton(context.stringNamed(Args.CANCEL_TEXT),
-            (dialog, id) -> context.runActionNamed(Args.CANCEL_ACTION))
-        .create()
-        .show();
+            (dialog, id) -> {
+              context.runActionNamed(Args.CANCEL_ACTION);
+              alertDialog = null;
+            })
+        .create();
+    alertDialog.show();
+    return true;
+  }
+
+  @Override
+  public boolean dismiss(@NonNull ActionContext context) {
+    if (alertDialog != null) {
+      alertDialog.dismiss();
+      alertDialog = null;
+      context.actionDismissed();
+    }
+    return true;
   }
 }

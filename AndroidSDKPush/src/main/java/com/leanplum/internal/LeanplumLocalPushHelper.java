@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,14 +28,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 import android.os.Build;
+import androidx.annotation.NonNull;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumLocalPushListenerService;
+import com.leanplum.internal.Constants.Defaults;
+import com.leanplum.internal.Constants.Keys;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Leanplum local push notification helper class.
@@ -48,11 +52,49 @@ class LeanplumLocalPushHelper {
    * Schedule local push notification. This method will call by reflection from AndroidSDKCore.
    *
    * @param actionContext Action Context.
+   * @return True if notification was scheduled.
+   */
+  static boolean scheduleLocalPush(@NonNull ActionContext actionContext) {
+    try {
+      String messageId = actionContext.getMessageId();
+
+      // Get eta.
+      Object countdownObj;
+      if (((BaseActionContext) actionContext).isPreview()) {
+        countdownObj = 5.0;
+      } else {
+        Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(
+            VarCache.getMessageDiffs().get(messageId));
+        if (messageConfig == null) {
+          Log.e("Could not find message options for ID " + messageId);
+          return false;
+        }
+        countdownObj = messageConfig.get("countdown");
+      }
+      if (!(countdownObj instanceof Number)) {
+        Log.e("Invalid notification countdown: " + countdownObj);
+        return false;
+      }
+      long eta = Clock.getInstance().currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
+
+      // Schedule notification.
+      return scheduleAlarm(actionContext, messageId, eta);
+
+    } catch (Throwable t) {
+      Log.exception(t);
+      return false;
+    }
+  }
+
+  /**
+   * Schedule local push notification.
+   *
+   * @param actionContext Action Context.
    * @param messageId String message id for local push notification.
    * @param eta Eta for local push notification.
    * @return True if notification was scheduled.
    */
-  static boolean scheduleLocalPush(ActionContext actionContext, String messageId, long eta) {
+  private static boolean scheduleAlarm(ActionContext actionContext, String messageId, long eta) {
     try {
       Context context = Leanplum.getContext();
       Intent intentAlarm = LeanplumLocalPushListenerService.getIntent(context);
@@ -83,6 +125,9 @@ class LeanplumLocalPushHelper {
           intentAlarm.putExtra(key, data.get(key));
         }
       }
+
+      // Set unique occurrence id
+      intentAlarm.putExtra(Keys.PUSH_OCCURRENCE_ID, UUID.randomUUID().toString());
 
       // Specify open action
       String openAction = actionContext.stringNamed(Constants.Values.DEFAULT_PUSH_ACTION);
@@ -148,10 +193,41 @@ class LeanplumLocalPushHelper {
   /**
    * Cancel local push notification. This method will call by reflection from AndroidSDKCore.
    *
+   * @param messageId Message id of notification that should be canceled.
+   */
+  static boolean cancelLocalPush(@NonNull String messageId) {
+    try {
+      // Get existing eta and clear notification from preferences.
+      Context context = Leanplum.getContext();
+      SharedPreferences preferences = context.getSharedPreferences(
+          Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
+      String preferencesKey = String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY,
+          messageId);
+      long existingEta = preferences.getLong(preferencesKey, 0L);
+      SharedPreferences.Editor editor = preferences.edit();
+      editor.remove(preferencesKey);
+      SharedPreferencesUtil.commitChanges(editor);
+
+      // Cancel notification.
+      cancelAlarm(context, messageId);
+      boolean didCancel = existingEta > Clock.getInstance().currentTimeMillis();
+      if (didCancel) {
+        Log.i("Cancelled notification");
+      }
+      return didCancel;
+    } catch (Throwable t) {
+      Log.exception(t);
+      return false;
+    }
+  }
+
+  /**
+   * Cancel local push notification.
+   *
    * @param context The application context.
    * @param messageId Message id of notification that should be canceled.
    */
-  static void cancelLocalPush(Context context, String messageId) {
+  private static void cancelAlarm(Context context, String messageId) {
     try {
       Intent intentAlarm = LeanplumLocalPushListenerService.getIntent(context);
       AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

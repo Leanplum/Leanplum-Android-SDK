@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,10 +27,10 @@ import androidx.annotation.Nullable;
 import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
-import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.actions.ActionDefinition;
+import com.leanplum.actions.ActionManagerDefinitionKt;
 import com.leanplum.callbacks.ActionCallback;
-import com.leanplum.callbacks.PostponableAction;
-import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.internal.ActionManager;
 import com.leanplum.messagetemplates.actions.AlertMessage;
 import com.leanplum.messagetemplates.actions.CenterPopupMessage;
 import com.leanplum.messagetemplates.actions.InterstitialMessage;
@@ -49,51 +49,13 @@ public class MessageTemplates {
   private static boolean registered = false;
   private static DialogCustomizer customizer;
 
-  private static ActionCallback createCallback(@NonNull MessageTemplate template) {
-    return new ActionCallback() {
-      @Override
-      public boolean onResponse(ActionContext actionContext) {
-        LeanplumActivityHelper.queueActionUponActive(
-            new PostponableAction() {
-              @Override
-              public void run() {
-                template.handleAction(actionContext);
-              }
-            });
-        return true;
-      }
-    };
-  }
-
-  private static ActionCallback createCallbackWaitVarsAndFiles(@NonNull MessageTemplate template) {
-    return new ActionCallback() {
-      @Override
-      public boolean onResponse(ActionContext actionContext) {
-        Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(
-            new VariablesChangedCallback() {
-              @Override
-              public void variablesChanged() {
-                LeanplumActivityHelper.queueActionUponActive(
-                    new PostponableAction() {
-                      @Override
-                      public void run() {
-                        template.handleAction(actionContext);
-                      }
-                    });
-              }
-            });
-        return true;
-      }
-    };
-  }
-
   /**
    * Registers customizer to use when creating the message templates.
    * Call this method before Leanplum.start.
    *
    * @param customizer Dialog customizer
    */
-  public static void setCustomizer(DialogCustomizer customizer) {
+  public static void setCustomizer(@Nullable DialogCustomizer customizer) {
     MessageTemplates.customizer = customizer;
   }
 
@@ -141,14 +103,24 @@ public class MessageTemplates {
     String name = template.getName();
     ActionArgs args = template.createActionArgs(context);
 
-    ActionCallback callback;
-    if (template.waitFilesAndVariables() || args.containsFile()) { // checks args just in case
-      callback = createCallbackWaitVarsAndFiles(template);
-    } else {
-      callback = createCallback(template);
-    }
-
-    Leanplum.defineAction(name, kind, args, callback);
+    ActionDefinition definition = new ActionDefinition(
+        name,
+        kind,
+        args,
+        null, // options
+        new ActionCallback() {
+          @Override
+          public boolean onResponse(ActionContext context) {
+            return template.present(context);
+          }
+        },
+        new ActionCallback() {
+          @Override
+          public boolean onResponse(ActionContext context) {
+            return template.dismiss(context);
+          }
+        });
+    ActionManagerDefinitionKt.defineAction(ActionManager.getInstance(), definition);
   }
 
   public synchronized static void register(Context context) {

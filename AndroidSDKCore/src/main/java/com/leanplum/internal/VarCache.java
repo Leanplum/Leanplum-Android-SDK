@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,13 +25,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import android.text.TextUtils;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.CacheUpdateBlock;
 import com.leanplum.SecuredVars;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
+import com.leanplum.actions.ActionDefinition;
+import com.leanplum.actions.ActionManagerDefinitionKt;
 import com.leanplum.internal.FileManager.HashResults;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -73,14 +77,12 @@ public class VarCache {
   public static final Map<String, Object> valuesFromClient = new HashMap<>();
 
   private static final Map<String, String> defaultKinds = new HashMap<>();
-  private static final Map<String, Object> actionDefinitions = new HashMap<>();
   private static final String LEANPLUM = "__leanplum__";
   private static Map<String, Object> diffs = new HashMap<>();
   private static Map<String, Object> regions = new HashMap<>();
   private static Map<String, Object> messageDiffs = new HashMap<>();
   private static Map<String, Object> devModeValuesFromServer;
   private static Map<String, Object> devModeFileAttributesFromServer;
-  private static Map<String, Object> devModeActionDefinitionsFromServer;
   private static volatile List<Map<String, Object>> variants = new ArrayList<>();
   private static volatile List<Map<String, Object>> localCaps = new ArrayList<>();
   private static CacheUpdateBlock updateBlock;
@@ -199,7 +201,7 @@ public class VarCache {
     maybeUploadNewFiles();
   }
 
-  private static void updateValues(String name, String[] nameComponents, Object value, String kind,
+  public static void updateValues(String name, String[] nameComponents, Object value, String kind,
       Map<String, Object> values, Map<String, String> kinds) {
     Object valuesPtr = values;
     if (nameComponents != null && nameComponents.length > 0) {
@@ -585,6 +587,8 @@ public class VarCache {
         Map<String, Object> newConfig = new HashMap<>(messageConfig);
         Map<String, Object> actionArgs = CollectionUtil.uncheckedCast(messageConfig.get(Constants
             .Keys.VARS));
+        Map<String, Object> actionDefinitions =
+            ActionManagerDefinitionKt.getActionDefinitionMaps(ActionManager.getInstance());
         Map<String, Object> defaultArgs = Util.multiIndex(actionDefinitions,
             newConfig.get(Constants.Params.ACTION), "values");
         Map<String, Object> vars = CollectionUtil.uncheckedCast(mergeHelper(defaultArgs,
@@ -651,34 +655,6 @@ public class VarCache {
     return contentVersion;
   }
 
-  @SuppressWarnings("SameParameterValue")
-  private static boolean areActionDefinitionsEqual(
-      Map<String, Object> a, Map<String, Object> b) {
-    if ((a == null || b == null) || (a.size() != b.size())) {
-      return false;
-    }
-    for (Map.Entry<String, Object> entry : a.entrySet()) {
-      Map<String, Object> aItem = CollectionUtil.uncheckedCast(entry.getValue());
-      Map<String, Object> bItem = CollectionUtil.uncheckedCast(b.get(entry.getKey()));
-      if (bItem == null || aItem == null) {
-        return false;
-      }
-
-      Object aKind = aItem.get("kind");
-      Object aValues = aItem.get("values");
-      Object aKinds = aItem.get("kinds");
-      Object aOptions = aItem.get("options");
-      if (aKind != null && !aKind.equals(bItem.get("kind")) ||
-          aValues != null && !aValues.equals(bItem.get("values")) ||
-          aKinds != null && !aKinds.equals(bItem.get("kinds")) ||
-          (aOptions == null) != (bItem.get("options") == null) ||
-          aOptions != null && aOptions.equals(bItem.get("options"))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   private static void triggerHasReceivedDiffs() {
     hasReceivedDiffs = true;
     if (updateBlock != null) {
@@ -700,8 +676,13 @@ public class VarCache {
         && !valuesFromClient.equals(devModeValuesFromServer)) {
       changed = true;
     }
-    if (actions && !areActionDefinitionsEqual(
-        actionDefinitions, devModeActionDefinitionsFromServer)) {
+    Map<String, Object> actionDefinitions =
+        ActionManagerDefinitionKt.getActionDefinitionMaps(ActionManager.getInstance());
+
+    boolean areLocalAndServerDefinitionsEqual =
+        ActionManagerDefinitionKt.areLocalAndServerDefinitionsEqual(ActionManager.getInstance());
+
+    if (actions && !areLocalAndServerDefinitionsEqual) {
       changed = true;
     }
 
@@ -815,7 +796,9 @@ public class VarCache {
   public static void setDevModeValuesFromServer(Map<String, Object> values,
       Map<String, Object> fileAttributes, Map<String, Object> actionDefinitions) {
     devModeValuesFromServer = values;
-    devModeActionDefinitionsFromServer = actionDefinitions;
+    ActionManagerDefinitionKt.setDevModeActionDefinitionsFromServer(
+        ActionManager.getInstance(),
+        actionDefinitions);
     devModeFileAttributesFromServer = fileAttributes;
   }
 
@@ -831,32 +814,12 @@ public class VarCache {
     return localCaps;
   }
 
-  public static Map<String, Object> actionDefinitions() {
-    return actionDefinitions;
-  }
+//  public static Map<String, Object> actionDefinitions() {
+//    return actionDefinitions;
+//  }
 
   public static Map<String, Object> messages() {
     return messages;
-  }
-
-  public static void registerActionDefinition(
-      String name, int kind, List<ActionArg<?>> args,
-      Map<String, Object> options) {
-    Map<String, Object> values = new HashMap<>();
-    Map<String, String> kinds = new HashMap<>();
-    List<String> order = new ArrayList<>();
-    for (ActionArg<?> arg : args) {
-      updateValues(arg.name(), getNameComponents(arg.name()),
-          arg.defaultValue(), arg.kind(), values, kinds);
-      order.add(arg.name());
-    }
-    Map<String, Object> definition = new HashMap<>();
-    definition.put("kind", kind);
-    definition.put("values", values);
-    definition.put("kinds", kinds);
-    definition.put("order", order);
-    definition.put("options", options);
-    actionDefinitions.put(name, definition);
   }
 
   public static <T> String kindFromValue(T defaultValue) {
@@ -923,17 +886,6 @@ public class VarCache {
     return new SecuredVars(varsJson, varsSignature);
   }
 
-  public static int getActionDefinitionType(String actionName) {
-    Object actionDef = actionDefinitions().get(actionName);
-    if (actionDef instanceof Map<?, ?>) {
-      Integer kind = (Integer) ((Map<?, ?>) actionDef).get("kind");
-      if (kind != null) {
-        return kind;
-      }
-    }
-    return 0;
-  }
-
   public static void clearUserContent() {
     vars.clear();
     variants = new ArrayList<>();
@@ -950,7 +902,8 @@ public class VarCache {
 
     devModeValuesFromServer = null;
     devModeFileAttributesFromServer = null;
-    devModeActionDefinitionsFromServer = null;
+    ActionManagerDefinitionKt.setDevModeActionDefinitionsFromServer(
+        ActionManager.getInstance(), null);
   }
 
   /**
@@ -963,13 +916,14 @@ public class VarCache {
     fileStreams.clear();
     valuesFromClient.clear();
     defaultKinds.clear();
-    actionDefinitions.clear();
+//    actionDefinitions.clear(); // TODO use new architecture
     diffs.clear();
     messageDiffs.clear();
     regions.clear();
     devModeValuesFromServer = null;
     devModeFileAttributesFromServer = null;
-    devModeActionDefinitionsFromServer = null;
+    ActionManagerDefinitionKt.setDevModeActionDefinitionsFromServer(
+        ActionManager.getInstance(), null);
     variants = new ArrayList<>();
     localCaps = new ArrayList<>();
     updateBlock = null;

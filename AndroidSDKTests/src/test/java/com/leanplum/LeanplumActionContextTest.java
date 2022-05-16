@@ -30,7 +30,6 @@ import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
 import org.apache.maven.artifact.ant.shaded.IOUtil;
@@ -300,18 +299,18 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         // Should be null safe and return false.
         Assert.assertFalse(
-                ActionContext.shouldForceContentUpdateForChainedMessage(JsonConverter.fromJson(null)));
+                ActionContext.shouldFetchChainedMessage(JsonConverter.fromJson(null)));
         // Chained messageId should also be null.
         Assert.assertNull(ActionContext.getChainedMessageId(JsonConverter.fromJson(null)));
         // We should return true if we have a chained message that is not in our VarCache yet.
-        Assert.assertTrue(ActionContext.shouldForceContentUpdateForChainedMessage(
+        Assert.assertTrue(ActionContext.shouldFetchChainedMessage(
                 JsonConverter.fromJson(jsonData)));
         // Add chained message to VarCache.
         VarCache.applyVariableDiffs(null, new HashMap<>(
                 ImmutableMap.<String, Object>of(Long.toString(chainedMessageId),
                 ImmutableMap.<String, Object>of())), null, null, null, null, null, null);
         // Since it now exists locally, we should return false for forceContentUpdate.
-        Assert.assertFalse(ActionContext.shouldForceContentUpdateForChainedMessage(
+        Assert.assertFalse(ActionContext.shouldFetchChainedMessage(
                 JsonConverter.fromJson(jsonData)));
         // However, we should still get proper messageId.
         Assert.assertEquals(ActionContext.getChainedMessageId(JsonConverter.fromJson(jsonData)),

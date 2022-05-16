@@ -43,23 +43,54 @@ public interface MessageTemplate {
    * @param context Android context
    */
   @NonNull
-  ActionArgs createActionArgs(Context context);
+  ActionArgs createActionArgs(@NonNull Context context);
+
+  /**
+   * Called in response to the registered action.
+   * Use it to show your message to the user.
+   *
+   * @deprecated Use {@link #present(ActionContext)} instead.
+   *
+   * @param context The context in which an action or message is executed.
+   */
+  @Deprecated
+  default void handleAction(@NonNull ActionContext context) {
+    // default implementation for deprecation purposes
+    throw new RuntimeException("not implemented"); // TODO remove or replace with message
+  }
 
   /**
    * Called in response to the registered action.
    * Use it to show your message to the user.
    *
    * @param context The context in which an action or message is executed.
+   * @return True if message was presented, false otherwise.
    */
-  void handleAction(ActionContext context);
+  default boolean present(@NonNull ActionContext context) {
+    handleAction(context);
+    return true;
+  }
+
+  /**
+   * Called in response to dismiss request. If implemented you have to dismiss the message.
+   *
+   * @param context The context in which an action or message is executed.
+   * @return True if message was dismissed, false otherwise.
+   */
+  default boolean dismiss(@NonNull ActionContext context) {
+    return false;
+  }
 
   /**
    * If your custom template depends on files or variables, that will be downloaded, override and
    * return true.
    *
+   * @deprecated Resource are downloaded automatically. No need to implement.
+   *
    * @return true to wait for files and variables to finish downloading before calling
-   * {@link #handleAction(ActionContext)}.
+   * {@link #present(ActionContext)}.
    */
+  @Deprecated
   default boolean waitFilesAndVariables() {
     return false;
   }

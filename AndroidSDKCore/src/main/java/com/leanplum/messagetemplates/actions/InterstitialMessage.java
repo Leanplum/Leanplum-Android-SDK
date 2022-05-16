@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +34,8 @@ import com.leanplum.messagetemplates.options.InterstitialOptions;
 public class InterstitialMessage implements MessageTemplate {
   private static final String INTERSTITIAL = "Interstitial";
 
+  private InterstitialController interstitial;
+
   @NonNull
   @Override
   public String getName() {
@@ -42,24 +44,32 @@ public class InterstitialMessage implements MessageTemplate {
 
   @NonNull
   @Override
-  public ActionArgs createActionArgs(Context context) {
+  public ActionArgs createActionArgs(@NonNull Context context) {
     return InterstitialOptions.toArgs(context);
   }
 
   @Override
-  public void handleAction(ActionContext context) {
+  public boolean present(@NonNull ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
-      return;
+      return false;
     }
 
     InterstitialOptions options = new InterstitialOptions(context);
-    InterstitialController interstitial = new InterstitialController(activity, options);
+    interstitial = new InterstitialController(activity, options);
+    interstitial.setOnDismissListener(listener -> interstitial = null);
     interstitial.show();
+
+    return true;
   }
 
   @Override
-  public boolean waitFilesAndVariables() {
+  public boolean dismiss(@NonNull ActionContext context) {
+    if (interstitial != null) {
+      interstitial.setOnDismissListener(listener -> context.actionDismissed());
+      interstitial.dismiss();
+      interstitial = null;
+    }
     return true;
   }
 }

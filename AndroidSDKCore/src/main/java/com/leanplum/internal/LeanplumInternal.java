@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -31,12 +31,17 @@ import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumException;
 import com.leanplum.LeanplumLocationAccuracyType;
+import com.leanplum.actions.ActionManagerExecutionKt;
+import com.leanplum.actions.ActionManagerTriggeringKt;
+import com.leanplum.actions.ActionsTrigger;
+import com.leanplum.actions.Priority;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.models.GeofenceEventType;
 
+import java.util.Arrays;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -61,6 +66,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class LeanplumInternal {
   private static final String ACTION = "action";
+  private static final String LEANPLUM_LOCAL_PUSH_HELPER =
+      "com.leanplum.internal.LeanplumLocalPushHelper";
   private static boolean hasStartedAndRegisteredAsDeveloper;
   private static final Map<String, List<ActionCallback>> actionHandlers = new HashMap<>();
   private static boolean issuedStart;
@@ -109,7 +116,7 @@ public class LeanplumInternal {
     triggerAction(context, null);
   }
 
-  public static void triggerAction(final ActionContext context,
+  public static void triggerAction(final ActionContext context, // TODO change/remove method to use new architecture
       final VariablesChangedCallback handledCallback) {
     List<ActionCallback> callbacks;
     synchronized (actionHandlers) {
@@ -191,22 +198,10 @@ public class LeanplumInternal {
 
       // Make sure we cancel before matching in case the criteria overlap.
       if (result.matchedUnlessTrigger) {
-        String cancelActionName = "__Cancel" + messageConfig.get(ACTION);
-        LeanplumInternal.triggerAction(new ActionContext(
-                cancelActionName, new HashMap<String, Object>(), messageId),
-            new VariablesChangedCallback() {
-              @Override
-              public void variablesChanged() {
-                // Track cancel.
-                try {
-                  Map<String, String> requestArgs = new HashMap<>();
-                  requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
-                  track("Cancel", 0.0, null, null, requestArgs);
-                } catch (Throwable t) {
-                  Log.exception(t);
-                }
-              }
-            });
+        // Currently Unless Trigger is possible for Local Notifications only
+        if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(messageConfig.get(ACTION))) {
+          cancelLocalPush(messageId);
+        }
       }
 
       // Make sure message is within the active period.
@@ -245,22 +240,8 @@ public class LeanplumInternal {
           return o1.getPriority() - o2.getPriority();
         }
       });
-      int priorityThreshold = actionContexts.get(0).getPriority();
-      int countDownThreshold = fetchCountDown(actionContexts.get(0), messages);
-      Boolean isPrioritySame = false;
+      List<ActionContext> triggerContexts = new ArrayList<>();
       for (final ActionContext actionContext : actionContexts) {
-        if (actionContext.getPriority() > priorityThreshold) {
-          break;
-        }
-        // check if priority is same.
-        if (isPrioritySame) {
-          int currentCountDown = fetchCountDown(actionContext, messages);
-          //multiple messages have same priority and same countDown, only display one message
-          if (currentCountDown == countDownThreshold) {
-            break;
-          }
-        }
-        isPrioritySame = true;
         if (actionContext.actionName().equals(ActionManager.HELD_BACK_ACTION_NAME)) {
           ActionManager.getInstance().recordHeldBackImpression(
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
@@ -269,26 +250,23 @@ public class LeanplumInternal {
             Log.d("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
             continue;
           }
-
-          LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
-            @Override
-            public void variablesChanged() {
-              try {
-                // record impression if we have at least one handler
-                if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(actionContext.actionName())) {
-                  // Special case for local push notification. Do not want to count impression.
-                  ActionManager.getInstance().recordLocalPushImpression(actionContext.getMessageId());
-                } else {
-                  ActionManager.getInstance().recordMessageImpression(actionContext.getMessageId());
-                }
-                Leanplum.triggerMessageDisplayed(actionContext);
-              } catch (Throwable t) {
-                Log.exception(t);
-              }
-            }
-          });
+          if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(actionContext.actionName())) {
+            scheduleLocalPush(actionContext);
+          } else {
+            triggerContexts.add(actionContext);
+          }
         }
       }
+      ActionsTrigger trigger = new ActionsTrigger(
+          eventName,
+          Arrays.asList(whenConditions),
+          contextualValues);
+
+      ActionManagerTriggeringKt.trigger(
+          ActionManager.getInstance(),
+          triggerContexts,
+          Priority.DEFAULT,
+          trigger);
     }
   }
 
@@ -306,6 +284,38 @@ public class LeanplumInternal {
 
     // checks if message caps are reached
     return ActionManager.getInstance().shouldSuppressMessages();
+  }
+
+  private static void scheduleLocalPush(ActionContext actionContext) {
+    try {
+      boolean scheduled = (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
+          .getDeclaredMethod("scheduleLocalPush", ActionContext.class)
+          .invoke(new Object(), actionContext);
+
+      if (scheduled) {
+        // Special case for local push notification. Do not want to count impression.
+        ActionManager.getInstance().recordLocalPushImpression(actionContext.getMessageId());
+        Leanplum.triggerMessageDisplayed(actionContext); // TODO is triggerMessageDisplayed necessary ?
+      }
+    } catch (Throwable t) {
+      Log.exception(t);
+    }
+  }
+
+  private static void cancelLocalPush(@NonNull String messageId) {
+    try {
+      boolean canceled = (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
+          .getDeclaredMethod("cancelLocalPush", String.class)
+          .invoke(null, messageId);
+
+      if (canceled) {
+        Map<String, String> requestArgs = new HashMap<>();
+        requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
+        track("Cancel", 0.0, null, null, requestArgs);
+      }
+    } catch (Throwable t) {
+      Log.exception(t);
+    }
   }
 
   private static int fetchCountDown(ActionContext context, Map<String, Object> messages) {
@@ -698,7 +708,7 @@ public class LeanplumInternal {
     return hasStartedAndRegisteredAsDeveloper;
   }
 
-  public static Map<String, List<ActionCallback>> getActionHandlers() {
+  public static Map<String, List<ActionCallback>> getActionHandlers() { // TODO change/remove method to use new architecture
     return actionHandlers;
   }
 

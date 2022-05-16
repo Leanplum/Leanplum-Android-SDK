@@ -28,6 +28,9 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.leanplum.ActionContext.ContextualValues;
+import com.leanplum.actions.ActionDefinition;
+import com.leanplum.actions.ActionManagerDefinitionKt;
+import com.leanplum.actions.ActionManagerExecutionKt;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.ForceContentUpdateCallback;
 import com.leanplum.callbacks.MessageDisplayedCallback;
@@ -1024,6 +1027,7 @@ public class Leanplum {
     RequestSender.getInstance().send(request);
     stopRequestTimer();
     LeanplumInternal.setIsPaused(true);
+    ActionManager.getInstance().setPaused(true);
   }
 
   /**
@@ -1069,6 +1073,7 @@ public class Leanplum {
     }
     startRequestTimer();
     LeanplumInternal.setIsPaused(false);
+    ActionManager.getInstance().setPaused(false);
   }
 
   private static void startRequestTimer() {
@@ -1363,14 +1368,18 @@ public class Leanplum {
       return;
     }
 
-    if (VarCache.hasReceivedDiffs()
-        && FileTransferManager.getInstance().numPendingDownloads() == 0) {
+    if (areVariablesReceivedAndNoDownloadsPending()) {
       handler.variablesChanged();
     } else {
       synchronized (onceNoDownloadsHandlers) {
         onceNoDownloadsHandlers.add(handler);
       }
     }
+  }
+
+  static boolean areVariablesReceivedAndNoDownloadsPending() {
+    return VarCache.hasReceivedDiffs()
+        && FileTransferManager.getInstance().numPendingDownloads() == 0;
   }
 
   /**
@@ -1423,16 +1432,29 @@ public class Leanplum {
    * @param name The name of the action to register.
    * @param kind Whether to display the action as a message and/or a regular action.
    * @param args User-customizable options for the action.
-   * @param responder Called when the action is triggered with a context object containing the
+   * @param presentHandler Called when the action is triggered with a context object containing the
    * user-specified options.
+   * @param dismissHandler Called when the action needs to be dismissed in order to prioritize other
+   *                       message.
    */
-  public static void defineAction(String name, int kind, ActionArgs args,
-      ActionCallback responder) {
-    defineAction(name, kind, args, null, responder);
+  public static void defineAction(
+      String name,
+      int kind,
+      ActionArgs args,
+      ActionCallback presentHandler,
+      ActionCallback dismissHandler) {
+
+    defineAction(name, kind, args, null, presentHandler, dismissHandler);
   }
 
-  private static void defineAction(String name, int kind, ActionArgs args,
-      Map<String, Object> options, ActionCallback responder) {
+  private static void defineAction(
+      String name,
+      int kind,
+      ActionArgs args,
+      Map<String, Object> options,
+      ActionCallback presentHandler,
+      ActionCallback dismissHandler) {
+
     if (TextUtils.isEmpty(name)) {
       Log.e("defineAction - Empty name parameter provided.");
       return;
@@ -1446,10 +1468,19 @@ public class Leanplum {
       if (options == null) {
         options = new HashMap<>();
       }
-      LeanplumInternal.getActionHandlers().remove(name);
-      VarCache.registerActionDefinition(name, kind, args.getValue(), options);
-      if (responder != null) {
-        onAction(name, responder);
+
+      ActionDefinition actionDefinition = new ActionDefinition(
+          name,
+          kind,
+          args,
+          options,
+          presentHandler,
+          dismissHandler);
+
+      ActionManagerDefinitionKt.defineAction(ActionManager.getInstance(), actionDefinition);
+
+      if (presentHandler != null) {
+        ActionManagerDefinitionKt.onAction(ActionManager.getInstance(), name, presentHandler);
       }
     } catch (Throwable t) {
       Log.exception(t);
@@ -1472,12 +1503,7 @@ public class Leanplum {
       return;
     }
 
-    List<ActionCallback> handlers = LeanplumInternal.getActionHandlers().get(actionName);
-    if (handlers == null) {
-      handlers = new ArrayList<>();
-      LeanplumInternal.getActionHandlers().put(actionName, handlers);
-    }
-    handlers.add(handler);
+    ActionManagerDefinitionKt.onAction(ActionManager.getInstance(), actionName, handler);
   }
 
   /**

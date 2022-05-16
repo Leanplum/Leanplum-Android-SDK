@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -33,6 +33,7 @@ import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.OperationQueue;
 import com.leanplum.messagetemplates.MessageTemplate;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Args;
 import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
@@ -55,7 +56,7 @@ public class OpenUrlAction implements MessageTemplate {
     return OPEN_URL;
   }
 
-  private static void openUriIntent(Context context, Intent uriIntent) {
+  private static boolean openUriIntent(Context context, Intent uriIntent) {
     List<ResolveInfo> resolveInfoList =
         context.getPackageManager().queryIntentActivities(uriIntent, 0);
 
@@ -76,23 +77,25 @@ public class OpenUrlAction implements MessageTemplate {
       // Even if we have valid destination, startActivity can crash if
       // activity we are trying to open is not exported in manifest.
       context.startActivity(uriIntent);
+      return true;
     } catch (ActivityNotFoundException e) {
       Log.e("Activity you are trying to start doesn't exist or " +
           "isn't exported in manifest: " + e);
+      return false;
     }
   }
 
   @NonNull
   @Override
-  public ActionArgs createActionArgs(Context context) {
+  public ActionArgs createActionArgs(@NonNull Context context) {
     return new ActionArgs().with(Args.URL, Values.DEFAULT_URL);
   }
 
   @Override
-  public void handleAction(ActionContext actionContext) {
+  public boolean present(@NonNull ActionContext actionContext) {
     Context context = Leanplum.getContext();
     if (context == null) {
-      return;
+      return false;
     }
     String url = actionContext.stringNamed(Args.URL);
     Intent uriIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -102,6 +105,21 @@ public class OpenUrlAction implements MessageTemplate {
     if (!(context instanceof Activity)) {
       uriIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     }
-    openUriIntent(context, uriIntent);
+    boolean opened = openUriIntent(context, uriIntent);
+
+    // Run after the other executor code
+    OperationQueue.sharedInstance().addUiOperation(() -> actionContext.runActionNamed(Args.DISMISS_ACTION));
+
+    // TODO Trqbva li da se dobavi kym Lifecycle callback-a i dostyp do executor-a, za da moje da se izchistva ako se smeni aktivity?
+    // za momenta uspqva da si pokaje novoto activity i chak togava pokazva sledvashtoto syobshtenie ot opashkata, zaradi
+    // upotrebata na UI queue-to
+
+    return opened;
+  }
+
+  @Override
+  public boolean dismiss(@NonNull ActionContext context) {
+    // nothing to do
+    return true;
   }
 }

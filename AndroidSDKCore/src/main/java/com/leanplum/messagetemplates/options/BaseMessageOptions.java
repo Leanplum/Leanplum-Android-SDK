@@ -1,5 +1,5 @@
 /*
- * Copyright 2014, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -42,7 +42,7 @@ import java.io.InputStream;
  * @author Martin Yanakiev
  */
 public abstract class BaseMessageOptions {
-  private ActionContext context;
+  private final ActionContext context;
   private String title;
   private int titleColor;
   private String messageText;

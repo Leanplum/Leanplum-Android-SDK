@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -53,7 +53,6 @@ public class LeanplumLocalPushListenerService extends JobIntentService {
         Intent intent = new Intent();
         intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_SERVICE_CLASS, LP_CLASS_NAME);
         intent.putExtra(LeanplumJobStartReceiver.LP_EXTRA_JOB_ID, LP_JOB_ID);
-        intent.putExtra(Keys.LOCAL_PUSH_OCCURRENCE_ID, UUID.randomUUID().toString());
         intent.setClass(context, LeanplumJobStartReceiver.class);
         return intent;
     }

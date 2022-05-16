@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +34,8 @@ import com.leanplum.messagetemplates.options.CenterPopupOptions;
 public class CenterPopupMessage implements MessageTemplate {
   private static final String CENTER_POPUP = "Center Popup";
 
+  private CenterPopupController popup;
+
   @NonNull
   @Override
   public String getName() {
@@ -42,24 +44,32 @@ public class CenterPopupMessage implements MessageTemplate {
 
   @NonNull
   @Override
-  public ActionArgs createActionArgs(Context context) {
+  public ActionArgs createActionArgs(@NonNull Context context) {
     return CenterPopupOptions.toArgs(context);
   }
 
   @Override
-  public void handleAction(ActionContext context) {
+  public boolean present(@NonNull ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
-      return;
+      return false;
     }
 
     CenterPopupOptions options = new CenterPopupOptions(context);
-    CenterPopupController popup = new CenterPopupController(activity, options);
+    popup = new CenterPopupController(activity, options);
+    popup.setOnDismissListener(listener -> popup = null);
     popup.show();
+
+    return true;
   }
 
   @Override
-  public boolean waitFilesAndVariables() {
+  public boolean dismiss(@NonNull ActionContext context) {
+    if (popup != null) {
+      popup.setOnDismissListener(listener -> context.actionDismissed());
+      popup.dismiss();
+      popup = null;
+    }
     return true;
   }
 }

@@ -28,6 +28,9 @@ import android.content.DialogInterface;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.actions.Action;
+import com.leanplum.actions.ActionManagerDefinitionKt;
+import com.leanplum.actions.ActionManagerExecutionKt;
 import com.leanplum.callbacks.VariablesChangedCallback;
 
 import org.json.JSONArray;
@@ -37,7 +40,6 @@ import org.json.JSONObject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -212,7 +214,8 @@ public class Socket {
         boolean isRooted = payload.getBoolean("isRooted");
         String actionType = actionJson.getString(Constants.Values.ACTION_ARG);
         Map<String, Object> defaultDefinition = CollectionUtil.uncheckedCast(
-            VarCache.actionDefinitions().get(actionType));
+            ActionManagerDefinitionKt.getActionDefinitionMap(
+                ActionManager.getInstance(), actionType));
         Map<String, Object> defaultArgs = null;
         if (defaultDefinition != null) {
           defaultArgs = CollectionUtil.uncheckedCast(defaultDefinition.get("values"));
@@ -224,9 +227,9 @@ public class Socket {
         ((BaseActionContext) context).setIsRooted(isRooted);
         ((BaseActionContext) context).setIsPreview(true);
         context.update();
-        LeanplumInternal.triggerAction(context);
-        ActionManager.getInstance().recordMessageImpression(context.getMessageId());
-        Leanplum.triggerMessageDisplayed(context);
+        ActionManagerExecutionKt.appendAction(ActionManager.getInstance(), Action.create(context));
+//        ActionManager.getInstance().recordMessageImpression(context.getMessageId()); // TODO fix with new architecture
+//        Leanplum.triggerMessageDisplayed(context);
       }
     } catch (JSONException e) {
       Log.e("Error getting action info", e);

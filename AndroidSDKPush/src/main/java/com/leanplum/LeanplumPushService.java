@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -36,7 +36,6 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.WorkerThread;
 import com.leanplum.LeanplumActivityHelper.NoTrampolinesLifecycleCallbacks;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.ActionManager;
@@ -46,7 +45,6 @@ import com.leanplum.internal.Constants.Params;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.PushActionPersistenceKt;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestBuilder;
@@ -56,7 +54,6 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 import com.leanplum.utils.BuildUtil;
 
-import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -392,7 +389,7 @@ public class LeanplumPushService {
 
     try {
       // Check if we have a chained message, and if it exists in var cache.
-      if (ActionContext.shouldForceContentUpdateForChainedMessage(
+      if (ActionContext.shouldFetchChainedMessage(
           JsonConverter.fromJson(message.getString(Keys.PUSH_MESSAGE_ACTION)))) {
 
         // try to fetch referenced chained message and wait a bit for result
@@ -545,8 +542,6 @@ public class LeanplumPushService {
     String occurrenceId;
     if (notification.containsKey(Keys.PUSH_OCCURRENCE_ID)) {
       occurrenceId = (String) notification.get(Keys.PUSH_OCCURRENCE_ID);
-    } else if (notification.containsKey(Keys.LOCAL_PUSH_OCCURRENCE_ID)){
-      occurrenceId = (String) notification.get(Keys.LOCAL_PUSH_OCCURRENCE_ID);
     } else {
       Log.i("Skipping execution of Open Action because occurrenceId is missing.");
       return;

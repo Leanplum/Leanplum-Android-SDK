@@ -116,7 +116,7 @@ public class ActionArgs {
     return this;
   }
 
-  List<ActionArg<?>> getValue() {
+  public List<ActionArg<?>> getValue() {
     return args;
   }
 

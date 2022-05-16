@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,12 +25,18 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import android.text.TextUtils;
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
-import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
-import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.actions.Action;
+import com.leanplum.actions.ActionManagerExecutionKt;
+import com.leanplum.actions.ActionQueue;
+import com.leanplum.actions.ActionScheduler;
+import com.leanplum.actions.Definitions;
+import com.leanplum.actions.MessageDisplayController;
+import com.leanplum.actions.MessageDisplayListener;
 import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -53,12 +59,61 @@ public class ActionManager {
   private final Map<String, Number> messageTriggerOccurrences = new HashMap<>();
   private final Map<String, Number> sessionOccurrences = new HashMap<>();
 
+  // ======= new code ========
+  // TODO create setters/getters to use with Kotlin
+  public MessageDisplayListener messageDisplayListener;
+  public MessageDisplayController messageDisplayController;
+  public ActionQueue queue = new ActionQueue();
+  public ActionQueue delayedQueue = new ActionQueue();
+  public ActionScheduler scheduler = new ActionScheduler() {
+    @Override
+    public void schedule(@NonNull Action action, int delaySeconds) {
+      OperationQueue.sharedInstance().addOperationAfterDelay(
+          () -> ActionManagerExecutionKt.appendAction(ActionManager.this, action),
+          delaySeconds * 1000L
+      );
+    }
+  };
+  public Definitions definitions = new Definitions();
+  private boolean enabled = true; // when manager is disabled it will stop adding actions in queue
+  public void setEnabled(boolean value) {
+    Log.i("[ActionManager] isEnabled: " + value);
+    enabled = value;
+  }
+  public boolean isEnabled() {
+    return enabled;
+  }
+  private boolean paused = true; // variable used when fetching chained action, paused until Activity is presented
+  public void setPaused(boolean value) {
+    Log.i("[ActionManager] isPaused: " + value);
+    paused = value;
+    if (!paused) {
+      ActionManagerExecutionKt.performActions(ActionManager.getInstance());
+    }
+  }
+  public boolean isPaused() {
+    return paused;
+  }
+  private Action currentAction;
+  public void setCurrentAction(Action action) {
+    if (action == null) {
+      String name = currentAction != null ? currentAction.getContext().actionName() : null;
+      Log.e("Clear currentAction from name=" + name);
+    } else {
+      Log.e("Assign currentAction name=" + action.getContext().actionName());
+    }
+    this.currentAction = action;
+  }
+  public Action getCurrentAction() {
+    return this.currentAction;
+  }
+  private final Map<String, Object> actionDefinitions = new HashMap<>();
+  // ======= end of new code ======== // TODO properly place new code and fix logs
+
   private static ActionManager instance;
 
   public static final String PUSH_NOTIFICATION_ACTION_NAME = "__Push Notification";
   public static final String HELD_BACK_ACTION_NAME = "__held_back";
-  private static final String LEANPLUM_LOCAL_PUSH_HELPER =
-      "com.leanplum.internal.LeanplumLocalPushHelper";
   private static LocationManager locationManager;
   private static boolean loggedLocationManagerFailure = false;
 
@@ -104,86 +159,6 @@ public class ActionManager {
   }
 
   private ActionManager() {
-    listenForLocalNotifications();
-  }
-
-  private void listenForLocalNotifications() {
-    Leanplum.onAction(PUSH_NOTIFICATION_ACTION_NAME, new ActionCallback() {
-      @Override
-      public boolean onResponse(ActionContext actionContext) {
-        try {
-          String messageId = actionContext.getMessageId();
-
-          // Get eta.
-          Object countdownObj;
-          if (((BaseActionContext) actionContext).isPreview()) {
-            countdownObj = 5.0;
-          } else {
-            Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(
-                VarCache.getMessageDiffs().get(messageId));
-            if (messageConfig == null) {
-              Log.e("Could not find message options for ID " + messageId);
-              return false;
-            }
-            countdownObj = messageConfig.get("countdown");
-          }
-          if (!(countdownObj instanceof Number)) {
-            Log.e("Invalid notification countdown: " + countdownObj);
-            return false;
-          }
-          long eta = Clock.getInstance().currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
-          // Schedule notification.
-          try {
-            return (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
-                .getDeclaredMethod("scheduleLocalPush", ActionContext.class, String.class,
-                    long.class).invoke(new Object(), actionContext, messageId, eta);
-          } catch (Throwable throwable) {
-            return false;
-          }
-        } catch (Throwable t) {
-          Log.exception(t);
-          return false;
-        }
-      }
-
-    });
-
-    Leanplum.onAction("__Cancel" + PUSH_NOTIFICATION_ACTION_NAME, new ActionCallback() {
-      @Override
-      public boolean onResponse(ActionContext actionContext) {
-        try {
-          String messageId = actionContext.getMessageId();
-
-          // Get existing eta and clear notification from preferences.
-          Context context = Leanplum.getContext();
-          SharedPreferences preferences = context.getSharedPreferences(
-              Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
-          String preferencesKey = String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY,
-              messageId);
-          long existingEta = preferences.getLong(preferencesKey, 0L);
-          SharedPreferences.Editor editor = preferences.edit();
-          editor.remove(preferencesKey);
-          SharedPreferencesUtil.commitChanges(editor);
-
-          // Cancel notification.
-          try {
-            Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
-                .getDeclaredMethod("cancelLocalPush", Context.class, String.class)
-                .invoke(new Object(), context, messageId);
-            boolean didCancel = existingEta > Clock.getInstance().currentTimeMillis();
-            if (didCancel) {
-              Log.i("Cancelled notification");
-            }
-            return didCancel;
-          } catch (Throwable throwable) {
-            return false;
-          }
-        } catch (Throwable t) {
-          Log.exception(t);
-          return false;
-        }
-      }
-    });
   }
 
   public Map<String, Number> getMessageImpressionOccurrences(String messageId) {
