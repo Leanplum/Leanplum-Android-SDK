@@ -145,7 +145,6 @@ public class LeanplumTestHelper {
         (List) TestClassUtil.getField(Leanplum.class, "messageDisplayedHandlers");
     messageDisplayedHandlers.clear();
 
-//    LeanplumInternal.getActionHandlers().clear(); // TODO remove/fix for new architecture
     LeanplumInternal.getUserAttributeChanges().clear();
     Leanplum.countAggregator().getAndClearCounts();
 

@@ -229,7 +229,6 @@ public class Socket {
         context.update();
         ActionManagerExecutionKt.appendAction(ActionManager.getInstance(), Action.create(context));
 //        ActionManager.getInstance().recordMessageImpression(context.getMessageId()); // TODO fix with new architecture
-//        Leanplum.triggerMessageDisplayed(context);
       }
     } catch (JSONException e) {
       Log.e("Error getting action info", e);

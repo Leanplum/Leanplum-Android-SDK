@@ -145,13 +145,6 @@ private fun ActionManager.performActionsImpl() {
       return@with
     }
 
-    // invoke registered onAction handlers
-    definitions.handlers[this.actionName()]?.forEach {
-      OperationQueue.sharedInstance().addUiOperation {
-        it.onResponse(this)
-      }
-    }
-
     if (currentAction != null) {
       recordImpression(currentAction)
     }
@@ -177,11 +170,9 @@ private fun ActionManager.recordImpression(action: Action) {
       } else {
         recordMessageImpression(ctx.messageId)
       }
-      Leanplum.triggerMessageDisplayed(ctx) // TODO remove triggerMessageDisplayed handlers?
 
     } else {
       recordMessageImpression(action.context.messageId)
-      Leanplum.triggerMessageDisplayed(ctx)
     }
   } catch (t: Throwable) {
     Log.exception(t)

@@ -59,13 +59,9 @@ public class ActionManager {
   private final Map<String, Number> messageTriggerOccurrences = new HashMap<>();
   private final Map<String, Number> sessionOccurrences = new HashMap<>();
 
-  // ======= new code ========
-  // TODO create setters/getters to use with Kotlin
-  public MessageDisplayListener messageDisplayListener;
-  public MessageDisplayController messageDisplayController;
-  public ActionQueue queue = new ActionQueue();
-  public ActionQueue delayedQueue = new ActionQueue();
-  public ActionScheduler scheduler = new ActionScheduler() {
+  private MessageDisplayListener messageDisplayListener;
+  private MessageDisplayController messageDisplayController;
+  private final ActionScheduler scheduler = new ActionScheduler() {
     @Override
     public void schedule(@NonNull Action action, int delaySeconds) {
       OperationQueue.sharedInstance().addOperationAfterDelay(
@@ -74,41 +70,13 @@ public class ActionManager {
       );
     }
   };
-  public Definitions definitions = new Definitions();
+
   private boolean enabled = true; // when manager is disabled it will stop adding actions in queue
-  public void setEnabled(boolean value) {
-    Log.i("[ActionManager] isEnabled: " + value);
-    enabled = value;
-  }
-  public boolean isEnabled() {
-    return enabled;
-  }
   private boolean paused = true; // variable used when fetching chained action, paused until Activity is presented
-  public void setPaused(boolean value) {
-    Log.i("[ActionManager] isPaused: " + value);
-    paused = value;
-    if (!paused) {
-      ActionManagerExecutionKt.performActions(ActionManager.getInstance());
-    }
-  }
-  public boolean isPaused() {
-    return paused;
-  }
+  private final ActionQueue queue = new ActionQueue();
+  private final ActionQueue delayedQueue = new ActionQueue();
+  private final Definitions definitions = new Definitions();
   private Action currentAction;
-  public void setCurrentAction(Action action) {
-    if (action == null) {
-      String name = currentAction != null ? currentAction.getContext().actionName() : null;
-      Log.e("Clear currentAction from name=" + name);
-    } else {
-      Log.e("Assign currentAction name=" + action.getContext().actionName());
-    }
-    this.currentAction = action;
-  }
-  public Action getCurrentAction() {
-    return this.currentAction;
-  }
-  private final Map<String, Object> actionDefinitions = new HashMap<>();
-  // ======= end of new code ======== // TODO properly place new code and fix logs
 
   private static ActionManager instance;
 
@@ -692,4 +660,94 @@ public class ActionManager {
     return count;
   }
 
+  /**
+   * Use method to disable queue. That would stop queue from receiving new actions.
+   *
+   * @param value True to enable adding actions to queue and false otherwise.
+   */
+  public void setEnabled(boolean value) {
+    Log.i("[ActionManager] isEnabled: " + value);
+    enabled = value;
+  }
+
+  /**
+   * @return True if queue is able to add elements, false otherwise.
+   */
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * Use method to pause queue.
+   * Pausing the queue means stopping execution of actions until queue is resumed.
+   *
+   * @param value True to pause queue, false otherwise.
+   */
+  public void setPaused(boolean value) {
+    Log.i("[ActionManager] isPaused: " + value);
+    paused = value;
+    if (!paused) {
+      ActionManagerExecutionKt.performActions(ActionManager.getInstance());
+    }
+  }
+
+  /**
+   * @return True if queue is in resume state, false otherwise.
+   */
+  public boolean isPaused() {
+    return paused;
+  }
+
+
+  /**
+   * Current action is set by the queue when it is popped.
+   */
+  public void setCurrentAction(Action action) {
+    if (action == null) {
+      String name = currentAction != null ? currentAction.getContext().actionName() : null;
+      Log.e("Clear currentAction from name=" + name); // TODO remove log before releasing
+    } else {
+      Log.e("Assign currentAction name=" + action.getContext().actionName()); // TODO remove log before releasing
+    }
+    this.currentAction = action;
+  }
+
+  /**
+   * Returns currently executing action in the queue.
+   */
+  public Action getCurrentAction() {
+    return this.currentAction;
+  }
+
+  public MessageDisplayListener getMessageDisplayListener() {
+    return messageDisplayListener;
+  }
+
+  public void setMessageDisplayListener(MessageDisplayListener messageDisplayListener) {
+    this.messageDisplayListener = messageDisplayListener;
+  }
+
+  public MessageDisplayController getMessageDisplayController() {
+    return messageDisplayController;
+  }
+
+  public void setMessageDisplayController(MessageDisplayController messageDisplayController) {
+    this.messageDisplayController = messageDisplayController;
+  }
+
+  public ActionScheduler getScheduler() {
+    return scheduler;
+  }
+
+  public ActionQueue getQueue() {
+    return queue;
+  }
+
+  public ActionQueue getDelayedQueue() {
+    return delayedQueue;
+  }
+
+  public Definitions getDefinitions() {
+    return definitions;
+  }
 }

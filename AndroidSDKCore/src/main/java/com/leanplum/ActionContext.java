@@ -354,7 +354,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     return actionArgs;
   }
 
-  public void setActionNamedHandler(ActionCallback handler) {
+  public void setActionNamedHandler(ActionCallback handler) { // TODO discuss if this should be removed in respect of new handlers
     actionNamedHandler = handler;
   }
 

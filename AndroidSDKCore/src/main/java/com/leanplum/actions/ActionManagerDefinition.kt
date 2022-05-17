@@ -62,7 +62,6 @@ data class ActionDefinition(
 
 data class Definitions(
   val actionDefinitions: MutableList<ActionDefinition> = mutableListOf(),
-  val handlers: MutableMap<String, MutableList<ActionCallback>> = mutableMapOf(),
   var devModeActionDefinitionsFromServer: Map<String, Any?>? = null
 ) {
   fun findDefinition(definitionName: String?): ActionDefinition? {
@@ -87,16 +86,6 @@ fun ActionManager.defineAction(definition: ActionDefinition) {
   with (definitions.actionDefinitions) {
     firstOrNull { it.name == definition.name }?.also { remove(it) }
     add(definition)
-  }
-}
-
-fun ActionManager.onAction(name: String, callback: ActionCallback) {
-  with(definitions) {
-    handlers[name]?.add(callback) ?: {
-      val list = mutableListOf<ActionCallback>()
-      list.add(callback)
-      handlers[name] = list
-    }
   }
 }
 

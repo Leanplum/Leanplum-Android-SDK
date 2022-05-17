@@ -30,10 +30,8 @@ import androidx.annotation.Nullable;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.actions.ActionDefinition;
 import com.leanplum.actions.ActionManagerDefinitionKt;
-import com.leanplum.actions.ActionManagerExecutionKt;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.ForceContentUpdateCallback;
-import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
@@ -64,7 +62,6 @@ import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.models.GeofenceEventType;
-import com.leanplum.models.MessageArchiveData;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -104,8 +101,6 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
-  private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
-          new ArrayList<>();
   private static final Object heartbeatLock = new Object();
   private static final String LEANPLUM_NOTIFICATION_CHANNEL =
       "com.leanplum.LeanplumNotificationChannel";
@@ -1277,62 +1272,6 @@ public class Leanplum {
     }
   }
 
-  /**
-   * Add a callback for when a message is displayed.
-   */
-  public static void addMessageDisplayedHandler(
-          MessageDisplayedCallback handler) {
-    if (handler == null) {
-      Log.e("addMessageDisplayedHandler - Invalid handler parameter " +
-              "provided.");
-      return;
-    }
-
-    synchronized (messageDisplayedHandlers) {
-      messageDisplayedHandlers.add(handler);
-    }
-  }
-
-  /**
-   * Removes a variables changed and no downloads pending callback.
-   */
-  public static void removeMessageDisplayedHandler(
-          MessageDisplayedCallback handler) {
-    if (handler == null) {
-      Log.e("removeMessageDisplayedHandler - Invalid handler parameter " +
-              "provided.");
-      return;
-    }
-
-    synchronized (messageDisplayedHandlers) {
-      messageDisplayedHandlers.remove(handler);
-    }
-  }
-
-  public static void triggerMessageDisplayed(ActionContext actionContext) {
-    synchronized (messageDisplayedHandlers) {
-      for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
-        MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
-        callback.setMessageArchiveData(messageArchiveData);
-        OperationQueue.sharedInstance().addUiOperation(callback);
-      }
-    }
-  }
-
-  private static MessageArchiveData messageArchiveDataFromContext(ActionContext actionContext) {
-    String messageID = actionContext.getMessageId();
-    String messageBody = "";
-    try {
-      messageBody = messageBodyFromContext(actionContext);
-    } catch (Throwable t) {
-      Log.exception(t);
-    }
-    String recipientUserID = Leanplum.getUserId();
-    Date deliveryDateTime = new Date();
-
-    return new MessageArchiveData(messageID, messageBody, recipientUserID, deliveryDateTime);
-  }
-
   @VisibleForTesting
   public static String messageBodyFromContext(ActionContext actionContext) {
     Object messageObject =  actionContext.getArgs().get("Message");
@@ -1414,8 +1353,7 @@ public class Leanplum {
 
   /**
    * Defines an action that is used within Leanplum Marketing Automation. Actions can be set up to
-   * get triggered based on app opens, events, and states. Call {@link Leanplum#onAction} to handle
-   * the action.
+   * get triggered based on app opens, events, and states.
    *
    * @param name The name of the action to register.
    * @param kind Whether to display the action as a message and/or a regular action.
@@ -1479,31 +1417,9 @@ public class Leanplum {
 
       ActionManagerDefinitionKt.defineAction(ActionManager.getInstance(), actionDefinition);
 
-      if (presentHandler != null) {
-        ActionManagerDefinitionKt.onAction(ActionManager.getInstance(), name, presentHandler);
-      }
     } catch (Throwable t) {
       Log.exception(t);
     }
-  }
-
-  /**
-   * Adds a callback that handles an action with the given name.
-   *
-   * @param actionName The name of the type of action to handle.
-   * @param handler The callback that runs when the action is triggered.
-   */
-  public static void onAction(String actionName, ActionCallback handler) {
-    if (actionName == null) {
-      Log.e("onAction - Invalid actionName parameter provided.");
-      return;
-    }
-    if (handler == null) {
-      Log.e("onAction - Invalid handler parameter provided.");
-      return;
-    }
-
-    ActionManagerDefinitionKt.onAction(ActionManager.getInstance(), actionName, handler);
   }
 
   /**

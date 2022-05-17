@@ -31,13 +31,10 @@ import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LeanplumException;
 import com.leanplum.LeanplumLocationAccuracyType;
-import com.leanplum.actions.ActionManagerExecutionKt;
 import com.leanplum.actions.ActionManagerTriggeringKt;
 import com.leanplum.actions.ActionsTrigger;
 import com.leanplum.actions.Priority;
-import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.StartCallback;
-import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.models.GeofenceEventType;
 
@@ -57,7 +54,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Internal leanplum methods that are very generic but should not be exposed to the public.
@@ -69,7 +65,6 @@ public class LeanplumInternal {
   private static final String LEANPLUM_LOCAL_PUSH_HELPER =
       "com.leanplum.internal.LeanplumLocalPushHelper";
   private static boolean hasStartedAndRegisteredAsDeveloper;
-  private static final Map<String, List<ActionCallback>> actionHandlers = new HashMap<>();
   private static boolean issuedStart;
   private static boolean hasStarted;
   private static boolean startSuccessful;
@@ -109,39 +104,6 @@ public class LeanplumInternal {
       } else {
         onHasStartedAndRegisteredAsDeveloperAndFinishedSyncing();
       }
-    }
-  }
-
-  public static void triggerAction(ActionContext context) {
-    triggerAction(context, null);
-  }
-
-  public static void triggerAction(final ActionContext context, // TODO change/remove method to use new architecture
-      final VariablesChangedCallback handledCallback) {
-    List<ActionCallback> callbacks;
-    synchronized (actionHandlers) {
-      List<ActionCallback> handlers = actionHandlers.get(context.actionName());
-      if (handlers == null) {
-        // Handled by default.
-        if (handledCallback != null) {
-          handledCallback.variablesChanged();
-        }
-        return;
-      }
-      callbacks = new ArrayList<>(handlers);
-    }
-    final AtomicBoolean handled = new AtomicBoolean(false);
-    for (final ActionCallback callback : callbacks) {
-      OperationQueue.sharedInstance().addUiOperation(new Runnable() {
-        @Override
-        public void run() {
-          if (callback.onResponse(context) && handledCallback != null) {
-            if (!handled.getAndSet(true)) {
-              handledCallback.variablesChanged();
-            }
-          }
-        }
-      });
     }
   }
 
@@ -295,7 +257,6 @@ public class LeanplumInternal {
       if (scheduled) {
         // Special case for local push notification. Do not want to count impression.
         ActionManager.getInstance().recordLocalPushImpression(actionContext.getMessageId());
-        Leanplum.triggerMessageDisplayed(actionContext); // TODO is triggerMessageDisplayed necessary ?
       }
     } catch (Throwable t) {
       Log.exception(t);
@@ -706,10 +667,6 @@ public class LeanplumInternal {
    ***/
   public static boolean hasStartedAndRegisteredAsDeveloper() {
     return hasStartedAndRegisteredAsDeveloper;
-  }
-
-  public static Map<String, List<ActionCallback>> getActionHandlers() { // TODO change/remove method to use new architecture
-    return actionHandlers;
   }
 
   public static boolean issuedStart() {

@@ -24,20 +24,26 @@ package com.leanplum;
 import androidx.annotation.NonNull;
 import com.leanplum.actions.MessageDisplayController;
 import com.leanplum.actions.MessageDisplayListener;
+import com.leanplum.internal.ActionManager;
 
-public class LeanplumActions {
+public class LeanplumActions { // TODO discuss whether to move code to Leanplum.java
 
    /**
     * TODO
+    * Default value is true.
+    *
+    * @param flag
     */
-   public static void shouldDismissOnPushOpened(boolean flag) {
+   public static void setDismissOnPushOpened(boolean flag) {
    }
 
    /**
     * TODO
+    * Default value is true.
+    *
     * @param flag
     */
-   public static void shouldContinueOnActivityResume(boolean flag) {
+   public static void setContinueOnActivityResumed(boolean flag) {
    }
 
    /**
@@ -45,6 +51,7 @@ public class LeanplumActions {
     * @param controller
     */
    public static void setMessageDisplayController(@NonNull MessageDisplayController controller) {
+      ActionManager.getInstance().setMessageDisplayController(controller);
    }
 
    /**
@@ -52,7 +59,6 @@ public class LeanplumActions {
     * @param listener
     */
    public static void setMessageDisplayListener(@NonNull MessageDisplayListener listener) {
+      ActionManager.getInstance().setMessageDisplayListener(listener);
    }
-
-   // TODO add registration here?
 }

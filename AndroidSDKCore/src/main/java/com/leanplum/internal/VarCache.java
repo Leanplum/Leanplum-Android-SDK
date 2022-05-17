@@ -916,7 +916,7 @@ public class VarCache {
     fileStreams.clear();
     valuesFromClient.clear();
     defaultKinds.clear();
-//    actionDefinitions.clear(); // TODO use new architecture
+    ActionManager.getInstance().getDefinitions().getActionDefinitions().clear();
     diffs.clear();
     messageDiffs.clear();
     regions.clear();
