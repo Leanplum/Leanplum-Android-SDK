@@ -277,7 +277,7 @@ public class LeanplumInbox {
    * @param success True if forceContentUpdate was successful.
    */
   void triggerInboxSyncedWithStatus(boolean success) {
-    synchronized (changedCallbacks) {
+    synchronized (syncedCallbacks) {
       for (InboxSyncedCallback callback : syncedCallbacks) {
         callback.setSuccess(success);
         OperationQueue.sharedInstance().addUiOperation(callback);

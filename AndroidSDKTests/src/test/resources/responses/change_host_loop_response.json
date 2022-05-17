@@ -1,0 +1,13 @@
+{
+  "response": [
+    {
+      "success": false,
+      "apiHost": "www.leanplum.com",
+      "apiPath": "api",
+      "devServerHost": "dev.leanplum.com",
+      "error": {
+        "message": "App endpoint configuration mismatch."
+      }
+    }
+  ]
+}

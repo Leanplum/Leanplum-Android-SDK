@@ -99,7 +99,9 @@ public class FileTransferManager {
       @Override
       public void run() {
         try {
-          downloadHelper(request, Constants.API_HOST_NAME, Constants.API_SERVLET, path, url, dict);
+          String apiHost = APIConfig.getInstance().getApiHost();
+          String apiPath = APIConfig.getInstance().getApiPath();
+          downloadHelper(request, apiHost, apiPath, path, url, dict);
         } catch (Throwable t) {
           Log.exception(t);
         }
@@ -120,13 +122,25 @@ public class FileTransferManager {
     String httpMethod = request.getHttpMethod();
     try {
       if (url == null) {
-        op = new NetworkOperation(
-            hostName,
-            servlet,
-            dict,
-            httpMethod,
-            Constants.API_SSL,
-            Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
+        // Download it directly if the argument is URL.
+        // Otherwise continue with the api request.
+        if (path != null && (path.startsWith("http://") || path.startsWith("https://"))) {
+          op = new NetworkOperation(
+              path,
+              httpMethod,
+              path.startsWith("https://"),
+              Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
+
+        } else {
+          op = new NetworkOperation(
+              hostName,
+              servlet,
+              dict,
+              httpMethod,
+              APIConfig.getInstance().getApiSSL(),
+              Constants.NETWORK_TIMEOUT_SECONDS_FOR_DOWNLOADS);
+        }
+
       } else {
         op = new NetworkOperation(
             url,
@@ -251,10 +265,10 @@ public class FileTransferManager {
 
           try {
             op = new UploadOperation(
-                Constants.API_HOST_NAME,
-                Constants.API_SERVLET,
+                APIConfig.getInstance().getApiHost(),
+                APIConfig.getInstance().getApiPath(),
                 request.getHttpMethod(),
-                Constants.API_SSL,
+                APIConfig.getInstance().getApiSSL(),
                 60);
 
             if (op.uploadFiles(filesToUpload, streams, dict)) {

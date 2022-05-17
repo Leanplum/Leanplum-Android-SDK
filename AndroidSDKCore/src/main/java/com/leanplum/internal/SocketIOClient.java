@@ -214,6 +214,7 @@ class SocketIOClient {
   }
 
   public void disconnect() throws IOException {
+    Log.d("SocketIOClient.disconnect()");
     cleanup();
   }
 

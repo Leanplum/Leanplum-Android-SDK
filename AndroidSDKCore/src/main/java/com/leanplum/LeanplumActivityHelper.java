@@ -361,7 +361,9 @@ public class LeanplumActivityHelper {
     for (Runnable action : runningActions) {
       // If postponable callback and current activity should be skipped, then postpone.
       if (action instanceof PostponableAction && isActivityClassIgnored(currentActivity)) {
-        pendingActions.add(action);
+        synchronized (pendingActions) {
+          pendingActions.add(action);
+        }
       } else {
         action.run();
       }
