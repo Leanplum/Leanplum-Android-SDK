@@ -77,6 +77,7 @@ public class ActionManager {
   private final ActionQueue delayedQueue = new ActionQueue();
   private final Definitions definitions = new Definitions();
   private Action currentAction;
+  private boolean dismissOnPushOpened = true;
 
   private static ActionManager instance;
 
@@ -678,8 +679,8 @@ public class ActionManager {
   }
 
   /**
-   * Use method to pause queue.
-   * Pausing the queue means stopping execution of actions until queue is resumed.
+   * Use method to pause queue. That would stop execution of actions, but actions will continue to
+   * add in queue.
    *
    * @param value True to pause queue, false otherwise.
    */
@@ -692,7 +693,7 @@ public class ActionManager {
   }
 
   /**
-   * @return True if queue is in resume state, false otherwise.
+   * @return True if queue is not running, false otherwise.
    */
   public boolean isPaused() {
     return paused;
@@ -703,12 +704,6 @@ public class ActionManager {
    * Current action is set by the queue when it is popped.
    */
   public void setCurrentAction(Action action) {
-    if (action == null) {
-      String name = currentAction != null ? currentAction.getContext().actionName() : null;
-      Log.e("Clear currentAction from name=" + name); // TODO remove log before releasing
-    } else {
-      Log.e("Assign currentAction name=" + action.getContext().actionName()); // TODO remove log before releasing
-    }
     this.currentAction = action;
   }
 
@@ -749,5 +744,13 @@ public class ActionManager {
 
   public Definitions getDefinitions() {
     return definitions;
+  }
+
+  public boolean getDismissOnPushOpened() {
+    return dismissOnPushOpened;
+  }
+
+  public void setDismissOnPushOpened(boolean dismissOnPushOpened) {
+    this.dismissOnPushOpened = dismissOnPushOpened;
   }
 }

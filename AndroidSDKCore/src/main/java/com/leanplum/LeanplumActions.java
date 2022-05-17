@@ -22,6 +22,7 @@
 package com.leanplum;
 
 import androidx.annotation.NonNull;
+import com.leanplum.actions.ActionManagerTriggeringKt;
 import com.leanplum.actions.MessageDisplayController;
 import com.leanplum.actions.MessageDisplayListener;
 import com.leanplum.internal.ActionManager;
@@ -35,6 +36,7 @@ public class LeanplumActions { // TODO discuss whether to move code to Leanplum.
     * @param flag
     */
    public static void setDismissOnPushOpened(boolean flag) {
+      ActionManager.getInstance().setDismissOnPushOpened(flag);
    }
 
    /**
@@ -44,6 +46,7 @@ public class LeanplumActions { // TODO discuss whether to move code to Leanplum.
     * @param flag
     */
    public static void setContinueOnActivityResumed(boolean flag) {
+      // TODO
    }
 
    /**
@@ -60,5 +63,13 @@ public class LeanplumActions { // TODO discuss whether to move code to Leanplum.
     */
    public static void setMessageDisplayListener(@NonNull MessageDisplayListener listener) {
       ActionManager.getInstance().setMessageDisplayListener(listener);
+   }
+
+   /**
+    * Triggers postponed messages when indefinite time was used with
+    * MessageDisplayController.shouldDisplayMessage
+    */
+   public static void triggerDelayedMessages() {
+      ActionManagerTriggeringKt.triggerDelayedMessages(ActionManager.getInstance());
    }
 }

@@ -28,6 +28,7 @@ import com.leanplum.actions.ActionDidExecute;
 import com.leanplum.actions.ActionManagerDefinitionKt;
 import com.leanplum.actions.ActionManagerTriggeringKt;
 import com.leanplum.actions.ActionDidDismiss;
+import com.leanplum.actions.Priority;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.BaseActionContext;
@@ -354,7 +355,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     return actionArgs;
   }
 
-  public void setActionNamedHandler(ActionCallback handler) { // TODO discuss if this should be removed in respect of new handlers
+  public void setActionNamedHandler(ActionCallback handler) { // TODO remove these handlers
     actionNamedHandler = handler;
   }
 
@@ -405,7 +406,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
         });
       } else {
         executeChainedMessage(chainedMessageId, name);
-        // queue will be resumed from onDismiss block in case executeChainedMessage fails
+        // queue will be resumed from onDidDismiss callback in case executeChainedMessage fails
       }
 
     } else { // Chain to embedded message
@@ -417,7 +418,10 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             messageId,
             name);
         embeddedContext.parentContext = this;
-        ActionManagerTriggeringKt.trigger(ActionManager.getInstance(), embeddedContext);
+        ActionManagerTriggeringKt.trigger(
+            ActionManager.getInstance(),
+            embeddedContext,
+            Priority.HIGH);
       }
     }
   }
@@ -492,7 +496,10 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             messageId,
             name);
         chainContext.isChainedMessage = true;
-        ActionManagerTriggeringKt.trigger(ActionManager.getInstance(), chainContext);
+        ActionManagerTriggeringKt.trigger(
+            ActionManager.getInstance(),
+            chainContext,
+            Priority.HIGH);
         return true;
       }
     }

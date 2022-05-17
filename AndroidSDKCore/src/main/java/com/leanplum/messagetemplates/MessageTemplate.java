@@ -56,7 +56,6 @@ public interface MessageTemplate {
   @Deprecated
   default void handleAction(@NonNull ActionContext context) {
     // default implementation for deprecation purposes
-    throw new RuntimeException("not implemented"); // TODO remove or replace with message
   }
 
   /**

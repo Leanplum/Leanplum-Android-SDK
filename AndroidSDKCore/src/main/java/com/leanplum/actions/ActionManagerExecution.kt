@@ -71,88 +71,108 @@ fun ActionManager.performActions() {
   })
 }
 
+/**
+ * Checks if next action comes from notification click and dismisses current one.
+ */
+private fun ActionManager.prioritizePushNotificationActions() {
+  if (!dismissOnPushOpened) return
+
+  val nextAction = queue.first()
+  if (nextAction != null && nextAction.isNotification()) { // TODO test isNotification for campaign payload (messageId)
+    val currentContext = currentAction.context
+    val definition = definitions.findDefinition(currentContext.actionName())
+
+    definition?.dismissHandler?.also {
+      Log.d("[ActionManager]: dismiss requested for: ${currentContext}.")
+      it.onResponse(currentContext)
+    }
+  }
+}
+
 @UiThread // TODO make other synchronisation other than UI thread?
 private fun ActionManager.performActionsImpl() {
   if (isPaused) return
 
-  // TODO check if queue.top() is the open of a push and dismiss currentAction (check flag too)
-  // do not run if we have current action running
-  if (currentAction != null) return
+  // do not continue if we have action running
+  if (currentAction != null) {
+    prioritizePushNotificationActions()
+    return
+  }
 
   // gets the next action from the queue
   currentAction = queue.pop() ?: return
 
-  with (currentAction.context) {
-    Log.d("[ActionManager]: running action with name: ${this}.")
+  val currentContext = currentAction.context
+  Log.d("[ActionManager]: action popped from queue: ${currentContext}.")
 
-    // decide if we are going to display the message
-    // by calling delegate and let it decide what we are supposed to do
-    val displayDecision = messageDisplayController?.shouldDisplayMessage(this)
-    when (displayDecision?.type) {
-      // if message is discarded, early exit
-      MessageDisplayChoice.Type.DISCARD -> {
-        currentAction = null
-        return@with
-      }
-
-      // if message is delayed, add it to the scheduler to be delayed
-      // by the amount of seconds, and exit
-      MessageDisplayChoice.Type.DELAY -> {
-        Log.d("[ActionManager]: delaying action: ${this} for ${displayDecision.delaySeconds}s.")
-        if (displayDecision.delaySeconds > 0) {
-          // Schedule for delayed time
-          scheduler.schedule(currentAction, displayDecision.delaySeconds)
-        } else {
-          // Insert in delayed queue
-          delayedQueue.pushBack(currentAction)
-        }
-        currentAction = null
-        return@with
-      }
-
-      else -> Unit
-    }
-
-    // logic:
-    // 1) ask client to show view controller
-    // 2) ask and wait for client to execute action
-    // 3) ask and wait for client to dismiss view controller
-
-    // get the action definition
-    val definition = definitions.actionDefinitions.firstOrNull {
-      it.name == this.actionName()
-    }
-
-    // 3) set dismiss block
-    this.setActionDidDismiss {
-      Log.d("[ActionManager]: actionDidDismiss: ${this}.")
-      messageDisplayListener?.onMessageDismissed(this)
-      currentAction = null // stop executing current action
-      performActions()
-    }
-
-    // 2) set the action block
-    this.setActionDidExecute { actionName ->
-      Log.d("[ActionManager]: actionDidExecute: ${this}.")
-      messageDisplayListener?.onActionExecuted(actionName, this)
-    }
-
-    // 1) ask to present, return if it's not
-    val presented: Boolean = definition?.presentHandler?.onResponse(this) ?: false
-    if (!presented) {
-      Log.d("[ActionManager]: action NOT presented: ${this}.")
+  // decide if we are going to display the message
+  // by calling delegate and let it decide what we are supposed to do
+  val displayDecision = messageDisplayController?.shouldDisplayMessage(currentContext)
+  when (displayDecision?.type) {
+    // if message is discarded, early exit
+    MessageDisplayChoice.Type.DISCARD -> {
       currentAction = null
-      return@with
+      performActions()
+      return
     }
 
-    if (currentAction != null) {
-      recordImpression(currentAction)
+    // if message is delayed, add it to the scheduler to be delayed
+    // by the amount of seconds, and exit
+    MessageDisplayChoice.Type.DELAY -> {
+      Log.d("[ActionManager]: delaying action: ${currentContext} for ${displayDecision.delaySeconds}s.")
+      if (displayDecision.delaySeconds > 0) {
+        // Schedule for delayed time
+        scheduler.schedule(currentAction, displayDecision.delaySeconds)
+      } else {
+        // Insert in delayed queue
+        delayedQueue.pushBack(currentAction)
+      }
+      currentAction = null
+      performActions()
+      return
     }
 
-    Log.i("[ActionManager]: action presented: ${this}.")
-    // propagate event that message is displayed
-    messageDisplayListener?.onMessageDisplayed(this)
+    else -> Unit
   }
+
+  // logic:
+  // 1) ask client to show view controller
+  // 2) ask and wait for client to execute action
+  // 3) ask and wait for client to dismiss view controller
+
+  // get the action definition
+  val definition = definitions.findDefinition(currentContext.actionName())
+
+  // 3) set dismiss block
+  currentContext.setActionDidDismiss {
+    Log.d("[ActionManager]: actionDidDismiss: ${currentContext}.")
+    messageDisplayListener?.onMessageDismissed(currentContext)
+    currentAction = null // stop executing current action
+    performActions()
+  }
+
+  // 2) set the action block
+  currentContext.setActionDidExecute { actionName ->
+    Log.d("[ActionManager]: actionDidExecute: ${currentContext}.")
+    messageDisplayListener?.onActionExecuted(actionName, currentContext)
+  }
+
+  // 1) ask to present, return if it's not
+  val presented: Boolean = definition?.presentHandler?.onResponse(currentContext) ?: false
+  if (!presented) {
+    Log.d("[ActionManager]: action NOT presented: ${currentContext}.")
+    currentAction = null
+    performActions()
+    return
+  }
+
+  if (currentAction != null) {
+    recordImpression(currentAction)
+  }
+
+  Log.i("[ActionManager]: action presented: ${currentContext}.")
+  // propagate event that message is displayed
+  messageDisplayListener?.onMessageDisplayed(currentContext)
 
   performActions()
 }

@@ -25,7 +25,12 @@ import com.leanplum.ActionContext
 import com.leanplum.internal.ActionManager
 import com.leanplum.internal.Log
 
-fun ActionManager.trigger(context: ActionContext) = trigger(listOf(context))
+fun ActionManager.trigger(
+  context: ActionContext,
+  priority: Priority = Priority.DEFAULT) {
+
+  trigger(listOf(context), priority)
+}
 
 fun ActionManager.trigger(
   contexts: List<ActionContext>,
@@ -35,7 +40,7 @@ fun ActionManager.trigger(
   val orderedContexts = messageDisplayController?.orderMessages(contexts, trigger) ?: contexts
   val actions: List<Action> = orderedContexts.map { context -> Action.create(context) }
 
-  Log.d("[ActionManager]: triggering actions with priority: ${priority.name}.")
+  Log.d("[ActionManager]: triggering with priority: ${priority.name} and actions: $orderedContexts")
 
   when (priority) {
     Priority.HIGH -> insertActions(actions)

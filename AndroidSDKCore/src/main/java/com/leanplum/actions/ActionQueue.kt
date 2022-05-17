@@ -22,7 +22,6 @@
 package com.leanplum.actions
 
 class ActionQueue {
-  // TODO is @Synchronized for methods ok?
 
   @Volatile
   var queue: MutableList<Action> = mutableListOf()
@@ -52,16 +51,13 @@ class ActionQueue {
   }
 
   @Synchronized
-  fun peek() = if (queue.isNotEmpty()) queue[0] else null
-
-  @Synchronized
   fun remove(item: Action) = queue.remove(item)
 
   @Synchronized
-  fun first() = queue.first()
+  fun first() = if (queue.isNotEmpty()) queue.first() else null
 
   @Synchronized
-  fun last() = queue.last()
+  fun last() = if (queue.isNotEmpty()) queue.last() else null
 
   @Synchronized
   fun empty() = queue.isEmpty()

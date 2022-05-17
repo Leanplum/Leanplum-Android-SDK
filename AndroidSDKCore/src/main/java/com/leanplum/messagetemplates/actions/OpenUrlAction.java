@@ -107,12 +107,12 @@ public class OpenUrlAction implements MessageTemplate {
     }
     boolean opened = openUriIntent(context, uriIntent);
 
-    // Run after the other executor code
+    // Run after the other ActionManagerExecution code
     OperationQueue.sharedInstance().addUiOperation(() -> actionContext.runActionNamed(Args.DISMISS_ACTION));
 
-    // TODO Trqbva li da se dobavi kym Lifecycle callback-a i dostyp do executor-a, za da moje da se izchistva ako se smeni aktivity?
-    // za momenta uspqva da si pokaje novoto activity i chak togava pokazva sledvashtoto syobshtenie ot opashkata, zaradi
-    // upotrebata na UI queue-to
+    // TODO Should we pause queue when OpenURL is executed?
+    // Currently it will show the new activity and then the next action from the queue will present,
+    // this is accomplished because of the addUiOperation call
 
     return opened;
   }
