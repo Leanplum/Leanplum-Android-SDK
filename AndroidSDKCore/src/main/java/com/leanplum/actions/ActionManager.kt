@@ -79,5 +79,5 @@ fun interface ActionDidDismiss {
  * Implemented in ActionManagerExecution
  */
 fun interface ActionDidExecute {
-  fun onActionExecuted(name: String)
+  fun onActionExecuted(context: ActionContext)
 }

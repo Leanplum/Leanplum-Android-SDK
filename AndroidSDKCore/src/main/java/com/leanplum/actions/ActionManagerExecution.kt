@@ -152,9 +152,9 @@ private fun ActionManager.performActionsImpl() {
   }
 
   // 2) set the action block
-  currentContext.setActionDidExecute { actionName ->
-    Log.d("[ActionManager]: actionDidExecute: ${currentContext}.")
-    messageDisplayListener?.onActionExecuted(actionName, currentContext)
+  currentContext.setActionDidExecute { actionNamedContext ->
+    Log.d("[ActionManager]: actionDidExecute: ${actionNamedContext}.")
+    messageDisplayListener?.onActionExecuted(actionNamedContext.actionName(), actionNamedContext)
   }
 
   // 1) ask to present, return if it's not

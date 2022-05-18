@@ -29,7 +29,6 @@ import com.leanplum.actions.ActionManagerDefinitionKt;
 import com.leanplum.actions.ActionManagerTriggeringKt;
 import com.leanplum.actions.ActionDidDismiss;
 import com.leanplum.actions.Priority;
-import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.BaseActionContext;
 import com.leanplum.internal.CollectionUtil;
@@ -61,7 +60,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   private String key;
   private boolean preventRealtimeUpdating = false;
   private ContextualValues contextualValues;
-  private ActionCallback actionNamedHandler;
   private ActionDidDismiss actionDidDismiss;
   private ActionDidExecute actionDidExecute;
   private boolean isChainedMessage;
@@ -355,18 +353,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     return actionArgs;
   }
 
-  public void setActionNamedHandler(ActionCallback handler) { // TODO remove these handlers
-    actionNamedHandler = handler;
-  }
-
-  private void triggerActionNamedHandler(String name, Map<String, Object> args) {
-    if (actionNamedHandler != null) {
-      ActionContext actionContext = new ActionContext(name, args, messageId);
-      actionContext.parentContext = this;
-      actionNamedHandler.onResponse(actionContext);
-    }
-  }
-
   public void runActionNamed(String name) {
     if (TextUtils.isEmpty(name)) {
       Log.e("runActionNamed - Invalid name parameter provided.");
@@ -375,7 +361,11 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     }
     Map<String, Object> args = getChildArgs(name);
 
-    triggerActionNamedHandler(name, args);
+    if (actionDidExecute != null) {
+      ActionContext actionNamedContext = new ActionContext(name, args, messageId);
+      actionNamedContext.parentContext = this;
+      actionDidExecute.onActionExecuted(actionNamedContext);
+    }
 
     if (args == null) {
       actionDismissed();
@@ -385,9 +375,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     performChainedAction(name, args);
 
     actionDismissed();
-    if (actionDidExecute != null) {
-      actionDidExecute.onActionExecuted(name);
-    }
   }
 
   private void performChainedAction(String name, Map<String, Object> args) {
@@ -649,6 +636,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   }
 
   @Override
+  @NonNull
   public String toString() {
     return name + ":" + messageId;
   }
