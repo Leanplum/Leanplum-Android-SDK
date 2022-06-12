@@ -483,6 +483,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             messageId,
             name);
         chainContext.isChainedMessage = true;
+        chainContext.parentContext = this; // TODO this fixes Android 12 notification, but would it break something else?
         ActionManagerTriggeringKt.trigger(
             ActionManager.getInstance(),
             chainContext,
@@ -638,7 +639,11 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   @Override
   @NonNull
   public String toString() {
-    return name + ":" + messageId;
+    String parent = "";
+    if (parentContext != null) {
+      parent = "(parent=" + parentContext + ")";
+    }
+    return name + ":" + messageId + parent;
   }
 
   public void actionDismissed() {

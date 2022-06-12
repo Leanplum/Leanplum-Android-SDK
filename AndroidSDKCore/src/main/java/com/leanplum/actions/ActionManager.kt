@@ -23,7 +23,6 @@ package com.leanplum.actions // TODO change com.leanplum.actions to com.leanplum
 
 import com.leanplum.ActionContext
 import com.leanplum.internal.ActionManager
-import com.leanplum.internal.VarCache
 
 data class Action(
   val actionType: ActionType = ActionType.SINGLE,

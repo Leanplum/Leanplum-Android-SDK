@@ -1023,7 +1023,6 @@ public class Leanplum {
     RequestSender.getInstance().send(request);
     stopRequestTimer();
     LeanplumInternal.setIsPaused(true);
-    ActionManager.getInstance().setPaused(true);
   }
 
   /**
@@ -1069,7 +1068,6 @@ public class Leanplum {
     }
     startRequestTimer();
     LeanplumInternal.setIsPaused(false);
-    ActionManager.getInstance().setPaused(false);
   }
 
   private static void startRequestTimer() {

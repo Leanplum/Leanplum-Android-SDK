@@ -61,4 +61,9 @@ class ActionQueue {
 
   @Synchronized
   fun empty() = queue.isEmpty()
+
+  @Synchronized
+  override fun toString(): String {
+    return queue.toString()
+  }
 }

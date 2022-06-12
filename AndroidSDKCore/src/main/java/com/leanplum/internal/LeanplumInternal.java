@@ -209,7 +209,7 @@ public class LeanplumInternal {
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
         } else {
           if (shouldSuppressMessage(actionContext)) {
-            Log.d("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
+            Log.i("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
             continue;
           }
           if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(actionContext.actionName())) {
@@ -238,7 +238,7 @@ public class LeanplumInternal {
    * @param context The message context to check.
    * @return True if message should  be suppressed, false otherwise.
    */
-  private static boolean shouldSuppressMessage(@NonNull ActionContext context) {
+  public static boolean shouldSuppressMessage(@NonNull ActionContext context) {
     if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(context.actionName())) {
       // do not suppress local push
       return false;

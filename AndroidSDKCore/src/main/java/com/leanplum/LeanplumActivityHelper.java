@@ -63,7 +63,11 @@ public class LeanplumActivityHelper {
    */
   private static boolean registeredCallbacks;
 
+  // keeps current activity while app is in foreground
   private static Activity currentActivity;
+
+  // keeps the last activity while app is in background, onDestroy will clear it
+  private static Activity lastForegroundActivity;
 
   private final Activity activity;
   private LeanplumResources res;
@@ -183,6 +187,11 @@ public class LeanplumActivityHelper {
 
     @Override
     public void onActivityDestroyed(Activity activity) {
+      try {
+        onDestroy(activity);
+      } catch (Throwable t) {
+        Log.exception(t);
+      }
     }
 
     @Override
@@ -235,9 +244,9 @@ public class LeanplumActivityHelper {
     activity.setContentView(inflater.inflate(layoutResID));
   }
 
-  @SuppressWarnings("unused")
   private static void onPause(Activity activity) {
     isActivityPaused = true;
+    ActionManager.getInstance().setPaused(true);
   }
 
   /**
@@ -253,9 +262,28 @@ public class LeanplumActivityHelper {
     }
   }
 
+  private static void avoidWindowLeaks(Activity resumedActivity) {
+    // app is backgrounded and new activity is started (probably from notification click)
+    boolean newActivityStartedInBackgroundedApp =
+        currentActivity == null
+            && lastForegroundActivity != null
+            && !lastForegroundActivity.equals(resumedActivity);
+
+    // app is visible and new activity is started
+    boolean newActivityStartedInForegroundedApp =
+        currentActivity != null
+            && !currentActivity.equals(resumedActivity);
+
+    if (newActivityStartedInBackgroundedApp || newActivityStartedInForegroundedApp) {
+      ActionManagerExecutionKt.dismissCurrentAction(ActionManager.getInstance());
+    }
+  }
+
   private static void onResume(Activity activity) {
+    avoidWindowLeaks(activity);
     isActivityPaused = false;
     currentActivity = activity;
+    ActionManager.getInstance().setPaused(false);
     if (LeanplumInternal.isPaused() || LeanplumInternal.hasStartedInBackground()) {
       Leanplum.resume();
       LocationManager locationManager = ActionManager.getLocationManager();
@@ -298,8 +326,21 @@ public class LeanplumActivityHelper {
       }
     }
     if (currentActivity != null && currentActivity.equals(activity)) {
+      lastForegroundActivity = currentActivity;
       // Don't leak activities.
       currentActivity = null;
+    }
+  }
+
+  private static void onDestroy(Activity activity) {
+    if (isActivityPaused &&
+        lastForegroundActivity != null &&
+        lastForegroundActivity.equals(activity)) {
+      // prevent activity leak
+      lastForegroundActivity = null;
+      // no activity is presented and last activity is being destroyed
+      // dismiss inapp dialogs to prevent leak
+      ActionManagerExecutionKt.dismissCurrentAction(ActionManager.getInstance());
     }
   }
 

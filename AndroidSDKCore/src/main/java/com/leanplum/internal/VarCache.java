@@ -814,10 +814,6 @@ public class VarCache {
     return localCaps;
   }
 
-//  public static Map<String, Object> actionDefinitions() {
-//    return actionDefinitions;
-//  }
-
   public static Map<String, Object> messages() {
     return messages;
   }

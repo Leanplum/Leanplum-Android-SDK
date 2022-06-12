@@ -59,7 +59,7 @@ fun ActionManager.insertActions(actions: List<Action>) {
  * Uses pending downloads handler to assure no files are missing for actions.
  */
 fun ActionManager.performActions() {
-  Log.d("[ActionManager]: performing all available actions.")
+  Log.d("[ActionManager]: performing all available actions: $queue")
   Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(object: VariablesChangedCallback() {
     override fun variablesChanged() {
       if (Util.isMainThread()) {
@@ -78,14 +78,18 @@ private fun ActionManager.prioritizePushNotificationActions() {
   if (!dismissOnPushOpened) return
 
   val nextAction = queue.first()
-  if (nextAction != null && nextAction.isNotification()) { // TODO test isNotification for campaign payload (messageId)
-    val currentContext = currentAction.context
-    val definition = definitions.findDefinition(currentContext.actionName())
+  if (nextAction != null && nextAction.isNotification()) {
+    dismissCurrentAction()
+  }
+}
 
-    definition?.dismissHandler?.also {
-      Log.d("[ActionManager]: dismiss requested for: ${currentContext}.")
-      it.onResponse(currentContext)
-    }
+fun ActionManager.dismissCurrentAction() {
+  val currentContext = currentAction?.context ?: return
+  val definition = definitions.findDefinition(currentContext.actionName())
+
+  definition?.dismissHandler?.also {
+    Log.d("[ActionManager]: dismiss requested for: ${currentContext}.")
+    it.onResponse(currentContext)
   }
 }
 
@@ -104,6 +108,14 @@ private fun ActionManager.performActionsImpl() {
 
   val currentContext = currentAction.context
   Log.d("[ActionManager]: action popped from queue: ${currentContext}.")
+
+  if (currentAction.actionType == Action.ActionType.SINGLE
+    && LeanplumInternal.shouldSuppressMessage(currentContext)) {
+    Log.i("[ActionManager]: Local IAM caps reached, suppressing $currentContext")
+    currentAction = null
+    performActions()
+    return
+  }
 
   // decide if we are going to display the message
   // by calling delegate and let it decide what we are supposed to do
