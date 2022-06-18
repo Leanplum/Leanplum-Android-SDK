@@ -37,7 +37,13 @@ fun ActionManager.trigger(
   priority: Priority = Priority.DEFAULT,
   trigger: ActionsTrigger? = null) {
 
-  val orderedContexts = messageDisplayController?.orderMessages(contexts, trigger) ?: contexts
+  if (contexts.isEmpty()) return
+
+  // By default, add only one message to queue if `prioritizeMessages` is not implemented
+  // This ensures backwards compatibility
+  val orderedContexts =
+    messageDisplayController?.prioritizeMessages(contexts, trigger) ?: listOf(contexts.first())
+
   val actions: List<Action> = orderedContexts.map { context -> Action.create(context) }
 
   Log.d("[ActionManager]: triggering with priority: ${priority.name} and actions: $orderedContexts")

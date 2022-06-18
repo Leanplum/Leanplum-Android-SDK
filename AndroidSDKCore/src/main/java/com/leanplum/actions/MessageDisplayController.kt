@@ -46,5 +46,5 @@ interface MessageDisplayController {
 
   // called when there are multiple messages to be displayed for client to order
   // or remove from chain message that we don't want to present
-  fun orderMessages(actions: List<ActionContext>, trigger: ActionsTrigger?): List<ActionContext>
+  fun prioritizeMessages(actions: List<ActionContext>, trigger: ActionsTrigger?): List<ActionContext>
 }

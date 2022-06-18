@@ -356,22 +356,33 @@ public class Socket {
       Log.d("Socket - No developer e-mail provided.");
     }
     final String email = (emailArg == null) ? "a Leanplum account" : emailArg;
+    showDeviceRegisteredDialog(email);
+  }
+
+  private void showDeviceRegisteredDialog(String email) {
     OperationQueue.sharedInstance().addUiOperation(new Runnable() {
       @Override
       public void run() {
         LeanplumActivityHelper.queueActionUponActive(new VariablesChangedCallback() {
           @Override
           public void variablesChanged() {
+            // Stop inapp messages and dismiss any presented
+            ActionManager.getInstance().setPaused(true);
+            ActionManagerExecutionKt.dismissCurrentAction(ActionManager.getInstance());
+
+            // Show alert
             Activity activity = LeanplumActivityHelper.getCurrentActivity();
-            AlertDialog.Builder alert = new AlertDialog.Builder(activity);
-            alert.setTitle(TAG);
-            alert.setMessage("Your device is registered to " + email + ".");
-            alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-              @Override
-              public void onClick(DialogInterface dialog, int which) {
-              }
-            });
-            alert.show();
+            new AlertDialog.Builder(activity)
+                .setTitle(TAG)
+                .setMessage("Your device is registered to " + email + ".")
+                .setCancelable(false)
+                .setPositiveButton(
+                    "OK",
+                    (dialog, id) -> {
+                      // Resume inapp messages
+                      ActionManager.getInstance().setPaused(false);
+                    })
+                .show();
           }
         });
       }
