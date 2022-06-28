@@ -29,6 +29,7 @@ import android.location.Location;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum.__setup.TestClassUtil;
 import com.leanplum._whitebox.utilities.RequestHelper;
+import com.leanplum._whitebox.utilities.RequestHelper.RequestHandler;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.VariablesTestClass;
 import com.leanplum.annotations.Parser;
@@ -84,9 +85,11 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyDouble;
@@ -1323,6 +1326,65 @@ public class LeanplumTest extends AbstractTest {
 
     Leanplum.setUserId("test_id");
     assertEquals("test_id", APIConfig.getInstance().userId());
+  }
+
+  /**
+   * Tests setting the device ID before Leanplum start.
+   */
+  @Test
+  public void testDeviceIdBeforeStart() {
+    RequestHelper.addRequestHandler((httpMethod, apiMethod, params) -> {
+      assertNotEquals(
+          "Not allowed to set the device ID before start",
+          "setDeviceAttributes",
+          apiMethod);
+    });
+
+    String newDeviceId = "device123";
+    Leanplum.forceNewDeviceId(newDeviceId);
+
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    assertNotEquals(newDeviceId, APIConfig.getInstance().deviceId());
+  }
+
+  /**
+   * Tests that setting the same device ID is not initiating a network request.
+   */
+  @Test
+  public void testSameDeviceId() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    RequestHelper.addRequestHandler((httpMethod, apiMethod, params) -> {
+      fail("Setting the same device ID should not initiate a network request!");
+    });
+
+    String deviceId = APIConfig.getInstance().deviceId();
+    Leanplum.forceNewDeviceId(deviceId);
+
+    assertEquals(deviceId, APIConfig.getInstance().deviceId());
+  }
+
+  /**
+   * Tests setting the device ID after Leanplum has started.
+   */
+  @Test
+  public void testDeviceIdAfterStart() {
+    setupSDK(mContext, "/responses/simple_start_response.json");
+
+    RequestHelper.addRequestHandler((httpMethod, apiMethod, params) -> {
+      assertEquals("setDeviceAttributes", apiMethod);
+      assertNotNull(params.get("versionName"));
+      assertNotNull(params.get("deviceName"));
+      assertNotNull(params.get("deviceModel"));
+      assertNotNull(params.get("systemName"));
+      assertNotNull(params.get("systemVersion"));
+    });
+
+    String deviceId = "device123";
+    Leanplum.forceNewDeviceId(deviceId);
+
+    assertEquals(deviceId, APIConfig.getInstance().deviceId());
   }
 
   /**
