@@ -89,7 +89,11 @@ fun ActionManager.dismissCurrentAction() {
 
   definition?.dismissHandler?.also {
     Log.d("[ActionManager]: dismiss requested for: ${currentContext}.")
-    it.onResponse(currentContext)
+    try {
+      it.onResponse(currentContext)
+    } catch (t: Throwable) {
+      Log.e("Cannot dismiss in-app", t)
+    }
   }
 }
 
