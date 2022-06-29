@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -49,48 +49,16 @@ public interface MessageTemplate {
    * Called in response to the registered action.
    * Use it to show your message to the user.
    *
-   * @deprecated Use {@link #present(ActionContext)} instead.
-   *
-   * @param context The context in which an action or message is executed.
-   */
-  @Deprecated
-  default void handleAction(@NonNull ActionContext context) {
-    // default implementation for deprecation purposes
-  }
-
-  /**
-   * Called in response to the registered action.
-   * Use it to show your message to the user.
-   *
    * @param context The context in which an action or message is executed.
    * @return True if message was presented, false otherwise.
    */
-  default boolean present(@NonNull ActionContext context) {
-    handleAction(context);
-    return true;
-  }
+  boolean present(@NonNull ActionContext context);
 
   /**
-   * Called in response to dismiss request. If implemented you have to dismiss the message.
+   * Called in response to dismiss request. You have to dismiss the message.
    *
    * @param context The context in which an action or message is executed.
    * @return True if message was dismissed, false otherwise.
    */
-  default boolean dismiss(@NonNull ActionContext context) {
-    return false;
-  }
-
-  /**
-   * If your custom template depends on files or variables, that will be downloaded, override and
-   * return true.
-   *
-   * @deprecated Resource are downloaded automatically. No need to implement.
-   *
-   * @return true to wait for files and variables to finish downloading before calling
-   * {@link #present(ActionContext)}.
-   */
-  @Deprecated
-  default boolean waitFilesAndVariables() {
-    return false;
-  }
+  boolean dismiss(@NonNull ActionContext context);
 }
