@@ -317,7 +317,6 @@ public class Socket {
         ((BaseActionContext) context).setIsPreview(true);
         context.update();
         ActionManagerExecutionKt.appendAction(ActionManager.getInstance(), Action.create(context));
-//        ActionManager.getInstance().recordMessageImpression(context.getMessageId()); // TODO fix with new architecture
       }
     } catch (JSONException e) {
       Log.e("Error getting action info", e);

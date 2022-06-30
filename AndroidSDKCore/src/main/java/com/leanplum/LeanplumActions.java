@@ -27,7 +27,7 @@ import com.leanplum.actions.MessageDisplayController;
 import com.leanplum.actions.MessageDisplayListener;
 import com.leanplum.internal.ActionManager;
 
-public class LeanplumActions { // TODO discuss whether to move code to Leanplum.java
+public class LeanplumActions {
 
    /**
     * Keep or dismiss in-app message when push notification is opened. If
