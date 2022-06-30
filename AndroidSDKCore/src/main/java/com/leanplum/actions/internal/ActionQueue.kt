@@ -21,6 +21,9 @@
 
 package com.leanplum.actions.internal
 
+/**
+ * Implementation of action queue. All methods are synchronized using the instance monitor.
+ */
 class ActionQueue {
 
   @Volatile

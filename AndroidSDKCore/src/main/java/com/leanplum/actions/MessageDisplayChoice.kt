@@ -21,19 +21,22 @@
 
 package com.leanplum.actions
 
-import com.leanplum.ActionContext
-import com.leanplum.actions.internal.ActionsTrigger
-
-interface MessageDisplayController {
-
-  /**
-   * Called per message to decide whether to show, discard or delay it.
-   */
-  fun shouldDisplayMessage(action: ActionContext): MessageDisplayChoice?
-
-  /**
-   * Called when there are multiple messages to be displayed.
-   * We can order or remove any of them that we don't want to present.
-   */
-  fun prioritizeMessages(actions: List<ActionContext>, trigger: ActionsTrigger?): List<ActionContext>
+/**
+ * Use static factory methods [MessageDisplayChoice.show], [MessageDisplayChoice.discard], and
+ * [MessageDisplayChoice.delay] as a result to [MessageDisplayController.shouldDisplayMessage].
+ */
+data class MessageDisplayChoice private constructor(val type: Type, val delaySeconds: Int = 0) {
+  enum class Type {
+    SHOW,
+    DISCARD,
+    DELAY
+  }
+  companion object {
+    @JvmStatic
+    fun show() = MessageDisplayChoice(Type.SHOW)
+    @JvmStatic
+    fun discard() = MessageDisplayChoice(Type.DISCARD)
+    @JvmStatic
+    fun delay(delaySeconds: Int) = MessageDisplayChoice(Type.DELAY, delaySeconds)
+  }
 }
