@@ -990,7 +990,7 @@ public class Leanplum {
    * @param response The response containing content.
    */
   private static void applyContentInResponse(JSONObject response) {
-    Map<String, Object> values = JsonConverter.mapFromJsonOrDefault(
+    Map<String, Object> values = JsonConverter.mapFromJson(
         response.optJSONObject(Constants.Keys.VARS));
     Map<String, Object> messages = JsonConverter.mapFromJsonOrDefault(
         response.optJSONObject(Constants.Keys.MESSAGES));
