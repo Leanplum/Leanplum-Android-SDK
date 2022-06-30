@@ -5,3 +5,6 @@
 
 -keep class com.leanplum.** { *; }
 -dontwarn com.leanplum.**
+
+-keep class com.huawei.updatesdk.**{*;}
+-keep class com.huawei.hms.**{*;}
