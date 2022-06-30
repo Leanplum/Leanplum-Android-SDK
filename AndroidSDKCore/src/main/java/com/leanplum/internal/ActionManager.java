@@ -61,15 +61,7 @@ public class ActionManager {
 
   private MessageDisplayListener messageDisplayListener;
   private MessageDisplayController messageDisplayController;
-  private final ActionScheduler scheduler = new ActionScheduler() {
-    @Override
-    public void schedule(@NonNull Action action, int delaySeconds) {
-      OperationQueue.sharedInstance().addOperationAfterDelay(
-          () -> ActionManagerExecutionKt.appendAction(ActionManager.this, action),
-          delaySeconds * 1000L
-      );
-    }
-  };
+  private final ActionScheduler scheduler = new ActionScheduler();
 
   private boolean enabled = true; // when manager is disabled it will stop adding actions in queue
   private boolean paused = true; // variable used when fetching chained action, paused until Activity is presented
@@ -78,6 +70,7 @@ public class ActionManager {
   private final Definitions definitions = new Definitions();
   private Action currentAction;
   private boolean dismissOnPushOpened = true;
+  private boolean continueOnActivityResumed = true;
 
   private static ActionManager instance;
 
@@ -752,5 +745,13 @@ public class ActionManager {
 
   public void setDismissOnPushOpened(boolean dismissOnPushOpened) {
     this.dismissOnPushOpened = dismissOnPushOpened;
+  }
+
+  public boolean getContinueOnActivityResumed() {
+    return continueOnActivityResumed;
+  }
+
+  public void setContinueOnActivityResumed(boolean continueOnActivityResumed) {
+    this.continueOnActivityResumed = continueOnActivityResumed;
   }
 }

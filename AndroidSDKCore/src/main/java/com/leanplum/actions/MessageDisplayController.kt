@@ -41,10 +41,14 @@ data class MessageDisplayChoice private constructor(val type: Type, val delaySec
 
 interface MessageDisplayController {
 
-  // called per message to decide whether to show, discard or delay it
+  /**
+   * Called per message to decide whether to show, discard or delay it.
+   */
   fun shouldDisplayMessage(action: ActionContext): MessageDisplayChoice?
 
-  // called when there are multiple messages to be displayed for client to order
-  // or remove from chain message that we don't want to present
+  /**
+   * Called when there are multiple messages to be displayed.
+   * We can order or remove any of them that we don't want to present.
+   */
   fun prioritizeMessages(actions: List<ActionContext>, trigger: ActionsTrigger?): List<ActionContext>
 }

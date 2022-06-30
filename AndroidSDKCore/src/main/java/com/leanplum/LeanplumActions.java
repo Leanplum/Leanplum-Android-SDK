@@ -30,36 +30,46 @@ import com.leanplum.internal.ActionManager;
 public class LeanplumActions { // TODO discuss whether to move code to Leanplum.java
 
    /**
-    * TODO
+    * Keep or dismiss in-app message when push notification is opened. If
+    * kept, the action from the push notification will go into the queue and will present after
+    * in-app dismissal, otherwise the in-app is dismissed and the push notification's action is
+    * presented.
+    *
     * Default value is true.
     *
-    * @param flag
+    * @param flag If true in-app is dismissed, otherwise push action goes into the queue.
     */
    public static void setDismissOnPushOpened(boolean flag) {
       ActionManager.getInstance().setDismissOnPushOpened(flag);
    }
 
    /**
-    * TODO
-    * Default value is true.
+    * Message queue is paused when app is backgrounded and resumed when app is foregrounded.
+    * You can change that behaviour if you pass false.
     *
-    * @param flag
+    * Default value is true.
     */
    public static void setContinueOnActivityResumed(boolean flag) {
-      // TODO
+      ActionManager.getInstance().setContinueOnActivityResumed(flag);
    }
 
    /**
-    * TODO
-    * @param controller
+    * Sets controller instance that will decide the order and priority of messages.
+    *
+    * If controller is not set then all messages are added into the queue in the order they are
+    * triggered.
+    *
+    * @param controller Instance of the controller class. Pass null if you want to remove your
+    *                   instance.
     */
    public static void setMessageDisplayController(@NonNull MessageDisplayController controller) {
       ActionManager.getInstance().setMessageDisplayController(controller);
    }
 
    /**
-    * TODO
-    * @param listener
+    * Sets a listener instance to be invoked when a message is displayed, dismissed, or clicked.
+    *
+    * @param listener Instance of listener class. Pass null if you want remove your instance.
     */
    public static void setMessageDisplayListener(@NonNull MessageDisplayListener listener) {
       ActionManager.getInstance().setMessageDisplayListener(listener);
@@ -67,7 +77,7 @@ public class LeanplumActions { // TODO discuss whether to move code to Leanplum.
 
    /**
     * Triggers postponed messages when indefinite time was used with
-    * MessageDisplayController.shouldDisplayMessage
+    * {@link MessageDisplayController#shouldDisplayMessage(ActionContext)}
     */
    public static void triggerDelayedMessages() {
       ActionManagerTriggeringKt.triggerDelayedMessages(ActionManager.getInstance());

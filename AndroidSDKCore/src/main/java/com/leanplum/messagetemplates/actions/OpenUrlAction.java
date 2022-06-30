@@ -110,9 +110,8 @@ public class OpenUrlAction implements MessageTemplate {
     // Run after the other ActionManagerExecution code
     OperationQueue.sharedInstance().addUiOperation(() -> actionContext.runActionNamed(Args.DISMISS_ACTION));
 
-    // TODO Should we pause queue when OpenURL is executed?
-    // Currently it will show the new activity and then the next action from the queue will present,
-    // this is accomplished because of the addUiOperation call
+    // when OpenURL is executed it will show the new activity and then the next action from the
+    // queue will present, this is accomplished because of the addUiOperation call
 
     return opened;
   }

@@ -97,7 +97,7 @@ fun ActionManager.dismissCurrentAction() {
   }
 }
 
-@UiThread // TODO make other synchronisation other than UI thread?
+@UiThread
 private fun ActionManager.performActionsImpl() {
   if (isPaused) return
 

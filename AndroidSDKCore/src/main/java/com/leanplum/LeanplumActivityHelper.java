@@ -283,7 +283,9 @@ public class LeanplumActivityHelper {
     avoidWindowLeaks(activity);
     isActivityPaused = false;
     currentActivity = activity;
-    ActionManager.getInstance().setPaused(false);
+    if (ActionManager.getInstance().getContinueOnActivityResumed()) {
+      ActionManager.getInstance().setPaused(false);
+    }
     if (LeanplumInternal.isPaused() || LeanplumInternal.hasStartedInBackground()) {
       Leanplum.resume();
       LocationManager locationManager = ActionManager.getLocationManager();
