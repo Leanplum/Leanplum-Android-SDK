@@ -19,12 +19,11 @@
  * under the License.
  */
 
-package com.leanplum;
+package com.leanplum.actions;
 
 import androidx.annotation.NonNull;
-import com.leanplum.actions.ActionManagerTriggeringKt;
-import com.leanplum.actions.MessageDisplayController;
-import com.leanplum.actions.MessageDisplayListener;
+import com.leanplum.ActionContext;
+import com.leanplum.actions.internal.ActionManagerTriggeringKt;
 import com.leanplum.internal.ActionManager;
 
 public class LeanplumActions {

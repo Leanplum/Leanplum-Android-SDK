@@ -29,7 +29,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 
-import com.leanplum.actions.ActionManagerExecutionKt;
+import com.leanplum.actions.internal.ActionManagerExecutionKt;
 import com.leanplum.annotations.Parser;
 import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;

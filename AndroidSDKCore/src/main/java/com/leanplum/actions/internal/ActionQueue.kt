@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.actions
+package com.leanplum.actions.internal
 
 class ActionQueue {
 

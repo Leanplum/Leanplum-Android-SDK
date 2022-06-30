@@ -19,10 +19,11 @@
  * under the License.
  */
 
-package com.leanplum.actions
+package com.leanplum.actions.internal
 
 import androidx.annotation.UiThread
 import com.leanplum.Leanplum
+import com.leanplum.actions.MessageDisplayChoice
 import com.leanplum.callbacks.VariablesChangedCallback
 import com.leanplum.internal.*
 

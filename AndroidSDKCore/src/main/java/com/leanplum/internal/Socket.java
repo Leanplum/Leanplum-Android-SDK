@@ -29,9 +29,9 @@ import android.text.TextUtils;
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.LeanplumActivityHelper;
-import com.leanplum.actions.Action;
-import com.leanplum.actions.ActionManagerDefinitionKt;
-import com.leanplum.actions.ActionManagerExecutionKt;
+import com.leanplum.actions.internal.Action;
+import com.leanplum.actions.internal.ActionManagerDefinitionKt;
+import com.leanplum.actions.internal.ActionManagerExecutionKt;
 import com.leanplum.callbacks.VariablesChangedCallback;
 
 import java.io.IOException;

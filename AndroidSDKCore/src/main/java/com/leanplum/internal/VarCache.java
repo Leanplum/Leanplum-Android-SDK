@@ -25,17 +25,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import android.text.TextUtils;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.leanplum.ActionArgs;
 import com.leanplum.ActionContext;
 import com.leanplum.CacheUpdateBlock;
 import com.leanplum.SecuredVars;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
 import com.leanplum.Var;
-import com.leanplum.actions.ActionDefinition;
-import com.leanplum.actions.ActionManagerDefinitionKt;
+import com.leanplum.actions.internal.ActionManagerDefinitionKt;
 import com.leanplum.internal.FileManager.HashResults;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.utils.SharedPreferencesUtil;

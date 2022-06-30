@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package com.leanplum.actions // TODO change com.leanplum.actions to com.leanplum.internal.actions ?
+package com.leanplum.actions.internal
 
 import com.leanplum.ActionContext
 import com.leanplum.internal.ActionManager

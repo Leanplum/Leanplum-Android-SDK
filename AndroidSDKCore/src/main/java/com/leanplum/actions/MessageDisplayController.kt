@@ -22,6 +22,7 @@
 package com.leanplum.actions
 
 import com.leanplum.ActionContext
+import com.leanplum.actions.internal.ActionsTrigger
 
 data class MessageDisplayChoice private constructor(val type: Type, val delaySeconds: Int = 0) {
   enum class Type {

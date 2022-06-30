@@ -24,11 +24,11 @@ package com.leanplum;
 import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.leanplum.actions.ActionDidExecute;
-import com.leanplum.actions.ActionManagerDefinitionKt;
-import com.leanplum.actions.ActionManagerTriggeringKt;
-import com.leanplum.actions.ActionDidDismiss;
-import com.leanplum.actions.Priority;
+import com.leanplum.actions.internal.ActionDidExecute;
+import com.leanplum.actions.internal.ActionManagerDefinitionKt;
+import com.leanplum.actions.internal.ActionManagerTriggeringKt;
+import com.leanplum.actions.internal.ActionDidDismiss;
+import com.leanplum.actions.internal.Priority;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.BaseActionContext;
 import com.leanplum.internal.CollectionUtil;
