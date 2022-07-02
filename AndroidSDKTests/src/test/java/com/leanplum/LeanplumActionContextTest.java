@@ -119,60 +119,6 @@ public class LeanplumActionContextTest extends AbstractTest {
         Log.exception(any(Throwable.class));
     }
 
-    /**
-     * Test for messages chained to existing message
-     * {@link ActionContext#isChainToExistingMessageStarted(Map, String)}.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testIsChainToExistingMessageStarted() throws Exception {
-        spy(VarCache.class);
-
-        InputStream inputStream = getClass().getResourceAsStream("/test_files/single_message.json");
-        Assert.assertNotNull(inputStream);
-        String jsonMessages = IOUtil.toString(inputStream);
-        // Messages will contains one message with messageId 1.
-        Map<String, Object> testMessages = JsonConverter.fromJson(jsonMessages);
-        doReturn(testMessages).when(VarCache.class, "messages");
-
-        // Arguments for message chained to message with messageId 1.
-        Map<String, Object> map = new HashMap<>();
-        map.put("Chained message", "1");
-        map.put("__name__", "Chain to Existing Message");
-
-        ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
-        }}, "messageId");
-        Method isChainToExistingMessageStartedMethod = ActionContext.class.
-                getDeclaredMethod("isChainToExistingMessageStarted", Map.class, String.class);
-        isChainToExistingMessageStartedMethod.setAccessible(true);
-
-        // Test if VarCache.messages contains no message with messageId 1.
-        boolean result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, map,
-                "Open Action");
-        assertTrue(result);
-
-        // Arguments for message chained to message with messageId 10.
-        Map<String, Object> newMap = new HashMap<>();
-        newMap.put("Chained message", "10");
-        newMap.put("__name__", "Chain to Existing Message");
-        // Test if VarCache.messages contains no message with messageId 10.
-        result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, newMap,
-                "Open Action");
-        assertFalse(result);
-
-        // Test if VarCache.messages is null.
-        doReturn(null).when(VarCache.class, "messages");
-        result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, map,
-                "Open Action");
-        assertFalse(result);
-
-        // Test for null parameters.
-        result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, null,
-                null);
-        assertFalse(result);
-    }
-
     @Test
     public void testActionArgs() {
         ActionArgs args = new ActionArgs();

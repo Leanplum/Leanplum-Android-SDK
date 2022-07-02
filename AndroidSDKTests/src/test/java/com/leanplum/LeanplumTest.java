@@ -1402,13 +1402,17 @@ public class LeanplumTest extends AbstractTest {
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "variablesChangedHandlers"));
     assertEquals(0, handlers.size());
 
+    // Previous handlers are needed because ActionManagerExecution.performActions registers a callback.
+    ArrayList<VariablesChangedCallback> previousHandlers =
+        CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
+    int previousNumberOfHandlers = previousHandlers.size();
     Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(variablesChangedCallback);
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
-    assertEquals(1, handlers.size());
+    assertEquals(previousNumberOfHandlers + 1, handlers.size());
 
     Leanplum.removeOnceVariablesChangedAndNoDownloadsPendingHandler(variablesChangedCallback);
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
-    assertEquals(0, handlers.size());
+    assertEquals(previousNumberOfHandlers, handlers.size());
   }
 
   /**

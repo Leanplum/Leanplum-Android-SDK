@@ -22,18 +22,22 @@ package com.leanplum._whitebox;
 
 import com.leanplum.ActionContext;
 import com.leanplum.__setup.AbstractTest;
-import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.actions.internal.Action;
+import com.leanplum.actions.internal.ActionManagerExecutionKt;
+import com.leanplum.actions.internal.ActionManagerTriggeringKt;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.VarCache;
 
+import java.util.List;
 import org.apache.maven.artifact.ant.shaded.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.reflect.Whitebox;
 import org.robolectric.RuntimeEnvironment;
 
@@ -49,6 +53,7 @@ import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 
 /**
@@ -56,6 +61,10 @@ import static org.powermock.api.mockito.PowerMockito.spy;
  *
  * @author Kyu Hyun Chang
  */
+@PrepareForTest(value = {
+    ActionManagerTriggeringKt.class,
+    ActionManagerExecutionKt.class
+})
 public class InAppMessagePrioritizationTest extends AbstractTest {
   private ActionManager.MessageMatchResult mMessageMatchResult;
   private ActionContext.ContextualValues mContextualValues;
@@ -107,18 +116,18 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
           .shouldShowMessage(messageId, messageConfig, "event", "TestActivity", mContextualValues);
     }
 
-    // Stub Leanplum.triggerAction(...) to keep track of triggered messageIds.
-    spy(LeanplumInternal.class);
+    mockStatic(ActionManagerExecutionKt.class);
     final Set<String> triggeredMessageIds = new HashSet<>();
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        ActionContext actionContext = (ActionContext) args[0];
-        triggeredMessageIds.add(actionContext.getMessageId());
+        Action action = (Action)((List<?>) args[1]).get(0);
+        triggeredMessageIds.add(action.getContext().getMessageId());
         return null;
       }
-    }).when(LeanplumInternal.class, "triggerAction", any(ActionContext.class),
-        any(VariablesChangedCallback.class));
+    }).when(ActionManagerExecutionKt.class, "appendActions",
+        any(ActionManager.class),
+        any(List.class));
 
     LeanplumInternal.maybePerformActions("event", "TestActivity",
         LeanplumMessageMatchFilter.LEANPLUM_ACTION_FILTER_ALL, null, mContextualValues);
@@ -183,14 +192,6 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
     InputStream inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_1.json");
     String jsonMessages = IOUtil.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1"));
-    assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
-
-    // Three messages with priorities of 5, no value, and 5.
-    // 2 messages with same priority but different countdown
-    // 2 messages should be displayed
-    inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_same_priority_different_time.json");
-    jsonMessages = IOUtil.toString(inputStream);
-    expectedMessageIds = new HashSet<>(Arrays.asList("1", "3"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
 
     // Three messages with same priority and same time

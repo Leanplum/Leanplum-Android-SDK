@@ -39,6 +39,7 @@ import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.RequestFactory;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.VarCache;
+import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.tests.BuildConfig;
 
 import java.io.BufferedReader;
@@ -141,9 +142,6 @@ public class LeanplumTestHelper {
     List onceNoDownloadsHandlers = (List) TestClassUtil.getField(Leanplum.class,
         "onceNoDownloadsHandlers");
     onceNoDownloadsHandlers.clear();
-    List messageDisplayedHandlers =
-        (List) TestClassUtil.getField(Leanplum.class, "messageDisplayedHandlers");
-    messageDisplayedHandlers.clear();
 
     LeanplumInternal.getUserAttributeChanges().clear();
     Leanplum.countAggregator().getAndClearCounts();
@@ -174,6 +172,8 @@ public class LeanplumTestHelper {
     TestClassUtil.setField(ActionManager.getInstance(), "messageImpressionOccurrences", new HashMap<>());
     TestClassUtil.setField(ActionManager.getInstance(), "messageTriggerOccurrences", new HashMap<>());
     TestClassUtil.setField(ActionManager.getInstance(), "sessionOccurrences", new HashMap<>());
+
+    TestClassUtil.setField(MessageTemplates.class, "registered", false);
   }
 
   /**
