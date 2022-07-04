@@ -129,7 +129,7 @@ public class APIConfig {
     }
   }
 
-  private void save() {
+  public void save() {
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(
         Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);

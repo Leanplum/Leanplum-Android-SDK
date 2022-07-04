@@ -37,7 +37,6 @@ import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
-import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.ApiConfigLoader;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
@@ -57,7 +56,6 @@ import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.RequestSenderTimer;
 import com.leanplum.internal.RequestUtil;
-import com.leanplum.internal.Socket;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
@@ -327,6 +325,40 @@ public class Leanplum {
 
     customDeviceId = deviceId;
     userSpecifiedDeviceId = true;
+  }
+
+  /**
+   * (Advanced) Sets new device ID. Must be called after Leanplum finished starting.
+   * This method allows multiple changes of device ID in opposite of
+   * {@link Leanplum#setDeviceId(String)}, which allows only one.
+   */
+  public static void forceNewDeviceId(String deviceId) {
+    if (TextUtils.isEmpty(deviceId)) {
+      Log.i("forceNewDeviceId - Empty deviceId parameter provided.");
+      return;
+    }
+
+    if (deviceId.equals(APIConfig.getInstance().deviceId())) {
+      // same device ID, nothing to change
+      return;
+    }
+
+    if (hasStarted()) {
+      APIConfig.getInstance().setDeviceId(deviceId);
+      APIConfig.getInstance().save();
+      VarCache.saveDiffs(); // device ID is saved there
+
+      Map<String, Object> params = new HashMap<>();
+      attachDeviceParams(params);
+
+      Request request = RequestBuilder
+          .withSetDeviceAttributesAction()
+          .andParams(params)
+          .andType(RequestType.IMMEDIATE)
+          .create();
+
+      RequestSender.getInstance().send(request);
+    }
   }
 
   /**
@@ -638,6 +670,38 @@ public class Leanplum {
     }
   }
 
+  private static void attachDeviceParams(@NonNull Map<String, Object> params) {
+    String versionName = Util.getVersionName();
+    if (customAppVersion != null) {
+      versionName = customAppVersion;
+    }
+    if (versionName == null) {
+      versionName = "";
+    }
+
+    String fcmRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
+    String miPushRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID);
+    String hmsRegistrationId = SharedPreferencesUtil.getString(context,
+        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID);
+
+    params.put(Constants.Params.VERSION_NAME, versionName);
+    params.put(Constants.Params.DEVICE_NAME, Util.getDeviceName());
+    params.put(Constants.Params.DEVICE_MODEL, Util.getDeviceModel());
+    params.put(Constants.Params.DEVICE_SYSTEM_NAME, Util.getSystemName());
+    params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
+    if (!TextUtils.isEmpty(fcmRegistrationId)) {
+      params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
+    }
+    if (!TextUtils.isEmpty(miPushRegistrationId)) {
+      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, miPushRegistrationId);
+    }
+    if (!TextUtils.isEmpty(hmsRegistrationId)) {
+      params.put(Constants.Params.DEVICE_HMS_TOKEN, hmsRegistrationId);
+    }
+  }
+
   private static void startHelper(
       String userId, final Map<String, ?> attributes, final boolean isBackground) {
     LeanplumEventDataManager.sharedInstance();
@@ -669,15 +733,6 @@ public class Leanplum {
     }
     APIConfig.getInstance().setUserId(userId);
 
-    // Setup parameters.
-    String versionName = Util.getVersionName();
-    if (customAppVersion != null) {
-      versionName = customAppVersion;
-    }
-    if (versionName == null) {
-      versionName = "";
-    }
-
     String locale = Util.getLocale();
     if (!TextUtils.isEmpty(customLocale)) {
       locale = customLocale;
@@ -687,31 +742,13 @@ public class Leanplum {
     Date now = new Date();
     int timezoneOffsetSeconds = localTimeZone.getOffset(now.getTime()) / 1000;
 
-    String fcmRegistrationId = SharedPreferencesUtil.getString(context,
-        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
-    String miPushRegistrationId = SharedPreferencesUtil.getString(context,
-        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID);
-    String hmsRegistrationId = SharedPreferencesUtil.getString(context,
-        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID);
-
     HashMap<String, Object> params = new HashMap<>();
+
+    attachDeviceParams(params);
+
     params.put(Constants.Params.INCLUDE_DEFAULTS, Boolean.toString(false));
     if (isBackground) {
       params.put(Constants.Params.BACKGROUND, Boolean.toString(true));
-    }
-    params.put(Constants.Params.VERSION_NAME, versionName);
-    params.put(Constants.Params.DEVICE_NAME, Util.getDeviceName());
-    params.put(Constants.Params.DEVICE_MODEL, Util.getDeviceModel());
-    params.put(Constants.Params.DEVICE_SYSTEM_NAME, Util.getSystemName());
-    params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
-    if (!TextUtils.isEmpty(fcmRegistrationId)) {
-      params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
-    }
-    if (!TextUtils.isEmpty(miPushRegistrationId)) {
-      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, miPushRegistrationId);
-    }
-    if (!TextUtils.isEmpty(hmsRegistrationId)) {
-      params.put(Constants.Params.DEVICE_HMS_TOKEN, hmsRegistrationId);
     }
     params.put(Constants.Keys.TIMEZONE, localTimeZone.getID());
     params.put(Constants.Keys.TIMEZONE_OFFSET_SECONDS, Integer.toString(timezoneOffsetSeconds));
@@ -951,7 +988,7 @@ public class Leanplum {
    * @param response The response containing content.
    */
   private static void applyContentInResponse(JSONObject response) {
-    Map<String, Object> values = JsonConverter.mapFromJsonOrDefault(
+    Map<String, Object> values = JsonConverter.mapFromJson(
         response.optJSONObject(Constants.Keys.VARS));
     Map<String, Object> messages = JsonConverter.mapFromJsonOrDefault(
         response.optJSONObject(Constants.Keys.MESSAGES));

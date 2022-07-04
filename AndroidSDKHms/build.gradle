@@ -34,7 +34,7 @@ dependencies {
     api project(':AndroidSDKPush')
 
     implementation 'com.huawei.agconnect:agconnect-core:1.6.3.300'
-    implementation 'com.huawei.hms:push:6.3.0.302'
+    implementation 'com.huawei.hms:push:6.3.0.304'
 }
 
 task generateJavadoc(type: Javadoc) {
