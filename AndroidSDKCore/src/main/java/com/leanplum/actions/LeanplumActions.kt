@@ -86,5 +86,37 @@ class LeanplumActions {
     fun triggerDelayedMessages() {
       ActionManager.getInstance().triggerDelayedMessages()
     }
+
+    /**
+     * When queue is paused it will stop executing actions but new actions will continue to be
+     * added.
+     *
+     * Value will be changed to false when app is in background and to true when app enters
+     * foreground. Activity lifecycle callbacks such as onResume and onPause will change that state
+     * if you have called the LeanplumActivityHelper#enableLifecycleCallbacks. You can disable the
+     * onResume state change using [setContinueOnActivityResumed] method.
+     */
+    fun setQueuePaused(paused: Boolean) {
+      ActionManager.getInstance().isPaused = paused
+    }
+
+    /**
+     * Returns the paused state of the queue.
+     * Check [setQueuePaused].
+     */
+    fun isQueuePaused() = ActionManager.getInstance().isPaused
+
+    /**
+     * When queue is disabled it will stop executing actions and new actions won't be added.
+     */
+    fun setQueueEnabled(enabled: Boolean) {
+      ActionManager.getInstance().isEnabled = enabled
+    }
+
+    /**
+     * Returns the enabled state of the queue.
+     * Check [setQueueEnabled]
+     */
+    fun isQueueEnabled() = ActionManager.getInstance().isEnabled
   }
 }
