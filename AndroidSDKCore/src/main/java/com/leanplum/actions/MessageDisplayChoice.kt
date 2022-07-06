@@ -31,12 +31,22 @@ data class MessageDisplayChoice private constructor(val type: Type, val delaySec
     DISCARD,
     DELAY
   }
+
   companion object {
     @JvmStatic
     fun show() = MessageDisplayChoice(Type.SHOW)
+
     @JvmStatic
     fun discard() = MessageDisplayChoice(Type.DISCARD)
+
     @JvmStatic
     fun delay(delaySeconds: Int) = MessageDisplayChoice(Type.DELAY, delaySeconds)
+
+    /**
+     * When actions are delayed indefinitely use [LeanplumActions.triggerDelayedMessages] to trigger
+     * them again.
+     */
+    @JvmStatic
+    fun delayIndefinitely() = delay(0)
   }
 }
