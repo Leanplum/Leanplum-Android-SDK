@@ -57,8 +57,8 @@ class LeanplumActions {
     /**
      * Sets controller instance that will decide the order and priority of messages.
      *
-     * If controller is not set then all messages are added into the queue in the order they are
-     * triggered.
+     * If controller is not set and multiple messages are triggered at once it will execute only the
+     * first one. This ensures backwards compatibility.
      *
      * @param controller Instance of the controller class. Pass null if you want to remove your
      * instance.

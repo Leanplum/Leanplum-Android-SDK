@@ -408,7 +408,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             args,
             messageId,
             name);
-        embeddedContext.parentContext = this;
         ActionManagerTriggeringKt.trigger(
             ActionManager.getInstance(),
             embeddedContext,
@@ -428,6 +427,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       actionContext.preventRealtimeUpdating = preventRealtimeUpdating;
       actionContext.isRooted = isRooted;
       actionContext.key = name;
+      actionContext.parentContext = this;
       return actionContext;
   }
 
@@ -487,7 +487,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             messageId,
             name);
         chainContext.isChainedMessage = true;
-        chainContext.parentContext = this;
         ActionManagerTriggeringKt.trigger(
             ActionManager.getInstance(),
             chainContext,
@@ -634,6 +633,10 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
 
   public ActionContext getParentContext() {
     return parentContext;
+  }
+
+  public void setParentContext(ActionContext parentContext) {
+    this.parentContext = parentContext;
   }
 
   public boolean isChainedMessage() {

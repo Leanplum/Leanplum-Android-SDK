@@ -208,14 +208,14 @@ public class LeanplumInternal {
           ActionManager.getInstance().recordHeldBackImpression(
               actionContext.getMessageId(), actionContext.getOriginalMessageId());
         } else {
-          if (shouldSuppressMessage(actionContext)) {
-            Log.i("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
-            continue;
-          }
           if (ActionManager.PUSH_NOTIFICATION_ACTION_NAME.equals(actionContext.actionName())) {
             scheduleLocalPush(actionContext);
           } else {
-            triggerContexts.add(actionContext);
+            if (shouldSuppressMessage(actionContext)) {
+              Log.i("Local IAM caps reached, suppressing messageId=" + actionContext.getMessageId());
+            } else {
+              triggerContexts.add(actionContext);
+            }
           }
         }
       }
