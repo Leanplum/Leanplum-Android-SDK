@@ -3,7 +3,6 @@ buildscript {
     repositories {
         mavenCentral()
         google()
-        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.0'
@@ -18,7 +17,6 @@ allprojects {
         maven {
             url "https://repo.leanplum.com/"
         }
-        jcenter()
         maven {
             url 'https://developer.huawei.com/repo/'
         }
