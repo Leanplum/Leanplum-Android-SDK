@@ -96,6 +96,7 @@ class LeanplumActions {
      * if you have called the LeanplumActivityHelper#enableLifecycleCallbacks. You can disable the
      * onResume state change using [setContinueOnActivityResumed] method.
      */
+    @JvmStatic
     fun setQueuePaused(paused: Boolean) {
       ActionManager.getInstance().isPaused = paused
     }
@@ -104,11 +105,13 @@ class LeanplumActions {
      * Returns the paused state of the queue.
      * Check [setQueuePaused].
      */
+    @JvmStatic
     fun isQueuePaused() = ActionManager.getInstance().isPaused
 
     /**
      * When queue is disabled it will stop executing actions and new actions won't be added.
      */
+    @JvmStatic
     fun setQueueEnabled(enabled: Boolean) {
       ActionManager.getInstance().isEnabled = enabled
     }
@@ -117,6 +120,7 @@ class LeanplumActions {
      * Returns the enabled state of the queue.
      * Check [setQueueEnabled]
      */
+    @JvmStatic
     fun isQueueEnabled() = ActionManager.getInstance().isEnabled
   }
 }
