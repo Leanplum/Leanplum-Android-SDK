@@ -1099,7 +1099,7 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     // Define action.
-    Leanplum.defineAction(actionName, Leanplum.ACTION_KIND_ACTION, args);
+    Leanplum.defineAction(actionName, Leanplum.ACTION_KIND_ACTION, args, null, null);
 
     // Force action update.
     Method actionUpdateMethod = VarCache.class.getDeclaredMethod("sendActionsIfChanged");

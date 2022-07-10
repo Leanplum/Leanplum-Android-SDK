@@ -356,7 +356,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   public void runActionNamed(String name) {
     if (TextUtils.isEmpty(name)) {
       Log.e("runActionNamed - Invalid name parameter provided.");
-      actionDismissed();
       return;
     }
     Map<String, Object> args = getChildArgs(name);
@@ -368,13 +367,10 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     }
 
     if (args == null) {
-      actionDismissed();
       return;
     }
 
     performChainedAction(name, args);
-
-    actionDismissed();
   }
 
   private void performChainedAction(String name, Map<String, Object> args) {
@@ -408,7 +404,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             args,
             messageId,
             name);
-        embeddedContext.parentContext = this;
         ActionManagerTriggeringKt.trigger(
             ActionManager.getInstance(),
             embeddedContext,
@@ -428,6 +423,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       actionContext.preventRealtimeUpdating = preventRealtimeUpdating;
       actionContext.isRooted = isRooted;
       actionContext.key = name;
+      actionContext.parentContext = this;
       return actionContext;
   }
 
@@ -487,7 +483,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
             messageId,
             name);
         chainContext.isChainedMessage = true;
-        chainContext.parentContext = this;
         ActionManagerTriggeringKt.trigger(
             ActionManager.getInstance(),
             chainContext,
@@ -544,7 +539,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       if (!Constants.isNoop() && messageId != null && isRooted) {
         if (TextUtils.isEmpty(name)) {
           Log.e("runTrackedActionNamed - Invalid name parameter provided.");
-          actionDismissed();
           return;
         }
         trackMessageEvent(name, 0.0, null, null);
@@ -552,7 +546,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       runActionNamed(name);
     } catch (Throwable t) {
       Log.exception(t);
-      actionDismissed();
     }
   }
 
@@ -634,6 +627,10 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
 
   public ActionContext getParentContext() {
     return parentContext;
+  }
+
+  public void setParentContext(ActionContext parentContext) {
+    this.parentContext = parentContext;
   }
 
   public boolean isChainedMessage() {

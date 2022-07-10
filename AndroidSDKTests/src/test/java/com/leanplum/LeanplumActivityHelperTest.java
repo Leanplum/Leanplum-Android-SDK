@@ -24,7 +24,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 
 import com.leanplum.__setup.LeanplumTestHelper;
-import com.leanplum.callbacks.PostponableAction;
 
 import junit.framework.TestCase;
 
@@ -98,31 +97,6 @@ public class LeanplumActivityHelperTest extends TestCase {
     LeanplumActivityHelper.queueActionUponActive(runnable);
     LeanplumTestHelper.assertLatchIsCalled(latch4, 1);
     assertFalse(isRunnableQueued(runnable));
-
-    // Test Postponable action & activity not ignored.
-    final CountDownLatch latch5 = new CountDownLatch(1);
-    runnable = new PostponableAction() {
-      @Override
-      public void run() {
-        latch5.countDown();
-      }
-    };
-    LeanplumActivityHelper.queueActionUponActive(runnable);
-    LeanplumTestHelper.assertLatchIsCalled(latch5, 1);
-    assertFalse(isRunnableQueued(runnable));
-
-    // Test Postponable action & activity ignored.
-    final CountDownLatch latch6 = new CountDownLatch(1);
-    runnable = new PostponableAction() {
-      @Override
-      public void run() {
-        latch6.countDown();
-      }
-    };
-    LeanplumActivityHelper.deferMessagesForActivities(FakeActivity.class);
-    LeanplumActivityHelper.queueActionUponActive(runnable);
-    LeanplumTestHelper.assertLatchIsNotCalled(latch6, 1);
-    assertTrue(isRunnableQueued(runnable));
   }
 
   private static boolean isRunnableQueued(Runnable runnable) throws NoSuchFieldException,

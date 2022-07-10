@@ -31,7 +31,6 @@ import android.os.Bundle;
 
 import com.leanplum.actions.internal.ActionManagerExecutionKt;
 import com.leanplum.annotations.Parser;
-import com.leanplum.callbacks.PostponableAction;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumInternal;
@@ -39,11 +38,8 @@ import com.leanplum.internal.Log;
 
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.utils.BuildUtil;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * Utility class for handling activity lifecycle events. Call these methods from your activity if
@@ -56,7 +52,6 @@ public class LeanplumActivityHelper {
    * Whether any of the activities are paused.
    */
   static boolean isActivityPaused;
-  private static Set<Class> ignoredActivityClasses;
 
   /**
    * Whether lifecycle callbacks were registered. This is only supported on Android OS &gt;= 4.0.
@@ -364,8 +359,7 @@ public class LeanplumActivityHelper {
    */
   public static void queueActionUponActive(Runnable action) {
     try {
-      boolean respectIgnoredActivities = action instanceof PostponableAction;
-      if (canPresentMessages(respectIgnoredActivities)) {
+      if (canPresentMessages()) {
         action.run();
       } else {
         synchronized (pendingActions) {
@@ -378,13 +372,12 @@ public class LeanplumActivityHelper {
   }
 
   /**
-   * Checks whether activity is in foreground and is not in ignored list.
+   * Checks whether activity is in foreground.
    */
-  static boolean canPresentMessages(boolean respectIgnoredActivities) {
+  static boolean canPresentMessages() {
     return currentActivity != null
         && !currentActivity.isFinishing()
-        && !isActivityPaused
-        && (!respectIgnoredActivities || !isActivityClassIgnored(currentActivity));
+        && !isActivityPaused;
   }
 
   /**
@@ -402,42 +395,7 @@ public class LeanplumActivityHelper {
       pendingActions.clear();
     }
     for (Runnable action : runningActions) {
-      // If postponable callback and current activity should be skipped, then postpone.
-      if (action instanceof PostponableAction && isActivityClassIgnored(currentActivity)) {
-        synchronized (pendingActions) {
-          pendingActions.add(action);
-        }
-      } else {
-        action.run();
-      }
+      action.run();
     }
-  }
-
-  /**
-   * Whether or not an activity is configured to not show messages.
-   *
-   * @param activity The activity to check.
-   * @return Whether or not the activity is ignored.
-   */
-  private static boolean isActivityClassIgnored(Activity activity) {
-    return ignoredActivityClasses != null && ignoredActivityClasses.contains(activity.getClass());
-  }
-
-  /**
-   * Does not show messages for the provided activity classes.
-   *
-   * @param activityClasses The activity classes to not show messages on.
-   */
-  public static void deferMessagesForActivities(Class... activityClasses) {
-    // Check if valid arguments are provided.
-    if (activityClasses == null || activityClasses.length == 0) {
-      return;
-    }
-    // Lazy instantiate activityClasses set.
-    if (ignoredActivityClasses == null) {
-      ignoredActivityClasses = new HashSet<>(activityClasses.length);
-    }
-    // Add all class names to set.
-    Collections.addAll(ignoredActivityClasses, activityClasses);
   }
 }

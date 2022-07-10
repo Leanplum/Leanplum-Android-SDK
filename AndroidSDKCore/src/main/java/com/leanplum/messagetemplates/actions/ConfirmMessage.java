@@ -23,6 +23,7 @@ package com.leanplum.messagetemplates.actions;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -69,19 +70,21 @@ public class ConfirmMessage implements MessageTemplate {
       return false;
     }
 
-    alertDialog = new AlertDialog.Builder(activity)
+    alertDialog = new Builder(activity)
         .setTitle(context.stringNamed(Args.TITLE))
         .setMessage(context.stringNamed(Args.MESSAGE))
         .setCancelable(false)
         .setPositiveButton(context.stringNamed(Args.ACCEPT_TEXT),
             (dialog, id) -> {
-              context.runTrackedActionNamed(Args.ACCEPT_ACTION);
               alertDialog = null;
+              context.runTrackedActionNamed(Args.ACCEPT_ACTION);
+              context.actionDismissed();
             })
         .setNegativeButton(context.stringNamed(Args.CANCEL_TEXT),
             (dialog, id) -> {
-              context.runActionNamed(Args.CANCEL_ACTION);
               alertDialog = null;
+              context.runActionNamed(Args.CANCEL_ACTION);
+              context.actionDismissed();
             })
         .create();
     alertDialog.show();

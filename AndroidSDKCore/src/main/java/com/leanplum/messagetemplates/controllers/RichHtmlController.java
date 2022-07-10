@@ -317,8 +317,10 @@ public class RichHtmlController extends BaseController {
       if (!TextUtils.isEmpty(queryComponentsFromUrl) && actionContext != null) {
         if (url.contains(richOptions.getActionUrl())) {
           actionContext.runActionNamed(queryComponentsFromUrl);
+          actionContext.actionDismissed();
         } else {
           actionContext.runTrackedActionNamed(queryComponentsFromUrl);
+          actionContext.actionDismissed();
         }
       }
       return true;

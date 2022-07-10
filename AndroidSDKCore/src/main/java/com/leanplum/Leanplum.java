@@ -1394,21 +1394,11 @@ public class Leanplum {
    *
    * @param name The name of the action to register.
    * @param kind Whether to display the action as a message and/or a regular action.
-   * @param args User-customizable options for the action.
-   */
-  public static void defineAction(String name, int kind, ActionArgs args) {
-    defineAction(name, kind, args, null, null);
-  }
-
-  /**
-   * Defines an action that is used within Leanplum Marketing Automation. Actions can be set up to
-   * get triggered based on app opens, events, and states.
-   *
-   * @param name The name of the action to register.
-   * @param kind Whether to display the action as a message and/or a regular action.
+   *             Use ACTION_KIND_ACTION, ACTION_KIND_MESSAGE,
+   *             or ACTION_KIND_ACTION|ACTION_KIND_MESSAGE.
    * @param args User-customizable options for the action.
    * @param presentHandler Called when the action is triggered with a context object containing the
-   * user-specified options.
+   *                       user-specified options.
    * @param dismissHandler Called when the action needs to be dismissed in order to prioritize other
    *                       message.
    */

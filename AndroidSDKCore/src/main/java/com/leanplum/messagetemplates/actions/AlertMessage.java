@@ -61,7 +61,7 @@ public class AlertMessage implements MessageTemplate {
   }
 
   @Override
-  public boolean present(ActionContext context) {
+  public boolean present(@NonNull ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
       return false;
@@ -74,8 +74,9 @@ public class AlertMessage implements MessageTemplate {
         .setPositiveButton(
             context.stringNamed(Args.DISMISS_TEXT),
             (dialog, id) -> {
-              context.runActionNamed(Args.DISMISS_ACTION);
               alertDialog = null;
+              context.runActionNamed(Args.DISMISS_ACTION);
+              context.actionDismissed();
             })
         .create();
     alertDialog.show();
@@ -83,7 +84,7 @@ public class AlertMessage implements MessageTemplate {
   }
 
   @Override
-  public boolean dismiss(ActionContext context) {
+  public boolean dismiss(@NonNull ActionContext context) {
     if (alertDialog != null) {
       alertDialog.dismiss();
       alertDialog = null;
