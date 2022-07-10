@@ -41,9 +41,7 @@ import com.leanplum.messagetemplates.MessageTemplateConstants.Values;
 import java.util.List;
 
 /**
- * Registers a Leanplum action that opens a particular URL. If the URL cannot be handled by the
- * system URL handler, you can add your own action responder using {@link Leanplum#onAction} that
- * handles the URL how you want.
+ * Registers a Leanplum action that opens a particular URL.
  *
  * @author Andrew First
  */
@@ -108,7 +106,10 @@ public class OpenUrlAction implements MessageTemplate {
     boolean opened = openUriIntent(context, uriIntent);
 
     // Run after the other ActionManagerExecution code
-    OperationQueue.sharedInstance().addUiOperation(() -> actionContext.runActionNamed(Args.DISMISS_ACTION));
+    OperationQueue.sharedInstance().addUiOperation(() -> {
+      actionContext.runActionNamed(Args.DISMISS_ACTION);
+      actionContext.actionDismissed();
+    });
 
     // when OpenURL is executed it will show the new activity and then the next action from the
     // queue will present, this is accomplished because of the addUiOperation call
