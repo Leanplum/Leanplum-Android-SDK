@@ -15,6 +15,9 @@ import org.mockito.Mockito
 
 class ActionManagerDefinitionTest : AbstractTest() {
 
+  /**
+   * Tests whether Leanplum.defineAction(...) works as intended.
+   */
   @Test
   fun testLeanplumDefine() {
     val presentHandler = object : ActionCallback() {
@@ -37,6 +40,9 @@ class ActionManagerDefinitionTest : AbstractTest() {
     assertEquals(ad?.dismissHandler, dismissHandler)
   }
 
+  /**
+   * Tests whether MessageTemplates.register(...) works as intended.
+   */
   @Test
   fun testRegisterMessageTemplate() {
     val name = "action2"

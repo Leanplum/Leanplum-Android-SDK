@@ -60,7 +60,7 @@ public class ActionManager {
 
   private MessageDisplayListener messageDisplayListener;
   private MessageDisplayController messageDisplayController;
-  private final ActionScheduler scheduler = new ActionScheduler();
+  private ActionScheduler scheduler = new ActionScheduler();
 
   private boolean enabled = true; // when manager is disabled it will stop adding actions in queue
   private boolean paused = true; // variable used when fetching chained action, paused until Activity is presented
@@ -724,6 +724,10 @@ public class ActionManager {
 
   public ActionScheduler getScheduler() {
     return scheduler;
+  }
+
+  public void setScheduler(ActionScheduler scheduler) {
+    this.scheduler = scheduler;
   }
 
   public ActionQueue getQueue() {
