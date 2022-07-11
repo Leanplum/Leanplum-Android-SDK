@@ -46,30 +46,38 @@ class ActionManagerExecutionTest : AbstractTest() {
     LeanplumActions.setDismissOnPushOpened(true)
   }
 
-  private fun createMessage(
-    name: String,
-    messageId: String,
-    onPresent: (() -> Unit)? = null,
-    onDismiss: (() -> Unit)? = null): ActionContext {
-    val message = ActionContext(name, mapOf(), messageId)
-
-    // Register template
+  private fun registerTemplate(name: String, onPresent: () -> Unit, onDismiss: () -> Unit) {
     val messageTemplate = object : MessageTemplate {
       override fun getName(): String = name
       override fun createActionArgs(context: Context): ActionArgs = ActionArgs()
       override fun present(context: ActionContext): Boolean {
-        onPresent?.invoke()
+        onPresent.invoke()
         return true
       }
       override fun dismiss(context: ActionContext): Boolean {
-        onDismiss?.invoke()
+        onDismiss.invoke()
         context.actionDismissed()
         return true
       }
     }
 
     MessageTemplates.registerTemplate(messageTemplate, mContext)
-    return message
+  }
+
+  private inner class MessageData(name: String) {
+    var messagePresented: Boolean = false
+    var messageDismissed: Boolean = false
+    val actionContext: ActionContext
+
+    init {
+      registerTemplate(
+        name = name,
+        onPresent = { messagePresented = true },
+        onDismiss = { messageDismissed = true },
+      )
+
+      actionContext = ActionContext(name, mapOf(), "${name}Id")
+    }
   }
 
   /**
@@ -77,35 +85,19 @@ class ActionManagerExecutionTest : AbstractTest() {
    */
   @Test
   fun testDismissCurrentAction() {
-    var dismissRequested = false
-
-    val name = "message1"
-    val message = createMessage(name, "messageId") {
-      dismissRequested = true
-    }
-
-    // Set client MessageDisplayListener
-    var messageDisplayed = false
-    ActionManager.getInstance().messageDisplayListener = object : MessageDisplayListener {
-      override fun onMessageDisplayed(action: ActionContext) {
-        assertEquals(message, action)
-        messageDisplayed = true
-      }
-      override fun onMessageDismissed(action: ActionContext) {}
-      override fun onActionExecuted(name: String, action: ActionContext) {}
-    }
+    val message = MessageData("message")
 
     // Trigger message
-    ActionManager.getInstance().trigger(message)
+    ActionManager.getInstance().trigger(message.actionContext)
     val queue = ActionManager.getInstance().queue.queue
 
     assertTrue(queue.isEmpty())
-    assertTrue(messageDisplayed)
-    assertEquals(message, ActionManager.getInstance().currentAction.context)
+    assertTrue(message.messagePresented)
+    assertEquals(message.actionContext, ActionManager.getInstance().currentAction.context)
 
     // Dismiss message
     ActionManager.getInstance().dismissCurrentAction()
-    assertTrue(dismissRequested)
+    assertTrue(message.messageDismissed)
     assertNull(ActionManager.getInstance().currentAction)
   }
 
@@ -115,29 +107,24 @@ class ActionManagerExecutionTest : AbstractTest() {
    */
   @Test
   fun testPrioritizePushNotificationAction() {
-    val name1 = "message1"
-    var message1Dismissed = false
-    val message1 = createMessage(name1, "messageId1") {
-      message1Dismissed = true
-    }
+    val firstMessage = MessageData("message")
 
-    val pushOpenActionName = "push notification message"
-    val pushOpenAction = createMessage(pushOpenActionName, "messageId2").apply {
-      this.parentContext = ActionContext("__Push Notification", mapOf(), "messageId_push")
+    val pushOpenAction = MessageData("push notification message").apply {
+      this.actionContext.parentContext = ActionContext("__Push Notification", mapOf(), "messageId_push")
     }
 
     // Trigger first message
-    ActionManager.getInstance().trigger(message1)
-    assertEquals(message1, ActionManager.getInstance().currentAction.context)
+    ActionManager.getInstance().trigger(firstMessage.actionContext)
+    assertEquals(firstMessage.actionContext, ActionManager.getInstance().currentAction.context)
 
     // Trigger push notification message
-    ActionManager.getInstance().trigger(pushOpenAction)
-    assertEquals(pushOpenAction, ActionManager.getInstance().currentAction.context)
+    ActionManager.getInstance().trigger(pushOpenAction.actionContext)
+    assertEquals(pushOpenAction.actionContext, ActionManager.getInstance().currentAction.context)
 
     // Assert first message was dismissed
     val queue = ActionManager.getInstance().queue.queue
     assertTrue(queue.isEmpty())
-    assertTrue(message1Dismissed)
+    assertTrue(firstMessage.messageDismissed)
   }
 
   /**
@@ -146,31 +133,27 @@ class ActionManagerExecutionTest : AbstractTest() {
    */
   @Test
   fun testDoNotPrioritizePushNotificationAction() {
+    // Disable push notification's open action priority
     LeanplumActions.setDismissOnPushOpened(false)
 
-    val name1 = "message1"
-    var message1Dismissed = false
-    val message1 = createMessage(name1, "messageId1") {
-      message1Dismissed = true
-    }
+    val firstMessage = MessageData("message")
 
-    val pushOpenActionName = "push notification message"
-    val pushOpenAction = createMessage(pushOpenActionName, "messageId2").apply {
-      this.parentContext = ActionContext("__Push Notification", mapOf(), "messageId_push")
+    val pushOpenAction = MessageData("push notification message").apply {
+      this.actionContext.parentContext = ActionContext("__Push Notification", mapOf(), "messageId_push")
     }
 
     // Trigger first message
-    ActionManager.getInstance().trigger(message1)
-    assertEquals(message1, ActionManager.getInstance().currentAction.context)
+    ActionManager.getInstance().trigger(firstMessage.actionContext)
+    assertEquals(firstMessage.actionContext, ActionManager.getInstance().currentAction.context)
 
     // Trigger push notification message
-    ActionManager.getInstance().trigger(pushOpenAction)
-    assertEquals(message1, ActionManager.getInstance().currentAction.context)
+    ActionManager.getInstance().trigger(pushOpenAction.actionContext)
+    assertEquals(firstMessage.actionContext, ActionManager.getInstance().currentAction.context)
 
     // Assert first message was not dismissed
     val queue = ActionManager.getInstance().queue.queue
     assertEquals(1, queue.size)
-    assertFalse(message1Dismissed)
+    assertFalse(firstMessage.messageDismissed)
   }
 
   /**
@@ -178,25 +161,14 @@ class ActionManagerExecutionTest : AbstractTest() {
    * MessageDisplayController.shouldDisplayMessage(...).
    */
   @Test
-  fun testShowDelayDiscardMessages() {
-    class MessageData(
-      val name: String,
-      var messagePresented: Boolean = false,
-      var messageDismissed: Boolean = false,
-    ) {
-      val message = createMessage(
-        name,
-        "${name}Id",
-        { messagePresented = true },
-        { messageDismissed = true })
-    }
-
+  fun testShouldDisplayMessage() {
     // Define test messages
     val messageToShow = MessageData("messageToShow")
     val messageToDiscard = MessageData("messageToDiscard")
     val messageToDelayIndefinitely = MessageData("messageToDelayIndefinitely")
     val messageToDelay = MessageData("messageToDelay")
 
+    // Register MessageDisplayController
     LeanplumActions.setMessageDisplayController(object : MessageDisplayController {
       override fun shouldDisplayMessage(action: ActionContext): MessageDisplayChoice? {
         return when (action.actionName()) {
@@ -214,26 +186,72 @@ class ActionManagerExecutionTest : AbstractTest() {
     })
 
     // Trigger messageToShow
-    ActionManager.getInstance().trigger(messageToShow.message)
-    assertEquals(messageToShow.message, ActionManager.getInstance().currentAction.context)
+    ActionManager.getInstance().trigger(messageToShow.actionContext)
+    assertEquals(messageToShow.actionContext, ActionManager.getInstance().currentAction.context)
     ActionManager.getInstance().currentAction = null // reset message
 
     // Trigger messageToDiscard
-    ActionManager.getInstance().trigger(messageToDiscard.message)
+    ActionManager.getInstance().trigger(messageToDiscard.actionContext)
     assertNull(ActionManager.getInstance().currentAction)
 
     // Trigger messageToDelayIndefinitely
-    ActionManager.getInstance().trigger(messageToDelayIndefinitely.message)
+    ActionManager.getInstance().trigger(messageToDelayIndefinitely.actionContext)
     assertNull(ActionManager.getInstance().currentAction)
 
     // Trigger messageToDelay
     val scheduler = Mockito.mock(ActionScheduler::class.java)
-    val action = Action(context = messageToDelay.message)
+    val action = Action(context = messageToDelay.actionContext)
 
     Mockito.doNothing().`when`(scheduler).schedule(action, 5)
     ActionManager.getInstance().scheduler = scheduler
 
-    ActionManager.getInstance().trigger(messageToDelay.message)
+    ActionManager.getInstance().trigger(messageToDelay.actionContext)
     Mockito.verify(scheduler, Mockito.times(1)).schedule(action, 5)
+  }
+
+  /**
+   * Tests all methods of [MessageDisplayListener].
+   */
+  @Test
+  fun testMessageDisplayListener() {
+    val message = MessageData("message")
+
+    var messageDisplayed = false
+    var messageDismissed = false
+
+    val runActionName = "open action"
+    var actionExecuted = false
+
+    // Register listener
+    ActionManager.getInstance().messageDisplayListener = object : MessageDisplayListener {
+      override fun onMessageDisplayed(action: ActionContext) {
+        assertEquals(message.actionContext, action)
+        messageDisplayed = true
+      }
+      override fun onMessageDismissed(action: ActionContext) {
+        assertEquals(message.actionContext, action)
+        messageDismissed = true
+      }
+      override fun onActionExecuted(name: String, action: ActionContext) {
+        assertNotEquals(message.actionContext, action)
+        assertEquals(message.actionContext, action.parentContext)
+        assertEquals(runActionName, name)
+        actionExecuted = true
+      }
+    }
+
+    // Test displayed
+    ActionManager.getInstance().trigger(message.actionContext)
+    assertEquals(message.actionContext, ActionManager.getInstance().currentAction.context)
+    assertTrue(messageDisplayed)
+
+    // Test action executed - `open action` is not defined in the args and wouldn't execute anything
+    message.actionContext.runActionNamed(runActionName)
+    assertTrue(actionExecuted)
+
+    // Test dismissed
+    ActionManager.getInstance().dismissCurrentAction()
+    assertNull(ActionManager.getInstance().currentAction)
+    assertTrue(messageDismissed)
   }
 }
