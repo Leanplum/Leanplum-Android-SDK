@@ -366,6 +366,7 @@ public class Socket {
           @Override
           public void variablesChanged() {
             // Stop inapp messages and dismiss any presented
+            boolean previousPauseState = ActionManager.getInstance().isPaused();
             ActionManager.getInstance().setPaused(true);
             ActionManagerExecutionKt.dismissCurrentAction(ActionManager.getInstance());
 
@@ -379,7 +380,7 @@ public class Socket {
                     "OK",
                     (dialog, id) -> {
                       // Resume inapp messages
-                      ActionManager.getInstance().setPaused(false);
+                      ActionManager.getInstance().setPaused(previousPauseState);
                     })
                 .show();
           }

@@ -90,15 +90,11 @@ class LeanplumActions {
     /**
      * When queue is paused it will stop executing actions but new actions will continue to be
      * added.
-     *
-     * Value will be changed to false when app is in background and to true when app enters
-     * foreground. Activity lifecycle callbacks such as onResume and onPause will change that state
-     * if you have called the LeanplumActivityHelper#enableLifecycleCallbacks. You can disable the
-     * onResume state change using [setContinueOnActivityResumed] method.
      */
     @JvmStatic
     fun setQueuePaused(paused: Boolean) {
       ActionManager.getInstance().isPaused = paused
+      setContinueOnActivityResumed(!paused)
     }
 
     /**

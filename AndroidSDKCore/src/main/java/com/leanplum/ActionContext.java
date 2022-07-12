@@ -378,7 +378,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
 
     if (chainedMessageId != null) { // Chain to existing message
       if (shouldFetchChainedMessage(args)) {
-        boolean isQueueAlreadyPaused = ActionManager.getInstance().isPaused();
+        boolean previousPauseState = ActionManager.getInstance().isPaused();
         ActionManager.getInstance().setPaused(true);
         // Message doesn't seem to be on the device,
         // so let's forceContentUpdate and retry showing it.
@@ -386,10 +386,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
           if (success) {
             executeChainedMessage(chainedMessageId, name);
           }
-          if (!isQueueAlreadyPaused) {
-            // won't resume queue in case user has paused it before fetching the inapp
-            ActionManager.getInstance().setPaused(false); // will resume queue
-          }
+          ActionManager.getInstance().setPaused(previousPauseState); // will resume queue
         });
       } else {
         executeChainedMessage(chainedMessageId, name);
