@@ -24,8 +24,8 @@ package com.leanplum.actions.internal
 import com.leanplum.internal.ActionManager
 import com.leanplum.internal.OperationQueue
 
-class ActionScheduler {
-  fun schedule(action: Action, delaySeconds: Int) {
+open class ActionScheduler {
+  open fun schedule(action: Action, delaySeconds: Int) {
     val appendActionRunnable = {
       ActionManager.getInstance().appendAction(action)
     }
