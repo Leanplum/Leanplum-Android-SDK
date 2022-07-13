@@ -64,7 +64,7 @@ class LeanplumActions {
      * instance.
      */
     @JvmStatic
-    fun setMessageDisplayController(controller: MessageDisplayController) {
+    fun setMessageDisplayController(controller: MessageDisplayController?) {
       ActionManager.getInstance().messageDisplayController = controller
     }
 
@@ -74,7 +74,7 @@ class LeanplumActions {
      * @param listener Instance of listener class. Pass null if you want remove your instance.
      */
     @JvmStatic
-    fun setMessageDisplayListener(listener: MessageDisplayListener) {
+    fun setMessageDisplayListener(listener: MessageDisplayListener?) {
       ActionManager.getInstance().messageDisplayListener = listener
     }
 
