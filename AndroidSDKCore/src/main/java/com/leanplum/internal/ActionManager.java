@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,11 +26,16 @@ import android.content.SharedPreferences;
 
 import android.text.TextUtils;
 import androidx.annotation.VisibleForTesting;
-import com.leanplum.ActionContext;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.Leanplum;
 import com.leanplum.LocationManager;
-import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.actions.internal.Action;
+import com.leanplum.actions.internal.ActionManagerExecutionKt;
+import com.leanplum.actions.internal.ActionQueue;
+import com.leanplum.actions.internal.ActionScheduler;
+import com.leanplum.actions.internal.Definitions;
+import com.leanplum.actions.MessageDisplayController;
+import com.leanplum.actions.MessageDisplayListener;
 import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -53,12 +58,23 @@ public class ActionManager {
   private final Map<String, Number> messageTriggerOccurrences = new HashMap<>();
   private final Map<String, Number> sessionOccurrences = new HashMap<>();
 
+  private MessageDisplayListener messageDisplayListener;
+  private MessageDisplayController messageDisplayController;
+  private ActionScheduler scheduler = new ActionScheduler();
+
+  private boolean enabled = true; // when manager is disabled it will stop adding actions in queue
+  private boolean paused = true; // variable used when fetching chained action, paused until Activity is presented
+  private final ActionQueue queue = new ActionQueue();
+  private final ActionQueue delayedQueue = new ActionQueue();
+  private final Definitions definitions = new Definitions();
+  private Action currentAction;
+  private boolean dismissOnPushOpened = true;
+  private boolean continueOnActivityResumed = true;
+
   private static ActionManager instance;
 
   public static final String PUSH_NOTIFICATION_ACTION_NAME = "__Push Notification";
   public static final String HELD_BACK_ACTION_NAME = "__held_back";
-  private static final String LEANPLUM_LOCAL_PUSH_HELPER =
-      "com.leanplum.internal.LeanplumLocalPushHelper";
   private static LocationManager locationManager;
   private static boolean loggedLocationManagerFailure = false;
 
@@ -104,86 +120,6 @@ public class ActionManager {
   }
 
   private ActionManager() {
-    listenForLocalNotifications();
-  }
-
-  private void listenForLocalNotifications() {
-    Leanplum.onAction(PUSH_NOTIFICATION_ACTION_NAME, new ActionCallback() {
-      @Override
-      public boolean onResponse(ActionContext actionContext) {
-        try {
-          String messageId = actionContext.getMessageId();
-
-          // Get eta.
-          Object countdownObj;
-          if (((BaseActionContext) actionContext).isPreview()) {
-            countdownObj = 5.0;
-          } else {
-            Map<String, Object> messageConfig = CollectionUtil.uncheckedCast(
-                VarCache.getMessageDiffs().get(messageId));
-            if (messageConfig == null) {
-              Log.e("Could not find message options for ID " + messageId);
-              return false;
-            }
-            countdownObj = messageConfig.get("countdown");
-          }
-          if (!(countdownObj instanceof Number)) {
-            Log.e("Invalid notification countdown: " + countdownObj);
-            return false;
-          }
-          long eta = Clock.getInstance().currentTimeMillis() + ((Number) countdownObj).longValue() * 1000L;
-          // Schedule notification.
-          try {
-            return (boolean) Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
-                .getDeclaredMethod("scheduleLocalPush", ActionContext.class, String.class,
-                    long.class).invoke(new Object(), actionContext, messageId, eta);
-          } catch (Throwable throwable) {
-            return false;
-          }
-        } catch (Throwable t) {
-          Log.exception(t);
-          return false;
-        }
-      }
-
-    });
-
-    Leanplum.onAction("__Cancel" + PUSH_NOTIFICATION_ACTION_NAME, new ActionCallback() {
-      @Override
-      public boolean onResponse(ActionContext actionContext) {
-        try {
-          String messageId = actionContext.getMessageId();
-
-          // Get existing eta and clear notification from preferences.
-          Context context = Leanplum.getContext();
-          SharedPreferences preferences = context.getSharedPreferences(
-              Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
-          String preferencesKey = String.format(Constants.Defaults.LOCAL_NOTIFICATION_KEY,
-              messageId);
-          long existingEta = preferences.getLong(preferencesKey, 0L);
-          SharedPreferences.Editor editor = preferences.edit();
-          editor.remove(preferencesKey);
-          SharedPreferencesUtil.commitChanges(editor);
-
-          // Cancel notification.
-          try {
-            Class.forName(LEANPLUM_LOCAL_PUSH_HELPER)
-                .getDeclaredMethod("cancelLocalPush", Context.class, String.class)
-                .invoke(new Object(), context, messageId);
-            boolean didCancel = existingEta > Clock.getInstance().currentTimeMillis();
-            if (didCancel) {
-              Log.i("Cancelled notification");
-            }
-            return didCancel;
-          } catch (Throwable throwable) {
-            return false;
-          }
-        } catch (Throwable t) {
-          Log.exception(t);
-          return false;
-        }
-      }
-    });
   }
 
   public Map<String, Number> getMessageImpressionOccurrences(String messageId) {
@@ -717,4 +653,108 @@ public class ActionManager {
     return count;
   }
 
+  /**
+   * Use method to disable queue. That would stop queue from receiving new actions.
+   *
+   * @param value True to enable adding actions to queue and false otherwise.
+   */
+  public void setEnabled(boolean value) {
+    Log.i("[ActionManager] isEnabled: " + value);
+    enabled = value;
+  }
+
+  /**
+   * @return True if queue is able to add elements, false otherwise.
+   */
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * Use method to pause queue. That would stop execution of actions, but actions will continue to
+   * add in queue.
+   *
+   * @param value True to pause queue, false otherwise.
+   */
+  public void setPaused(boolean value) {
+    Log.i("[ActionManager] isPaused: " + value);
+    paused = value;
+    if (!paused) {
+      ActionManagerExecutionKt.performActions(ActionManager.getInstance());
+    }
+  }
+
+  /**
+   * @return True if queue is not running, false otherwise.
+   */
+  public boolean isPaused() {
+    return paused;
+  }
+
+
+  /**
+   * Current action is set by the queue when it is popped.
+   */
+  public void setCurrentAction(Action action) {
+    this.currentAction = action;
+  }
+
+  /**
+   * Returns currently executing action in the queue.
+   */
+  public Action getCurrentAction() {
+    return this.currentAction;
+  }
+
+  public MessageDisplayListener getMessageDisplayListener() {
+    return messageDisplayListener;
+  }
+
+  public void setMessageDisplayListener(MessageDisplayListener messageDisplayListener) {
+    this.messageDisplayListener = messageDisplayListener;
+  }
+
+  public MessageDisplayController getMessageDisplayController() {
+    return messageDisplayController;
+  }
+
+  public void setMessageDisplayController(MessageDisplayController messageDisplayController) {
+    this.messageDisplayController = messageDisplayController;
+  }
+
+  public ActionScheduler getScheduler() {
+    return scheduler;
+  }
+
+  public void setScheduler(ActionScheduler scheduler) {
+    this.scheduler = scheduler;
+  }
+
+  public ActionQueue getQueue() {
+    return queue;
+  }
+
+  public ActionQueue getDelayedQueue() {
+    return delayedQueue;
+  }
+
+  public Definitions getDefinitions() {
+    return definitions;
+  }
+
+  public boolean getDismissOnPushOpened() {
+    return dismissOnPushOpened;
+  }
+
+  public void setDismissOnPushOpened(boolean dismissOnPushOpened) {
+    this.dismissOnPushOpened = dismissOnPushOpened;
+  }
+
+  public boolean getContinueOnActivityResumed() {
+    return continueOnActivityResumed;
+  }
+
+  public void setContinueOnActivityResumed(boolean continueOnActivityResumed) {
+    this.continueOnActivityResumed = continueOnActivityResumed;
+  }
 }

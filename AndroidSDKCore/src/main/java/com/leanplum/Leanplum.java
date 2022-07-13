@@ -28,14 +28,16 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.leanplum.ActionContext.ContextualValues;
+import com.leanplum.actions.internal.ActionDefinition;
+import com.leanplum.actions.internal.ActionManagerDefinitionKt;
 import com.leanplum.callbacks.ActionCallback;
 import com.leanplum.callbacks.ForceContentUpdateCallback;
-import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
+import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.ApiConfigLoader;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.CountAggregator;
@@ -60,7 +62,6 @@ import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.models.GeofenceEventType;
-import com.leanplum.models.MessageArchiveData;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
 
@@ -100,8 +101,6 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
-  private static final ArrayList<MessageDisplayedCallback> messageDisplayedHandlers =
-          new ArrayList<>();
   private static final Object heartbeatLock = new Object();
   private static final String LEANPLUM_NOTIFICATION_CHANNEL =
       "com.leanplum.LeanplumNotificationChannel";
@@ -1310,62 +1309,6 @@ public class Leanplum {
     }
   }
 
-  /**
-   * Add a callback for when a message is displayed.
-   */
-  public static void addMessageDisplayedHandler(
-          MessageDisplayedCallback handler) {
-    if (handler == null) {
-      Log.e("addMessageDisplayedHandler - Invalid handler parameter " +
-              "provided.");
-      return;
-    }
-
-    synchronized (messageDisplayedHandlers) {
-      messageDisplayedHandlers.add(handler);
-    }
-  }
-
-  /**
-   * Removes a variables changed and no downloads pending callback.
-   */
-  public static void removeMessageDisplayedHandler(
-          MessageDisplayedCallback handler) {
-    if (handler == null) {
-      Log.e("removeMessageDisplayedHandler - Invalid handler parameter " +
-              "provided.");
-      return;
-    }
-
-    synchronized (messageDisplayedHandlers) {
-      messageDisplayedHandlers.remove(handler);
-    }
-  }
-
-  public static void triggerMessageDisplayed(ActionContext actionContext) {
-    synchronized (messageDisplayedHandlers) {
-      for (MessageDisplayedCallback callback : messageDisplayedHandlers) {
-        MessageArchiveData messageArchiveData = messageArchiveDataFromContext(actionContext);
-        callback.setMessageArchiveData(messageArchiveData);
-        OperationQueue.sharedInstance().addUiOperation(callback);
-      }
-    }
-  }
-
-  private static MessageArchiveData messageArchiveDataFromContext(ActionContext actionContext) {
-    String messageID = actionContext.getMessageId();
-    String messageBody = "";
-    try {
-      messageBody = messageBodyFromContext(actionContext);
-    } catch (Throwable t) {
-      Log.exception(t);
-    }
-    String recipientUserID = Leanplum.getUserId();
-    Date deliveryDateTime = new Date();
-
-    return new MessageArchiveData(messageID, messageBody, recipientUserID, deliveryDateTime);
-  }
-
   @VisibleForTesting
   public static String messageBodyFromContext(ActionContext actionContext) {
     Object messageObject =  actionContext.getArgs().get("Message");
@@ -1401,14 +1344,18 @@ public class Leanplum {
       return;
     }
 
-    if (VarCache.hasReceivedDiffs()
-        && FileTransferManager.getInstance().numPendingDownloads() == 0) {
+    if (areVariablesReceivedAndNoDownloadsPending()) {
       handler.variablesChanged();
     } else {
       synchronized (onceNoDownloadsHandlers) {
         onceNoDownloadsHandlers.add(handler);
       }
     }
+  }
+
+  static boolean areVariablesReceivedAndNoDownloadsPending() {
+    return VarCache.hasReceivedDiffs()
+        && FileTransferManager.getInstance().numPendingDownloads() == 0;
   }
 
   /**
@@ -1443,34 +1390,36 @@ public class Leanplum {
 
   /**
    * Defines an action that is used within Leanplum Marketing Automation. Actions can be set up to
-   * get triggered based on app opens, events, and states. Call {@link Leanplum#onAction} to handle
-   * the action.
-   *
-   * @param name The name of the action to register.
-   * @param kind Whether to display the action as a message and/or a regular action.
-   * @param args User-customizable options for the action.
-   */
-  public static void defineAction(String name, int kind, ActionArgs args) {
-    defineAction(name, kind, args, null, null);
-  }
-
-  /**
-   * Defines an action that is used within Leanplum Marketing Automation. Actions can be set up to
    * get triggered based on app opens, events, and states.
    *
    * @param name The name of the action to register.
    * @param kind Whether to display the action as a message and/or a regular action.
+   *             Use ACTION_KIND_ACTION, ACTION_KIND_MESSAGE,
+   *             or ACTION_KIND_ACTION|ACTION_KIND_MESSAGE.
    * @param args User-customizable options for the action.
-   * @param responder Called when the action is triggered with a context object containing the
-   * user-specified options.
+   * @param presentHandler Called when the action is triggered with a context object containing the
+   *                       user-specified options.
+   * @param dismissHandler Called when the action needs to be dismissed in order to prioritize other
+   *                       message.
    */
-  public static void defineAction(String name, int kind, ActionArgs args,
-      ActionCallback responder) {
-    defineAction(name, kind, args, null, responder);
+  public static void defineAction(
+      String name,
+      int kind,
+      ActionArgs args,
+      ActionCallback presentHandler,
+      ActionCallback dismissHandler) {
+
+    defineAction(name, kind, args, null, presentHandler, dismissHandler);
   }
 
-  private static void defineAction(String name, int kind, ActionArgs args,
-      Map<String, Object> options, ActionCallback responder) {
+  private static void defineAction(
+      String name,
+      int kind,
+      ActionArgs args,
+      Map<String, Object> options,
+      ActionCallback presentHandler,
+      ActionCallback dismissHandler) {
+
     if (TextUtils.isEmpty(name)) {
       Log.e("defineAction - Empty name parameter provided.");
       return;
@@ -1484,38 +1433,20 @@ public class Leanplum {
       if (options == null) {
         options = new HashMap<>();
       }
-      LeanplumInternal.getActionHandlers().remove(name);
-      VarCache.registerActionDefinition(name, kind, args.getValue(), options);
-      if (responder != null) {
-        onAction(name, responder);
-      }
+
+      ActionDefinition actionDefinition = new ActionDefinition(
+          name,
+          kind,
+          args,
+          options,
+          presentHandler,
+          dismissHandler);
+
+      ActionManagerDefinitionKt.defineAction(ActionManager.getInstance(), actionDefinition);
+
     } catch (Throwable t) {
       Log.exception(t);
     }
-  }
-
-  /**
-   * Adds a callback that handles an action with the given name.
-   *
-   * @param actionName The name of the type of action to handle.
-   * @param handler The callback that runs when the action is triggered.
-   */
-  public static void onAction(String actionName, ActionCallback handler) {
-    if (actionName == null) {
-      Log.e("onAction - Invalid actionName parameter provided.");
-      return;
-    }
-    if (handler == null) {
-      Log.e("onAction - Invalid handler parameter provided.");
-      return;
-    }
-
-    List<ActionCallback> handlers = LeanplumInternal.getActionHandlers().get(actionName);
-    if (handlers == null) {
-      handlers = new ArrayList<>();
-      LeanplumInternal.getActionHandlers().put(actionName, handlers);
-    }
-    handlers.add(handler);
   }
 
   /**

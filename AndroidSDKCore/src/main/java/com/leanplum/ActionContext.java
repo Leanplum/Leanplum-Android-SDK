@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,8 +24,11 @@ package com.leanplum;
 import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.leanplum.callbacks.ActionCallback;
-import com.leanplum.callbacks.VariablesChangedCallback;
+import com.leanplum.actions.internal.ActionDidExecute;
+import com.leanplum.actions.internal.ActionManagerDefinitionKt;
+import com.leanplum.actions.internal.ActionManagerTriggeringKt;
+import com.leanplum.actions.internal.ActionDidDismiss;
+import com.leanplum.actions.internal.Priority;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.BaseActionContext;
 import com.leanplum.internal.CollectionUtil;
@@ -57,7 +60,9 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   private String key;
   private boolean preventRealtimeUpdating = false;
   private ContextualValues contextualValues;
-  private ActionCallback actionNamedHandler;
+  private ActionDidDismiss actionDidDismiss;
+  private ActionDidExecute actionDidExecute;
+  private boolean isChainedMessage;
 
   public static class ContextualValues {
     /**
@@ -106,21 +111,17 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     return contextualValues;
   }
 
-  private static Map<String, Object> getDefinition(String name) {
-    Map<String, Object> definition = CollectionUtil.uncheckedCast(
-        VarCache.actionDefinitions().get(name));
+  private Map<String, Object> getDefinition(String actionName) {
+    Map<String, Object> definition =
+        ActionManagerDefinitionKt.getActionDefinitionMap(ActionManager.getInstance(), actionName);
     if (definition == null) {
       return new HashMap<>();
     }
     return definition;
   }
 
-  private Map<String, Object> getDefinition() {
-    return getDefinition(name);
-  }
-
   private Map<String, Object> defaultValues() {
-    Map<String, Object> values = CollectionUtil.uncheckedCast(getDefinition().get("values"));
+    Map<String, Object> values = CollectionUtil.uncheckedCast(getDefinition(name).get("values"));
     if (values == null) {
       return new HashMap<>();
     }
@@ -128,7 +129,7 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   }
 
   private Map<String, String> kinds() {
-    Map<String, String> kinds = CollectionUtil.uncheckedCast(getDefinition().get("kinds"));
+    Map<String, String> kinds = CollectionUtil.uncheckedCast(getDefinition(name).get("kinds"));
     if (kinds == null) {
       return new HashMap<>();
     }
@@ -352,18 +353,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     return actionArgs;
   }
 
-  public void setActionNamedHandler(ActionCallback handler) {
-    actionNamedHandler = handler;
-  }
-
-  private void triggerActionNamedHandler(String name, Map<String, Object> args) {
-    if (actionNamedHandler != null) {
-      ActionContext actionContext = new ActionContext(name, args, messageId);
-      actionContext.parentContext = this;
-      actionNamedHandler.onResponse(actionContext);
-    }
-  }
-
   public void runActionNamed(String name) {
     if (TextUtils.isEmpty(name)) {
       Log.e("runActionNamed - Invalid name parameter provided.");
@@ -371,102 +360,93 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
     }
     Map<String, Object> args = getChildArgs(name);
 
-    triggerActionNamedHandler(name, args);
+    if (actionDidExecute != null) {
+      ActionContext actionNamedContext = new ActionContext(name, args, messageId);
+      actionNamedContext.parentContext = this;
+      actionDidExecute.onActionExecuted(actionNamedContext);
+    }
 
     if (args == null) {
       return;
     }
 
-    // Checks if action "Chain to Existing Message" started.
-    if (!isChainToExistingMessageStarted(args, name)) {
-      // Try to start action "Chain to a new Message".
+    performChainedAction(name, args);
+  }
+
+  private void performChainedAction(String name, Map<String, Object> args) {
+    String chainedMessageId = getChainedMessageId(args);
+
+    if (chainedMessageId != null) { // Chain to existing message
+      if (shouldFetchChainedMessage(args)) {
+        boolean previousPauseState = ActionManager.getInstance().isPaused();
+        ActionManager.getInstance().setPaused(true);
+        // Message doesn't seem to be on the device,
+        // so let's forceContentUpdate and retry showing it.
+        Leanplum.forceContentUpdate(success -> {
+          if (success) {
+            executeChainedMessage(chainedMessageId, name);
+          }
+          ActionManager.getInstance().setPaused(previousPauseState); // will resume queue
+        });
+      } else {
+        executeChainedMessage(chainedMessageId, name);
+        // queue will be resumed from onDidDismiss callback in case executeChainedMessage fails
+      }
+
+    } else { // Chain to embedded message
       Object messageAction = args.get(Constants.Values.ACTION_ARG);
       if (messageAction != null) {
-        createActionContextForMessageId(messageAction.toString(), args, messageId, name, false);
+        ActionContext embeddedContext = createChainedContext(
+            messageAction.toString(),
+            args,
+            messageId,
+            name);
+        ActionManagerTriggeringKt.trigger(
+            ActionManager.getInstance(),
+            embeddedContext,
+            Priority.HIGH);
       }
     }
   }
 
-  /**
-   * Return true if here was an action for this message and we started it.
-   */
-  private boolean createActionContextForMessageId(String messageAction,
-      Map<String, Object> messageArgs, String messageId, String name, Boolean chained) {
-    try {
-      final ActionContext actionContext = new ActionContext(messageAction,
-          messageArgs, messageId);
+  private ActionContext createChainedContext(
+      String messageAction,
+      Map<String, Object> messageArgs,
+      String messageId,
+      String name) {
+
+      ActionContext actionContext = new ActionContext(messageAction, messageArgs, messageId);
       actionContext.contextualValues = contextualValues;
       actionContext.preventRealtimeUpdating = preventRealtimeUpdating;
       actionContext.isRooted = isRooted;
       actionContext.key = name;
-      if (chained) {
-        LeanplumInternal.triggerAction(actionContext, new VariablesChangedCallback() {
-          @Override
-          public void variablesChanged() {
-            try {
-              // We do not want to count occurrences for action kind, because in multi message
-              // campaigns the Open URL action is not a message. Also if the user has defined
-              // actions of type Action we do not want to count them.
-              int actionKind = VarCache.getActionDefinitionType(actionContext.name);
-              if (actionKind == Leanplum.ACTION_KIND_ACTION) {
-                ActionManager.getInstance().recordChainedActionImpression(messageId);
-              } else {
-                ActionManager.getInstance().recordMessageImpression(messageId);
-              }
-              Leanplum.triggerMessageDisplayed(actionContext);
-
-            } catch (Throwable t) {
-              Log.exception(t);
-            }
-          }
-        });
-      } else {
-        actionContext.parentContext = this;
-        LeanplumInternal.triggerAction(actionContext);
-      }
-      return true;
-    } catch (Throwable t) {
-      Log.exception(t);
-    }
-    return false;
+      actionContext.parentContext = this;
+      return actionContext;
   }
 
-  /**
-   * Return true if there was action "Chain to Existing Message" and we started it.
-   */
-  private boolean isChainToExistingMessageStarted(Map<String, Object> args, final String name) {
-    if (args == null) {
+  public static boolean shouldFetchChainedMessage(
+      @NonNull ActionContext context,
+      String actionName) {
+    if (TextUtils.isEmpty(actionName)) {
       return false;
     }
-
-    final String messageId = getChainedMessageId(args);
-    if (!shouldForceContentUpdateForChainedMessage(args)) {
-      return executeChainedMessage(messageId, VarCache.messages(), name);
-    } else {
-      // message may not on the device yet, so we need to fetch it.
-      Leanplum.forceContentUpdate(new VariablesChangedCallback() {
-        @Override
-        public void variablesChanged() {
-          executeChainedMessage(messageId, VarCache.messages(), name);
-        }
-      });
-    }
-    return false;
+    Map<String, Object> args = context.getChildArgs(actionName);
+    return shouldFetchChainedMessage(args);
   }
 
   /**
    * Return true if there is a chained message in the actionMap that is not yet loaded onto the device.
    */
-  static boolean shouldForceContentUpdateForChainedMessage(Map<String, Object> actionMap) {
+  static boolean shouldFetchChainedMessage(Map<String, Object> actionMap) {
     if (actionMap == null) {
       return false;
     }
     String chainedMessageId = getChainedMessageId(actionMap);
-    if (chainedMessageId != null
-            && (VarCache.messages() == null || !VarCache.messages().containsKey(chainedMessageId))) {
-        return true;
+    if (chainedMessageId == null) {
+      return false;
     }
-    return false;
+    return VarCache.messages() == null
+        || !VarCache.messages().containsKey(chainedMessageId);
   }
 
   /**
@@ -482,8 +462,8 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
   }
 
 
-  private boolean executeChainedMessage(String messageId, Map<String, Object> messages,
-                                        String name) {
+  private boolean executeChainedMessage(String messageId, String name) {
+    Map<String, Object> messages = VarCache.messages();
     if (messages == null) {
       return false;
     }
@@ -492,8 +472,20 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
       Map<String, Object> messageArgs = CollectionUtil.uncheckedCast(
               message.get(Constants.Keys.VARS));
       Object messageAction = message.get("action");
-      return messageAction != null && createActionContextForMessageId(messageAction.toString(),
-              messageArgs, messageId, name, true);
+
+      if (messageAction != null) {
+        ActionContext chainContext = createChainedContext(
+            messageAction.toString(),
+            messageArgs,
+            messageId,
+            name);
+        chainContext.isChainedMessage = true;
+        ActionManagerTriggeringKt.trigger(
+            ActionManager.getInstance(),
+            chainContext,
+            Priority.HIGH);
+        return true;
+      }
     }
     return false;
   }
@@ -632,5 +624,37 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
 
   public ActionContext getParentContext() {
     return parentContext;
+  }
+
+  public void setParentContext(ActionContext parentContext) {
+    this.parentContext = parentContext;
+  }
+
+  public boolean isChainedMessage() {
+    return isChainedMessage;
+  }
+
+  @Override
+  @NonNull
+  public String toString() {
+    String parent = "";
+    if (parentContext != null) {
+      parent = "(parent=" + parentContext + ")";
+    }
+    return name + ":" + messageId + parent;
+  }
+
+  public void actionDismissed() {
+    if (actionDidDismiss != null) {
+      actionDidDismiss.onDismiss();
+    }
+  }
+
+  public void setActionDidDismiss(ActionDidDismiss actionDidDismiss) {
+    this.actionDidDismiss = actionDidDismiss;
+  }
+
+  public void setActionDidExecute(ActionDidExecute actionDidExecute) {
+    this.actionDidExecute = actionDidExecute;
   }
 }

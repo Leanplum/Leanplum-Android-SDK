@@ -34,13 +34,12 @@ import com.leanplum.LeanplumActivityHelper;
 import com.leanplum.LocationManager;
 import com.leanplum._whitebox.utilities.RequestHelper;
 import com.leanplum._whitebox.utilities.ResponseHelper;
+import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumEventDataManager;
-import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.RequestBuilder;
-import com.leanplum.internal.Request;
 import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
 
@@ -48,6 +47,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -158,6 +158,8 @@ public abstract class AbstractTest {
     Field instance = OperationQueue.class.getDeclaredField("instance");
     instance.setAccessible(true);
     instance.set(instance, shadowOperationQueue);
+
+    ActionManager.getInstance().setPaused(false);
   }
 
   /**

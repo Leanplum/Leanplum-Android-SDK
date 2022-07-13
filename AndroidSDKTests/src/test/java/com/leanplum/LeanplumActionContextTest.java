@@ -30,7 +30,6 @@ import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
 
 import org.apache.maven.artifact.ant.shaded.IOUtil;
@@ -118,60 +117,6 @@ public class LeanplumActionContextTest extends AbstractTest {
         // Verify Log.exception method is never called.
         verifyStatic(never());
         Log.exception(any(Throwable.class));
-    }
-
-    /**
-     * Test for messages chained to existing message
-     * {@link ActionContext#isChainToExistingMessageStarted(Map, String)}.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testIsChainToExistingMessageStarted() throws Exception {
-        spy(VarCache.class);
-
-        InputStream inputStream = getClass().getResourceAsStream("/test_files/single_message.json");
-        Assert.assertNotNull(inputStream);
-        String jsonMessages = IOUtil.toString(inputStream);
-        // Messages will contains one message with messageId 1.
-        Map<String, Object> testMessages = JsonConverter.fromJson(jsonMessages);
-        doReturn(testMessages).when(VarCache.class, "messages");
-
-        // Arguments for message chained to message with messageId 1.
-        Map<String, Object> map = new HashMap<>();
-        map.put("Chained message", "1");
-        map.put("__name__", "Chain to Existing Message");
-
-        ActionContext actionContext = new ActionContext("name", new HashMap<String, Object>() {{
-        }}, "messageId");
-        Method isChainToExistingMessageStartedMethod = ActionContext.class.
-                getDeclaredMethod("isChainToExistingMessageStarted", Map.class, String.class);
-        isChainToExistingMessageStartedMethod.setAccessible(true);
-
-        // Test if VarCache.messages contains no message with messageId 1.
-        boolean result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, map,
-                "Open Action");
-        assertTrue(result);
-
-        // Arguments for message chained to message with messageId 10.
-        Map<String, Object> newMap = new HashMap<>();
-        newMap.put("Chained message", "10");
-        newMap.put("__name__", "Chain to Existing Message");
-        // Test if VarCache.messages contains no message with messageId 10.
-        result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, newMap,
-                "Open Action");
-        assertFalse(result);
-
-        // Test if VarCache.messages is null.
-        doReturn(null).when(VarCache.class, "messages");
-        result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, map,
-                "Open Action");
-        assertFalse(result);
-
-        // Test for null parameters.
-        result = (Boolean) isChainToExistingMessageStartedMethod.invoke(actionContext, null,
-                null);
-        assertFalse(result);
     }
 
     @Test
@@ -300,18 +245,18 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         // Should be null safe and return false.
         Assert.assertFalse(
-                ActionContext.shouldForceContentUpdateForChainedMessage(JsonConverter.fromJson(null)));
+                ActionContext.shouldFetchChainedMessage(JsonConverter.fromJson(null)));
         // Chained messageId should also be null.
         Assert.assertNull(ActionContext.getChainedMessageId(JsonConverter.fromJson(null)));
         // We should return true if we have a chained message that is not in our VarCache yet.
-        Assert.assertTrue(ActionContext.shouldForceContentUpdateForChainedMessage(
+        Assert.assertTrue(ActionContext.shouldFetchChainedMessage(
                 JsonConverter.fromJson(jsonData)));
         // Add chained message to VarCache.
         VarCache.applyVariableDiffs(null, new HashMap<>(
                 ImmutableMap.<String, Object>of(Long.toString(chainedMessageId),
                 ImmutableMap.<String, Object>of())), null, null, null, null, null, null);
         // Since it now exists locally, we should return false for forceContentUpdate.
-        Assert.assertFalse(ActionContext.shouldForceContentUpdateForChainedMessage(
+        Assert.assertFalse(ActionContext.shouldFetchChainedMessage(
                 JsonConverter.fromJson(jsonData)));
         // However, we should still get proper messageId.
         Assert.assertEquals(ActionContext.getChainedMessageId(JsonConverter.fromJson(jsonData)),

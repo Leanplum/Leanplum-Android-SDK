@@ -23,22 +23,51 @@ package com.leanplum;
 
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum._whitebox.utilities.ResponseHelper;
+import com.leanplum.actions.internal.ActionManagerExecutionKt;
 import com.leanplum.internal.ActionManager;
 
+import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.messagetemplates.actions.AlertMessage;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 /**
  * Tests in-app message triggers.
  *
  * @author Yilong Chang
  */
+@PrepareForTest(value = {
+    AlertMessage.class,
+    MessageTemplates.class
+})
 public class LeanplumInAppMessageTriggerTest extends AbstractTest {
+
+  @Before
+  public void before() throws Exception {
+    super.before();
+    AlertMessage alertMessage = PowerMockito.spy(new AlertMessage());
+    doReturn(true).when(alertMessage).present(Mockito.any(ActionContext.class));
+    whenNew(AlertMessage.class).withNoArguments().thenReturn(alertMessage);
+  }
+
+  @After
+  public void after() {
+    super.after();
+    ActionManager.getInstance().setCurrentAction(null);
+  }
+
   /**
    * Tests message triggers on start and impression is recorded. No active period provided.
    */
@@ -107,12 +136,16 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertEquals(3, actionManager.getMessageImpressionOccurrences(messageId).size());
     assertEquals(0L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
 
+    actionManager.setCurrentAction(null); // clear the Alert
+
     Leanplum.pause();
     Leanplum.resume();
     // Assert the trigger and message impression didn't occur after first resume.
     assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
     assertEquals(3, actionManager.getMessageImpressionOccurrences(messageId).size());
     assertEquals(0L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
+
+    actionManager.setCurrentAction(null); // clear the Alert
 
     Leanplum.pause();
     Leanplum.resume();
@@ -141,12 +174,16 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertEquals(3, actionManager.getMessageImpressionOccurrences(messageId).size());
     assertEquals(0L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
 
+    actionManager.setCurrentAction(null); // clear the Alert
+
     Leanplum.pause();
     Leanplum.resume();
     // Assert the trigger and message impression occurred after resume after resume.
     assertEquals(2, actionManager.getMessageTriggerOccurrences(messageId));
     assertEquals(4, actionManager.getMessageImpressionOccurrences(messageId).size());
     assertEquals(1L, actionManager.getMessageImpressionOccurrences(messageId).get("max"));
+
+    actionManager.setCurrentAction(null); // clear the Alert
 
     Leanplum.pause();
     Leanplum.resume();
@@ -168,6 +205,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
 
     setupSDK(mContext, "/responses/start_message_response.json");
+    actionManager.setCurrentAction(null); // clear the Alert on start
     Leanplum.advanceTo(state);
     // Assert the trigger and message impression occurred after advanced to state.
     assertEquals(1, actionManager.getMessageTriggerOccurrences(messageId));
@@ -187,6 +225,7 @@ public class LeanplumInAppMessageTriggerTest extends AbstractTest {
     assertTrue(actionManager.getMessageImpressionOccurrences(messageId).isEmpty());
 
     setupSDK(mContext, "/responses/start_message_response.json");
+    actionManager.setCurrentAction(null); // clear the Alert on start
     Leanplum.setUserAttributes(new HashMap<String, Object>(){{
       put(attribute, attributeValue);
     }});

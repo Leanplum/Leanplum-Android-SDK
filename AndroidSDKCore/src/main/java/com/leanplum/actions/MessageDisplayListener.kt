@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,26 +19,23 @@
  * under the License.
  */
 
-package com.leanplum.callbacks;
+package com.leanplum.actions
 
-import com.leanplum.models.MessageArchiveData;
+import com.leanplum.ActionContext
 
-/**
- * Message displayed callback.
- *
- * @author Mayank Sanganeria
- */
-public abstract class MessageDisplayedCallback implements Runnable {
+interface MessageDisplayListener {
+  /**
+   * Called when the message is displayed.
+   */
+  fun onMessageDisplayed(action: ActionContext)
 
-  private MessageArchiveData messageArchiveData;
+  /**
+   * Called when the message is dismissed.
+   */
+  fun onMessageDismissed(action: ActionContext)
 
-  public void setMessageArchiveData(MessageArchiveData messageArchiveData) {
-    this.messageArchiveData = messageArchiveData;
-  }
-
-  public void run() {
-    this.messageDisplayed(messageArchiveData);
-  }
-
-  public abstract void messageDisplayed(MessageArchiveData messageArchiveData);
+  /**
+   * Called when the message is clicked
+   */
+  fun onActionExecuted(name: String, action: ActionContext)
 }

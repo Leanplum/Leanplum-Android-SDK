@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,15 +19,19 @@
  * under the License.
  */
 
-package com.leanplum.callbacks;
+package com.leanplum.actions.internal
 
-import com.leanplum.LeanplumActivityHelper;
+import com.leanplum.internal.ActionManager
+import com.leanplum.internal.OperationQueue
 
-/**
- * Action callback that will not be executed for activity classes that are ignored via
- * {@link LeanplumActivityHelper#deferMessagesForActivities(Class[])}
- *
- * @author Ben Marten
- */
-public abstract class PostponableAction implements Runnable {
+open class ActionScheduler {
+  open fun schedule(action: Action, delaySeconds: Int) {
+    val appendActionRunnable = {
+      ActionManager.getInstance().appendAction(action)
+    }
+    OperationQueue.sharedInstance().addOperationAfterDelay(
+      appendActionRunnable,
+      delaySeconds * 1000L
+    )
+  }
 }

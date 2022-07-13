@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -35,6 +35,8 @@ import com.leanplum.messagetemplates.options.RichHtmlOptions;
 public class RichHtmlMessage implements MessageTemplate {
   private static final String HTML = "HTML";
 
+  private RichHtmlController richHtml;
+
   @NonNull
   @Override
   public String getName() {
@@ -43,32 +45,41 @@ public class RichHtmlMessage implements MessageTemplate {
 
   @NonNull
   @Override
-  public ActionArgs createActionArgs(Context context) {
+  public ActionArgs createActionArgs(@NonNull Context context) {
     return RichHtmlOptions.toArgs();
   }
 
   @Override
-  public void handleAction(ActionContext context) {
+  public boolean present(@NonNull ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
-    if (activity == null || activity.isFinishing())
-      return;
+    if (activity == null || activity.isFinishing()) {
+      return false;
+    }
 
     try {
       RichHtmlOptions richOptions = new RichHtmlOptions(context);
       if (richOptions.getHtmlTemplate() == null) {
-        return;
+        return false;
       }
 
       // Message is shown after html is rendered. Check handleOpenEvent(url) method.
-      new RichHtmlController(activity, richOptions);
+      richHtml = new RichHtmlController(activity, richOptions);
+      richHtml.setOnDismissListener(listener -> richHtml = null);
+      return true;
 
     } catch (Throwable t) {
       Log.e("Fail on show HTML In-App message: %s", t.getMessage());
+      return false;
     }
   }
 
   @Override
-  public boolean waitFilesAndVariables() {
+  public boolean dismiss(@NonNull ActionContext context) {
+    if (richHtml != null) {
+      richHtml.setOnDismissListener(listener -> context.actionDismissed());
+      richHtml.dismiss();
+      richHtml = null;
+    }
     return true;
   }
 }

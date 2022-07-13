@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -43,24 +43,22 @@ public interface MessageTemplate {
    * @param context Android context
    */
   @NonNull
-  ActionArgs createActionArgs(Context context);
+  ActionArgs createActionArgs(@NonNull Context context);
 
   /**
    * Called in response to the registered action.
    * Use it to show your message to the user.
    *
    * @param context The context in which an action or message is executed.
+   * @return True if message was presented, false otherwise.
    */
-  void handleAction(ActionContext context);
+  boolean present(@NonNull ActionContext context);
 
   /**
-   * If your custom template depends on files or variables, that will be downloaded, override and
-   * return true.
+   * Called in response to dismiss request. You have to dismiss the message.
    *
-   * @return true to wait for files and variables to finish downloading before calling
-   * {@link #handleAction(ActionContext)}.
+   * @param context The context in which an action or message is executed.
+   * @return True if message was dismissed, false otherwise.
    */
-  default boolean waitFilesAndVariables() {
-    return false;
-  }
+  boolean dismiss(@NonNull ActionContext context);
 }

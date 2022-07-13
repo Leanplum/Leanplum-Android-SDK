@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -33,7 +33,6 @@ import com.leanplum._whitebox.utilities.RequestHelper.RequestHandler;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.VariablesTestClass;
 import com.leanplum.annotations.Parser;
-import com.leanplum.callbacks.MessageDisplayedCallback;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.callbacks.VariablesChangedCallback;
 import com.leanplum.internal.APIConfig;
@@ -52,12 +51,8 @@ import com.leanplum.internal.RequestBatchFactory;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
-import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
-import com.leanplum.internal.http.LeanplumHttpConnection;
-import com.leanplum.internal.http.NetworkOperation;
 import com.leanplum.models.GeofenceEventType;
-import com.leanplum.models.MessageArchiveData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,10 +63,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.Method;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1106,7 +1099,7 @@ public class LeanplumTest extends AbstractTest {
       }
     });
     // Define action.
-    Leanplum.defineAction(actionName, Leanplum.ACTION_KIND_ACTION, args);
+    Leanplum.defineAction(actionName, Leanplum.ACTION_KIND_ACTION, args, null, null);
 
     // Force action update.
     Method actionUpdateMethod = VarCache.class.getDeclaredMethod("sendActionsIfChanged");
@@ -1471,13 +1464,17 @@ public class LeanplumTest extends AbstractTest {
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "variablesChangedHandlers"));
     assertEquals(0, handlers.size());
 
+    // Previous handlers are needed because ActionManagerExecution.performActions registers a callback.
+    ArrayList<VariablesChangedCallback> previousHandlers =
+        CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
+    int previousNumberOfHandlers = previousHandlers.size();
     Leanplum.addOnceVariablesChangedAndNoDownloadsPendingHandler(variablesChangedCallback);
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
-    assertEquals(1, handlers.size());
+    assertEquals(previousNumberOfHandlers + 1, handlers.size());
 
     Leanplum.removeOnceVariablesChangedAndNoDownloadsPendingHandler(variablesChangedCallback);
     handlers = CollectionUtil.uncheckedCast(TestClassUtil.getField(Leanplum.class, "onceNoDownloadsHandlers"));
-    assertEquals(0, handlers.size());
+    assertEquals(previousNumberOfHandlers, handlers.size());
   }
 
   /**
@@ -1575,47 +1572,6 @@ public class LeanplumTest extends AbstractTest {
     response.put(Constants.Keys.ENABLED_FEATURE_FLAGS, new JSONArray("[\"test\"]"));
     Set<String> parsedFeatureFlags = Leanplum.parseFeatureFlags(response);
     assertEquals(new HashSet<>(Arrays.asList("test")), parsedFeatureFlags);
-  }
-
-  /**
-   * Test trigger message displayed calls callback
-   */
-  @Test
-  public void testTriggerMessageDisplayedCallbackCalled() throws Exception {
-    final String messageID = "testMessageID";
-    final String messageBody = "testMessageBody";
-    final String userID = "testUserID";
-
-    Map<String, Object> args = new HashMap<>();
-    args.put("Message", messageBody);
-    final ActionContext testActionContext = new ActionContext("test", args, messageID);
-
-    doReturn(userID).when(Leanplum.class, "getUserId");
-
-    class CallbackTest {
-      public boolean callbackCalled = false;
-      public MessageDisplayedCallback callback;
-
-      CallbackTest() {
-        callback = new MessageDisplayedCallback() {
-          @Override
-          public void messageDisplayed(MessageArchiveData messageArchiveData) {
-            callbackCalled = true;
-            assertTrue(messageArchiveData.messageID.equals(messageID));
-            assertTrue(messageArchiveData.messageBody.equals(messageBody));
-            assertTrue(messageArchiveData.recipientUserID.equals(userID));
-            long timeDiff = new Date().getTime() - messageArchiveData.deliveryDateTime.getTime();
-            assertTrue(timeDiff < 1000);
-          }
-        };
-      }
-    }
-
-    CallbackTest callbackTest = new CallbackTest();
-
-    Leanplum.addMessageDisplayedHandler(callbackTest.callback);
-    Leanplum.triggerMessageDisplayed(testActionContext);
-    assertTrue(callbackTest.callbackCalled);
   }
 
   /**

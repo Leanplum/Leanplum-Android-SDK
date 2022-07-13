@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Leanplum, Inc. All rights reserved.
+ * Copyright 2022, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +34,8 @@ import com.leanplum.messagetemplates.options.WebInterstitialOptions;
 public class WebInterstitialMessage implements MessageTemplate {
   private static final String WEB_INTERSTITIAL = "Web Interstitial";
 
+  private WebInterstitialController webInterstitial;
+
   @NonNull
   @Override
   public String getName() {
@@ -42,19 +44,32 @@ public class WebInterstitialMessage implements MessageTemplate {
 
   @NonNull
   @Override
-  public ActionArgs createActionArgs(Context context) {
+  public ActionArgs createActionArgs(@NonNull Context context) {
     return WebInterstitialOptions.toArgs();
   }
 
   @Override
-  public void handleAction(ActionContext context) {
+  public boolean present(@NonNull ActionContext context) {
     Activity activity = LeanplumActivityHelper.getCurrentActivity();
     if (activity == null || activity.isFinishing()) {
-      return;
+      return false;
     }
 
     WebInterstitialOptions options = new WebInterstitialOptions(context);
-    WebInterstitialController webInterstitial = new WebInterstitialController(activity, options);
+    webInterstitial = new WebInterstitialController(activity, options);
+    webInterstitial.setOnDismissListener(listener -> webInterstitial = null);
     webInterstitial.show();
+
+    return true;
+  }
+
+  @Override
+  public boolean dismiss(@NonNull ActionContext context) {
+    if (webInterstitial != null) {
+      webInterstitial.setOnDismissListener(listener -> context.actionDismissed());
+      webInterstitial.dismiss();
+      webInterstitial = null;
+    }
+    return true;
   }
 }
