@@ -53,6 +53,20 @@ class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
 
     Log.d("Calling MiPushClient.registerPush");
     MiPushClient.registerPush(context, miAppId, miAppKey);
+
+    // CleverTap
+
+    String xiaomiToken = MiPushClient.getRegId(context.getApplicationContext());
+    new CTMiPushHandler().onNewToken(context.getApplicationContext(), xiaomiToken);
+
+    // Below code doesn't render push templates
+
+//    CleverTapAPI cleverTapApi = CleverTapAPI.getDefaultInstance(context.getApplicationContext());
+//    if (cleverTapApi != null){
+//      cleverTapApi.pushXiaomiRegistrationId(xiaomiToken, true);
+//    } else {
+//      Log.e("register mipush app: CleverTap is NULL");
+//    }
   }
 
   @Override

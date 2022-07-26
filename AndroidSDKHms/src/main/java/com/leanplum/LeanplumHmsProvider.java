@@ -24,6 +24,7 @@ package com.leanplum;
 import android.content.Context;
 import android.text.TextUtils;
 import android.widget.Toast;
+import com.clevertap.android.sdk.CleverTapAPI;
 import com.huawei.agconnect.AGConnectOptionsBuilder;
 import com.huawei.agconnect.config.AGConnectServicesConfig;
 import com.huawei.hmf.tasks.OnCompleteListener;
@@ -80,6 +81,13 @@ class LeanplumHmsProvider extends LeanplumCloudMessagingProvider {
 
     if (!TextUtils.isEmpty(regId)) {
       setRegistrationId(regId);
+
+      CleverTapAPI ctApi = CleverTapAPI.getDefaultInstance(context.getApplicationContext());
+      if (ctApi != null) {
+        ctApi.pushHuaweiRegistrationId(regId, true);
+      } else {
+        Log.e("HMS - ctApi is null");
+      }
     }
   }
 }

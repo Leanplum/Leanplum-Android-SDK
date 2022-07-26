@@ -41,6 +41,9 @@ dependencies {
     // Compile dependencies will be added as dependency in pom file.
     api "androidx.legacy:legacy-support-v4:1.0.0"
     api "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
+
+    api "com.clevertap.android:clevertap-android-sdk:4.5.1"
+    api "com.clevertap.android:push-templates:1.0.3"
 }
 
 task generateJavadoc(type: Javadoc) {

@@ -38,6 +38,8 @@ import java.util.Map;
  */
 public class LeanplumHmsHandler {
 
+  private CTHmsHandler ctHandler = new CTHmsHandler();
+
   public void onCreate(Context context) {
     Leanplum.setApplicationContext(context);
   }
@@ -53,6 +55,17 @@ public class LeanplumHmsHandler {
   private void onNewTokenImpl(String token, Context context) {
     // Send token to backend
     LeanplumPushService.getPushProviders().setRegistrationId(PushProviderType.HMS, token);
+
+    ctHandler.onNewToken(context.getApplicationContext(), token);
+
+    // Below code doesn't render push templates
+
+//    CleverTapAPI ctApi = CleverTapAPI.getDefaultInstance(context.getApplicationContext());
+//    if (ctApi != null) {
+//        ctApi.pushHuaweiRegistrationId(token, true);
+//    } else {
+//      Log.e("HMS - ctApi is null");
+//    }
   }
 
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
@@ -72,6 +85,14 @@ public class LeanplumHmsHandler {
         Bundle notification = getBundle(messageMap);
         notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel);
         LeanplumPushService.handleNotification(context, notification);
+      } else {
+        ctHandler.createNotification(context.getApplicationContext(), remoteMessage);
+
+        // Below code doesn't render push templates
+
+//        String ctData = remoteMessage.getData();
+//        Bundle extras = Utils.stringToBundle(ctData);
+//        CleverTapAPI.createNotification(context.getApplicationContext(), extras);
       }
       Log.i("Received HMS notification message: %s", messageMap.toString());
     } catch (Throwable t) {

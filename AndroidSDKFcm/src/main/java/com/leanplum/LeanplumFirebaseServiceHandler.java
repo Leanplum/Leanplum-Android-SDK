@@ -23,6 +23,8 @@ package com.leanplum;
 
 import android.content.Context;
 import android.os.Bundle;
+import com.clevertap.android.sdk.pushnotification.fcm.CTFcmMessageHandler;
+import com.clevertap.android.sdk.pushnotification.fcm.IFcmMessageHandler;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.leanplum.internal.Constants;
@@ -35,6 +37,8 @@ import java.util.Map;
  * from your instance of {@link FirebaseMessagingService}.
  */
 public final class LeanplumFirebaseServiceHandler {
+
+  private IFcmMessageHandler ctHandler = new CTFcmMessageHandler();
 
   /**
    * Call from your implementation of {@link FirebaseMessagingService#onCreate()}
@@ -49,6 +53,7 @@ public final class LeanplumFirebaseServiceHandler {
   public void onNewToken(String token, Context context) {
     //send the new token to backend
     LeanplumPushService.getPushProviders().setRegistrationId(PushProviderType.FCM, token);
+    ctHandler.onNewToken(context.getApplicationContext(), token);
   }
 
   /**
@@ -57,6 +62,11 @@ public final class LeanplumFirebaseServiceHandler {
    */
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
     try {
+      if (ctHandler.createNotification(context, remoteMessage)) {
+        Log.i("Push notification forwarded to CleverTap SDK, message: %s", remoteMessage.getData().toString());
+        return;
+      }
+
       Map<String, String> messageMap = remoteMessage.getData();
 
       String channel;

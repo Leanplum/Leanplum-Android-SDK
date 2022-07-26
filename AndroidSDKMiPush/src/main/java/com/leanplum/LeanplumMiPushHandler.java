@@ -53,6 +53,8 @@ public class LeanplumMiPushHandler {
     MI_APP_KEY = miAppKey;
   }
 
+  private CTMiPushHandler ctHandler = new CTMiPushHandler();
+
   /**
    * Receives data message (pass-through message).
    */
@@ -61,6 +63,19 @@ public class LeanplumMiPushHandler {
       return;
 
     Log.i("Received MiPush data message %s: %s", message.getMessageId(), getContentLog(message));
+
+    ctHandler.createNotification(context.getApplicationContext(), message);
+
+    // Below code doesn't render push templates
+
+//    try {
+//      String ctData = message.getContent();
+//      Bundle extras = Utils.stringToBundle(ctData);
+//      CleverTapAPI.createNotification(context,extras);
+//
+//    } catch (JSONException e) {
+//      e.printStackTrace();
+//    }
   }
 
   /**
@@ -70,6 +85,8 @@ public class LeanplumMiPushHandler {
     if (context == null || message == null) {
       return;
     }
+
+    // TODO would we need notification type for CT?
 
     Log.i("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
 
@@ -94,6 +111,8 @@ public class LeanplumMiPushHandler {
   public void onNotificationMessageArrived(Context context, MiPushMessage message) {
     if (message == null)
       return;
+
+    // TODO would we need notification type for CT?
 
     Log.i("Received MiPush notification message %s: %s",
         message.getMessageId(), getContentLog(message));
@@ -135,6 +154,8 @@ public class LeanplumMiPushHandler {
 
             LeanplumPushService.getPushProviders().setRegistrationId(
                 PushProviderType.MIPUSH, registrationId);
+
+            ctHandler.onNewToken(context.getApplicationContext(), registrationId);
           }
         }
       }
