@@ -57,7 +57,10 @@ public class WebInterstitialMessage implements MessageTemplate {
 
     WebInterstitialOptions options = new WebInterstitialOptions(context);
     webInterstitial = new WebInterstitialController(activity, options);
-    webInterstitial.setOnDismissListener(listener -> webInterstitial = null);
+    webInterstitial.setOnDismissListener(listener -> {
+      webInterstitial = null;
+      context.actionDismissed();
+    });
     webInterstitial.show();
 
     return true;
@@ -66,9 +69,7 @@ public class WebInterstitialMessage implements MessageTemplate {
   @Override
   public boolean dismiss(@NonNull ActionContext context) {
     if (webInterstitial != null) {
-      webInterstitial.setOnDismissListener(listener -> context.actionDismissed());
       webInterstitial.dismiss();
-      webInterstitial = null;
     }
     return true;
   }

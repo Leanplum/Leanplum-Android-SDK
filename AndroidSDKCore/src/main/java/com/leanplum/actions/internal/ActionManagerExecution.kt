@@ -100,7 +100,7 @@ fun ActionManager.dismissCurrentAction() {
 
 @UiThread
 private fun ActionManager.performActionsImpl() {
-  if (isPaused) return
+  if (isPaused || !isEnabled) return
 
   // do not continue if we have action running
   if (currentAction != null) {

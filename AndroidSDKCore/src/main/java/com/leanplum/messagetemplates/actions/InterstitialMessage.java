@@ -57,7 +57,10 @@ public class InterstitialMessage implements MessageTemplate {
 
     InterstitialOptions options = new InterstitialOptions(context);
     interstitial = new InterstitialController(activity, options);
-    interstitial.setOnDismissListener(listener -> interstitial = null);
+    interstitial.setOnDismissListener(listener -> {
+      interstitial = null;
+      context.actionDismissed();
+    });
     interstitial.show();
 
     return true;
@@ -66,9 +69,7 @@ public class InterstitialMessage implements MessageTemplate {
   @Override
   public boolean dismiss(@NonNull ActionContext context) {
     if (interstitial != null) {
-      interstitial.setOnDismissListener(listener -> context.actionDismissed());
       interstitial.dismiss();
-      interstitial = null;
     }
     return true;
   }
