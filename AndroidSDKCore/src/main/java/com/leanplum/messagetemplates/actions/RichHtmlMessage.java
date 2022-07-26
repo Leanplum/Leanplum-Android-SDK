@@ -64,7 +64,10 @@ public class RichHtmlMessage implements MessageTemplate {
 
       // Message is shown after html is rendered. Check handleOpenEvent(url) method.
       richHtml = new RichHtmlController(activity, richOptions);
-      richHtml.setOnDismissListener(listener -> richHtml = null);
+      richHtml.setOnDismissListener(listener -> {
+        richHtml = null;
+        context.actionDismissed();
+      });
       return true;
 
     } catch (Throwable t) {
@@ -76,9 +79,7 @@ public class RichHtmlMessage implements MessageTemplate {
   @Override
   public boolean dismiss(@NonNull ActionContext context) {
     if (richHtml != null) {
-      richHtml.setOnDismissListener(listener -> context.actionDismissed());
       richHtml.dismiss();
-      richHtml = null;
     }
     return true;
   }
