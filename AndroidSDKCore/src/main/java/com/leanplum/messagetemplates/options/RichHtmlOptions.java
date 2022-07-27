@@ -375,6 +375,5 @@ public class RichHtmlOptions {
 
   public void dismiss() {
     actionContext.runActionNamed(Args.DISMISS_ACTION);
-    actionContext.actionDismissed();
   }
 }

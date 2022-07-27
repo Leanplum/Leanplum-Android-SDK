@@ -153,12 +153,10 @@ public abstract class BaseMessageOptions {
 
   public void accept() {
     context.runTrackedActionNamed(Args.ACCEPT_ACTION);
-    context.actionDismissed();
   }
 
   public void dismiss() {
     context.runActionNamed(Args.DISMISS_ACTION);
-    context.actionDismissed();
   }
 
   public static ActionArgs toArgs(Context currentContext) {
