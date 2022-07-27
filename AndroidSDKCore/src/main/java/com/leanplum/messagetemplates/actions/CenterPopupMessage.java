@@ -57,7 +57,10 @@ public class CenterPopupMessage implements MessageTemplate {
 
     CenterPopupOptions options = new CenterPopupOptions(context);
     popup = new CenterPopupController(activity, options);
-    popup.setOnDismissListener(listener -> popup = null);
+    popup.setOnDismissListener(listener -> {
+      popup = null;
+      context.actionDismissed();
+    });
     popup.show();
 
     return true;
@@ -66,9 +69,7 @@ public class CenterPopupMessage implements MessageTemplate {
   @Override
   public boolean dismiss(@NonNull ActionContext context) {
     if (popup != null) {
-      popup.setOnDismissListener(listener -> context.actionDismissed());
       popup.dismiss();
-      popup = null;
     }
     return true;
   }

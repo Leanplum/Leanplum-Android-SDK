@@ -93,8 +93,8 @@ class LeanplumActions {
      */
     @JvmStatic
     fun setQueuePaused(paused: Boolean) {
-      ActionManager.getInstance().isPaused = paused
       setContinueOnActivityResumed(!paused)
+      ActionManager.getInstance().isPaused = paused
     }
 
     /**
