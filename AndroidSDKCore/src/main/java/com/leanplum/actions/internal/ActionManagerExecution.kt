@@ -197,19 +197,28 @@ private fun ActionManager.performActionsImpl() {
 private fun ActionManager.recordImpression(action: Action) {
   try {
     val ctx = action.context
-    if (action.actionType == Action.ActionType.CHAINED) {
-      // We do not want to count occurrences for action kind, because in multi message
-      // campaigns the Open URL action is not a message. Also if the user has defined
-      // actions of type Action we do not want to count them.
-      val actionKind = definitions.findDefinition(ctx.actionName())?.kind
-      if (actionKind == Leanplum.ACTION_KIND_ACTION) {
-        recordChainedActionImpression(ctx.messageId)
-      } else {
+    when (action.actionType) {
+
+      Action.ActionType.CHAINED -> {
+        // We do not want to count occurrences for action kind, because in multi message
+        // campaigns the Open URL action is not a message. Also if the user has defined
+        // actions of type Action we do not want to count them.
+
+        val actionKind = definitions.findDefinition(ctx.actionName())?.kind
+        if (actionKind == Leanplum.ACTION_KIND_ACTION) {
+          recordChainedActionImpression(ctx.messageId)
+        } else {
+          recordMessageImpression(ctx.messageId)
+        }
+      }
+
+      Action.ActionType.SINGLE -> {
         recordMessageImpression(ctx.messageId)
       }
 
-    } else {
-      recordMessageImpression(action.context.messageId)
+      Action.ActionType.EMBEDDED -> {
+        // do nothing
+      }
     }
   } catch (t: Throwable) {
     Log.exception(t)
