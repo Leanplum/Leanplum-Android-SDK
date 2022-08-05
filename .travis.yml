@@ -22,7 +22,8 @@ android:
     - tools
 
 jdk:
-  - oraclejdk11
+  - openjdk11
+  # - oraclejdk11
 
 licenses:
   - 'android-sdk-preview-license-.+'
