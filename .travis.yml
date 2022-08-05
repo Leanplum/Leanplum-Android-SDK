@@ -21,8 +21,7 @@ android:
   components:
     - tools
 
-jdk:
-  - openjdk11
+# jdk:
   # - oraclejdk11
 
 licenses:
@@ -31,6 +30,10 @@ licenses:
   - 'google-gdk-license-.+'
 
 before_install:
+  - curl -s "https://get.sdkman.io" | bash
+  - source "$HOME/.sdkman/bin/sdkman-init.sh"
+  - sdk install java 11.0.12-open
+  - sdk use java 11.0.12-open
   # Install cmdline-tools (older tools doesn't support Java 11)
   - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
   - mkdir -p ${ANDROID_HOME}/cmdline-tools
@@ -42,13 +45,6 @@ before_install:
 before_script:
   # Install Android SDK and run emulator
   - echo 'count=0' > /home/travis/.android/repositories.cfg # avoid harmless sdkmanager warning
-  - echo ${TOOLS}
-  - echo "----"
-  - which java
-  - echo "----"
-  - readlink -f $(which java)
-  - echo "----"
-  - echo ${TOOLS}/bin/sdkmanager
   - echo y | ${TOOLS}/bin/sdkmanager "platform-tools"
   - echo y | ${TOOLS}/bin/sdkmanager "tools" >/dev/null
   - echo y | ${TOOLS}/bin/sdkmanager "build-tools;$BUILD_TOOLS" >/dev/null
