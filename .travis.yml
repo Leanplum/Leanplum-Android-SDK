@@ -43,9 +43,9 @@ before_script:
   - echo 'count=0' > /home/travis/.android/repositories.cfg # avoid harmless sdkmanager warning
   - echo ${TOOLS}
   - echo "----"
-  - ls ${TOOLS}
+  - which java
   - echo "----"
-  - ls ${TOOLS}/bin
+  - readlink -f $(which java)
   - echo "----"
   - echo ${TOOLS}/bin/sdkmanager
   - echo y | ${TOOLS}/bin/sdkmanager "platform-tools"
