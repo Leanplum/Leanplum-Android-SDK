@@ -46,7 +46,7 @@ import static org.mockito.Mockito.verify;
  * @author Sayaan Saha
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = VERSION_CODES.P) // temporarily fix issue with Robolectric and Android SDK 29
+@Config(sdk = 16)
 public class LeanplumInboxMessageTest {
 
   private LeanplumInboxMessage createMessageTestData(
