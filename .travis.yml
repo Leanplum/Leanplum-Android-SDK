@@ -58,7 +58,8 @@ before_script:
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
-  - ./gradlew assembleRelease testReleaseUnitTest -i
+  - ./gradlew assembleRelease
+  - ./gradlew testReleaseUnitTest -i
 
   # wait emulator to come alive and start snapshot tests
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then android-wait-for-emulator; fi;
