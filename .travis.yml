@@ -21,6 +21,8 @@ android:
   components:
     - tools
 
+# Uncomment and remove lines in before_install when issue with JDK is resolved
+# Check thread here: https://travis-ci.community/t/installing-oraclejdk-11-failed/13050/10
 # jdk:
   # - oraclejdk11
 
@@ -32,8 +34,8 @@ licenses:
 before_install:
   - curl -s "https://get.sdkman.io" | bash
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
-  - sdk install java 11.0.15-zulu
-  - sdk use java 11.0.15-zulu
+  - sdk install java 11.0.12-open
+  - sdk use java 11.0.12-open
   # Install cmdline-tools (older tools doesn't support Java 11)
   - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
   - mkdir -p ${ANDROID_HOME}/cmdline-tools
@@ -44,8 +46,6 @@ before_install:
 
 before_script:
   # Install Android SDK and run emulator
-  - echo $JAVA_HOME
-  - java --version
   - echo 'count=0' > /home/travis/.android/repositories.cfg # avoid harmless sdkmanager warning
   - echo y | ${TOOLS}/bin/sdkmanager "platform-tools" >/dev/null
   - echo y | ${TOOLS}/bin/sdkmanager "tools" >/dev/null
@@ -58,8 +58,6 @@ before_script:
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
-  - echo "before running tests"
-  - java --version
   - ./gradlew assembleRelease testReleaseUnitTest
 
   # wait emulator to come alive and start snapshot tests
