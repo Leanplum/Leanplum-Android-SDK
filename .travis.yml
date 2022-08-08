@@ -21,15 +21,27 @@ android:
   components:
     - tools
 
-jdk:
-  - oraclejdk11
+# Uncomment and remove lines in before_install when issue with JDK is resolved
+# Check thread here: https://travis-ci.community/t/installing-oraclejdk-11-failed/13050/10
+# jdk:
+  # - oraclejdk11
 
 licenses:
   - 'android-sdk-preview-license-.+'
   - 'android-sdk-license-.+'
   - 'google-gdk-license-.+'
 
+cache:
+  directories:
+  # cache is used for the Robolectric dependencies that are frequently failing to download
+  - .autoconf
+  - $HOME/.m2
+
 before_install:
+  - curl -s "https://get.sdkman.io" | bash
+  - source "$HOME/.sdkman/bin/sdkman-init.sh"
+  - sdk install java 11.0.12-open
+  - sdk use java 11.0.12-open
   # Install cmdline-tools (older tools doesn't support Java 11)
   - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
   - mkdir -p ${ANDROID_HOME}/cmdline-tools

@@ -22,6 +22,8 @@ package com.leanplum.internal;
 
 import com.leanplum.__setup.LeanplumTestApp;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -42,7 +44,7 @@ import static org.junit.Assert.assertNull;
 @SuppressWarnings("unused")
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 21,
+    sdk = 16,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({
@@ -70,9 +72,9 @@ public class JsonConverterTest {
       "\"map\":{\"a\":1,\"b\":2,\"array\":[1,2,3]},\"array\":[1,\"string\",{\"a\":\"b\"}]}";
 
   @Test
-  public void testToJson() {
+  public void testToJson() throws JSONException {
     assertNull(JsonConverter.toJson(null));
-    assertEquals(json, JsonConverter.toJson(map));
+    assertEquals(new JSONObject(json).toString(), JsonConverter.toJson(map));
   }
 
   @Test
