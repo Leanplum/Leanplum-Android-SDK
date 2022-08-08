@@ -70,8 +70,7 @@ script:
   - ls -a $HOME/.m2/
   - ls -a ~/.m2/repository/org/robolectric
   - ls -a ~/.m2/repository/org/robolectric/android-all
-  - ./gradlew assembleRelease
-  - ./gradlew testReleaseUnitTest -i --tests com.leanplum.LeanplumNotificationChannelTests
+  - ./gradlew assembleRelease testReleaseUnitTest --tests com.leanplum.LeanplumNotificationChannelTests
 
   # wait emulator to come alive and start snapshot tests
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then android-wait-for-emulator; fi;
