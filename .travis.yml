@@ -58,8 +58,15 @@ before_script:
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
+  - pwd
+  - curl https://repo1.maven.org/maven2/org/robolectric/android-all/8.0.0_r4-robolectric-r1/android-all-8.0.0_r4-robolectric-r1.jar --output android-all-8.0.0_r4-robolectric-r1.jar
+  - ls
+  - ls ~
+  - ls ~/.m2/
+  - ls ~/.m2/repository/org/robolectric
+  - ls ~/.m2/repository/org/robolectric/android-all
   - ./gradlew assembleRelease
-  - ./gradlew testReleaseUnitTest -i
+  - ./gradlew testReleaseUnitTest -i --tests com.leanplum.LeanplumNotificationChannelTests
 
   # wait emulator to come alive and start snapshot tests
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then android-wait-for-emulator; fi;
