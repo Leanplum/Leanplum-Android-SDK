@@ -33,6 +33,7 @@ licenses:
 
 cache:
   directories:
+  # cache is used for the Robolectric dependencies that are frequently failing to download
   - .autoconf
   - $HOME/.m2
 
@@ -63,13 +64,6 @@ before_script:
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
-  - pwd
-  - curl https://repo1.maven.org/maven2/org/robolectric/android-all/8.0.0_r4-robolectric-r1/android-all-8.0.0_r4-robolectric-r1.jar --output android-all-8.0.0_r4-robolectric-r1.jar
-  - ls -a
-  - ls -a ~
-  - ls -a $HOME/.m2/
-  - ls -a ~/.m2/repository/org/robolectric
-  - ls -a ~/.m2/repository/org/robolectric/android-all
   - ./gradlew assembleRelease testReleaseUnitTest
 
   # wait emulator to come alive and start snapshot tests
