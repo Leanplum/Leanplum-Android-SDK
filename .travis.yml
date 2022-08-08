@@ -34,6 +34,7 @@ licenses:
 before_install:
   - curl -s "https://get.sdkman.io" | bash
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
+  - sdk list java
   - sdk install java 11.0.16-oracle
   - sdk use java 11.0.16-oracle
   # Install cmdline-tools (older tools doesn't support Java 11)
