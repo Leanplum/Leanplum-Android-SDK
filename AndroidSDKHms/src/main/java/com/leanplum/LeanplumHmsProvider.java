@@ -34,6 +34,8 @@ import com.huawei.hms.push.HmsMessaging;
 import com.huawei.hms.utils.Util;
 import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.internal.Log;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.push.HmsMigrationHandler;
 
 /**
  * Leanplum provider for Huawei Push Kit.
@@ -80,6 +82,11 @@ class LeanplumHmsProvider extends LeanplumCloudMessagingProvider {
 
     if (!TextUtils.isEmpty(regId)) {
       setRegistrationId(regId);
+
+      HmsMigrationHandler migrationHandler = MigrationManager.getWrapper().getHmsHandler();
+      if (migrationHandler != null) {
+        migrationHandler.onNewToken(context, regId);
+      }
     }
   }
 }

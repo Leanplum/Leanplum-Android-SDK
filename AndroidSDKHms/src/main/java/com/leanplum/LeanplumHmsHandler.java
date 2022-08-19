@@ -30,6 +30,8 @@ import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.Util;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.push.HmsMigrationHandler;
 import java.util.Map;
 
 /**
@@ -53,6 +55,11 @@ public class LeanplumHmsHandler {
   private void onNewTokenImpl(String token, Context context) {
     // Send token to backend
     LeanplumPushService.getPushProviders().setRegistrationId(PushProviderType.HMS, token);
+
+    HmsMigrationHandler migrationHandler = MigrationManager.getWrapper().getHmsHandler();
+    if (migrationHandler != null) {
+      migrationHandler.onNewToken(context.getApplicationContext(), token);
+    }
   }
 
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
@@ -72,6 +79,15 @@ public class LeanplumHmsHandler {
         Bundle notification = getBundle(messageMap);
         notification.putString(Keys.CHANNEL_INTERNAL_KEY, channel);
         LeanplumPushService.handleNotification(context, notification);
+      } else {
+        HmsMigrationHandler migrationHandler = MigrationManager.getWrapper().getHmsHandler();
+        if (migrationHandler != null) {
+          String data = remoteMessage.getData();
+          if (migrationHandler.createNotification(context.getApplicationContext(), data)) {
+            Log.i("HMS notification message forwarded to CleverTap SDK: %s", data);
+            return;
+          }
+        }
       }
       Log.i("Received HMS notification message: %s", messageMap.toString());
     } catch (Throwable t) {

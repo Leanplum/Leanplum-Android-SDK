@@ -26,6 +26,8 @@ import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.http.NetworkOperation;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.MigrationState;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -141,6 +143,10 @@ public class RequestSender {
         int statusCode = op.getResponseCode();
 
         if (statusCode >= 200 && statusCode <= 299) {
+          if (MigrationManager.handleResponseBody(responseBody)) {
+            Log.d("Response body contains migration parameters");
+          }
+
           if (RequestUtil.updateApiConfig(responseBody)) {
             // API config is changed and we need to send requests again
             sendRequests();
@@ -224,6 +230,10 @@ public class RequestSender {
   }
 
   public void send(@NonNull final Request request) {
+    if (MigrationManager.getState() == MigrationState.CleverTapOnly) {
+      return;
+    }
+
     OperationQueue.sharedInstance().addOperation(new Runnable() {
       @Override
       public void run() {

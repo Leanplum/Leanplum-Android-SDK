@@ -61,6 +61,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.migration.MigrationManager;
 import com.leanplum.models.GeofenceEventType;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -101,7 +102,6 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
-  private static final Object heartbeatLock = new Object();
   private static final String LEANPLUM_NOTIFICATION_CHANNEL =
       "com.leanplum.LeanplumNotificationChannel";
   private static RegisterDeviceCallback registerDeviceHandler;
@@ -195,6 +195,7 @@ public class Leanplum {
    */
   public static void setLogLevel(int level) {
     Log.setLogLevel(level);
+    MigrationManager.getWrapper().setLogLevel(level);
   }
 
   /**
@@ -394,13 +395,14 @@ public class Leanplum {
     if (context == null) {
       Log.i("setApplicationContext - Null context parameter provided.");
     }
-
     Leanplum.context = context;
+    MigrationManager.updateWrapper();
   }
 
   /**
    * Gets the application context.
    */
+  @Nullable
   public static Context getContext() {
     if (context == null) {
       Log.e("Your application context is not set. "
@@ -775,30 +777,65 @@ public class Leanplum {
 
     Util.initializePreLeanplumInstall(params);
 
-    // Issue start API call.
+    MigrationManager.fetchState(state -> {
+      switch (state) {
+        case Undefined:
+        case LeanplumOnly:
+          issueLeanplumStart(isBackground, params);
+          break;
+
+        case Duplicate:
+          issueCleverTapStart();
+          issueLeanplumStart(isBackground, params);
+          break;
+
+        case CleverTapOnly:
+          issueCleverTapStart();
+          overrideLeanplumStart();
+          break;
+      }
+      return null;
+    });
+  }
+
+  private static void issueLeanplumStart(boolean isBackground, Map<String, Object> startParams) {
     RequestType requestType = isBackground ? RequestType.DEFAULT : RequestType.IMMEDIATE;
     Request request = RequestBuilder
         .withStartAction()
-        .andParams(params)
+        .andParams(startParams)
         .andType(requestType)
         .create();
-    request.onResponse(new Request.ResponseCallback() {
-      @Override
-      public void response(JSONObject response) {
-        Log.d("Received start response: %s", response);
-        handleStartResponse(response);
-      }
+    request.onResponse(response -> {
+      Log.d("Received start response: %s", response);
+      handleStartResponse(response);
     });
-    request.onError(new Request.ErrorCallback() {
-      @Override
-      public void error(Exception e) {
-        Log.e("Failed to receive start response", e);
-        handleStartResponse(null);
-      }
+    request.onError(e -> {
+      Log.e("Failed to receive start response", e);
+      handleStartResponse(null);
     });
     RequestSender.getInstance().send(request);
-
     LeanplumInternal.triggerStartIssued();
+  }
+
+  private static void issueCleverTapStart() {
+    MigrationManager.getWrapper().launch(
+        Leanplum.getContext(),
+        Leanplum.getUserId(),
+        Leanplum.getDeviceId()
+    );
+  }
+
+  private static void overrideLeanplumStart() {
+    // Delete VarCache
+    VarCache.clearUserContent();
+    VarCache.saveDiffs();
+
+    // Override issueStart and hasStarted
+    LeanplumInternal.triggerStartIssued();
+    LeanplumInternal.setHasStarted(true);
+    LeanplumInternal.setStartSuccessful(true);
+    LeanplumInternal.moveToForeground();
+    Leanplum.triggerStartResponse(true);
   }
 
   private static void handleStartResponse(final JSONObject response) {
@@ -1466,19 +1503,23 @@ public class Leanplum {
         params.put(Constants.Params.NEW_USER_ID, userId);
       }
       if (userAttributes != null) {
-        userAttributes = LeanplumInternal.validateAttributes(userAttributes, "userAttributes",
-            true);
-        params.put(Constants.Params.USER_ATTRIBUTES, JsonConverter.toJson(userAttributes));
-        LeanplumInternal.getUserAttributeChanges().add(userAttributes);
+        Map<String, ?> validUserAttributes =
+            LeanplumInternal.validateAttributes(userAttributes, "userAttributes", true);
+        params.put(Constants.Params.USER_ATTRIBUTES, JsonConverter.toJson(validUserAttributes));
+        LeanplumInternal.getUserAttributeChanges().add(validUserAttributes);
       }
 
       if (LeanplumInternal.issuedStart()) {
+        MigrationManager.getWrapper().setUserId(userId);
+        MigrationManager.getWrapper().setUserAttributes(userAttributes);
         setUserAttributesInternal(userId, params);
       } else {
         LeanplumInternal.addStartIssuedHandler(new Runnable() {
           @Override
           public void run() {
             try {
+              MigrationManager.getWrapper().setUserId(userId);
+              MigrationManager.getWrapper().setUserAttributes(userAttributes);
               setUserAttributesInternal(userId, params);
             } catch (Throwable t) {
               Log.exception(t);

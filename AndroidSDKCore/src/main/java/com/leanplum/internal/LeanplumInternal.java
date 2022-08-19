@@ -36,6 +36,7 @@ import com.leanplum.actions.internal.ActionsTrigger;
 import com.leanplum.actions.internal.Priority;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.Request.RequestType;
+import com.leanplum.migration.MigrationManager;
 import com.leanplum.models.GeofenceEventType;
 
 import java.util.Arrays;
@@ -368,12 +369,14 @@ public class LeanplumInternal {
   private static void trackInternalWhenStarted(final String event,
       final Map<String, ?> params, final Map<String, Object> requestArgs) {
     if (issuedStart) {
+      MigrationManager.getWrapper().track(event, 0.0, null, params, requestArgs);
       trackInternal(event, params, requestArgs);
     } else {
       addStartIssuedHandler(new Runnable() {
         @Override
         public void run() {
           try {
+            MigrationManager.getWrapper().track(event, 0.0, null, params, requestArgs);
             trackInternal(event, params, requestArgs);
           } catch (Throwable t) {
             Log.exception(t);

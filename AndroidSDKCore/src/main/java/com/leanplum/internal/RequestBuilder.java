@@ -54,6 +54,7 @@ public class RequestBuilder {
   public static final String ACTION_GET_INBOX_MESSAGES = "getNewsfeedMessages";
   public static final String ACTION_MARK_INBOX_MESSAGE_AS_READ = "markNewsfeedMessageAsRead";
   public static final String ACTION_DELETE_INBOX_MESSAGE = "deleteNewsfeedMessage";
+  public static final String ACTION_GET_MIGRATE_STATE = "getMigrateState";
 
   private String httpMethod;
   private String apiAction;
@@ -160,6 +161,10 @@ public class RequestBuilder {
 
   public static RequestBuilder withDeleteInboxMessageAction() {
     return new RequestBuilder(POST, ACTION_DELETE_INBOX_MESSAGE);
+  }
+
+  public static RequestBuilder withGetMigrateState() {
+    return new RequestBuilder(POST, ACTION_GET_MIGRATE_STATE);
   }
 
   public RequestBuilder andParam(String param, Object value) {

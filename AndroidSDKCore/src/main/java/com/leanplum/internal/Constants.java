@@ -158,6 +158,12 @@ public class Constants {
     public static final String API_HOST = "apiHost";
     public static final String API_PATH = "apiPath";
     public static final String DEV_SERVER_HOST = "devServerHost";
+    public static final String MIGRATE_STATE = "migrateState";
+    public static final String SDK = "sdk";
+    public static final String CLEVERTAP = "ct";
+    public static final String CT_ACCOUNT = "accountId";
+    public static final String CT_TOKEN = "token";
+    public static final String API_EVENTS_STATE = "events";
   }
 
   public static class Keys {

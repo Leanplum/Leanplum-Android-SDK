@@ -26,6 +26,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import com.leanplum.internal.Constants.Defaults;
 import com.leanplum.internal.Log;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.push.MiPushMigrationHandler;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
 /**
@@ -75,12 +77,18 @@ class LeanplumMiPushProvider extends LeanplumCloudMessagingProvider {
 
   @Override
   public void updateRegistrationId() {
-    if (Leanplum.getContext() == null)
+    Context context = Leanplum.getContext();
+    if (context == null)
       return;
 
-    String regId = MiPushClient.getRegId(Leanplum.getContext());
+    String regId = MiPushClient.getRegId(context);
     if (!TextUtils.isEmpty(regId)) {
       setRegistrationId(regId);
+
+      MiPushMigrationHandler migrationHandler = MigrationManager.getWrapper().getMiPushHandler();
+      if (migrationHandler != null) {
+        migrationHandler.onNewToken(context, regId);
+      }
     }
   }
 }

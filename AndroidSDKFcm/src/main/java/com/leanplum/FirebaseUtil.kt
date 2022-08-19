@@ -25,6 +25,7 @@ import android.text.TextUtils
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessaging
 import com.leanplum.internal.Log
+import com.leanplum.migration.MigrationManager
 
 internal fun updateRegistrationId(provider: LeanplumCloudMessagingProvider) {
   try {
@@ -54,6 +55,8 @@ private object Present {
         val token = it.result.toString()
         if (!TextUtils.isEmpty(token)) {
           provider.registrationId = token
+
+          MigrationManager.wrapper.fcmHandler?.onNewToken(Leanplum.getContext(), token)
         }
       } else {
         Log.e("getToken failed:\n" + Log.getStackTraceString(it.exception))
@@ -81,6 +84,8 @@ private object Legacy {
         val tokenId = it.result?.token
         if (!TextUtils.isEmpty(tokenId)) {
           provider.registrationId = tokenId
+
+          MigrationManager.wrapper.fcmHandler?.onNewToken(Leanplum.getContext(), tokenId)
         }
       } else {
         Log.e("getInstanceId failed:\n" + Log.getStackTraceString(it.exception))

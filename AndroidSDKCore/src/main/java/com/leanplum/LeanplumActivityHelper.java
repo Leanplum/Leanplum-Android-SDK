@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 
+import com.clevertap.android.sdk.ActivityLifecycleCallback;
 import com.leanplum.actions.internal.ActionManagerExecutionKt;
 import com.leanplum.annotations.Parser;
 import com.leanplum.internal.ActionManager;
@@ -37,6 +38,7 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
 
 import com.leanplum.internal.OperationQueue;
+import com.leanplum.migration.MigrationManager;
 import com.leanplum.utils.BuildUtil;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -205,6 +207,8 @@ public class LeanplumActivityHelper {
     } else {
       app.registerActivityLifecycleCallbacks(new LeanplumLifecycleCallbacks());
     }
+
+    MigrationManager.getWrapper().registerLifecycleCallback(app);
 
     registeredCallbacks = true;
     // run pending actions if any upon start

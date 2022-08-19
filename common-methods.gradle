@@ -2,7 +2,7 @@
 ext {
     COMPILE_SDK_VERSION = 31
     APPCOMPAT_LIBRARY_VERSION = '1.2.0'
-    MIN_SDK_VERSION = 14
+    MIN_SDK_VERSION = 16
     JAVA_VERSION = JavaVersion.VERSION_1_8
 
     LEANPLUM_GROUP_ID = 'com.leanplum'
