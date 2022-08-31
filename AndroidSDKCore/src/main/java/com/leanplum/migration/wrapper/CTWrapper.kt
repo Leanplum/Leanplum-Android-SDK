@@ -2,7 +2,6 @@ package com.leanplum.migration.wrapper
 
 import android.app.Application
 import android.content.Context
-import com.clevertap.android.pushtemplates.PushTemplateNotificationHandler
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
@@ -44,17 +43,8 @@ internal class CTWrapper(
     }
 
     cleverTapInstance?.let {
-      CleverTapAPI.setNotificationHandler(PushTemplateNotificationHandler())
       it.setLibrary("Leanplum")
-
-      // TODO find appropriate place for channels
-      CleverTapAPI.createNotificationChannel(
-        context,
-        "YourChannelId",
-        "Your Channel Name",
-        "Your Channel Description",
-        5,
-        true)
+      // add other configuration here
     }
   }
 
