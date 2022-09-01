@@ -15,7 +15,8 @@ import com.leanplum.migration.push.MiPushMigrationHandler
 // TODO: Think about removing the LP dependencies from here
 internal class CTWrapper(
   private val accountId: String,
-  private val accountToken: String
+  private val accountToken: String,
+  private val accountRegion: String
   ) : IWrapper {
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
@@ -32,7 +33,11 @@ internal class CTWrapper(
   }
 
   override fun launch(context: Context, userId: String?, deviceId: String?) {
-    val config = CleverTapInstanceConfig.createInstance(context, accountId, accountToken)
+    val config = CleverTapInstanceConfig.createInstance(
+      context,
+      accountId,
+      accountToken,
+      accountRegion)
 
     cleverTapId = createCleverTapId(userId, deviceId)
     if (cleverTapId != null) {

@@ -27,7 +27,7 @@ import com.leanplum.Leanplum;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.http.NetworkOperation;
 import com.leanplum.migration.MigrationManager;
-import com.leanplum.migration.MigrationState;
+import com.leanplum.migration.model.MigrationState;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;

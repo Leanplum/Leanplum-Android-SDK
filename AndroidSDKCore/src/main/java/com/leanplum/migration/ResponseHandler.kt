@@ -2,34 +2,33 @@ package com.leanplum.migration
 
 import com.leanplum.internal.Constants.Params
 import com.leanplum.internal.Log
+import com.leanplum.migration.model.MigrationState
+import com.leanplum.migration.model.ResponseData
 import org.json.JSONException
 import org.json.JSONObject
 
 class ResponseHandler {
 
-  data class Result(
-    val state: MigrationState,
-    val accountId: String? = null,
-    val accountToken: String? = null
-  )
-
   /**
    * TODO provide json example
    */
-  fun handleMigrateStateContent(json: JSONObject): Result? {
+  fun handleMigrateStateContent(json: JSONObject): ResponseData? {
     try {
       if (!json.isNull(Params.SDK)) {
-        val state = parseMigrationState(json.getString(Params.SDK))
-        return if (state.useCleverTap()) {
+        val state = json.getString(Params.SDK)
+        val hash = json.getString(Params.MIGRATE_STATE_HASH)
+        return if (MigrationState.from(state).useCleverTap()) {
           var accountId: String? = null
-          var accountToken: String? = null
+          var token: String? = null
+          var regionCode: String? = null
           json.optJSONObject(Params.CLEVERTAP)?.apply {
-            accountId = optString(Params.CT_ACCOUNT)
-            accountToken = optString(Params.CT_TOKEN)
+            accountId = optString(Params.CT_ACCOUNT_ID)
+            token = optString(Params.CT_TOKEN)
+            regionCode = optString(Params.CT_REGION_CODE)
           }
-          Result(state, accountId, accountToken)
+          ResponseData(state, hash, accountId, token, regionCode)
         } else {
-          Result(state)
+          ResponseData(state, hash)
         }
       }
     } catch (e: JSONException) {
@@ -38,17 +37,10 @@ class ResponseHandler {
     return null
   }
 
-  private fun parseMigrationState(sdk: String): MigrationState = when(sdk) {
-    "lp" -> MigrationState.LeanplumOnly
-    "ct" -> MigrationState.CleverTapOnly
-    "lp+ct" -> MigrationState.Duplicate
-    else -> MigrationState.Undefined
-  }
-
   /**
    * TODO provide json example
    */
-  fun handleMigrateState(json: JSONObject): Result? {
+  fun handleMigrateState(json: JSONObject): ResponseData? {
     try {
       if (!json.isNull(Params.MIGRATE_STATE)) {
         val contentJson = json.getJSONObject(Params.MIGRATE_STATE)
