@@ -778,21 +778,10 @@ public class Leanplum {
     Util.initializePreLeanplumInstall(params);
 
     MigrationManager.fetchState(state -> {
-      switch (state) {
-        case Undefined:
-        case LeanplumOnly:
-          issueLeanplumStart(isBackground, params);
-          break;
-
-        case Duplicate:
-          issueCleverTapStart();
-          issueLeanplumStart(isBackground, params);
-          break;
-
-        case CleverTapOnly:
-          issueCleverTapStart();
-          overrideLeanplumStart();
-          break;
+      if (state.useLeanplum()) {
+        issueLeanplumStart(isBackground, params);
+      } else {
+        overrideLeanplumStart();
       }
       return null;
     });
@@ -815,14 +804,6 @@ public class Leanplum {
     });
     RequestSender.getInstance().send(request);
     LeanplumInternal.triggerStartIssued();
-  }
-
-  private static void issueCleverTapStart() {
-    MigrationManager.getWrapper().launch(
-        Leanplum.getContext(),
-        Leanplum.getUserId(),
-        Leanplum.getDeviceId()
-    );
   }
 
   private static void overrideLeanplumStart() {

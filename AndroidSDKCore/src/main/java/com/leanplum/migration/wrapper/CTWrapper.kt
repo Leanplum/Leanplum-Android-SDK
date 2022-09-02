@@ -17,7 +17,7 @@ internal class CTWrapper(
   private val accountId: String,
   private val accountToken: String,
   private val accountRegion: String
-  ) : IWrapper {
+) : IWrapper {
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
   override val hmsHandler: HmsMigrationHandler = HmsMigrationHandler()

@@ -3,9 +3,9 @@ package com.leanplum.migration
 import com.leanplum.internal.*
 import com.leanplum.migration.model.MigrationConfig
 import com.leanplum.migration.model.MigrationState
-import com.leanplum.migration.wrapper.CTWrapper
 import com.leanplum.migration.wrapper.IWrapper
 import com.leanplum.migration.wrapper.NullWrapper
+import com.leanplum.migration.wrapper.WrapperFactory
 import org.json.JSONObject
 
 // TODO mark all classes as internal ?
@@ -19,23 +19,12 @@ object MigrationManager {
   var wrapper: IWrapper = NullWrapper
     private set
 
-  private fun createWrapper(): IWrapper {
-    val account = MigrationConfig.accountId
-    val token = MigrationConfig.accountToken
-    val region = MigrationConfig.accountRegion
-    return if (getState().useCleverTap() && account != null && token != null && region != null) {
-      CTWrapper(account, token, region)
-    } else {
-      NullWrapper
-    }
-  }
-
   @JvmStatic
   fun updateWrapper() {
     if (wrapper == NullWrapper && getState().useCleverTap()) {
-      wrapper = createWrapper()
+      wrapper = WrapperFactory.createWrapper()
     } else if (wrapper != NullWrapper && !getState().useCleverTap()) {
-      wrapper = NullWrapper
+      wrapper = WrapperFactory.createNullWrapper()
     }
   }
 
