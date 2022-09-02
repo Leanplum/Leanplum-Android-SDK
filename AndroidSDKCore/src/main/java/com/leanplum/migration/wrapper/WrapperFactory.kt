@@ -10,17 +10,21 @@ internal object WrapperFactory {
     val account = MigrationConfig.accountId
     val token = MigrationConfig.accountToken
     val region = MigrationConfig.accountRegion
+    if (account == null || token == null || region == null) {
+      return NullWrapper
+    }
 
-    return if (MigrationManager.getState().useCleverTap()
-      && account != null
-      && token != null
-      && region != null
-    ) {
+    val context = Leanplum.getContext()
+    val userId = Leanplum.getUserId() // userId is null for anonymous users
+    val deviceId = Leanplum.getDeviceId()
+    if (context == null || deviceId == null) {
+      // Leanplum state is not fully initialised, thus giving access only to CT static methods.
+      return StaticMethodsWrapper
+    }
+
+    return if (MigrationManager.getState().useCleverTap()) {
       CTWrapper(account, token, region).apply {
-        val context = Leanplum.getContext()
-        if (context != null) {
-          launch(context, Leanplum.getUserId(), Leanplum.getDeviceId())
-        }
+        launch(context, userId, deviceId)
       }
     } else {
       NullWrapper

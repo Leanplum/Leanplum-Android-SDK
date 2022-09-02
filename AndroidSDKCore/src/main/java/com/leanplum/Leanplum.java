@@ -396,7 +396,7 @@ public class Leanplum {
       Log.i("setApplicationContext - Null context parameter provided.");
     }
     Leanplum.context = context;
-    MigrationManager.updateWrapper();
+    MigrationManager.updateWrapper(); // init with StaticMethodsWrapper if migrating
   }
 
   /**

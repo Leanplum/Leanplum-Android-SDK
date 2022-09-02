@@ -5,6 +5,7 @@ import com.leanplum.migration.model.MigrationConfig
 import com.leanplum.migration.model.MigrationState
 import com.leanplum.migration.wrapper.IWrapper
 import com.leanplum.migration.wrapper.NullWrapper
+import com.leanplum.migration.wrapper.StaticMethodsWrapper
 import com.leanplum.migration.wrapper.WrapperFactory
 import org.json.JSONObject
 
@@ -21,7 +22,9 @@ object MigrationManager {
 
   @JvmStatic
   fun updateWrapper() {
-    if (wrapper == NullWrapper && getState().useCleverTap()) {
+    if (getState().useCleverTap()
+      && (wrapper == NullWrapper || wrapper == StaticMethodsWrapper)
+    ) {
       wrapper = WrapperFactory.createWrapper()
     } else if (wrapper != NullWrapper && !getState().useCleverTap()) {
       wrapper = WrapperFactory.createNullWrapper()
@@ -31,6 +34,7 @@ object MigrationManager {
   @JvmStatic
   fun fetchState(callback: (MigrationState) -> Unit) {
     if (getState() != MigrationState.Undefined) {
+      updateWrapper() // replaces StaticMethodsWrapper with CTWrapper
       callback.invoke(getState())
     } else {
       fetchStateAsync {

@@ -16,8 +16,8 @@ import com.leanplum.migration.push.MiPushMigrationHandler
 internal class CTWrapper(
   private val accountId: String,
   private val accountToken: String,
-  private val accountRegion: String
-) : IWrapper {
+  private val accountRegion: String,
+) : IWrapper by StaticMethodsWrapper {
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
   override val hmsHandler: HmsMigrationHandler = HmsMigrationHandler()
@@ -115,13 +115,4 @@ internal class CTWrapper(
     ActivityLifecycleCallback.register(app)
   }
 
-  override fun setLogLevel(level: Int) {
-    when(level) {
-      Log.Level.OFF -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.OFF)
-      Log.Level.ERROR -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.INFO)
-      Log.Level.INFO -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.INFO)
-      Log.Level.DEBUG -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.DEBUG)
-      else -> Unit
-    }
-  }
 }

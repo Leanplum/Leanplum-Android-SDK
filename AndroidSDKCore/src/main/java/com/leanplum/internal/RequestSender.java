@@ -231,7 +231,7 @@ public class RequestSender {
   }
 
   public void send(@NonNull final Request request) {
-    if (MigrationManager.getState() == MigrationState.CleverTapOnly) {
+    if (!MigrationManager.getState().useLeanplum()) {
       return;
     }
 
