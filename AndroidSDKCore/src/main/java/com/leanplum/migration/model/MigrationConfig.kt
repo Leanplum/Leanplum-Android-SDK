@@ -7,7 +7,7 @@ object MigrationConfig {
 
   var state: String by StringPreference(key = "migration_state", defaultValue = "undefined")
 
-  var hash: String by StringPreference(key = "ct_config_hash", defaultValue = "sha256")
+  var hash: String by StringPreference(key = "ct_config_hash", defaultValue = "defaultHash")
 
   var accountId: String? by StringPreferenceNullable(key = "ct_account_id")
 

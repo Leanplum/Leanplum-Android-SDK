@@ -6,9 +6,13 @@ enum class MigrationState {
   CleverTapOnly,
   Duplicate;
 
-  fun useCleverTap() = when(this) {
-    CleverTapOnly -> true
-    Duplicate -> true
+  fun useLeanplum() = when (this) {
+    Undefined, LeanplumOnly, Duplicate -> true
+    else -> false
+  }
+
+  fun useCleverTap() = when (this) {
+    CleverTapOnly, Duplicate -> true
     else -> false
   }
 

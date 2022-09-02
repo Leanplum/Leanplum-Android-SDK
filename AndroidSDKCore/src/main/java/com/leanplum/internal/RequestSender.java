@@ -143,8 +143,8 @@ public class RequestSender {
         int statusCode = op.getResponseCode();
 
         if (statusCode >= 200 && statusCode <= 299) {
-          if (MigrationManager.handleResponseBody(responseBody)) {
-            Log.d("Response body contains migration parameters");
+          if (MigrationManager.refreshStateMidSession(responseBody)) {
+            Log.i("Migration state will be refreshed.");
           }
 
           if (RequestUtil.updateApiConfig(responseBody)) {
@@ -221,6 +221,7 @@ public class RequestSender {
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
     args.put(Constants.Params.REQUEST_ID, request.getRequestId());
+    args.put(Constants.Params.CT_DUPLICATE, MigrationManager.getState().useCleverTap());
     String token = APIConfig.getInstance().token();
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);

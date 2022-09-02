@@ -38,13 +38,20 @@ class ResponseHandler {
   }
 
   /**
-   * TODO provide json example
+   * Example JSON:
+   *
+   * "migrateState": {
+   *   "sha256": "5f3e3640f0dc5a8e147294d2b06f63dc63f7c75dd39d050b2f105b5586620b1a"
+   * }
+   *
+   * @return Returns the sha256 hash from the JSON.
+   *
    */
-  fun handleMigrateState(json: JSONObject): ResponseData? {
+  fun handleMigrateState(json: JSONObject): String? {
     try {
       if (!json.isNull(Params.MIGRATE_STATE)) {
-        val contentJson = json.getJSONObject(Params.MIGRATE_STATE)
-        return handleMigrateStateContent(contentJson)
+        val content = json.getJSONObject(Params.MIGRATE_STATE)
+        return content.getString(Params.MIGRATE_STATE_HASH)
       }
     } catch (e: JSONException) {
       Log.e("Error parsing response for CT config.", e)

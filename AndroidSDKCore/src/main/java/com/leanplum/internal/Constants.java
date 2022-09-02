@@ -161,6 +161,7 @@ public class Constants {
     public static final String MIGRATE_STATE = "migrateState";
     public static final String MIGRATE_STATE_HASH = "sha256";
     public static final String SDK = "sdk";
+    public static final String CT_DUPLICATE = "ct";
     public static final String CLEVERTAP = "ct";
     public static final String CT_ACCOUNT_ID = "accountId";
     public static final String CT_TOKEN = "token";

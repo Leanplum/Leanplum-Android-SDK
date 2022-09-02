@@ -1,12 +1,11 @@
 package com.leanplum.migration
 
-import com.leanplum.internal.Log
-import com.leanplum.internal.Request
-import com.leanplum.internal.RequestBuilder
-import com.leanplum.internal.RequestSender
+import com.leanplum.internal.*
 import com.leanplum.migration.model.MigrationConfig
 import com.leanplum.migration.model.MigrationState
-import com.leanplum.migration.wrapper.*
+import com.leanplum.migration.wrapper.CTWrapper
+import com.leanplum.migration.wrapper.IWrapper
+import com.leanplum.migration.wrapper.NullWrapper
 import org.json.JSONObject
 
 // TODO mark all classes as internal ?
@@ -21,11 +20,11 @@ object MigrationManager {
     private set
 
   private fun createWrapper(): IWrapper {
-    val acc = MigrationConfig.accountId
+    val account = MigrationConfig.accountId
     val token = MigrationConfig.accountToken
     val region = MigrationConfig.accountRegion
-    return if (getState().useCleverTap() && acc != null && token != null && region != null) {
-      CTWrapper(acc, token, region)
+    return if (getState().useCleverTap() && account != null && token != null && region != null) {
+      CTWrapper(account, token, region)
     } else {
       NullWrapper
     }
@@ -35,6 +34,8 @@ object MigrationManager {
   fun updateWrapper() {
     if (wrapper == NullWrapper && getState().useCleverTap()) {
       wrapper = createWrapper()
+    } else if (wrapper != NullWrapper && !getState().useCleverTap()) {
+      wrapper = NullWrapper
     }
   }
 
@@ -43,38 +44,74 @@ object MigrationManager {
     if (getState() != MigrationState.Undefined) {
       callback.invoke(getState())
     } else {
-      fetchStateAsync(callback)
+      fetchStateAsync {
+        callback.invoke(getState())
+      }
     }
   }
 
-  private fun fetchStateAsync(callback: (MigrationState) -> Unit) {
+  private fun fetchStateAsync(callback: (Boolean) -> Unit) {
     val request = RequestBuilder
       .withGetMigrateState()
       .andType(Request.RequestType.IMMEDIATE)
       .create()
 
     request.onError {
-      Log.d("Error getting migration state:", it)
-      callback.invoke(getState())
+      Log.d("Error getting migration state", it)
+      callback.invoke(false)
     }
+
     request.onResponse {
       Log.d("Migration state response: $it")
-      ResponseHandler().handleMigrateStateContent(it)?.let { responseData ->
+      val responseData = ResponseHandler().handleMigrateStateContent(it)
+      if (responseData != null) {
+        val oldState = getState()
         MigrationConfig.update(responseData)
-        updateWrapper()
+        val newState = getState()
+        handleStateTransition(oldState, newState)
       }
-      callback.invoke(getState())
+      callback.invoke(true)
     }
+
     RequestSender.getInstance().send(request)
   }
 
   @JvmStatic
-  fun handleResponseBody(responseBody: JSONObject): Boolean {
-    ResponseHandler().handleMigrateState(responseBody)?.let { responseData ->
-      MigrationConfig.update(responseData)
-      // TODO handle case to duplicate or CT only, do not handle change of account params
-      // wrapper will be launched with new parameters on next SDK start
+  fun refreshStateMidSession(responseBody: JSONObject): Boolean {
+    val newHash = ResponseHandler().handleMigrateState(responseBody) ?: return false
+    if (newHash != MigrationConfig.hash) {
+      fetchStateAsync { success ->
+        if (success) {
+          // transition side effects are handled in fetchStateAsync
+        } else {
+          // TODO guard against continuous failure?
+        }
+      }
       return true
-    } ?: return false
+    }
+    return false
   }
+
+  private fun handleStateTransition(oldState: MigrationState, newState: MigrationState) {
+    if (oldState.useLeanplum() && !newState.useLeanplum()) {
+      // flush all saved data to LP
+      RequestSender.getInstance().sendRequests()
+      // delete LP data
+      VarCache.clearUserContent()
+      VarCache.saveDiffs()
+    }
+
+    if (!oldState.useCleverTap() && newState.useCleverTap()) {
+      // flush all saved data to LP, new data will come with the flag ct=true
+      RequestSender.getInstance().sendRequests()
+      // create wrapper
+      updateWrapper()
+    }
+
+    if (oldState.useCleverTap() && !newState.useCleverTap()) {
+      // remove wrapper
+      updateWrapper()
+    }
+  }
+
 }

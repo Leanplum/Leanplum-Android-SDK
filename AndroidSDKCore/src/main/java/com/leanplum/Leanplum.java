@@ -826,10 +826,6 @@ public class Leanplum {
   }
 
   private static void overrideLeanplumStart() {
-    // Delete VarCache
-    VarCache.clearUserContent();
-    VarCache.saveDiffs();
-
     // Override issueStart and hasStarted
     LeanplumInternal.triggerStartIssued();
     LeanplumInternal.setHasStarted(true);
