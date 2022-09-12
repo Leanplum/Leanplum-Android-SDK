@@ -50,6 +50,7 @@ internal class CTWrapper(
     cleverTapInstance?.let {
       it.setLibrary("Leanplum")
       // add other configuration here
+      Log.d("CleverTap instance created by Leanplum")
     }
   }
 
@@ -58,6 +59,9 @@ internal class CTWrapper(
     if (cleverTapId == null) return
 
     val profile: Map<String, Any> = mutableMapOf(Constants.IDENTITY to userId)
+
+    Log.d("Leanplum.setUserId will call onUserLogin with $profile")
+
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
@@ -67,6 +71,9 @@ internal class CTWrapper(
 
     val identity = Leanplum.getUserId() ?: deviceId
     val profile: Map<String, Any> = mutableMapOf(Constants.IDENTITY to identity)
+
+    Log.d("Leanplum.setDeviceId will call onUserLogin with $profile")
+
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
@@ -92,6 +99,8 @@ internal class CTWrapper(
 
     // TODO handle purchase event ?
 
+    Log.d("Leanplum.track will call pushEvent with $eventName and $eventProperties")
+
     cleverTapInstance?.pushEvent(eventName, eventProperties)
   }
 
@@ -103,11 +112,16 @@ internal class CTWrapper(
 
     // TODO handle info ?
 
+    Log.d("Leanplum.advance will call pushEvent with $eventName and $eventProperties")
+
     cleverTapInstance?.pushEvent(eventName, eventProperties)
   }
 
   override fun setUserAttributes(attributes: Map<String, Any>?) {
     val profile = attributes?.toMutableMap() ?: return
+
+    Log.d("Leanplum.setUserAttributes will call pushProfile with $profile")
+
     cleverTapInstance?.pushProfile(profile)
   }
 
