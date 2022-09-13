@@ -1,5 +1,7 @@
 package com.leanplum.migration.wrapper
 
+import android.app.Application
+import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.leanplum.internal.Log
 
@@ -11,12 +13,16 @@ import com.leanplum.internal.Log
  */
 object StaticMethodsWrapper : IWrapper {
 
+  override fun registerLifecycleCallback(app: Application) {
+    ActivityLifecycleCallback.register(app)
+  }
+
   override fun setLogLevel(level: Int) {
     when(level) {
       Log.Level.OFF -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.OFF)
       Log.Level.ERROR -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.INFO)
       Log.Level.INFO -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.INFO)
-      Log.Level.DEBUG -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.DEBUG)
+      Log.Level.DEBUG -> CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.VERBOSE)
       else -> Unit
     }
   }

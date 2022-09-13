@@ -87,18 +87,22 @@ object MigrationManager {
 
   private fun handleStateTransition(oldState: MigrationState, newState: MigrationState) {
     if (oldState.useLeanplum() && !newState.useLeanplum()) {
-      // flush all saved data to LP
-      RequestSender.getInstance().sendRequests()
-      // delete LP data
-      VarCache.clearUserContent()
-      VarCache.saveDiffs()
+      OperationQueue.sharedInstance().addOperation {
+        // flush all saved data to LP
+        RequestSender.getInstance().sendRequests()
+        // delete LP data
+        VarCache.clearUserContent()
+        VarCache.saveDiffs()
+      }
     }
 
     if (!oldState.useCleverTap() && newState.useCleverTap()) {
-      // flush all saved data to LP, new data will come with the flag ct=true
-      RequestSender.getInstance().sendRequests()
-      // create wrapper
-      updateWrapper()
+      OperationQueue.sharedInstance().addOperation {
+        // flush all saved data to LP, new data will come with the flag ct=true
+        RequestSender.getInstance().sendRequests()
+        // create wrapper
+        updateWrapper()
+      }
     }
 
     if (oldState.useCleverTap() && !newState.useCleverTap()) {

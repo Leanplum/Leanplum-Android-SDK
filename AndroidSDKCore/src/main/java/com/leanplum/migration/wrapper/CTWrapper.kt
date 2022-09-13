@@ -47,8 +47,11 @@ internal class CTWrapper(
       cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config)
     }
 
-    cleverTapInstance?.let {
-      it.setLibrary("Leanplum")
+    cleverTapInstance?.apply {
+      setLibrary("Leanplum")
+      if (!ActivityLifecycleCallback.registered) {
+        ActivityLifecycleCallback.register(context.applicationContext as? Application)
+      }
       // add other configuration here
       Log.d("CleverTap instance created by Leanplum")
     }
@@ -123,10 +126,6 @@ internal class CTWrapper(
     Log.d("Leanplum.setUserAttributes will call pushProfile with $profile")
 
     cleverTapInstance?.pushProfile(profile)
-  }
-
-  override fun registerLifecycleCallback(app: Application) {
-    ActivityLifecycleCallback.register(app)
   }
 
 }

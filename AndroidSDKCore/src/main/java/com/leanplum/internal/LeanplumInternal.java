@@ -576,6 +576,9 @@ public class LeanplumInternal {
         if (!inForeground) {
           return;
         }
+        if (!MigrationManager.getState().useLeanplum()) {
+          return;
+        }
         if (Constants.isDevelopmentModeEnabled && !Constants.isNoop()) {
           Socket.connectSocket();
         }
