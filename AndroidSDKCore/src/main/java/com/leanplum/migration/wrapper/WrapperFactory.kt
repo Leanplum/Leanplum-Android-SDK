@@ -1,6 +1,7 @@
 package com.leanplum.migration.wrapper
 
 import com.leanplum.Leanplum
+import com.leanplum.internal.Log
 import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.model.MigrationConfig
 
@@ -15,16 +16,18 @@ internal object WrapperFactory {
     }
 
     val context = Leanplum.getContext()
-    val userId = Leanplum.getUserId() // userId is null for anonymous users
     val deviceId = Leanplum.getDeviceId()
+    val userId = Leanplum.getUserId()
+    //Log.e("deviceId=$deviceId and userId=$userId")
+    //Log.d(Exception().stackTraceToString())
     if (context == null || deviceId == null) {
       // Leanplum state is not fully initialised, thus giving access only to CT static methods.
       return StaticMethodsWrapper
     }
 
     return if (MigrationManager.getState().useCleverTap()) {
-      CTWrapper(account, token, region).apply {
-        launch(context, userId, deviceId)
+      CTWrapper(account, token, region, deviceId, userId).apply {
+        launch(context)
       }
     } else {
       NullWrapper

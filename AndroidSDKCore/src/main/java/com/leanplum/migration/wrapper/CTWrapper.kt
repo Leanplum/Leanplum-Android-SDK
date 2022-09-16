@@ -5,18 +5,18 @@ import android.content.Context
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
-import com.leanplum.Leanplum
 import com.leanplum.internal.Log
 import com.leanplum.migration.Constants
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.migration.push.MiPushMigrationHandler
 
-// TODO: Think about removing the LP dependencies from here
 internal class CTWrapper(
   private val accountId: String,
   private val accountToken: String,
   private val accountRegion: String,
+  private var deviceId: String,
+  private var userId: String?
 ) : IWrapper by StaticMethodsWrapper {
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
@@ -24,59 +24,75 @@ internal class CTWrapper(
   override val miPushHandler: MiPushMigrationHandler = MiPushMigrationHandler()
 
   var cleverTapInstance: CleverTapAPI? = null
-  var cleverTapId: String? = null
 
-  private fun createCleverTapId(userId: String?, deviceId: String?): String? {
-    deviceId ?: return null
-    userId ?: return deviceId
-    return "${deviceId}_${userId}"
+  /**
+   * Needs to be calculated each time.
+   */
+  private fun cleverTapId(): String {
+    return when (userId) {
+      null -> deviceId
+      deviceId -> deviceId
+      else -> "${deviceId}_${userId}"
+    }
   }
 
-  override fun launch(context: Context, userId: String?, deviceId: String?) {
+  /**
+   * Needs to be calculated each time.
+   */
+  private fun identity(): String {
+    return when (val userId = userId) {
+      null -> deviceId
+      deviceId -> deviceId
+      else -> userId
+    }
+  }
+
+  override fun launch(context: Context) {
     val config = CleverTapInstanceConfig.createInstance(
       context,
       accountId,
       accountToken,
-      accountRegion)
-
-    cleverTapId = createCleverTapId(userId, deviceId)
-    if (cleverTapId != null) {
-      config.enableCustomCleverTapId = true
-      cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config, cleverTapId)
-    } else {
-      cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config)
+      accountRegion).apply {
+      // staging = 18 // staging 0 for prod
+      enableCustomCleverTapId = true
     }
 
-    cleverTapInstance?.apply {
+    val cleverTapId = cleverTapId()
+    val identity = identity()
+    Log.d("Wrapper: using CleverTapID=__h$cleverTapId and Identity=$identity")
+
+    cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config, cleverTapId).apply {
       setLibrary("Leanplum")
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
       }
-      // add other configuration here
-      Log.d("CleverTap instance created by Leanplum")
+      val profile: Map<String, Any> = mutableMapOf(Constants.IDENTITY to identity)
+      onUserLogin(profile, cleverTapId)
+      Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
   }
 
   override fun setUserId(userId: String?) {
     if (userId == null) return
-    if (cleverTapId == null) return
+    this.userId = userId
 
-    val profile: Map<String, Any> = mutableMapOf(Constants.IDENTITY to userId)
+    val cleverTapId = cleverTapId()
+    val identity = identity()
+    val profile: Map<String, Any> = mutableMapOf(Constants.IDENTITY to identity)
 
-    Log.d("Leanplum.setUserId will call onUserLogin with $profile")
-
+    Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
   override fun setDeviceId(deviceId: String?) {
     if (deviceId == null) return
-    if (cleverTapId == null) return
+    this.deviceId = deviceId
 
-    val identity = Leanplum.getUserId() ?: deviceId
+    val cleverTapId = cleverTapId()
+    val identity = identity()
     val profile: Map<String, Any> = mutableMapOf(Constants.IDENTITY to identity)
 
-    Log.d("Leanplum.setDeviceId will call onUserLogin with $profile")
-
+    Log.d("Wrapper: Leanplum.setDeviceId will call onUserLogin with $profile and __h$cleverTapId")
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
@@ -102,8 +118,7 @@ internal class CTWrapper(
 
     // TODO handle purchase event ?
 
-    Log.d("Leanplum.track will call pushEvent with $eventName and $eventProperties")
-
+    Log.d("Wrapper: Leanplum.track will call pushEvent with $eventName and $eventProperties")
     cleverTapInstance?.pushEvent(eventName, eventProperties)
   }
 
@@ -115,16 +130,14 @@ internal class CTWrapper(
 
     // TODO handle info ?
 
-    Log.d("Leanplum.advance will call pushEvent with $eventName and $eventProperties")
-
+    Log.d("Wrapper: Leanplum.advance will call pushEvent with $eventName and $eventProperties")
     cleverTapInstance?.pushEvent(eventName, eventProperties)
   }
 
   override fun setUserAttributes(attributes: Map<String, Any>?) {
     val profile = attributes?.toMutableMap() ?: return
 
-    Log.d("Leanplum.setUserAttributes will call pushProfile with $profile")
-
+    Log.d("Wrapper: Leanplum.setUserAttributes will call pushProfile with $profile")
     cleverTapInstance?.pushProfile(profile)
   }
 

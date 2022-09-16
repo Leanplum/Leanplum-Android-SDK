@@ -14,7 +14,7 @@ interface IWrapper {
 
   val miPushHandler: MiPushMigrationHandler? get() = null
 
-  fun launch(context: Context, userId: String?, deviceId: String?) = Unit
+  fun launch(context: Context) = Unit
 
   fun setUserId(userId: String?) = Unit
 

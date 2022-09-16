@@ -349,6 +349,7 @@ public class Leanplum {
       APIConfig.getInstance().setDeviceId(deviceId);
       APIConfig.getInstance().save();
       VarCache.saveDiffs(); // device ID is saved there
+      MigrationManager.getWrapper().setDeviceId(deviceId);
 
       Map<String, Object> params = new HashMap<>();
       attachDeviceParams(params);
@@ -380,6 +381,7 @@ public class Leanplum {
    *
    * @return String Returns the deviceId in the current Leanplum session.
    */
+  @Nullable
   public static String getDeviceId() {
     if (!LeanplumInternal.hasCalledStart()) {
       Log.i("Leanplum.start() must be called before calling getDeviceId.");
@@ -1175,11 +1177,12 @@ public class Leanplum {
    * Returns the userId in the current Leanplum session. This should only be called after
    * Leanplum.start().
    */
+  @Nullable
   public static String getUserId() {
-    if (hasStarted()) {
+    if (LeanplumInternal.hasCalledStart()) {
       return APIConfig.getInstance().userId();
     } else {
-      Log.e("Leanplum.start() must be called before calling getUserId()");
+      Log.i("Leanplum.start() must be called before calling getUserId()");
     }
     return null;
   }
