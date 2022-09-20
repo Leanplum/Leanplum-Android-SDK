@@ -143,7 +143,7 @@ public class RequestSender {
         int statusCode = op.getResponseCode();
 
         if (statusCode >= 200 && statusCode <= 299) {
-          if (MigrationManager.refreshStateMidSession(responseBody)) {
+          if (MigrationManager.refreshStateMidSession(responseBody)) { // TODO if current multi response contains getMigrateState this line would cause a second call, because getMigrateState response wouldn't be parsed yet
             Log.i("Migration state will be refreshed.");
           }
 
