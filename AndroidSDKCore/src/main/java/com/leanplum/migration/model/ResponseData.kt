@@ -5,5 +5,6 @@ data class ResponseData(
   val hash: String,
   val accountId: String? = null,
   val token: String? = null,
-  val regionCode: String? = null
+  val regionCode: String? = null,
+  val attributeMappings: String? = null,
 )

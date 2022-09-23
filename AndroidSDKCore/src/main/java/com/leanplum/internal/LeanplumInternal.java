@@ -273,6 +273,7 @@ public class LeanplumInternal {
       if (canceled) {
         Map<String, String> requestArgs = new HashMap<>();
         requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
+        // TODO call wrapper.track?
         track("Cancel", 0.0, null, null, requestArgs);
       }
     } catch (Throwable t) {
@@ -369,14 +370,12 @@ public class LeanplumInternal {
   private static void trackInternalWhenStarted(final String event,
       final Map<String, ?> params, final Map<String, Object> requestArgs) {
     if (issuedStart) {
-      MigrationManager.getWrapper().track(event, 0.0, null, params, requestArgs);
       trackInternal(event, params, requestArgs);
     } else {
       addStartIssuedHandler(new Runnable() {
         @Override
         public void run() {
           try {
-            MigrationManager.getWrapper().track(event, 0.0, null, params, requestArgs);
             trackInternal(event, params, requestArgs);
           } catch (Throwable t) {
             Log.exception(t);

@@ -21,16 +21,32 @@ interface IWrapper {
   fun setDeviceId(deviceId: String?) = Unit
 
   fun track(
-    eventName: String?,
-    value: Double?,
+    event: String?,
+    value: Double,
     info: String?,
-    params: Map<String, Any>?,
-    args: Map<String, Any>?
+    params: Map<String, Any?>?,
   ) = Unit
 
-  fun advance(stateName: String?, info: String?, params: Map<String, Any>?) = Unit
+  fun trackPurchase(
+    event: String,
+    value: Double,
+    currencyCode: String?,
+    params: Map<String, Any?>?
+  ) = Unit
 
-  fun setUserAttributes(attributes: Map<String, Any>?) = Unit
+  fun trackGooglePlayPurchase(
+    event: String,
+    item: String?,
+    value: Double,
+    currencyCode: String?,
+    purchaseData: String?,
+    dataSignature: String?,
+    params: Map<String, Any?>?,
+  ) = Unit
+
+  fun advanceTo(state: String?, info: String?, params: Map<String, Any?>?) = Unit
+
+  fun setUserAttributes(attributes: Map<String, Any?>?) = Unit
 
   fun registerLifecycleCallback(app: Application) = Unit
 

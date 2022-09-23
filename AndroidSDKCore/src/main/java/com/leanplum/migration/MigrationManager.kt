@@ -111,4 +111,17 @@ object MigrationManager {
     }
   }
 
+  fun mapAttributeName(attributeName: String): String {
+    val newName = MigrationConfig.attributeMap?.get(attributeName)
+    return newName ?: attributeName
+  }
+
+  fun mapAttributeName(attribute: Map.Entry<String, Any?>): String {
+    val newName = MigrationConfig.attributeMap?.get(attribute.key)
+    return newName ?: attribute.key
+  }
+
+  @JvmStatic
+  fun trackGooglePlayPurchases() = MigrationConfig.trackGooglePlayPurchases
+
 }

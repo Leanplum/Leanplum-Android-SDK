@@ -21,12 +21,16 @@ class ResponseHandler {
           var accountId: String? = null
           var token: String? = null
           var regionCode: String? = null
+          var attributeMappings: String? = null
           json.optJSONObject(Params.CLEVERTAP)?.apply {
             accountId = optString(Params.CT_ACCOUNT_ID)
             token = optString(Params.CT_TOKEN)
             regionCode = optString(Params.CT_REGION_CODE)
+            optJSONObject(Params.CT_ATTRIBUTE_MAPPINGS)?.let {
+              attributeMappings = it.toString()
+            }
           }
-          ResponseData(state, hash, accountId, token, regionCode)
+          ResponseData(state, hash, accountId, token, regionCode, attributeMappings)
         } else {
           ResponseData(state, hash)
         }
