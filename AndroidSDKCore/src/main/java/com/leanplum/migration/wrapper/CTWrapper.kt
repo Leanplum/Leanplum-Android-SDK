@@ -14,6 +14,7 @@ import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.migration.push.MiPushMigrationHandler
+import com.leanplum.utils.StringPreferenceNullable
 
 internal class CTWrapper(
   private val accountId: String,
@@ -30,12 +31,20 @@ internal class CTWrapper(
   var cleverTapInstance: CleverTapAPI? = null
 
   /**
+   * Anonymous data will be merged to first user that logs-in, but CT ID will remain the same as
+   * the anonymous' deviceId to allow the merge.
+   */
+  var firstLoginUserId: String? by StringPreferenceNullable("ct_first_login_userid")
+  var firstLoginDeviceId: String? by StringPreferenceNullable("ct_first_login_deviceid")
+
+  /**
    * Needs to be calculated each time.
    */
-  private fun cleverTapId(): String { // TODO change to handle the anonymous merged profile
+  private fun cleverTapId(): String {
     return when (userId) {
       null -> deviceId
       deviceId -> deviceId
+      firstLoginUserId -> firstLoginDeviceId ?: deviceId
       else -> "${deviceId}_${userId}"
     }
   }
@@ -95,11 +104,12 @@ internal class CTWrapper(
     val profile: Map<String, Any> = mutableMapOf(MigrationConstants.IDENTITY to identity)
 
     if (wasAnonymous) {
-      // TODO save userID
-      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile. First login after anonymous.")
+      firstLoginUserId = userId
+      firstLoginDeviceId = deviceId
+      Log.d("Wrapper: anonymous data will be merged to $firstLoginUserId")
+      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile")
       cleverTapInstance?.onUserLogin(profile)
     } else {
-      // TODO check to restore anonymous profile's CT ID
       Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
       cleverTapInstance?.onUserLogin(profile, cleverTapId)
     }
@@ -219,7 +229,7 @@ internal class CTWrapper(
   }
 
   /**
-   * Null values are replaced by {"$delete": 1} to comply with CT deletion mechanism.
+   * To remove an attribute CT.removeValueForKey is used.
    */
   override fun setUserAttributes(attributes: Map<String, Any?>?) {
     if (attributes == null || attributes.isEmpty()) {
