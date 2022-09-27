@@ -700,11 +700,12 @@ public class LeanplumPushService {
         resolveIntentActivity(context, deepLinkIntent);
         String messageId = LeanplumPushService.getMessageId(notification);
         if (messageId != null) {
-          ActionContext actionContext = new ActionContext(
-              ActionManager.PUSH_NOTIFICATION_ACTION_NAME, null, messageId);
-          actionContext.track(OPEN_ACTION, 0.0, null);
           try {
             context.startActivity(deepLinkIntent);
+            // track event only after successful activity start
+            ActionContext actionContext = new ActionContext(
+                ActionManager.PUSH_NOTIFICATION_ACTION_NAME, null, messageId);
+            actionContext.track(OPEN_ACTION, 0.0, null);
           }  catch (ActivityNotFoundException e) {
             return false;
           }
