@@ -36,7 +36,4 @@ class HmsMigrationHandler internal constructor() {
     }
     return isSuccess
   }
-
-  // TODO add processPushAmp method ?
-
 }

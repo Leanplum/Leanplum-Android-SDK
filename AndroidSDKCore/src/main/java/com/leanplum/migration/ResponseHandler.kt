@@ -10,7 +10,32 @@ import org.json.JSONObject
 class ResponseHandler {
 
   /**
-   * TODO provide json example
+   * Example JSON:
+   *
+   * {
+   *   "ct": {
+   *     "accountId": "...",
+   *     "regionCode": "...",
+   *     "attributeMappings": {
+   *       "x": "y",
+   *       "a": "b"
+   *     },
+   *     "token": "..."
+   *   },
+   *   "sha256": "...",
+   *   "success": true,
+   *   "profileUploadStartedTs": "...",
+   *   "eventsUploadStartedTs": "...",
+   *   "state": "EVENTS_UPLOAD_STARTED",
+   *   "sdk": "lp+ct",
+   *   "api": {
+   *     "profile": "lp+ct",
+   *     "events": "lp+ct"
+   *   },
+   *   "reqId": "..."
+   * }
+   *
+   * @return Data parsed from json.
    */
   fun handleMigrateStateContent(json: JSONObject): ResponseData? {
     try {

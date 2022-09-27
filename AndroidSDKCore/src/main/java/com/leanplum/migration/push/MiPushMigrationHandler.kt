@@ -36,7 +36,4 @@ class MiPushMigrationHandler internal constructor() {
     }
     return isSuccess
   }
-
-  // TODO add processPushAmp method ?
-
 }

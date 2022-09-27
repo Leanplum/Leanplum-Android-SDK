@@ -131,7 +131,7 @@ internal class CTWrapper(
     event: String?,
     value: Double,
     info: String?,
-    params: Map<String, Any?>? // TODO validate params against CT or test not valid parameter data?
+    params: Map<String, Any?>?
   ) {
     if (Constants.isNoop()) return
     if (event == null) return

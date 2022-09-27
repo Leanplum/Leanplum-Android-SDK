@@ -9,8 +9,6 @@ import com.leanplum.migration.wrapper.StaticMethodsWrapper
 import com.leanplum.migration.wrapper.WrapperFactory
 import org.json.JSONObject
 
-// TODO mark all classes as internal ?
-// TODO synchronize access ?
 object MigrationManager {
 
   @JvmStatic

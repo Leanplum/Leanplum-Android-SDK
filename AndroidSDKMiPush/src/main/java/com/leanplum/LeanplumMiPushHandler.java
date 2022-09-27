@@ -81,8 +81,6 @@ public class LeanplumMiPushHandler {
       return;
     }
 
-    // TODO do we need notification type for CT ?
-
     Log.i("MiPush notification clicked %s: %s", message.getMessageId(), getContentLog(message));
 
     try {
@@ -106,8 +104,6 @@ public class LeanplumMiPushHandler {
   public void onNotificationMessageArrived(Context context, MiPushMessage message) {
     if (message == null)
       return;
-
-    // TODO do we need notification type for CT
 
     Log.i("Received MiPush notification message %s: %s",
         message.getMessageId(), getContentLog(message));
