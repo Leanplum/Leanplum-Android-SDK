@@ -127,6 +127,9 @@ internal class CTWrapper(
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
+  /**
+   * LP doesn't allow iterables in params.
+   */
   override fun track(
     event: String?,
     value: Double,
@@ -136,7 +139,9 @@ internal class CTWrapper(
     if (Constants.isNoop()) return
     if (event == null) return
 
-    val properties = params?.toMutableMap() ?: mutableMapOf()
+    val properties =
+      params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
+        ?: mutableMapOf()
 
     if (value != 0.0) {
       properties[MigrationConstants.VALUE_PARAM] = value
@@ -151,6 +156,9 @@ internal class CTWrapper(
     }
   }
 
+  /**
+   * LP doesn't allow iterables in params.
+   */
   override fun trackPurchase(
     event: String,
     value: Double,
@@ -159,7 +167,11 @@ internal class CTWrapper(
   ) {
     if (Constants.isNoop()) return
 
-    val details = HashMap<String, Any?>().apply {
+    val filteredParams =
+      params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
+        ?: mutableMapOf()
+
+    val details = HashMap<String, Any?>(filteredParams).apply {
       this[MigrationConstants.CHARGED_EVENT_PARAM] = event
       this[MigrationConstants.VALUE_PARAM] = value
       if (currencyCode != null) {
@@ -167,11 +179,7 @@ internal class CTWrapper(
       }
     }
 
-    val items = arrayListOf<HashMap<String, Any?>>().apply {
-      if (params != null) {
-        add(HashMap(params))
-      }
-    }
+    val items = arrayListOf<HashMap<String, Any?>>()
 
     LeanplumInternal.addStartIssuedHandler {
       Log.d("Wrapper: Leanplum.trackPurchase will call pushChargedEvent with $details and $items")
@@ -179,6 +187,9 @@ internal class CTWrapper(
     }
   }
 
+  /**
+   * LP doesn't allow iterables in params.
+   */
   override fun trackGooglePlayPurchase(
     event: String,
     item: String?,
@@ -190,23 +201,20 @@ internal class CTWrapper(
   ) {
     if (Constants.isNoop()) return
 
-    val details = HashMap<String, Any?>().apply {
+    val filteredParams =
+      params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
+        ?: mutableMapOf()
+
+    val details = HashMap<String, Any?>(filteredParams).apply {
       this[MigrationConstants.CHARGED_EVENT_PARAM] = event
       this[MigrationConstants.VALUE_PARAM] = value
       this[MigrationConstants.CURRENCY_CODE_PARAM] = currencyCode
       this[MigrationConstants.GP_PURCHASE_DATA_PARAM] = purchaseData
       this[MigrationConstants.GP_PURCHASE_DATA_SIGNATURE_PARAM] = dataSignature
+      this[MigrationConstants.IAP_ITEM_PARAM] = item
     }
 
-    val items = arrayListOf<HashMap<String, Any?>>().apply {
-      if (params != null) {
-        add(HashMap(params).apply {
-          this[MigrationConstants.IAP_ITEM_PARAM] = item
-        })
-      } else {
-        add(hashMapOf(MigrationConstants.IAP_ITEM_PARAM to item))
-      }
-    }
+    val items = arrayListOf<HashMap<String, Any?>>()
 
     LeanplumInternal.addStartIssuedHandler {
       Log.d("Wrapper: Leanplum.trackGooglePlayPurchase will call pushChargedEvent with $details and $items")
@@ -214,11 +222,16 @@ internal class CTWrapper(
     }
   }
 
+  /**
+   * LP doesn't allow iterables in params.
+   */
   override fun advanceTo(state: String?, info: String?, params: Map<String, Any?>?) {
     if (state == null) return;
 
     val event = MigrationConstants.STATE_PREFIX + state
-    val properties = params?.toMutableMap() ?: mutableMapOf()
+    val properties =
+      params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
+        ?: mutableMapOf()
 
     if (info != null) {
       properties[MigrationConstants.INFO_PARAM] = info
@@ -238,6 +251,7 @@ internal class CTWrapper(
 
     val profile = attributes
       .filterValues { value -> value != null }
+      .mapValues(::mapNotSupportedValues)
       .mapKeys { MigrationManager.mapAttributeName(it) }
 
     Log.d("Wrapper: Leanplum.setUserAttributes will call pushProfile with $profile")
@@ -245,11 +259,20 @@ internal class CTWrapper(
 
     attributes
       .filterValues { value -> value == null}
-      .mapKeys { MigrationManager.mapAttributeName(it) }
+      .mapKeys(MigrationManager::mapAttributeName)
       .forEach {
         Log.d("Wrapper: Leanplum.setUserAttributes will call removeValueForKey with ${it.key}")
         cleverTapInstance?.removeValueForKey(it.key)
       }
+  }
+
+  private fun mapNotSupportedValues(entry: Map.Entry<String, Any?>): Any? {
+    return when (val value = entry.value) {
+      is Iterable<*> -> value.joinToString(separator = ",", prefix = "[", postfix = "]")
+      is Byte -> value.toInt()
+      is Short -> value.toInt()
+      else -> value
+    }
   }
 
 }

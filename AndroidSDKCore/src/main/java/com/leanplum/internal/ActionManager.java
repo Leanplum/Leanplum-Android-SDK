@@ -438,14 +438,12 @@ public class ActionManager {
   private void trackHeldBackEvent(String originalMessageId) {
     Map<String, String> requestArgs = new HashMap<>();
     requestArgs.put(Constants.Params.MESSAGE_ID, originalMessageId);
-    // TODO call wrapper.track?
     LeanplumInternal.track(Constants.HELD_BACK_EVENT_NAME, 0.0, null, null, requestArgs);
   }
 
   private void trackImpressionEvent(String messageId) {
     Map<String, String> requestArgs = new HashMap<>();
     requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
-    // TODO call wrapper.track?
     LeanplumInternal.track(null, 0.0, null, null, requestArgs);
   }
 

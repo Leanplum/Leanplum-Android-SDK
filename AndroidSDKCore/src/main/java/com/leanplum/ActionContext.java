@@ -572,7 +572,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
 
         Map<String, String> requestArgs = new HashMap<>();
         requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
-        // TODO call wrapper.track?
         LeanplumInternal.track(event, value, info, params, requestArgs);
       }
     } catch (Throwable t) {
@@ -589,7 +588,6 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
         }
         Map<String, String> requestArgs = new HashMap<>();
         requestArgs.put(Constants.Params.MESSAGE_ID, messageId);
-        // TODO call wrapper.track?
         LeanplumInternal.track(event, value, null, params, requestArgs);
       }
     } catch (Throwable t) {
