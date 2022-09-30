@@ -48,6 +48,8 @@ interface IWrapper {
 
   fun setUserAttributes(attributes: Map<String, Any?>?) = Unit
 
+  fun setTrafficSourceInfo(info: Map<String, String>) = Unit
+
   fun registerLifecycleCallback(app: Application) = Unit
 
   fun setLogLevel(level: Int) = Unit

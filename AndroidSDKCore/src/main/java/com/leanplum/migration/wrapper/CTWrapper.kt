@@ -68,7 +68,7 @@ internal class CTWrapper(
       accountId,
       accountToken,
       accountRegion).apply {
-      // staging = 18 // staging 0 for prod
+      // staging = 18 // custom AAR needed for this to work
       enableCustomCleverTapId = true
     }
 
@@ -273,6 +273,24 @@ internal class CTWrapper(
       is Short -> value.toInt()
       else -> value
     }
+  }
+
+  override fun setTrafficSourceInfo(info: Map<String, String>) {
+    val event = MigrationConstants.UTM_VISITED
+    val properties = info.mapKeys { (key, _) ->
+      when (key) {
+        "publisherId" -> "utm_source_id"
+        "publisherName" -> "utm_source"
+        "publisherSubPublisher" -> "utm_medium"
+        "publisherSubSite" -> "utm_subscribe.site"
+        "publisherSubCampaign" -> "utm_campaign"
+        "publisherSubAdGroup" -> "utm_sourcepublisher.ad_group"
+        "publisherSubAd" -> "utm_SourcePublisher.ad"
+        else -> key
+      }
+    }
+    Log.d("Wrapper: Leanplum.setTrafficSourceInfo will call pushEvent with $event and $properties")
+    cleverTapInstance?.pushEvent(event, properties)
   }
 
 }

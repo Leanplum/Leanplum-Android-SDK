@@ -1615,15 +1615,17 @@ public class Leanplum {
 
     try {
       final HashMap<String, Object> params = new HashMap<>();
-      info = LeanplumInternal.validateAttributes(info, "info", false);
-      params.put(Constants.Params.TRAFFIC_SOURCE, JsonConverter.toJson(info));
+      Map<String, String> validInfo = LeanplumInternal.validateAttributes(info, "info", false);
+      params.put(Constants.Params.TRAFFIC_SOURCE, JsonConverter.toJson(validInfo));
       if (LeanplumInternal.issuedStart()) {
+        MigrationManager.getWrapper().setTrafficSourceInfo(info);
         setTrafficSourceInfoInternal(params);
       } else {
         LeanplumInternal.addStartIssuedHandler(new Runnable() {
           @Override
           public void run() {
             try {
+              MigrationManager.getWrapper().setTrafficSourceInfo(info);
               setTrafficSourceInfoInternal(params);
             } catch (Throwable t) {
               Log.exception(t);

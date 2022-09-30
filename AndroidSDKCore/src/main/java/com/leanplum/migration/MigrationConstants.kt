@@ -3,6 +3,7 @@ package com.leanplum.migration
 object MigrationConstants {
   const val IDENTITY = "Identity"
   const val STATE_PREFIX = "state_"
+  const val UTM_VISITED = "UTM Visited"
 
   const val CHARGED_EVENT_PARAM = "event"
   const val VALUE_PARAM = "value"
