@@ -1,5 +1,6 @@
 package com.leanplum.migration
 
+import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.*
 import com.leanplum.migration.model.MigrationConfig
 import com.leanplum.migration.model.MigrationState
@@ -19,11 +20,18 @@ object MigrationManager {
     private set
 
   @JvmStatic
+  var cleverTapInstanceCallback: CleverTapInstanceCallback? = null
+    set(value) {
+      field = value
+      wrapper.setInstanceCallback(value)
+    }
+
+  @JvmStatic
   fun updateWrapper() {
     if (getState().useCleverTap()
       && (wrapper == NullWrapper || wrapper == StaticMethodsWrapper)
     ) {
-      wrapper = WrapperFactory.createWrapper()
+      wrapper = WrapperFactory.createWrapper(cleverTapInstanceCallback)
     } else if (wrapper != NullWrapper && !getState().useCleverTap()) {
       wrapper = WrapperFactory.createNullWrapper()
     }

@@ -1,14 +1,13 @@
 package com.leanplum.migration.wrapper
 
 import com.leanplum.Leanplum
+import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.LeanplumInternal
-import com.leanplum.internal.Log
-import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.model.MigrationConfig
 
 internal object WrapperFactory {
 
-  fun createWrapper(): IWrapper {
+  fun createWrapper(callback: CleverTapInstanceCallback?): IWrapper {
     val account = MigrationConfig.accountId
     val token = MigrationConfig.accountToken
     val region = MigrationConfig.accountRegion
@@ -30,7 +29,7 @@ internal object WrapperFactory {
     }
 
     return CTWrapper(account, token, region, deviceId, userId).apply {
-      launch(context)
+      launch(context, callback)
     }
   }
 

@@ -2,6 +2,7 @@ package com.leanplum.migration.wrapper
 
 import android.app.Application
 import android.content.Context
+import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.migration.push.MiPushMigrationHandler
@@ -14,7 +15,9 @@ interface IWrapper {
 
   val miPushHandler: MiPushMigrationHandler? get() = null
 
-  fun launch(context: Context) = Unit
+  fun launch(context: Context, callback: CleverTapInstanceCallback?) = Unit
+
+  fun setInstanceCallback(callback: CleverTapInstanceCallback?) = Unit
 
   fun setUserId(userId: String?) = Unit
 

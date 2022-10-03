@@ -6,6 +6,8 @@ import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
+import com.clevertap.android.sdk.SyncListener
+import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
 import com.leanplum.internal.LeanplumInternal
 import com.leanplum.internal.Log
@@ -15,6 +17,7 @@ import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.migration.push.MiPushMigrationHandler
 import com.leanplum.utils.StringPreferenceNullable
+import org.json.JSONObject
 
 internal class CTWrapper(
   private val accountId: String,
@@ -28,14 +31,16 @@ internal class CTWrapper(
   override val hmsHandler: HmsMigrationHandler = HmsMigrationHandler()
   override val miPushHandler: MiPushMigrationHandler = MiPushMigrationHandler()
 
-  var cleverTapInstance: CleverTapAPI? = null
+  private var cleverTapInstance: CleverTapAPI? = null
+  private var profileDidInitialize = false
+  private var instanceCallback: CleverTapInstanceCallback? = null
 
   /**
    * Anonymous data will be merged to first user that logs-in, but CT ID will remain the same as
    * the anonymous' deviceId to allow the merge.
    */
-  var firstLoginUserId: String? by StringPreferenceNullable("ct_first_login_userid")
-  var firstLoginDeviceId: String? by StringPreferenceNullable("ct_first_login_deviceid")
+  private var firstLoginUserId: String? by StringPreferenceNullable("ct_first_login_userid")
+  private var firstLoginDeviceId: String? by StringPreferenceNullable("ct_first_login_deviceid")
 
   /**
    * Needs to be calculated each time.
@@ -62,13 +67,14 @@ internal class CTWrapper(
 
   private fun isAnonymous() = userId == deviceId
 
-  override fun launch(context: Context) {
+  override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
+    instanceCallback = callback
+
     val config = CleverTapInstanceConfig.createInstance(
       context,
       accountId,
       accountToken,
       accountRegion).apply {
-      // staging = 18 // custom AAR needed for this to work
       enableCustomCleverTapId = true
     }
 
@@ -76,7 +82,7 @@ internal class CTWrapper(
     val identity = identity()
     Log.d("Wrapper: using CleverTapID=__h$cleverTapId")
 
-    cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config, cleverTapId).apply {
+    cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config, cleverTapId)?.apply {
       setLibrary("Leanplum")
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
@@ -88,7 +94,24 @@ internal class CTWrapper(
         Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
         onUserLogin(profile, cleverTapId)
       }
+      setSyncListener(object : SyncListener {
+        override fun profileDataUpdated(updates: JSONObject?) = Unit
+        override fun profileDidInitialize(cleverTapID: String?) {
+          profileDidInitialize = true
+          instanceCallback?.onInstance(this@apply)
+          Log.d("Wrapper: profileDidInitialize")
+        }
+      })
       Log.d("Wrapper: CleverTap instance created by Leanplum")
+    }
+  }
+
+  override fun setInstanceCallback(callback: CleverTapInstanceCallback?) {
+    instanceCallback = callback
+    if (profileDidInitialize) {
+      cleverTapInstance?.apply {
+        instanceCallback?.onInstance(this)
+      }
     }
   }
 

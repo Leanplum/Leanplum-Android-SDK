@@ -119,7 +119,7 @@ class PushProviders {
 
       return (IPushProvider) clazz.getConstructor().newInstance();
     } catch (Throwable t) {
-      Log.i("MiPush module not found. "
+      Log.d("MiPush module not found. "
           + "For Mi Push messaging include dependency \"com.leanplum:leanplum-mipush\".");
       return null;
     }

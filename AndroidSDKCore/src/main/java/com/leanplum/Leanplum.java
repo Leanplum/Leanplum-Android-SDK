@@ -27,10 +27,12 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.clevertap.android.sdk.CleverTapAPI;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.actions.internal.ActionDefinition;
 import com.leanplum.actions.internal.ActionManagerDefinitionKt;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.CleverTapInstanceCallback;
 import com.leanplum.callbacks.ForceContentUpdateCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
@@ -2371,5 +2373,15 @@ public class Leanplum {
    */
   public static boolean isPushDeliveryTrackingEnabled() {
     return pushDeliveryTrackingEnabled;
+  }
+
+  /**
+   * Sets callback object to be notified when CleverTapAPI instance is created.
+   * Use this callback to initialise any CleverTap state.
+   *
+   * @param callback Null value will remove the callback.
+   */
+  public static void onCleverTapInstanceInitialized(@Nullable CleverTapInstanceCallback callback) {
+    MigrationManager.setCleverTapInstanceCallback(callback);
   }
 }

@@ -67,7 +67,7 @@ public final class LeanplumFirebaseServiceHandler {
       Map<String, String> messageMap = remoteMessage.getData();
 
       FcmMigrationHandler migrationHandler = MigrationManager.getWrapper().getFcmHandler();
-      if (migrationHandler != null) {
+      if (migrationHandler != null && migrationHandler.getForwardingEnabled()) {
         Context appContext = context.getApplicationContext();
         if (migrationHandler.createNotification(appContext, remoteMessage)) {
           Log.i("Push notification message forwarded to CleverTap SDK: %s", messageMap.toString());

@@ -44,7 +44,10 @@ import org.json.JSONObject;
 /**
  * This class encapsulates functionality for handling notification messages and registration ID from
  * MiPush. Needs to be called from your instance of {@link PushMessageReceiver}.
+ *
+ * @deprecated Module leanplum-mipush is deprecated. Use CleverTap Xiaomi Push Integration instead.
  */
+@Deprecated
 public class LeanplumMiPushHandler {
 
   static String MI_APP_ID;
