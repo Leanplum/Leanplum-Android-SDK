@@ -43,6 +43,8 @@ import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.ShadowOperationQueue;
 import com.leanplum.internal.Util;
 
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.model.MigrationState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -107,6 +109,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     LocationManager.class,
     LocationServices.class,
     FusedLocationProviderApi.class,
+    MigrationManager.class
 }, fullyQualifiedNames = {"com.leanplum.internal.*"})
 /**
  * AbstractTest class which holds methods to properly setup test environment.
@@ -128,6 +131,7 @@ public abstract class AbstractTest {
     spy(Leanplum.class);
     spy(LeanplumActivityHelper.class);
     spy(OperationQueue.class);
+    spy(MigrationManager.class);
 
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
     // Get and set application context.
@@ -143,6 +147,9 @@ public abstract class AbstractTest {
 
     doReturn(mContext).when(Leanplum.class, "getContext");
     assertNotNull(Leanplum.getContext());
+
+    doReturn(MigrationState.LeanplumOnly).when(MigrationManager.class, "getState");
+    assertEquals(MigrationManager.getState(), MigrationState.LeanplumOnly);
 
     // Setup the sdk.
     LeanplumTestHelper.setUp();
