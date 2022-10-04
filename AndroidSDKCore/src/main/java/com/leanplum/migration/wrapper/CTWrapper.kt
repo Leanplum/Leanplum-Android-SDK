@@ -6,7 +6,6 @@ import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
-import com.clevertap.android.sdk.SyncListener
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
 import com.leanplum.internal.LeanplumInternal
@@ -17,7 +16,6 @@ import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.migration.push.MiPushMigrationHandler
 import com.leanplum.utils.StringPreferenceNullable
-import org.json.JSONObject
 
 internal class CTWrapper(
   private val accountId: String,
@@ -32,7 +30,6 @@ internal class CTWrapper(
   override val miPushHandler: MiPushMigrationHandler = MiPushMigrationHandler()
 
   private var cleverTapInstance: CleverTapAPI? = null
-  private var profileDidInitialize = false
   private var instanceCallback: CleverTapInstanceCallback? = null
 
   /**
@@ -94,25 +91,23 @@ internal class CTWrapper(
         Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
         onUserLogin(profile, cleverTapId)
       }
-      setSyncListener(object : SyncListener {
-        override fun profileDataUpdated(updates: JSONObject?) = Unit
-        override fun profileDidInitialize(cleverTapID: String?) {
-          profileDidInitialize = true
-          instanceCallback?.onInstance(this@apply)
-          Log.d("Wrapper: profileDidInitialize")
-        }
-      })
       Log.d("Wrapper: CleverTap instance created by Leanplum")
+    }
+    triggerInstanceCallback()
+  }
+
+  private fun triggerInstanceCallback() {
+    cleverTapInstance?.also { instance ->
+      instanceCallback?.apply {
+        Log.d("Wrapper: instance callback will be called")
+        onInstance(instance)
+      }
     }
   }
 
   override fun setInstanceCallback(callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
-    if (profileDidInitialize) {
-      cleverTapInstance?.apply {
-        instanceCallback?.onInstance(this)
-      }
-    }
+    triggerInstanceCallback()
   }
 
   override fun setUserId(userId: String?) {
