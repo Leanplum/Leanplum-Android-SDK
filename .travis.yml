@@ -16,13 +16,18 @@ env:
     - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
     # If you want to run snapshot tests change value to 'true'. Build time will be increased by 6 minutes.
     - RUN_SNAPSHOT_TESTS=false
+    - ROBOLECTRIC_SDK8_URL=https://repo1.maven.org/maven2/org/robolectric/android-all/8.0.0_r4-robolectric-r1/android-all-8.0.0_r4-robolectric-r1
+    - ROBOLECTRIC_SDK8_DIR=$HOME/.m2/repository/org/robolectric/android-all/8.0.0_r4-robolectric-r1
+    - ROBOLECTRIC_SDK8_FILE=${ROBOLECTRIC_SDK8_DIR}/android-all-8.0.0_r4-robolectric-r1
 
 android:
   components:
     - tools
 
-jdk:
-  - oraclejdk11
+# Uncomment and remove lines in before_install when issue with JDK is resolved
+# Check thread here: https://travis-ci.community/t/installing-oraclejdk-11-failed/13050/10
+# jdk:
+  # - oraclejdk11
 
 licenses:
   - 'android-sdk-preview-license-.+'
@@ -30,6 +35,10 @@ licenses:
   - 'google-gdk-license-.+'
 
 before_install:
+  - curl -s "https://get.sdkman.io" | bash
+  - source "$HOME/.sdkman/bin/sdkman-init.sh"
+  - sdk install java 11.0.12-open
+  - sdk use java 11.0.12-open
   # Install cmdline-tools (older tools doesn't support Java 11)
   - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
   - mkdir -p ${ANDROID_HOME}/cmdline-tools
@@ -52,6 +61,13 @@ before_script:
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
+  # make sure Robolectric dependency is presented
+  - mkdir -p ${ROBOLECTRIC_SDK8_DIR}
+  - curl ${ROBOLECTRIC_SDK8_URL}.jar --output ${ROBOLECTRIC_SDK8_FILE}.jar
+  - curl ${ROBOLECTRIC_SDK8_URL}.jar.sha1 --output ${ROBOLECTRIC_SDK8_FILE}.jar.sha1
+  - curl ${ROBOLECTRIC_SDK8_URL}.pom --output ${ROBOLECTRIC_SDK8_FILE}.pom
+  - curl ${ROBOLECTRIC_SDK8_URL}.pom.sha1 --output ${ROBOLECTRIC_SDK8_FILE}.pom.sha1
+  - ls -la ${ROBOLECTRIC_SDK8_DIR}
   - ./gradlew assembleRelease testReleaseUnitTest
 
   # wait emulator to come alive and start snapshot tests

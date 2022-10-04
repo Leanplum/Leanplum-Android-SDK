@@ -661,6 +661,9 @@ public class ActionManager {
   public void setEnabled(boolean value) {
     Log.i("[ActionManager] isEnabled: " + value);
     enabled = value;
+    if (enabled) {
+      ActionManagerExecutionKt.performActions(ActionManager.getInstance());
+    }
   }
 
   /**
