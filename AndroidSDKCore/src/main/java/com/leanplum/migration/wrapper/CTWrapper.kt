@@ -147,9 +147,8 @@ internal class CTWrapper(
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
 
-    if (value != 0.0) {
-      properties[MigrationConstants.VALUE_PARAM] = value
-    }
+    properties[MigrationConstants.VALUE_PARAM] = value
+
     if (info != null) {
       properties[MigrationConstants.INFO_PARAM] = info
     }
