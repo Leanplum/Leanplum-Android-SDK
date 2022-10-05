@@ -27,10 +27,12 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.clevertap.android.sdk.CleverTapAPI;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.actions.internal.ActionDefinition;
 import com.leanplum.actions.internal.ActionManagerDefinitionKt;
 import com.leanplum.callbacks.ActionCallback;
+import com.leanplum.callbacks.CleverTapInstanceCallback;
 import com.leanplum.callbacks.ForceContentUpdateCallback;
 import com.leanplum.callbacks.RegisterDeviceCallback;
 import com.leanplum.callbacks.RegisterDeviceFinishedCallback;
@@ -61,6 +63,7 @@ import com.leanplum.internal.Util;
 import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
+import com.leanplum.migration.MigrationManager;
 import com.leanplum.models.GeofenceEventType;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -101,7 +104,6 @@ public class Leanplum {
       new ArrayList<>();
   private static final ArrayList<VariablesChangedCallback> onceNoDownloadsHandlers =
       new ArrayList<>();
-  private static final Object heartbeatLock = new Object();
   private static final String LEANPLUM_NOTIFICATION_CHANNEL =
       "com.leanplum.LeanplumNotificationChannel";
   private static RegisterDeviceCallback registerDeviceHandler;
@@ -195,6 +197,7 @@ public class Leanplum {
    */
   public static void setLogLevel(int level) {
     Log.setLogLevel(level);
+    MigrationManager.getWrapper().setLogLevel(level);
   }
 
   /**
@@ -332,7 +335,11 @@ public class Leanplum {
    * (Advanced) Sets new device ID. Must be called after Leanplum finished starting.
    * This method allows multiple changes of device ID in opposite of
    * {@link Leanplum#setDeviceId(String)}, which allows only one.
+   *
+   * @deprecated When migration of data to CleverTap is turned on calling this method with different
+   * device ID would not work any more.
    */
+  @Deprecated
   public static void forceNewDeviceId(String deviceId) {
     if (TextUtils.isEmpty(deviceId)) {
       Log.i("forceNewDeviceId - Empty deviceId parameter provided.");
@@ -341,6 +348,11 @@ public class Leanplum {
 
     if (deviceId.equals(APIConfig.getInstance().deviceId())) {
       // same device ID, nothing to change
+      return;
+    }
+
+    if (MigrationManager.getState().useCleverTap()) {
+      Log.i("Setting new device ID is not allowed when migration to CleverTap is turned on.");
       return;
     }
 
@@ -379,6 +391,7 @@ public class Leanplum {
    *
    * @return String Returns the deviceId in the current Leanplum session.
    */
+  @Nullable
   public static String getDeviceId() {
     if (!LeanplumInternal.hasCalledStart()) {
       Log.i("Leanplum.start() must be called before calling getDeviceId.");
@@ -394,13 +407,14 @@ public class Leanplum {
     if (context == null) {
       Log.i("setApplicationContext - Null context parameter provided.");
     }
-
     Leanplum.context = context;
+    MigrationManager.updateWrapper(); // init with StaticMethodsWrapper if migrating
   }
 
   /**
    * Gets the application context.
    */
+  @Nullable
   public static Context getContext() {
     if (context == null) {
       Log.e("Your application context is not set. "
@@ -607,6 +621,10 @@ public class Leanplum {
 
       LeanplumInternal.setStartedInBackground(actuallyInBackground);
 
+      LeanplumInternal.addStartIssuedHandler(() -> {
+        MigrationManager.getWrapper().setUserAttributes(attributes);
+      });
+
       final Map<String, ?> validAttributes = LeanplumInternal.validateAttributes(attributes,
           "userAttributes", true);
       LeanplumInternal.setCalledStart(true);
@@ -775,30 +793,42 @@ public class Leanplum {
 
     Util.initializePreLeanplumInstall(params);
 
-    // Issue start API call.
+    MigrationManager.fetchState(state -> {
+      if (state.useLeanplum()) {
+        issueLeanplumStart(isBackground, params);
+      } else {
+        overrideLeanplumStart();
+      }
+      return null;
+    });
+  }
+
+  private static void issueLeanplumStart(boolean isBackground, Map<String, Object> startParams) {
     RequestType requestType = isBackground ? RequestType.DEFAULT : RequestType.IMMEDIATE;
     Request request = RequestBuilder
         .withStartAction()
-        .andParams(params)
+        .andParams(startParams)
         .andType(requestType)
         .create();
-    request.onResponse(new Request.ResponseCallback() {
-      @Override
-      public void response(JSONObject response) {
-        Log.d("Received start response: %s", response);
-        handleStartResponse(response);
-      }
+    request.onResponse(response -> {
+      Log.d("Received start response: %s", response);
+      handleStartResponse(response);
     });
-    request.onError(new Request.ErrorCallback() {
-      @Override
-      public void error(Exception e) {
-        Log.e("Failed to receive start response", e);
-        handleStartResponse(null);
-      }
+    request.onError(e -> {
+      Log.e("Failed to receive start response", e);
+      handleStartResponse(null);
     });
     RequestSender.getInstance().send(request);
-
     LeanplumInternal.triggerStartIssued();
+  }
+
+  private static void overrideLeanplumStart() {
+    // Override issueStart and hasStarted
+    LeanplumInternal.triggerStartIssued();
+    LeanplumInternal.setHasStarted(true);
+    LeanplumInternal.setStartSuccessful(true);
+    LeanplumInternal.moveToForeground();
+    Leanplum.triggerStartResponse(true);
   }
 
   private static void handleStartResponse(final JSONObject response) {
@@ -1161,11 +1191,12 @@ public class Leanplum {
    * Returns the userId in the current Leanplum session. This should only be called after
    * Leanplum.start().
    */
+  @Nullable
   public static String getUserId() {
-    if (hasStarted()) {
+    if (LeanplumInternal.hasCalledStart()) {
       return APIConfig.getInstance().userId();
     } else {
-      Log.e("Leanplum.start() must be called before calling getUserId()");
+      Log.i("Leanplum.start() must be called before calling getUserId()");
     }
     return null;
   }
@@ -1466,19 +1497,23 @@ public class Leanplum {
         params.put(Constants.Params.NEW_USER_ID, userId);
       }
       if (userAttributes != null) {
-        userAttributes = LeanplumInternal.validateAttributes(userAttributes, "userAttributes",
-            true);
-        params.put(Constants.Params.USER_ATTRIBUTES, JsonConverter.toJson(userAttributes));
-        LeanplumInternal.getUserAttributeChanges().add(userAttributes);
+        Map<String, ?> validUserAttributes =
+            LeanplumInternal.validateAttributes(userAttributes, "userAttributes", true);
+        params.put(Constants.Params.USER_ATTRIBUTES, JsonConverter.toJson(validUserAttributes));
+        LeanplumInternal.getUserAttributeChanges().add(validUserAttributes);
       }
 
       if (LeanplumInternal.issuedStart()) {
+        MigrationManager.getWrapper().setUserId(userId);
+        MigrationManager.getWrapper().setUserAttributes(userAttributes);
         setUserAttributesInternal(userId, params);
       } else {
         LeanplumInternal.addStartIssuedHandler(new Runnable() {
           @Override
           public void run() {
             try {
+              MigrationManager.getWrapper().setUserId(userId);
+              MigrationManager.getWrapper().setUserAttributes(userAttributes);
               setUserAttributesInternal(userId, params);
             } catch (Throwable t) {
               Log.exception(t);
@@ -1590,15 +1625,17 @@ public class Leanplum {
 
     try {
       final HashMap<String, Object> params = new HashMap<>();
-      info = LeanplumInternal.validateAttributes(info, "info", false);
-      params.put(Constants.Params.TRAFFIC_SOURCE, JsonConverter.toJson(info));
+      Map<String, String> validInfo = LeanplumInternal.validateAttributes(info, "info", false);
+      params.put(Constants.Params.TRAFFIC_SOURCE, JsonConverter.toJson(validInfo));
       if (LeanplumInternal.issuedStart()) {
+        MigrationManager.getWrapper().setTrafficSourceInfo(info);
         setTrafficSourceInfoInternal(params);
       } else {
         LeanplumInternal.addStartIssuedHandler(new Runnable() {
           @Override
           public void run() {
             try {
+              MigrationManager.getWrapper().setTrafficSourceInfo(info);
               setTrafficSourceInfoInternal(params);
             } catch (Throwable t) {
               Log.exception(t);
@@ -1635,6 +1672,7 @@ public class Leanplum {
    */
   public static void track(final String event, double value, String info,
       Map<String, ?> params) {
+    MigrationManager.getWrapper().track(event, value, info, params);
     LeanplumInternal.track(event, value, info, params, null);
   }
 
@@ -1660,6 +1698,7 @@ public class Leanplum {
         requestArgs.put(Constants.Params.IAP_CURRENCY_CODE, currencyCode);
       }
 
+      MigrationManager.getWrapper().trackPurchase(event, value, currencyCode, params);
       LeanplumInternal.track(event, value, null, params, requestArgs);
     } catch (Throwable t) {
       Log.exception(t);
@@ -1729,6 +1768,17 @@ public class Leanplum {
     }
     modifiedParams.put(Constants.Params.IAP_ITEM, item);
 
+    if (MigrationManager.trackGooglePlayPurchases()) {
+      MigrationManager.getWrapper().trackGooglePlayPurchase(
+          eventName,
+          item,
+          priceMicros / 1000000.0,
+          currencyCode,
+          purchaseData,
+          dataSignature,
+          params
+      );
+    }
     LeanplumInternal.track(eventName, priceMicros / 1000000.0, null, modifiedParams, requestArgs);
   }
 
@@ -1859,12 +1909,14 @@ public class Leanplum {
       }
 
       if (LeanplumInternal.issuedStart()) {
+        MigrationManager.getWrapper().advanceTo(state, info, params);
         advanceToInternal(state, validatedParams, requestParams);
       } else {
         LeanplumInternal.addStartIssuedHandler(new Runnable() {
           @Override
           public void run() {
             try {
+              MigrationManager.getWrapper().advanceTo(state, info, params);
               advanceToInternal(state, validatedParams, requestParams);
             } catch (Throwable t) {
               Log.exception(t);
@@ -2329,5 +2381,15 @@ public class Leanplum {
    */
   public static boolean isPushDeliveryTrackingEnabled() {
     return pushDeliveryTrackingEnabled;
+  }
+
+  /**
+   * Sets callback object to be notified when CleverTapAPI instance is created.
+   * Use this callback to initialise any CleverTap state.
+   *
+   * @param callback Null value will remove the callback.
+   */
+  public static void onCleverTapInstanceInitialized(@Nullable CleverTapInstanceCallback callback) {
+    MigrationManager.setCleverTapInstanceCallback(callback);
   }
 }

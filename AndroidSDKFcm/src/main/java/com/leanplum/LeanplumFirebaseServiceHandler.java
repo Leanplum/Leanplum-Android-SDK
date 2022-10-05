@@ -28,6 +28,8 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.push.FcmMigrationHandler;
 import java.util.Map;
 
 /**
@@ -49,6 +51,11 @@ public final class LeanplumFirebaseServiceHandler {
   public void onNewToken(String token, Context context) {
     //send the new token to backend
     LeanplumPushService.getPushProviders().setRegistrationId(PushProviderType.FCM, token);
+
+    FcmMigrationHandler migrationHandler = MigrationManager.getWrapper().getFcmHandler();
+    if (migrationHandler != null) {
+      migrationHandler.onNewToken(context.getApplicationContext(), token);
+    }
   }
 
   /**
@@ -58,6 +65,15 @@ public final class LeanplumFirebaseServiceHandler {
   public void onMessageReceived(RemoteMessage remoteMessage, Context context) {
     try {
       Map<String, String> messageMap = remoteMessage.getData();
+
+      FcmMigrationHandler migrationHandler = MigrationManager.getWrapper().getFcmHandler();
+      if (migrationHandler != null && migrationHandler.getForwardingEnabled()) {
+        Context appContext = context.getApplicationContext();
+        if (migrationHandler.createNotification(appContext, remoteMessage)) {
+          Log.i("Push notification message forwarded to CleverTap SDK: %s", messageMap.toString());
+          return;
+        }
+      }
 
       String channel;
       if (messageMap.containsKey(Keys.PUSH_MESSAGE_SILENT_TRACK)) {

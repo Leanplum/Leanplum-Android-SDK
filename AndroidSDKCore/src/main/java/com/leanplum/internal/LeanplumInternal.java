@@ -36,6 +36,7 @@ import com.leanplum.actions.internal.ActionsTrigger;
 import com.leanplum.actions.internal.Priority;
 import com.leanplum.callbacks.StartCallback;
 import com.leanplum.internal.Request.RequestType;
+import com.leanplum.migration.MigrationManager;
 import com.leanplum.models.GeofenceEventType;
 
 import java.util.Arrays;
@@ -571,6 +572,9 @@ public class LeanplumInternal {
           return;
         }
         if (!inForeground) {
+          return;
+        }
+        if (!MigrationManager.getState().useLeanplum()) {
           return;
         }
         if (Constants.isDevelopmentModeEnabled && !Constants.isNoop()) {

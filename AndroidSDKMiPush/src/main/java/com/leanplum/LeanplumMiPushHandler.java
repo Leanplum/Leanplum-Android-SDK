@@ -28,6 +28,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.push.MiPushMigrationHandler;
 import com.xiaomi.mipush.sdk.ErrorCode;
 import com.xiaomi.mipush.sdk.MiPushClient;
 import com.xiaomi.mipush.sdk.MiPushCommandMessage;
@@ -42,7 +44,10 @@ import org.json.JSONObject;
 /**
  * This class encapsulates functionality for handling notification messages and registration ID from
  * MiPush. Needs to be called from your instance of {@link PushMessageReceiver}.
+ *
+ * @deprecated Module leanplum-mipush is deprecated. Use CleverTap Xiaomi Push Integration instead.
  */
+@Deprecated
 public class LeanplumMiPushHandler {
 
   static String MI_APP_ID;
@@ -61,6 +66,14 @@ public class LeanplumMiPushHandler {
       return;
 
     Log.i("Received MiPush data message %s: %s", message.getMessageId(), getContentLog(message));
+
+    MiPushMigrationHandler migrationHandler = MigrationManager.getWrapper().getMiPushHandler();
+    if (migrationHandler != null) {
+      String content = message.getContent();
+      if (migrationHandler.createNotification(context.getApplicationContext(), content)) {
+        Log.i("MiPush data message forwarded to CleverTap SDK: %s", content);
+      }
+    }
   }
 
   /**
@@ -135,6 +148,11 @@ public class LeanplumMiPushHandler {
 
             LeanplumPushService.getPushProviders().setRegistrationId(
                 PushProviderType.MIPUSH, registrationId);
+
+            MiPushMigrationHandler migrationHandler = MigrationManager.getWrapper().getMiPushHandler();
+            if (migrationHandler != null) {
+              migrationHandler.onNewToken(context.getApplicationContext(), registrationId);
+            }
           }
         }
       }

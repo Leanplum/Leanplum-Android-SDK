@@ -26,6 +26,8 @@ import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Request.RequestType;
 import com.leanplum.internal.http.NetworkOperation;
+import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.model.MigrationState;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -141,6 +143,10 @@ public class RequestSender {
         int statusCode = op.getResponseCode();
 
         if (statusCode >= 200 && statusCode <= 299) {
+          if (MigrationManager.refreshStateMidSession(responseBody)) { // TODO if current multi response contains getMigrateState this line would cause a second call, because getMigrateState response wouldn't be parsed yet
+            Log.i("Migration state will be refreshed.");
+          }
+
           if (RequestUtil.updateApiConfig(responseBody)) {
             // API config is changed and we need to send requests again
             sendRequests();
@@ -215,6 +221,7 @@ public class RequestSender {
     args.put(Constants.Params.DEV_MODE, Boolean.toString(Constants.isDevelopmentModeEnabled));
     args.put(Constants.Params.TIME, Double.toString(new Date().getTime() / 1000.0));
     args.put(Constants.Params.REQUEST_ID, request.getRequestId());
+    args.put(Constants.Params.CT_DUPLICATE, MigrationManager.getState().useCleverTap());
     String token = APIConfig.getInstance().token();
     if (token != null) {
       args.put(Constants.Params.TOKEN, token);
@@ -224,6 +231,10 @@ public class RequestSender {
   }
 
   public void send(@NonNull final Request request) {
+    if (!MigrationManager.getState().useLeanplum()) {
+      return;
+    }
+
     OperationQueue.sharedInstance().addOperation(new Runnable() {
       @Override
       public void run() {
