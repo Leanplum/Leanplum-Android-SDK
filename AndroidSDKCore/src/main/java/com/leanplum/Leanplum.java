@@ -335,7 +335,11 @@ public class Leanplum {
    * (Advanced) Sets new device ID. Must be called after Leanplum finished starting.
    * This method allows multiple changes of device ID in opposite of
    * {@link Leanplum#setDeviceId(String)}, which allows only one.
+   *
+   * @deprecated When migration of data to CleverTap is turned on calling this method with different
+   * device ID would not work any more.
    */
+  @Deprecated
   public static void forceNewDeviceId(String deviceId) {
     if (TextUtils.isEmpty(deviceId)) {
       Log.i("forceNewDeviceId - Empty deviceId parameter provided.");
@@ -347,11 +351,15 @@ public class Leanplum {
       return;
     }
 
+    if (MigrationManager.getState().useCleverTap()) {
+      Log.i("Setting new device ID is not allowed when migration to CleverTap is turned on.");
+      return;
+    }
+
     if (hasStarted()) {
       APIConfig.getInstance().setDeviceId(deviceId);
       APIConfig.getInstance().save();
       VarCache.saveDiffs(); // device ID is saved there
-      MigrationManager.getWrapper().setDeviceId(deviceId);
 
       Map<String, Object> params = new HashMap<>();
       attachDeviceParams(params);

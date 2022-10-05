@@ -21,7 +21,7 @@ internal class CTWrapper(
   private val accountId: String,
   private val accountToken: String,
   private val accountRegion: String,
-  private var deviceId: String,
+  private val deviceId: String,
   private var userId: String?
 ) : IWrapper by StaticMethodsWrapper {
 
@@ -37,7 +37,6 @@ internal class CTWrapper(
    * the anonymous' deviceId to allow the merge.
    */
   private var firstLoginUserId: String? by StringPreferenceNullable("ct_first_login_userid")
-  private var firstLoginDeviceId: String? by StringPreferenceNullable("ct_first_login_deviceid")
 
   /**
    * Needs to be calculated each time.
@@ -46,7 +45,7 @@ internal class CTWrapper(
     return when (userId) {
       null -> deviceId
       deviceId -> deviceId
-      firstLoginUserId -> firstLoginDeviceId ?: deviceId
+      firstLoginUserId -> deviceId
       else -> "${deviceId}_${userId}"
     }
   }
@@ -117,32 +116,19 @@ internal class CTWrapper(
     val wasAnonymous = isAnonymous()
     this.userId = userId
 
-    val cleverTapId = cleverTapId()
     val identity = identity()
     val profile: Map<String, Any> = mutableMapOf(MigrationConstants.IDENTITY to identity)
 
     if (wasAnonymous) {
       firstLoginUserId = userId
-      firstLoginDeviceId = deviceId
       Log.d("Wrapper: anonymous data will be merged to $firstLoginUserId")
-      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile")
-      cleverTapInstance?.onUserLogin(profile)
+      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$deviceId")
+      cleverTapInstance?.onUserLogin(profile, deviceId)
     } else {
+      val cleverTapId = cleverTapId()
       Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
       cleverTapInstance?.onUserLogin(profile, cleverTapId)
     }
-  }
-
-  override fun setDeviceId(deviceId: String?) {
-    if (deviceId == null) return
-    this.deviceId = deviceId
-
-    val cleverTapId = cleverTapId()
-    val identity = identity()
-    val profile: Map<String, Any> = mutableMapOf(MigrationConstants.IDENTITY to identity)
-
-    Log.d("Wrapper: Leanplum.setDeviceId will call onUserLogin with $profile and __h$cleverTapId")
-    cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
   /**

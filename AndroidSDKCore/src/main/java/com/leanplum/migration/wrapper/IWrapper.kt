@@ -21,8 +21,6 @@ interface IWrapper {
 
   fun setUserId(userId: String?) = Unit
 
-  fun setDeviceId(deviceId: String?) = Unit
-
   fun track(
     event: String?,
     value: Double,
