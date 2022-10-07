@@ -2,7 +2,6 @@ package com.leanplum.migration.wrapper
 
 import android.app.Application
 import android.content.Context
-import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
@@ -15,14 +14,13 @@ import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.migration.push.MiPushMigrationHandler
-import com.leanplum.utils.StringPreferenceNullable
 
 internal class CTWrapper(
   private val accountId: String,
   private val accountToken: String,
   private val accountRegion: String,
-  private val deviceId: String,
-  private var userId: String?
+  deviceId: String,
+  userId: String?
 ) : IWrapper by StaticMethodsWrapper {
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
@@ -32,36 +30,7 @@ internal class CTWrapper(
   private var cleverTapInstance: CleverTapAPI? = null
   private var instanceCallback: CleverTapInstanceCallback? = null
 
-  /**
-   * Anonymous data will be merged to first user that logs-in, but CT ID will remain the same as
-   * the anonymous' deviceId to allow the merge.
-   */
-  private var firstLoginUserId: String? by StringPreferenceNullable("ct_first_login_userid")
-
-  /**
-   * Needs to be calculated each time.
-   */
-  private fun cleverTapId(): String {
-    return when (userId) {
-      null -> deviceId
-      deviceId -> deviceId
-      firstLoginUserId -> deviceId
-      else -> "${deviceId}_${userId}"
-    }
-  }
-
-  /**
-   * Needs to be calculated each time.
-   */
-  private fun identity(): String {
-    return when (val userId = userId) {
-      null -> deviceId
-      deviceId -> deviceId
-      else -> userId
-    }
-  }
-
-  private fun isAnonymous() = userId == deviceId
+  private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
 
   override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
@@ -74,8 +43,8 @@ internal class CTWrapper(
       enableCustomCleverTapId = true
     }
 
-    val cleverTapId = cleverTapId()
-    val identity = identity()
+    val cleverTapId = identityManager.cleverTapId()
+    val profile = identityManager.profile()
     Log.d("Wrapper: using CleverTapID=__h$cleverTapId")
 
     cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config, cleverTapId)?.apply {
@@ -83,10 +52,9 @@ internal class CTWrapper(
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
       }
-      if (isAnonymous()) {
+      if (identityManager.isAnonymous()) {
         Log.d("Wrapper: identity not set for anonymous user")
       } else {
-        val profile: Map<String, Any> = mutableMapOf(MigrationConstants.IDENTITY to identity)
         Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
         onUserLogin(profile, cleverTapId)
       }
@@ -110,25 +78,16 @@ internal class CTWrapper(
   }
 
   override fun setUserId(userId: String?) {
-    if (TextUtils.isEmpty(userId)) return
-    if (this.userId == userId) return
+    if (userId == null || userId.isEmpty()) return
+    if (identityManager.getUserId() == userId) return
 
-    val wasAnonymous = isAnonymous()
-    this.userId = userId
+    identityManager.setUserId(userId)
 
-    val identity = identity()
-    val profile: Map<String, Any> = mutableMapOf(MigrationConstants.IDENTITY to identity)
+    val cleverTapId = identityManager.cleverTapId()
+    val profile = identityManager.profile()
 
-    if (wasAnonymous) {
-      firstLoginUserId = userId
-      Log.d("Wrapper: anonymous data will be merged to $firstLoginUserId")
-      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$deviceId")
-      cleverTapInstance?.onUserLogin(profile, deviceId)
-    } else {
-      val cleverTapId = cleverTapId()
-      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
-      cleverTapInstance?.onUserLogin(profile, cleverTapId)
-    }
+    Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
+    cleverTapInstance?.onUserLogin(profile, cleverTapId)
   }
 
   /**
