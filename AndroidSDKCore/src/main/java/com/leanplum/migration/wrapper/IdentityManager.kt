@@ -79,14 +79,7 @@ internal class IdentityManager(
     }
   }
 
-  private fun identity(): String {
-    return when (val userId = userId) {
-      deviceId -> deviceId
-      else -> userId
-    }
-  }
-
-  fun profile() = mapOf(MigrationConstants.IDENTITY to identity())
+  fun profile() = mapOf(MigrationConstants.IDENTITY to userId)
 
   fun setUserId(userId: String) {
     if (state == ANONYMOUS) {

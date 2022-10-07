@@ -6,8 +6,6 @@ import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.leanplum.callbacks.CleverTapInstanceCallback
-import com.leanplum.internal.Constants
-import com.leanplum.internal.LeanplumInternal
 import com.leanplum.internal.Log
 import com.leanplum.migration.MigrationConstants
 import com.leanplum.migration.MigrationManager
@@ -99,7 +97,6 @@ internal class CTWrapper(
     info: String?,
     params: Map<String, Any?>?
   ) {
-    if (Constants.isNoop()) return
     if (event == null) return
 
     val properties =
@@ -112,10 +109,8 @@ internal class CTWrapper(
       properties[MigrationConstants.INFO_PARAM] = info
     }
 
-    LeanplumInternal.addStartIssuedHandler {
-      Log.d("Wrapper: Leanplum.track will call pushEvent with $event and $properties")
-      cleverTapInstance?.pushEvent(event, properties)
-    }
+    Log.d("Wrapper: Leanplum.track will call pushEvent with $event and $properties")
+    cleverTapInstance?.pushEvent(event, properties)
   }
 
   /**
@@ -127,8 +122,6 @@ internal class CTWrapper(
     currencyCode: String?,
     params: Map<String, Any?>?
   ) {
-    if (Constants.isNoop()) return
-
     val filteredParams =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
@@ -143,10 +136,8 @@ internal class CTWrapper(
 
     val items = arrayListOf<HashMap<String, Any?>>()
 
-    LeanplumInternal.addStartIssuedHandler {
-      Log.d("Wrapper: Leanplum.trackPurchase will call pushChargedEvent with $details and $items")
-      cleverTapInstance?.pushChargedEvent(details, items)
-    }
+    Log.d("Wrapper: Leanplum.trackPurchase will call pushChargedEvent with $details and $items")
+    cleverTapInstance?.pushChargedEvent(details, items)
   }
 
   /**
@@ -161,8 +152,6 @@ internal class CTWrapper(
     dataSignature: String?,
     params: Map<String, Any?>?
   ) {
-    if (Constants.isNoop()) return
-
     val filteredParams =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
@@ -178,10 +167,8 @@ internal class CTWrapper(
 
     val items = arrayListOf<HashMap<String, Any?>>()
 
-    LeanplumInternal.addStartIssuedHandler {
-      Log.d("Wrapper: Leanplum.trackGooglePlayPurchase will call pushChargedEvent with $details and $items")
-      cleverTapInstance?.pushChargedEvent(details, items)
-    }
+    Log.d("Wrapper: Leanplum.trackGooglePlayPurchase will call pushChargedEvent with $details and $items")
+    cleverTapInstance?.pushChargedEvent(details, items)
   }
 
   /**

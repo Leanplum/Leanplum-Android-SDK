@@ -1672,7 +1672,9 @@ public class Leanplum {
    */
   public static void track(final String event, double value, String info,
       Map<String, ?> params) {
-    MigrationManager.getWrapper().track(event, value, info, params);
+    LeanplumInternal.addStartIssuedHandler(() -> {
+      MigrationManager.getWrapper().track(event, value, info, params);
+    });
     LeanplumInternal.track(event, value, info, params, null);
   }
 
@@ -1698,7 +1700,9 @@ public class Leanplum {
         requestArgs.put(Constants.Params.IAP_CURRENCY_CODE, currencyCode);
       }
 
-      MigrationManager.getWrapper().trackPurchase(event, value, currencyCode, params);
+      LeanplumInternal.addStartIssuedHandler(() -> {
+        MigrationManager.getWrapper().trackPurchase(event, value, currencyCode, params);
+      });
       LeanplumInternal.track(event, value, null, params, requestArgs);
     } catch (Throwable t) {
       Log.exception(t);
@@ -1768,17 +1772,19 @@ public class Leanplum {
     }
     modifiedParams.put(Constants.Params.IAP_ITEM, item);
 
-    if (MigrationManager.trackGooglePlayPurchases()) {
-      MigrationManager.getWrapper().trackGooglePlayPurchase(
-          eventName,
-          item,
-          priceMicros / 1000000.0,
-          currencyCode,
-          purchaseData,
-          dataSignature,
-          params
-      );
-    }
+    LeanplumInternal.addStartIssuedHandler(() -> {
+      if (MigrationManager.trackGooglePlayPurchases()) {
+        MigrationManager.getWrapper().trackGooglePlayPurchase(
+            eventName,
+            item,
+            priceMicros / 1000000.0,
+            currencyCode,
+            purchaseData,
+            dataSignature,
+            params
+        );
+      }
+    });
     LeanplumInternal.track(eventName, priceMicros / 1000000.0, null, modifiedParams, requestArgs);
   }
 
