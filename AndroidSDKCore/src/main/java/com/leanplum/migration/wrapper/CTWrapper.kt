@@ -217,7 +217,10 @@ internal class CTWrapper(
 
   private fun mapNotSupportedValues(entry: Map.Entry<String, Any?>): Any? {
     return when (val value = entry.value) {
-      is Iterable<*> -> value.joinToString(separator = ",", prefix = "[", postfix = "]")
+      is Iterable<*> ->
+        value
+        .filterNotNull()
+        .joinToString(separator = ",", prefix = "[", postfix = "]")
       is Byte -> value.toInt()
       is Short -> value.toInt()
       else -> value
