@@ -2,6 +2,7 @@ package com.leanplum.migration.wrapper
 
 import com.leanplum.Leanplum
 import com.leanplum.callbacks.CleverTapInstanceCallback
+import com.leanplum.internal.Constants
 import com.leanplum.internal.LeanplumInternal
 import com.leanplum.migration.model.MigrationConfig
 
@@ -33,7 +34,4 @@ internal object WrapperFactory {
     }
   }
 
-  fun createNullWrapper(): IWrapper {
-    return NullWrapper
-  }
 }

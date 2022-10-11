@@ -6,8 +6,6 @@ import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.leanplum.callbacks.CleverTapInstanceCallback
-import com.leanplum.internal.Constants
-import com.leanplum.internal.LeanplumInternal
 import com.leanplum.internal.Log
 import com.leanplum.migration.MigrationConstants
 import com.leanplum.migration.MigrationManager
@@ -35,12 +33,17 @@ internal class CTWrapper(
   override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
 
+    val lpLevel = Log.getLogLevel()
+    val ctLevel = MigrationConstants.mapLogLevel(lpLevel).intValue()
+
     val config = CleverTapInstanceConfig.createInstance(
       context,
       accountId,
       accountToken,
       accountRegion).apply {
       enableCustomCleverTapId = true
+      debugLevel = ctLevel // set instance log level
+      setLogLevel(lpLevel) // set static log level, arg needs to be Leanplum's level
     }
 
     val cleverTapId = identityManager.cleverTapId()
@@ -99,7 +102,6 @@ internal class CTWrapper(
     info: String?,
     params: Map<String, Any?>?
   ) {
-    if (Constants.isNoop()) return
     if (event == null) return
 
     val properties =
@@ -112,10 +114,8 @@ internal class CTWrapper(
       properties[MigrationConstants.INFO_PARAM] = info
     }
 
-    LeanplumInternal.addStartIssuedHandler {
-      Log.d("Wrapper: Leanplum.track will call pushEvent with $event and $properties")
-      cleverTapInstance?.pushEvent(event, properties)
-    }
+    Log.d("Wrapper: Leanplum.track will call pushEvent with $event and $properties")
+    cleverTapInstance?.pushEvent(event, properties)
   }
 
   /**
@@ -127,8 +127,6 @@ internal class CTWrapper(
     currencyCode: String?,
     params: Map<String, Any?>?
   ) {
-    if (Constants.isNoop()) return
-
     val filteredParams =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
@@ -143,10 +141,8 @@ internal class CTWrapper(
 
     val items = arrayListOf<HashMap<String, Any?>>()
 
-    LeanplumInternal.addStartIssuedHandler {
-      Log.d("Wrapper: Leanplum.trackPurchase will call pushChargedEvent with $details and $items")
-      cleverTapInstance?.pushChargedEvent(details, items)
-    }
+    Log.d("Wrapper: Leanplum.trackPurchase will call pushChargedEvent with $details and $items")
+    cleverTapInstance?.pushChargedEvent(details, items)
   }
 
   /**
@@ -161,8 +157,6 @@ internal class CTWrapper(
     dataSignature: String?,
     params: Map<String, Any?>?
   ) {
-    if (Constants.isNoop()) return
-
     val filteredParams =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
@@ -178,10 +172,8 @@ internal class CTWrapper(
 
     val items = arrayListOf<HashMap<String, Any?>>()
 
-    LeanplumInternal.addStartIssuedHandler {
-      Log.d("Wrapper: Leanplum.trackGooglePlayPurchase will call pushChargedEvent with $details and $items")
-      cleverTapInstance?.pushChargedEvent(details, items)
-    }
+    Log.d("Wrapper: Leanplum.trackGooglePlayPurchase will call pushChargedEvent with $details and $items")
+    cleverTapInstance?.pushChargedEvent(details, items)
   }
 
   /**
@@ -230,7 +222,10 @@ internal class CTWrapper(
 
   private fun mapNotSupportedValues(entry: Map.Entry<String, Any?>): Any? {
     return when (val value = entry.value) {
-      is Iterable<*> -> value.joinToString(separator = ",", prefix = "[", postfix = "]")
+      is Iterable<*> ->
+        value
+        .filterNotNull()
+        .joinToString(separator = ",", prefix = "[", postfix = "]")
       is Byte -> value.toInt()
       is Short -> value.toInt()
       else -> value
@@ -238,21 +233,12 @@ internal class CTWrapper(
   }
 
   override fun setTrafficSourceInfo(info: Map<String, String>) {
-    val event = MigrationConstants.UTM_VISITED
-    val properties = info.mapKeys { (key, _) ->
-      when (key) {
-        "publisherId" -> "utm_source_id"
-        "publisherName" -> "utm_source"
-        "publisherSubPublisher" -> "utm_medium"
-        "publisherSubSite" -> "utm_subscribe.site"
-        "publisherSubCampaign" -> "utm_campaign"
-        "publisherSubAdGroup" -> "utm_sourcepublisher.ad_group"
-        "publisherSubAd" -> "utm_SourcePublisher.ad"
-        else -> key
-      }
-    }
-    Log.d("Wrapper: Leanplum.setTrafficSourceInfo will call pushEvent with $event and $properties")
-    cleverTapInstance?.pushEvent(event, properties)
+    val source = info["publisherName"]
+    val medium = info["publisherSubPublisher"]
+    val campaign = info["publisherSubCampaign"]
+    Log.d("Wrapper: Leanplum.setTrafficSourceInfo will call pushInstallReferrer with " +
+        "$source, $medium, and $campaign")
+    cleverTapInstance?.pushInstallReferrer(source, medium, campaign)
   }
 
 }

@@ -46,6 +46,10 @@ public class Log {
     Log.level = level;
   }
 
+  public static int getLogLevel() {
+    return level;
+  }
+
   public static void e(String msg, Object... args) {
     log(LogType.ERROR, msg, args);
   }

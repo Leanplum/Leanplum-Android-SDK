@@ -28,12 +28,17 @@ object MigrationManager {
 
   @JvmStatic
   fun updateWrapper() {
+    if (Constants.isNoop()) {
+      wrapper = NullWrapper
+      return
+    }
+
     if (getState().useCleverTap()
       && (wrapper == NullWrapper || wrapper == StaticMethodsWrapper)
     ) {
       wrapper = WrapperFactory.createWrapper(cleverTapInstanceCallback)
     } else if (wrapper != NullWrapper && !getState().useCleverTap()) {
-      wrapper = WrapperFactory.createNullWrapper()
+      wrapper = NullWrapper
     }
   }
 
