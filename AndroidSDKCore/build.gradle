@@ -42,7 +42,7 @@ dependencies {
     api "androidx.legacy:legacy-support-v4:1.0.0"
     api "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
 
-    api "com.clevertap.android:clevertap-android-sdk:4.6.3"
+    api "com.clevertap.android:clevertap-android-sdk:4.6.4"
 }
 
 task generateJavadoc(type: Javadoc) {

@@ -53,6 +53,6 @@ interface IWrapper {
 
   fun registerLifecycleCallback(app: Application) = Unit
 
-  fun setLogLevel(level: Int) = Unit
+  fun setLogLevel(lpLevel: Int) = Unit
 
 }

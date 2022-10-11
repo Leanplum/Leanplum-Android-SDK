@@ -33,12 +33,17 @@ internal class CTWrapper(
   override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
 
+    val lpLevel = Log.getLogLevel()
+    val ctLevel = MigrationConstants.mapLogLevel(lpLevel).intValue()
+
     val config = CleverTapInstanceConfig.createInstance(
       context,
       accountId,
       accountToken,
       accountRegion).apply {
       enableCustomCleverTapId = true
+      debugLevel = ctLevel // set instance log level
+      setLogLevel(lpLevel) // set static log level, arg needs to be Leanplum's level
     }
 
     val cleverTapId = identityManager.cleverTapId()
@@ -228,21 +233,12 @@ internal class CTWrapper(
   }
 
   override fun setTrafficSourceInfo(info: Map<String, String>) {
-    val event = MigrationConstants.UTM_VISITED
-    val properties = info.mapKeys { (key, _) ->
-      when (key) {
-        "publisherId" -> "utm_source_id"
-        "publisherName" -> "utm_source"
-        "publisherSubPublisher" -> "utm_medium"
-        "publisherSubSite" -> "utm_subscribe.site"
-        "publisherSubCampaign" -> "utm_campaign"
-        "publisherSubAdGroup" -> "utm_sourcepublisher.ad_group"
-        "publisherSubAd" -> "utm_SourcePublisher.ad"
-        else -> key
-      }
-    }
-    Log.d("Wrapper: Leanplum.setTrafficSourceInfo will call pushEvent with $event and $properties")
-    cleverTapInstance?.pushEvent(event, properties)
+    val source = info["publisherName"]
+    val medium = info["publisherSubPublisher"]
+    val campaign = info["publisherSubCampaign"]
+    Log.d("Wrapper: Leanplum.setTrafficSourceInfo will call pushInstallReferrer with " +
+        "$source, $medium, and $campaign")
+    cleverTapInstance?.pushInstallReferrer(source, medium, campaign)
   }
 
 }
