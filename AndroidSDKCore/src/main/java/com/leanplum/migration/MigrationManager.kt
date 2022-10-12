@@ -17,6 +17,7 @@ object MigrationManager {
 
   @JvmStatic
   var wrapper: IWrapper = NullWrapper
+    @Synchronized get
     private set
 
   @JvmStatic
@@ -27,6 +28,7 @@ object MigrationManager {
     }
 
   @JvmStatic
+  @Synchronized
   fun updateWrapper() {
     if (Constants.isNoop()) {
       wrapper = NullWrapper
@@ -87,8 +89,6 @@ object MigrationManager {
       fetchStateAsync { success ->
         if (success) {
           // transition side effects are handled in fetchStateAsync
-        } else {
-          // TODO guard against continuous failure?
         }
       }
       return true
