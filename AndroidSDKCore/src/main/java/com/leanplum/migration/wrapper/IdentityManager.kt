@@ -65,6 +65,7 @@ internal class IdentityManager(
 
     private var anonymousMergeUserId: String? by StringPreferenceNullable("ct_anon_merge_userid")
     private var state: String by StringPreference("ct_login_state", UNDEFINED)
+    fun isStateUndefined() = state == UNDEFINED
   }
 
   init {
