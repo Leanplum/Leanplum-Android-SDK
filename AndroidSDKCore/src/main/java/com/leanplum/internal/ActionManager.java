@@ -659,7 +659,7 @@ public class ActionManager {
    * @param value True to enable adding actions to queue and false otherwise.
    */
   public void setEnabled(boolean value) {
-    Log.i("[ActionManager] isEnabled: " + value);
+    Log.d("[ActionManager] isEnabled: " + value);
     enabled = value;
     if (enabled) {
       ActionManagerExecutionKt.performActions(ActionManager.getInstance());
@@ -680,7 +680,7 @@ public class ActionManager {
    * @param value True to pause queue, false otherwise.
    */
   public void setPaused(boolean value) {
-    Log.i("[ActionManager] isPaused: " + value);
+    Log.d("[ActionManager] isPaused: " + value);
     paused = value;
     if (!paused) {
       ActionManagerExecutionKt.performActions(ActionManager.getInstance());
