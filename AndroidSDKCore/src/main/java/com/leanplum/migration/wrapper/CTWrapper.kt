@@ -6,6 +6,7 @@ import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.leanplum.callbacks.CleverTapInstanceCallback
+import com.leanplum.internal.Constants
 import com.leanplum.internal.Log
 import com.leanplum.migration.MigrationConstants
 import com.leanplum.migration.MigrationManager
@@ -103,6 +104,9 @@ internal class CTWrapper(
     params: Map<String, Any?>?
   ) {
     if (event == null) return
+    if (event == Constants.PUSH_DELIVERED_EVENT_NAME || event == Constants.PUSH_OPENED_EVENT_NAME) {
+      return
+    }
 
     val properties =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()

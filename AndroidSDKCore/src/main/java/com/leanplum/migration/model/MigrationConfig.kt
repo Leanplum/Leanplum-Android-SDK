@@ -32,8 +32,7 @@ object MigrationConfig {
       return field
     }
 
-  // TODO read from getMigrateState and set false as default
-  var trackGooglePlayPurchases = true//false
+  var trackGooglePlayPurchases = true
     private set
 
   fun update(data: ResponseData) {

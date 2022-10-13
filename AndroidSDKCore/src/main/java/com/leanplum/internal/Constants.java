@@ -253,6 +253,8 @@ public class Constants {
     public static final int MAX_UPLOAD_BATCH_FILES = 16;
   }
 
+  public static final String PUSH_DELIVERED_EVENT_NAME = "Push Delivered";
+  public static final String PUSH_OPENED_EVENT_NAME = "Push Opened";
   public static final String HELD_BACK_EVENT_NAME = "Held Back";
   public static final String HELD_BACK_MESSAGE_PREFIX = "__held_back__";
 
