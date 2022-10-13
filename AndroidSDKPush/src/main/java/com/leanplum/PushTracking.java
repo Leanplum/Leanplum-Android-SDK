@@ -25,6 +25,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
+import com.leanplum.internal.Constants;
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.Log;
 import java.util.HashMap;
@@ -70,7 +71,7 @@ public class PushTracking {
         LeanplumNotificationHelper.areNotificationsEnabled(context, message);
     properties.put(Keys.PUSH_METRIC_NOTIFICATIONS_ENABLED, Boolean.toString(notificationsEnabled));
 
-    Leanplum.track("Push Delivered", properties);
+    Leanplum.track(Constants.PUSH_DELIVERED_EVENT_NAME, properties);
   }
 
   public static void trackOpen(@NonNull Bundle message) {
@@ -92,7 +93,7 @@ public class PushTracking {
       properties.put(Keys.PUSH_METRIC_CHANNEL, channel);
     }
 
-    Leanplum.track("Push Opened", properties);
+    Leanplum.track(Constants.PUSH_OPENED_EVENT_NAME, properties);
   }
 
 }
