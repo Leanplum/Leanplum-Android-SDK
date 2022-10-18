@@ -23,9 +23,10 @@ package com.leanplum.migration.wrapper
 
 import com.leanplum.Leanplum
 import com.leanplum.callbacks.CleverTapInstanceCallback
-import com.leanplum.internal.Constants
 import com.leanplum.internal.LeanplumInternal
+import com.leanplum.internal.Log
 import com.leanplum.migration.model.MigrationConfig
+import kotlin.system.measureTimeMillis
 
 internal object WrapperFactory {
 
@@ -51,7 +52,10 @@ internal object WrapperFactory {
     }
 
     return CTWrapper(account, token, region, deviceId, userId).apply {
-      launch(context, callback)
+      val timeToLaunch = measureTimeMillis {
+        launch(context, callback)
+      }
+      Log.d("Wrapper: launch took $timeToLaunch millis")
     }
   }
 

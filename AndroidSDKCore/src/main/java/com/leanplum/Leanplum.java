@@ -657,6 +657,8 @@ public class Leanplum {
             }
       });
 
+      MigrationManager.updateWrapper(); // create CT object to track App Launched correctly
+
       // Reduce latency by running the rest of the start call in a background thread.
       OperationQueue.sharedInstance().addParallelOperation(new Runnable() {
         @Override
@@ -751,6 +753,9 @@ public class Leanplum {
       }
     }
     APIConfig.getInstance().setUserId(userId);
+
+    // If wrapper has already been initialised it would update it with correct userId.
+    MigrationManager.getWrapper().setUserId(userId);
 
     String locale = Util.getLocale();
     if (!TextUtils.isEmpty(customLocale)) {
