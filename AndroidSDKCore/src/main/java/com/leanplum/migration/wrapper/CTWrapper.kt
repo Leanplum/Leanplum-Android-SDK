@@ -27,6 +27,7 @@ import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
+import com.clevertap.android.sdk.Utils
 import com.clevertap.android.sdk.pushnotification.PushConstants
 import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
 import com.leanplum.callbacks.CleverTapInstanceCallback
@@ -54,8 +55,8 @@ internal class CTWrapper(
   private var cleverTapInstance: CleverTapAPI? = null
   private var instanceCallback: CleverTapInstanceCallback? = null
 
-  private var firstTimeStart = IdentityManager.isStateUndefined()
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
+  private var firstTimeStart = identityManager.isStateUndefined()
 
   override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
@@ -87,6 +88,7 @@ internal class CTWrapper(
       } else {
         Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
         onUserLogin(profile, cleverTapId)
+        setDevicesProperty()
       }
       Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
@@ -142,15 +144,24 @@ internal class CTWrapper(
 
   override fun setUserId(userId: String?) {
     if (userId == null || userId.isEmpty()) return
-    if (identityManager.getUserId() == userId) return
 
-    identityManager.setUserId(userId)
+    if (!identityManager.setUserId(userId)) {
+      // trying to set same userId
+      return
+    }
 
     val cleverTapId = identityManager.cleverTapId()
     val profile = identityManager.profile()
 
     Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
+
+    setDevicesProperty()
+  }
+
+  private fun setDevicesProperty() {
+    val deviceId = identityManager.getOriginalDeviceId()
+    cleverTapInstance?.addMultiValueForKey(MigrationConstants.DEVICES_USER_PROPERTY, deviceId)
   }
 
   /**
