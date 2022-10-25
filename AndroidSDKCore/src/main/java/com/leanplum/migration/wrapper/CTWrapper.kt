@@ -85,6 +85,7 @@ internal class CTWrapper(
       }
       if (identityManager.isAnonymous()) {
         Log.d("Wrapper: identity not set for anonymous user")
+        setAnonymousDeviceProperty()
       } else {
         Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
         onUserLogin(profile, cleverTapId)
@@ -158,9 +159,18 @@ internal class CTWrapper(
     cleverTapInstance?.setDevicesProperty()
   }
 
+  private fun CleverTapAPI.setAnonymousDeviceProperty() {
+    if (identityManager.isDeviceIdHashed()) {
+      val deviceId = identityManager.getOriginalDeviceId()
+      Log.d("Wrapper: property ${MigrationConstants.ANONYMOUS_DEVICE_PROPERTY} set $deviceId")
+      pushProfile(mapOf(MigrationConstants.ANONYMOUS_DEVICE_PROPERTY to deviceId))
+    }
+  }
+
   private fun CleverTapAPI.setDevicesProperty() {
     if (identityManager.isDeviceIdHashed()) {
       val deviceId = identityManager.getOriginalDeviceId()
+      Log.d("Wrapper: property ${MigrationConstants.DEVICES_USER_PROPERTY} add $deviceId")
       CTUtils.addMultiValueForKey(MigrationConstants.DEVICES_USER_PROPERTY, deviceId, this)
     }
   }

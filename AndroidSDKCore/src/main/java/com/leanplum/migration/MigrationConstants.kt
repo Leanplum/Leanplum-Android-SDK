@@ -27,6 +27,7 @@ import com.leanplum.internal.Log
 object MigrationConstants {
   const val IDENTITY = "Identity"
   const val STATE_PREFIX = "state_"
+  const val ANONYMOUS_DEVICE_PROPERTY = "lp_device"
   const val DEVICES_USER_PROPERTY = "lp_devices"
 
   const val CHARGED_EVENT_PARAM = "event"
