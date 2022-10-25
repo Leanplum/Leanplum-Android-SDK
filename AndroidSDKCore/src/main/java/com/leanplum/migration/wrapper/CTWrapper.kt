@@ -25,6 +25,7 @@ import android.app.Application
 import android.content.Context
 import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
+import com.clevertap.android.sdk.CTUtils
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.clevertap.android.sdk.pushnotification.PushConstants
@@ -54,8 +55,8 @@ internal class CTWrapper(
   private var cleverTapInstance: CleverTapAPI? = null
   private var instanceCallback: CleverTapInstanceCallback? = null
 
-  private var firstTimeStart = IdentityManager.isStateUndefined()
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
+  private var firstTimeStart = identityManager.isFirstTimeStart()
 
   override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
@@ -84,9 +85,11 @@ internal class CTWrapper(
       }
       if (identityManager.isAnonymous()) {
         Log.d("Wrapper: identity not set for anonymous user")
+        setAnonymousDeviceProperty()
       } else {
         Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
         onUserLogin(profile, cleverTapId)
+        setDevicesProperty()
       }
       Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
@@ -142,15 +145,34 @@ internal class CTWrapper(
 
   override fun setUserId(userId: String?) {
     if (userId == null || userId.isEmpty()) return
-    if (identityManager.getUserId() == userId) return
 
-    identityManager.setUserId(userId)
+    if (!identityManager.setUserId(userId)) {
+      // trying to set same userId
+      return
+    }
 
     val cleverTapId = identityManager.cleverTapId()
     val profile = identityManager.profile()
 
     Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
+    cleverTapInstance?.setDevicesProperty()
+  }
+
+  private fun CleverTapAPI.setAnonymousDeviceProperty() {
+    if (identityManager.isDeviceIdHashed()) {
+      val deviceId = identityManager.getOriginalDeviceId()
+      Log.d("Wrapper: property ${MigrationConstants.ANONYMOUS_DEVICE_PROPERTY} set $deviceId")
+      pushProfile(mapOf(MigrationConstants.ANONYMOUS_DEVICE_PROPERTY to deviceId))
+    }
+  }
+
+  private fun CleverTapAPI.setDevicesProperty() {
+    if (identityManager.isDeviceIdHashed()) {
+      val deviceId = identityManager.getOriginalDeviceId()
+      Log.d("Wrapper: property ${MigrationConstants.DEVICES_USER_PROPERTY} add $deviceId")
+      CTUtils.addMultiValueForKey(MigrationConstants.DEVICES_USER_PROPERTY, deviceId, this)
+    }
   }
 
   /**

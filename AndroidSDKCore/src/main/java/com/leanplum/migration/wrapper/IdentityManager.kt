@@ -25,11 +25,17 @@ import com.leanplum.internal.Log
 import com.leanplum.migration.MigrationConstants
 import com.leanplum.utils.StringPreference
 import com.leanplum.utils.StringPreferenceNullable
+import kotlin.properties.ReadWriteProperty
+
+private const val UNDEFINED = "undefined"
+private const val ANONYMOUS = "anonymous"
+private const val IDENTIFIED = "identified"
 
 /**
  * Scheme for migrating user profile is as follows:
  *   - anonymous is translated to <CTID=deviceId, Identity=null>
- *   - non-anonymous to <CTID=deviceId_userId, Identity=userId>
+ *   - non-anonymous to <CTID=deviceId_hash(userId), Identity=userId>
+ * Where deviceId is also hashed if it is longer than 50 characters or contains invalid symbols.
  *
  * When you login, but previous profile is anonymous, a merge should happen. CT SDK allows merges
  * only when the CTID remains the same, meaning that the merged profile would get the anonymous
@@ -42,7 +48,7 @@ import com.leanplum.utils.StringPreferenceNullable
  * 1. "undefined" state
  *
  * Wrapper hasn't been started even once, meaning that anonymous profile doesn't exist, so use the
- * "deviceId_userId" scheme.
+ * "deviceId_hash(userId)" scheme.
  *
  * 2. "anonymous" state
  *
@@ -51,24 +57,23 @@ import com.leanplum.utils.StringPreferenceNullable
  *
  * 3. "identified" state
  *
- * Wrapper has been started and previous user is not anonymous - use the "deviceId_userId" scheme.
+ * Wrapper has been started and previous user is not anonymous - use the "deviceId_hash(userId)"
+ * scheme.
  */
-internal class IdentityManager(
-  private val deviceId: String,
-  private var userId: String
+class IdentityManager(
+  deviceId: String,
+  userId: String,
+  stateDelegate: ReadWriteProperty<Any, String> = StringPreference("ct_login_state", UNDEFINED),
+  mergeUserDelegate: ReadWriteProperty<Any, String?> = StringPreferenceNullable("ct_anon_merge_userid"),
 ) {
 
-  companion object {
-    private const val UNDEFINED = "undefined"
-    private const val ANONYMOUS = "anonymous"
-    private const val IDENTIFIED = "identified"
-
-    private var anonymousMergeUserId: String? by StringPreferenceNullable("ct_anon_merge_userid")
-    private var state: String by StringPreference("ct_login_state", UNDEFINED)
-    fun isStateUndefined() = state == UNDEFINED
-  }
+  private val identity: LPIdentity = LPIdentity(deviceId = deviceId, userId = userId)
+  private var state: String by stateDelegate
+  private val startState: String
+  private var anonymousMergeUserId: String? by mergeUserDelegate
 
   init {
+    startState = state
     if (isAnonymous()) {
       loginAnonymously()
     } else {
@@ -76,7 +81,9 @@ internal class IdentityManager(
     }
   }
 
-  fun isAnonymous() = userId == deviceId
+  fun isAnonymous() = identity.isAnonymous()
+
+  fun isFirstTimeStart() = startState == UNDEFINED
 
   private fun loginAnonymously() {
     state = ANONYMOUS
@@ -87,31 +94,40 @@ internal class IdentityManager(
       state = IDENTIFIED
     }
     else if (state == ANONYMOUS) {
-      anonymousMergeUserId = userId
+      anonymousMergeUserId = identity.userId()
       Log.d("Wrapper: anonymous data will be merged to $anonymousMergeUserId")
       state = IDENTIFIED
     }
   }
 
   fun cleverTapId(): String {
-    return when (userId) {
-      deviceId -> deviceId
-      anonymousMergeUserId -> deviceId
-      else -> "${deviceId}_${userId}"
+    if (identity.isAnonymous()) {
+      return identity.deviceId()
+    } else if (identity.userId() == anonymousMergeUserId) {
+      return identity.deviceId()
+    } else {
+      return "${identity.deviceId()}_${identity.userId()}"
     }
   }
 
-  fun profile() = mapOf(MigrationConstants.IDENTITY to userId)
+  fun profile() = mapOf(MigrationConstants.IDENTITY to identity.originalUserId())
 
-  fun setUserId(userId: String) {
+  fun setUserId(userId: String): Boolean {
+    if (!identity.setUserId(userId)) {
+      // trying to set same userId
+      return false
+    }
+
     if (state == ANONYMOUS) {
-      anonymousMergeUserId = userId
+      anonymousMergeUserId = identity.userId()
       Log.d("Wrapper: anonymous data will be merged to $anonymousMergeUserId")
       state = IDENTIFIED
     }
-    this.userId = userId
+    return true;
   }
 
-  fun getUserId() = userId
+  fun isDeviceIdHashed() = identity.originalDeviceId() != identity.deviceId()
+
+  fun getOriginalDeviceId() = identity.originalDeviceId()
 
 }
