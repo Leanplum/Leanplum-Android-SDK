@@ -23,14 +23,15 @@ class IdentityManagerTest {
   val userId2 = "userId2"
 
   // 6ccb21214ffd60b0fc2c1607cf6a05be6a0fed9c74819eb6a92e1bd6717b28eb
-  val userId_sha = "6ccb21214f"
+  val userId_hash = "6ccb21214f"
   // c9430313f85740d3c62dd8bf8c8d275165e96f830e7b1e6ddf3a89ba17ee5cce
-  val userId2_sha = "c9430313f8"
+  val userId2_hash = "c9430313f8"
 
   var state: String? = null
   var mergedUserId: String? = null
 
   val totalIdLengthLimit = 61
+  val deviceIdHashLength = 50
 
   @Before
   fun setup() {
@@ -63,7 +64,7 @@ class IdentityManagerTest {
   @Test
   fun testUserIdHash() {
     val lpIdentity = LPIdentity(deviceId, userId)
-    assertEquals(userId_sha, lpIdentity.userId())
+    assertEquals(userId_hash, lpIdentity.userId())
   }
 
   @Test
@@ -79,7 +80,7 @@ class IdentityManagerTest {
     val identityManager = createIdentityManager(deviceId, userId)
     assertFalse(identityManager.isAnonymous())
     assertEquals("identified", state)
-    assertEquals("${deviceId}_${userId_sha}", identityManager.cleverTapId())
+    assertEquals("${deviceId}_${userId_hash}", identityManager.cleverTapId())
   }
 
   @Test
@@ -91,8 +92,9 @@ class IdentityManagerTest {
     assertFalse(identityManager.isAnonymous())
     assertEquals("identified", state)
     assertEquals(mergedUserId, null)
-    assertEquals("${deviceId}_${userId2_sha}", identityManager.cleverTapId())
+    assertEquals("${deviceId}_${userId2_hash}", identityManager.cleverTapId())
     assertEquals(mapOf("Identity" to userId2), identityManager.profile())
+    assertFalse(identityManager.isDeviceIdHashed())
   }
 
   @Test
@@ -103,7 +105,7 @@ class IdentityManagerTest {
 
     assertFalse(identityManager.isAnonymous())
     assertEquals("identified", state)
-    assertEquals(mergedUserId, userId_sha)
+    assertEquals(mergedUserId, userId_hash)
     assertEquals(deviceId, identityManager.cleverTapId())
     assertEquals(mapOf("Identity" to userId), identityManager.profile())
   }
@@ -117,8 +119,8 @@ class IdentityManagerTest {
 
     assertFalse(identityManager.isAnonymous())
     assertEquals("identified", state)
-    assertEquals(mergedUserId, userId_sha)
-    assertEquals("${deviceId}_$userId2_sha", identityManager.cleverTapId())
+    assertEquals(mergedUserId, userId_hash)
+    assertEquals("${deviceId}_$userId2_hash", identityManager.cleverTapId())
     assertEquals(mapOf("Identity" to userId2), identityManager.profile())
   }
 
@@ -139,53 +141,55 @@ class IdentityManagerTest {
 
   @Test
   fun testAnonymousLimitDeviceId() {
-    val deviceId = "1".repeat(50)
+    val deviceId = "1".repeat(deviceIdHashLength)
     val identityManager = createIdentityManager(deviceId, deviceId)
 
     assertEquals(deviceId, identityManager.cleverTapId())
-    assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
+    assertEquals(deviceIdHashLength, identityManager.cleverTapId().length)
   }
 
   @Test
   fun testIdentifiedLimitDeviceId() {
-    val deviceId = "1".repeat(50)
+    val deviceId = "1".repeat(deviceIdHashLength)
     val identityManager = createIdentityManager(deviceId, userId)
 
-    assertEquals("${deviceId}_$userId_sha", identityManager.cleverTapId())
+    assertEquals("${deviceId}_$userId_hash", identityManager.cleverTapId())
     assertEquals(totalIdLengthLimit, identityManager.cleverTapId().length)
+    assertFalse(identityManager.isDeviceIdHashed())
   }
 
   @Test
   fun testAnonymousLongDeviceId() {
-    val deviceId = "1".repeat(51)
+    val deviceId = "1".repeat(deviceIdHashLength+1)
     val identityManager = createIdentityManager(deviceId, deviceId)
 
-    val deviceId_sha = HashUtil.sha256_128(deviceId)
+    val deviceId_hash = HashUtil.sha256_200(deviceId)
 
-    assertEquals(deviceId_sha, identityManager.cleverTapId())
-    assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
+    assertEquals(deviceId_hash, identityManager.cleverTapId())
+    assertEquals(deviceIdHashLength, identityManager.cleverTapId().length)
   }
 
   @Test
   fun testIdentifiedLongDeviceId() {
-    val deviceId = "1".repeat(51)
+    val deviceId = "1".repeat(deviceIdHashLength+1)
     val identityManager = createIdentityManager(deviceId, userId)
 
-    val deviceId_sha = HashUtil.sha256_128(deviceId)
+    val deviceId_hash = HashUtil.sha256_200(deviceId)
 
-    assertEquals("${deviceId_sha}_$userId_sha", identityManager.cleverTapId())
-    assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
+    assertEquals("${deviceId_hash}_$userId_hash", identityManager.cleverTapId())
+    assertEquals(totalIdLengthLimit, identityManager.cleverTapId().length)
+    assertTrue(identityManager.isDeviceIdHashed())
   }
 
   @Test
   fun testIdentifiedLongerDeviceId() {
-    val deviceId = "1".repeat(100)
+    val deviceId = "1".repeat(deviceIdHashLength+10)
     val identityManager = createIdentityManager(deviceId, userId)
 
-    val deviceId_sha = HashUtil.sha256_128(deviceId)
+    val deviceId_hash = HashUtil.sha256_200(deviceId)
 
-    assertEquals("${deviceId_sha}_$userId_sha", identityManager.cleverTapId())
-    assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
+    assertEquals("${deviceId_hash}_$userId_hash", identityManager.cleverTapId())
+    assertEquals(totalIdLengthLimit, identityManager.cleverTapId().length)
   }
 
   @Test
@@ -193,10 +197,10 @@ class IdentityManagerTest {
     val deviceId = "&".repeat(10)
     val identityManager = createIdentityManager(deviceId, deviceId)
 
-    val deviceId_sha = HashUtil.sha256_128(deviceId)
+    val deviceId_hash = HashUtil.sha256_200(deviceId)
 
-    assertEquals(deviceId_sha, identityManager.cleverTapId())
-    assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
+    assertEquals(deviceId_hash, identityManager.cleverTapId())
+    assertEquals(deviceIdHashLength, identityManager.cleverTapId().length)
   }
 
   @Test
@@ -204,10 +208,11 @@ class IdentityManagerTest {
     val deviceId = "&".repeat(10)
     val identityManager = createIdentityManager(deviceId, userId)
 
-    val deviceId_sha = HashUtil.sha256_128(deviceId)
+    val deviceId_hash = HashUtil.sha256_200(deviceId)
 
-    assertEquals("${deviceId_sha}_$userId_sha", identityManager.cleverTapId())
-    assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
+    assertEquals("${deviceId_hash}_$userId_hash", identityManager.cleverTapId())
+    assertEquals(totalIdLengthLimit, identityManager.cleverTapId().length)
+    assertTrue(identityManager.isDeviceIdHashed())
   }
 
   @Test
@@ -216,9 +221,9 @@ class IdentityManagerTest {
     val identityManager = createIdentityManager(deviceId, userId)
 
     // f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a
-    val userId_sha = "f660ab912e"
+    val userId_hash = "f660ab912e"
 
-    assertEquals("${deviceId}_$userId_sha", identityManager.cleverTapId())
+    assertEquals("${deviceId}_$userId_hash", identityManager.cleverTapId())
     assertTrue(identityManager.cleverTapId().length <= totalIdLengthLimit)
   }
 
@@ -240,12 +245,18 @@ class IdentityManagerTest {
       "116115935'2",
       "9d29641dc261454239456122f13de042b3a0cc3f45d4c27e7ddc97b300eb11aa"
     ).forEach { deviceId ->
-        val hash = HashUtil.sha256_128(deviceId)
+        val hash = HashUtil.sha256_200(deviceId)
         val identityManager = createIdentityManager(deviceId, userId)
 
         println(hash)
-        assertEquals("${hash}_$userId_sha", identityManager.cleverTapId())
+        assertEquals("${hash}_$userId_hash", identityManager.cleverTapId())
       }
+  }
+
+  @Test
+  fun testFirstStartFlag() {
+    val identityManager = createIdentityManager(deviceId, userId)
+    assertTrue(identityManager.isFirstTimeStart())
   }
 
 }

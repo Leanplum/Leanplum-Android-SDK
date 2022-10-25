@@ -25,9 +25,9 @@ import android.app.Application
 import android.content.Context
 import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
+import com.clevertap.android.sdk.CTUtils
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
-import com.clevertap.android.sdk.Utils
 import com.clevertap.android.sdk.pushnotification.PushConstants
 import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
 import com.leanplum.callbacks.CleverTapInstanceCallback
@@ -56,7 +56,7 @@ internal class CTWrapper(
   private var instanceCallback: CleverTapInstanceCallback? = null
 
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
-  private var firstTimeStart = identityManager.isStateUndefined()
+  private var firstTimeStart = identityManager.isFirstTimeStart()
 
   override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
     instanceCallback = callback
@@ -155,13 +155,14 @@ internal class CTWrapper(
 
     Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
     cleverTapInstance?.onUserLogin(profile, cleverTapId)
-
-    setDevicesProperty()
+    cleverTapInstance?.setDevicesProperty()
   }
 
-  private fun setDevicesProperty() {
-    val deviceId = identityManager.getOriginalDeviceId()
-    cleverTapInstance?.addMultiValueForKey(MigrationConstants.DEVICES_USER_PROPERTY, deviceId)
+  private fun CleverTapAPI.setDevicesProperty() {
+    if (identityManager.isDeviceIdHashed()) {
+      val deviceId = identityManager.getOriginalDeviceId()
+      CTUtils.addMultiValueForKey(MigrationConstants.DEVICES_USER_PROPERTY, deviceId, this)
+    }
   }
 
   /**

@@ -8,7 +8,7 @@ class HashUtilTest {
   @Test
   fun testSha256Variants() {
     Assert.assertEquals("982d9e3eb9", HashUtil.sha256_40("text"))
-    Assert.assertEquals("982d9e3eb996f559e633f4d194def376", HashUtil.sha256_128("text"))
+    Assert.assertEquals("982d9e3eb996f559e633f4d194def3761d909f5a3b647d1a85", HashUtil.sha256_200("text"))
   }
 
   @Test
@@ -41,9 +41,9 @@ class HashUtilTest {
       Assert.assertEquals(10, hash40.length)
       Assert.assertTrue(hash.startsWith(hash40))
 
-      val hash128 = HashUtil.sha256_128(it)
-      Assert.assertEquals(32, hash128.length)
-      Assert.assertTrue(hash.startsWith(hash128))
+      val hash200 = HashUtil.sha256_200(it)
+      Assert.assertEquals(50, hash200.length)
+      Assert.assertTrue(hash.startsWith(hash200))
     }
   }
 
@@ -82,9 +82,9 @@ class HashUtilTest {
       Assert.assertEquals(10, hash40.length)
       Assert.assertTrue(hash.startsWith(hash40))
 
-      val hash128 = HashUtil.sha256_128(it)
-      Assert.assertEquals(32, hash128.length)
-      Assert.assertTrue(hash.startsWith(hash128))
+      val hash200 = HashUtil.sha256_200(it)
+      Assert.assertEquals(50, hash200.length)
+      Assert.assertTrue(hash.startsWith(hash200))
     }
   }
 

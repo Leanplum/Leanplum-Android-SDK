@@ -69,9 +69,11 @@ class IdentityManager(
 
   private val identity: LPIdentity = LPIdentity(deviceId = deviceId, userId = userId)
   private var state: String by stateDelegate
+  private val startState: String
   private var anonymousMergeUserId: String? by mergeUserDelegate
 
   init {
+    startState = state
     if (isAnonymous()) {
       loginAnonymously()
     } else {
@@ -81,7 +83,7 @@ class IdentityManager(
 
   fun isAnonymous() = identity.isAnonymous()
 
-  fun isStateUndefined() = state == UNDEFINED
+  fun isFirstTimeStart() = startState == UNDEFINED
 
   private fun loginAnonymously() {
     state = ANONYMOUS
@@ -123,6 +125,8 @@ class IdentityManager(
     }
     return true;
   }
+
+  fun isDeviceIdHashed() = identity.originalDeviceId() != identity.deviceId()
 
   fun getOriginalDeviceId() = identity.originalDeviceId()
 

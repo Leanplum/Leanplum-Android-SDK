@@ -15,7 +15,7 @@ class LPIdentity(
 
   init {
     if (deviceId.length > DEVICE_ID_MAX_LENGTH || !Utils.validateCTID(deviceId)) {
-      deviceIdHash = HashUtil.sha256_128(deviceId)
+      deviceIdHash = HashUtil.sha256_200(deviceId)
     }
     userIdHash = HashUtil.sha256_40(userId)
   }

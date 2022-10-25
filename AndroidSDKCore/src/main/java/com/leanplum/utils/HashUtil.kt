@@ -25,7 +25,7 @@ object HashUtil {
   fun sha256_40(text: String) = sha256(text, 5)
 
   /**
-   * Get first 32 symbols from hexadecimal representation of sha256.
+   * Get first 50 symbols from hexadecimal representation of sha256.
    */
-  fun sha256_128(text: String) = sha256(text, 16)
+  fun sha256_200(text: String) = sha256(text, 25)
 }
