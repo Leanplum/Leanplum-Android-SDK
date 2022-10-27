@@ -426,19 +426,11 @@ public class VarCache {
           varsSignature);
       String deviceId = aesContext.decodePreference(defaults, Constants.Params.DEVICE_ID, null);
       if (deviceId != null) {
-        if (Util.isValidDeviceId(deviceId)) {
-          APIConfig.getInstance().setDeviceId(deviceId);
-        } else {
-          Log.d("Invalid stored device id found: \"" + deviceId + "\"; discarding.");
-        }
+        APIConfig.getInstance().setDeviceId(deviceId);
       }
       String userId = aesContext.decodePreference(defaults, Constants.Params.USER_ID, null);
       if (userId != null) {
-        if (Util.isValidUserId(userId)) {
-          APIConfig.getInstance().setUserId(userId);
-        } else {
-          Log.d("Invalid stored user id found: \"" + userId + "\"; discarding.");
-        }
+        APIConfig.getInstance().setUserId(userId);
       }
       String loggingEnabled = aesContext.decodePreference(defaults, Constants.Keys.LOGGING_ENABLED,
           "false");
