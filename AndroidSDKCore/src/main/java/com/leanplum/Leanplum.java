@@ -1499,6 +1499,7 @@ public class Leanplum {
     try {
       final HashMap<String, Object> params = new HashMap<>();
       if (userId != null) {
+        params.put(Constants.Params.USER_ID, getUserId());
         params.put(Constants.Params.NEW_USER_ID, userId);
       }
       if (userAttributes != null) {
