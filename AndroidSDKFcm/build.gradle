@@ -37,6 +37,8 @@ dependencies {
     compileOnly('com.google.firebase:firebase-messaging:[20.3.0,)') {
         exclude module: 'support-v4'
     }
+
+    implementation "com.clevertap.android:clevertap-android-sdk:${CT_SDK_VERSION}"
 }
 
 task generateJavadoc(type: Javadoc) {

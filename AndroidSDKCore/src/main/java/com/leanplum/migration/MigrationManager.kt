@@ -22,6 +22,7 @@
 package com.leanplum.migration
 
 import com.leanplum.callbacks.CleverTapInstanceCallback
+import com.leanplum.core.BuildConfig
 import com.leanplum.internal.*
 import com.leanplum.migration.model.MigrationConfig
 import com.leanplum.migration.model.MigrationState
@@ -155,5 +156,27 @@ object MigrationManager {
 
   @JvmStatic
   fun trackGooglePlayPurchases() = MigrationConfig.trackGooglePlayPurchases
+
+  private fun getCleverTapVersion(): String? {
+    return try {
+      val clazz = Class.forName("com.clevertap.android.sdk.BuildConfig")
+      val field = clazz.getField("VERSION_NAME")
+      field.get(null) as String
+    } catch (ignored: Throwable) {
+      null
+    }
+  }
+
+  @JvmStatic
+  fun verifyCleverTapVersion() {
+    val lpVersion = BuildConfig.CT_SDK_VERSION
+    val clientVersion = getCleverTapVersion()
+    if (lpVersion != clientVersion) {
+      Log.e("Your CleverTap SDK dependency version is:\n" +
+          "com.clevertap.android:clevertap-android-sdk:${clientVersion}\n" +
+          "but you must use the supported by Leanplum SDK:\n" +
+          "com.clevertap.android:clevertap-android-sdk:${lpVersion}")
+    }
+  }
 
 }
