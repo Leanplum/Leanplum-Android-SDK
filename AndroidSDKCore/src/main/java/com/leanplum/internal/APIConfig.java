@@ -27,6 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Constants.Defaults;
+import com.leanplum.internal.Constants.Params;
 import com.leanplum.utils.SharedPreferencesUtil;
 import java.util.Map;
 
@@ -103,6 +104,11 @@ public class APIConfig {
 
   private void load() {
     Context context = Leanplum.getContext();
+    if (context == null) {
+      Log.e("Leanplum context is null. Please call Leanplum.setApplicationContext(context) "
+          + "before anything else.");
+      return;
+    }
     SharedPreferences defaults = context.getSharedPreferences(
         Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
 
@@ -131,6 +137,11 @@ public class APIConfig {
 
   public void save() {
     Context context = Leanplum.getContext();
+    if (context == null) {
+      Log.e("Leanplum context is null. Please call Leanplum.setApplicationContext(context) "
+          + "before anything else.");
+      return;
+    }
     SharedPreferences defaults = context.getSharedPreferences(
         Constants.Defaults.LEANPLUM, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = defaults.edit();
