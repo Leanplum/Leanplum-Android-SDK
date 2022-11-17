@@ -20,6 +20,7 @@ android {
         buildConfigField 'String', 'LEANPLUM_PACKAGE_IDENTIFIER', "\"${packageIdentifier}\""
 
         buildConfigField 'String', 'SDK_VERSION', "\"${LEANPLUM_SDK_VERSION}\""
+        buildConfigField 'String', 'CT_SDK_VERSION', "\"${CT_SDK_VERSION}\""
 
         def buildNumber = System.getenv('BUILD_NUMBER') ?: '0'
         buildConfigField 'String', 'BUILD_NUMBER', "\"${buildNumber}\""
@@ -42,7 +43,7 @@ dependencies {
     api "androidx.legacy:legacy-support-v4:1.0.0"
     api "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
 
-    api "com.clevertap.android:clevertap-android-sdk:4.6.6"
+    implementation "com.clevertap.android:clevertap-android-sdk:${CT_SDK_VERSION}"
 }
 
 task generateJavadoc(type: Javadoc) {

@@ -565,6 +565,8 @@ public class Leanplum {
   static synchronized void start(final Context context, final String userId,
       final Map<String, ?> attributes, StartCallback response, final Boolean isBackground) {
     try {
+      MigrationManager.verifyCleverTapVersion();
+
       boolean appIdNotSet = TextUtils.isEmpty(APIConfig.getInstance().appId());
       if (appIdNotSet) {
         loadApiConfigFromResources();
