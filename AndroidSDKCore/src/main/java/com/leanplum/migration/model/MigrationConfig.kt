@@ -56,6 +56,9 @@ object MigrationConfig {
   var trackGooglePlayPurchases = true
     private set
 
+  @JvmStatic
+  var appId: String? by StringPreferenceNullable(key = "app_id")
+
   fun update(data: ResponseData) {
     state = data.state
     hash = data.hash

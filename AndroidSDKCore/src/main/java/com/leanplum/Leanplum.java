@@ -64,6 +64,7 @@ import com.leanplum.internal.Util.DeviceIdInfo;
 import com.leanplum.internal.VarCache;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.migration.MigrationManager;
+import com.leanplum.migration.model.MigrationConfig;
 import com.leanplum.models.GeofenceEventType;
 import com.leanplum.utils.BuildUtil;
 import com.leanplum.utils.SharedPreferencesUtil;
@@ -237,6 +238,7 @@ public class Leanplum {
 
     Constants.isDevelopmentModeEnabled = true;
     APIConfig.getInstance().setAppId(appId, accessKey);
+    MigrationConfig.setAppId(appId);
   }
 
   /**
@@ -258,6 +260,7 @@ public class Leanplum {
 
     Constants.isDevelopmentModeEnabled = false;
     APIConfig.getInstance().setAppId(appId, accessKey);
+    MigrationConfig.setAppId(appId);
   }
 
   /**

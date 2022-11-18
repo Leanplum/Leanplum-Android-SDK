@@ -21,11 +21,15 @@
 
 package com.leanplum.migration.wrapper
 
+import android.content.Context
 import com.leanplum.Leanplum
 import com.leanplum.callbacks.CleverTapInstanceCallback
+import com.leanplum.internal.AESCrypt
+import com.leanplum.internal.Constants
 import com.leanplum.internal.LeanplumInternal
 import com.leanplum.internal.Log
 import com.leanplum.migration.model.MigrationConfig
+import com.leanplum.utils.getLeanplumPrefs
 import kotlin.system.measureTimeMillis
 
 internal object WrapperFactory {
@@ -38,16 +42,20 @@ internal object WrapperFactory {
       return NullWrapper
     }
 
-    if (!LeanplumInternal.hasCalledStart()) {
-      // giving access only to CT static methods, because Leanplum state is not fully initialised
-      return StaticMethodsWrapper
+    val context = Leanplum.getContext() ?: return StaticMethodsWrapper
+    val deviceId: String?
+    val userId: String?
+
+    if (LeanplumInternal.hasCalledStart()) {
+      deviceId = Leanplum.getDeviceId()
+      userId = Leanplum.getUserId()
+    } else {
+      val profile = getDeviceAndUserFromPrefs(context)
+      deviceId = profile.first
+      userId = profile.second
     }
 
-    val context = Leanplum.getContext()
-    val deviceId = Leanplum.getDeviceId()
-    val userId = Leanplum.getUserId()
-    if (context == null || deviceId == null) {
-      // giving access only to CT static methods, because Leanplum state is not fully initialised
+    if (deviceId == null) {
       return StaticMethodsWrapper
     }
 
@@ -57,6 +65,18 @@ internal object WrapperFactory {
       }
       Log.d("Wrapper: launch took $timeToLaunch millis")
     }
+  }
+
+  private fun getDeviceAndUserFromPrefs(context: Context): Pair<String?, String?> {
+    val appId = MigrationConfig.appId ?: return Pair(null, null)
+
+    val sharedPrefs = context.getLeanplumPrefs()
+    val aesCrypt = AESCrypt(appId, null)
+
+    val deviceId = aesCrypt.decodePreference(sharedPrefs, Constants.Params.DEVICE_ID, null)
+    val userId = aesCrypt.decodePreference(sharedPrefs, Constants.Params.USER_ID, null)
+
+    return Pair(deviceId, userId)
   }
 
 }
