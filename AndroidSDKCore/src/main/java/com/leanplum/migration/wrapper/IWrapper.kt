@@ -36,9 +36,11 @@ interface IWrapper {
 
   val miPushHandler: MiPushMigrationHandler? get() = null
 
-  fun launch(context: Context, callback: CleverTapInstanceCallback?) = Unit
+  fun launch(context: Context, callbacks: List<CleverTapInstanceCallback>) = Unit
 
-  fun setInstanceCallback(callback: CleverTapInstanceCallback?) = Unit
+  fun addInstanceCallback(callback: CleverTapInstanceCallback) = Unit
+
+  fun removeInstanceCallback(callback: CleverTapInstanceCallback) = Unit
 
   fun setUserId(userId: String?) = Unit
 

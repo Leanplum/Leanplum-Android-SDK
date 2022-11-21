@@ -27,7 +27,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.clevertap.android.sdk.CleverTapAPI;
 import com.leanplum.ActionContext.ContextualValues;
 import com.leanplum.actions.internal.ActionDefinition;
 import com.leanplum.actions.internal.ActionManagerDefinitionKt;
@@ -2401,12 +2400,23 @@ public class Leanplum {
   }
 
   /**
-   * Sets callback object to be notified when CleverTapAPI instance is created.
+   * Adds a callback object to be notified when CleverTapAPI instance is created.
    * Use this callback to initialise any CleverTap state.
    *
-   * @param callback Null value will remove the callback.
+   * Remove callback with {@link #removeCleverTapInstanceCallback(CleverTapInstanceCallback)}.
+   *
+   * @param callback Your callback instance.
    */
-  public static void onCleverTapInstanceInitialized(@Nullable CleverTapInstanceCallback callback) {
-    MigrationManager.setCleverTapInstanceCallback(callback);
+  public static void addCleverTapInstanceCallback(@NonNull CleverTapInstanceCallback callback) {
+    MigrationManager.addCleverTapInstanceCallback(callback);
+  }
+
+  /**
+   * Removes the callback for the CleverTap instance.
+   *
+   * @param callback Callback to remove.
+   */
+  public static void removeCleverTapInstanceCallback(@NonNull CleverTapInstanceCallback callback) {
+    MigrationManager.removeCleverTapInstanceCallback(callback);
   }
 }

@@ -42,12 +42,25 @@ object MigrationManager {
     @Synchronized get
     private set
 
+  /**
+   * List is kept the same as the one in IWrapper instance, because if wrapper state is changed it
+   * would still continue to work.
+   */
+  private val instanceCallbackList: MutableList<CleverTapInstanceCallback> = mutableListOf()
+
   @JvmStatic
-  var cleverTapInstanceCallback: CleverTapInstanceCallback? = null
-    set(value) {
-      field = value
-      wrapper.setInstanceCallback(value)
-    }
+  @Synchronized
+  fun addCleverTapInstanceCallback(callback: CleverTapInstanceCallback) {
+    instanceCallbackList.add(callback)
+    wrapper.addInstanceCallback(callback)
+  }
+
+  @JvmStatic
+  @Synchronized
+  fun removeCleverTapInstanceCallback(callback: CleverTapInstanceCallback) {
+    instanceCallbackList.remove(callback)
+    wrapper.removeInstanceCallback(callback)
+  }
 
   @JvmStatic
   @Synchronized
@@ -60,7 +73,7 @@ object MigrationManager {
     if (getState().useCleverTap()
       && (wrapper == NullWrapper || wrapper == StaticMethodsWrapper)
     ) {
-      wrapper = WrapperFactory.createWrapper(cleverTapInstanceCallback)
+      wrapper = WrapperFactory.createWrapper(instanceCallbackList)
     } else if (wrapper != NullWrapper && !getState().useCleverTap()) {
       wrapper = NullWrapper
     }

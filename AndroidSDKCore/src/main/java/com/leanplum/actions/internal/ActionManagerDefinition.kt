@@ -107,8 +107,9 @@ private fun areActionDefinitionsEqual(a: Map<String, Any?>?, b: Map<String, Any?
     if (value == null || b[key] == null) {
       return false
     }
-    val aItem = value as Map<String, Any>
-    val bItem = b[key] as Map<String, Any>
+
+    val aItem = value as Map<*, *>
+    val bItem = b[key] as Map<*, *>
 
     val aKind = aItem["kind"]
     val aValues = aItem["values"]

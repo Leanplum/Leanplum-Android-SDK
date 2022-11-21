@@ -53,13 +53,13 @@ internal class CTWrapper(
   override val miPushHandler: MiPushMigrationHandler = MiPushMigrationHandler()
 
   private var cleverTapInstance: CleverTapAPI? = null
-  private var instanceCallback: CleverTapInstanceCallback? = null
+  private var instanceCallbackList: MutableList<CleverTapInstanceCallback> = mutableListOf()
 
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
   private var firstTimeStart = identityManager.isFirstTimeStart()
 
-  override fun launch(context: Context, callback: CleverTapInstanceCallback?) {
-    instanceCallback = callback
+  override fun launch(context: Context, callbacks: List<CleverTapInstanceCallback>) {
+    instanceCallbackList.addAll(callbacks)
 
     val lpLevel = Log.getLogLevel()
     val ctLevel = MigrationConstants.mapLogLevel(lpLevel).intValue()
@@ -97,21 +97,28 @@ internal class CTWrapper(
       // Send tokens in same session, because often a restart is needed for CT SDK to get them
       sendPushTokens(context)
     }
-    triggerInstanceCallback()
+    triggerInstanceCallbacks()
   }
 
-  private fun triggerInstanceCallback() {
+  private fun triggerInstanceCallbacks() {
     cleverTapInstance?.also { instance ->
-      instanceCallback?.apply {
-        Log.d("Wrapper: instance callback will be called")
-        onInstance(instance)
+      Log.d("Wrapper: notifying ${instanceCallbackList.size} instance callbacks")
+      instanceCallbackList.forEach {
+        it.onInstance(instance)
       }
     }
   }
 
-  override fun setInstanceCallback(callback: CleverTapInstanceCallback?) {
-    instanceCallback = callback
-    triggerInstanceCallback()
+  override fun addInstanceCallback(callback: CleverTapInstanceCallback) {
+    instanceCallbackList.add(callback)
+    cleverTapInstance?.also { instance ->
+      Log.d("Wrapper: notifying new instance callback")
+      callback.onInstance(instance)
+    }
+  }
+
+  override fun removeInstanceCallback(callback: CleverTapInstanceCallback) {
+    instanceCallbackList.remove(callback)
   }
 
   private fun sendPushTokens(context: Context) {
