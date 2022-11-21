@@ -34,7 +34,7 @@ import kotlin.system.measureTimeMillis
 
 internal object WrapperFactory {
 
-  fun createWrapper(callback: CleverTapInstanceCallback?): IWrapper {
+  fun createWrapper(callbacks: List<CleverTapInstanceCallback>): IWrapper {
     val account = MigrationConfig.accountId
     val token = MigrationConfig.accountToken
     val region = MigrationConfig.accountRegion
@@ -61,7 +61,7 @@ internal object WrapperFactory {
 
     return CTWrapper(account, token, region, deviceId, userId).apply {
       val timeToLaunch = measureTimeMillis {
-        launch(context, callback)
+        launch(context, callbacks)
       }
       Log.d("Wrapper: launch took $timeToLaunch millis")
     }
