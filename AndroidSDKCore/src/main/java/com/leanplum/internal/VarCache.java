@@ -659,7 +659,7 @@ public class VarCache {
     return sendContentIfChanged(false, true);
   }
 
-  private static boolean sendContentIfChanged(boolean variables, boolean actions) {
+  public static boolean sendContentIfChanged(boolean variables, boolean actions) {
     boolean changed = false;
     if (variables && devModeValuesFromServer != null
         && !valuesFromClient.equals(devModeValuesFromServer)) {
