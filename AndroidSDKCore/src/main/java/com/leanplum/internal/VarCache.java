@@ -577,7 +577,7 @@ public class VarCache {
         Map<String, Object> actionArgs = CollectionUtil.uncheckedCast(messageConfig.get(Constants
             .Keys.VARS));
         Map<String, Object> actionDefinitions =
-            ActionManagerDefinitionKt.getActionDefinitionMaps(ActionManager.getInstance());
+            ActionManager.getInstance().getDefinitions().getActionDefinitionMaps();
         Map<String, Object> defaultArgs = Util.multiIndex(actionDefinitions,
             newConfig.get(Constants.Params.ACTION), "values");
         Map<String, Object> vars = CollectionUtil.uncheckedCast(mergeHelper(defaultArgs,
@@ -666,7 +666,7 @@ public class VarCache {
       changed = true;
     }
     Map<String, Object> actionDefinitions =
-        ActionManagerDefinitionKt.getActionDefinitionMaps(ActionManager.getInstance());
+        ActionManager.getInstance().getDefinitions().getActionDefinitionMaps();
 
     boolean areLocalAndServerDefinitionsEqual =
         ActionManagerDefinitionKt.areLocalAndServerDefinitionsEqual(ActionManager.getInstance());
@@ -901,7 +901,7 @@ public class VarCache {
     fileStreams.clear();
     valuesFromClient.clear();
     defaultKinds.clear();
-    ActionManager.getInstance().getDefinitions().getActionDefinitions().clear();
+    ActionManager.getInstance().getDefinitions().clear();
     diffs.clear();
     messageDiffs.clear();
     regions.clear();

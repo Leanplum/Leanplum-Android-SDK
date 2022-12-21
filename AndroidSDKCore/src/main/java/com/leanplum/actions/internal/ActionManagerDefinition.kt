@@ -64,8 +64,33 @@ data class Definitions(
   val actionDefinitions: MutableList<ActionDefinition> = mutableListOf(),
   var devModeActionDefinitionsFromServer: Map<String, Any?>? = null
 ) {
+  @Synchronized
   fun findDefinition(definitionName: String?): ActionDefinition? {
     return actionDefinitions.firstOrNull { it.name == definitionName }
+  }
+
+  @Synchronized
+  fun addDefinition(definition: ActionDefinition) {
+    val idx = actionDefinitions.indexOfFirst { it.name == definition.name }
+    if (idx >= 0) {
+      actionDefinitions[idx] = definition
+    } else {
+      actionDefinitions.add(definition)
+    }
+  }
+
+  @Synchronized
+  fun getActionDefinitionMaps(): Map<String, Any?> {
+    val result: MutableMap<String, Map<String, Any?>> = mutableMapOf()
+    actionDefinitions.forEach {
+      result[it.name] = it.definitionMap
+    }
+    return result
+  }
+
+  @Synchronized
+  fun clear() {
+    actionDefinitions.clear();
   }
 }
 
@@ -74,19 +99,8 @@ fun ActionManager.getActionDefinitionMap(actionName: String?): Map<String, Any?>
   return defMap
 }
 
-fun ActionManager.getActionDefinitionMaps(): Map<String, Any?> {
-  val result: MutableMap<String, Map<String, Any?>> = mutableMapOf()
-  definitions.actionDefinitions.forEach {
-    result.put(it.name, it.definitionMap)
-  }
-  return result
-}
-
 fun ActionManager.defineAction(definition: ActionDefinition) {
-  with (definitions.actionDefinitions) {
-    firstOrNull { it.name == definition.name }?.also { remove(it) }
-    add(definition)
-  }
+  definitions.addDefinition(definition)
 }
 
 fun ActionManager.setDevModeActionDefinitionsFromServer(serverDefs: Map<String, Any?>?) {
@@ -94,7 +108,7 @@ fun ActionManager.setDevModeActionDefinitionsFromServer(serverDefs: Map<String, 
 }
 
 fun ActionManager.areLocalAndServerDefinitionsEqual(): Boolean {
-  val localDefinitions = getActionDefinitionMaps()
+  val localDefinitions = definitions.getActionDefinitionMaps()
   val serverDefinitions = definitions.devModeActionDefinitionsFromServer
   return areActionDefinitionsEqual(localDefinitions, serverDefinitions)
 }

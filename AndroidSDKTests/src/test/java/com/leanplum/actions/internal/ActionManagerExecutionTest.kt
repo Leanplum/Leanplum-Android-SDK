@@ -41,7 +41,7 @@ class ActionManagerExecutionTest : AbstractTest() {
     ActionManager.getInstance().currentAction = null
     ActionManager.getInstance().messageDisplayController = null
     ActionManager.getInstance().messageDisplayListener = null
-    ActionManager.getInstance().definitions.actionDefinitions.clear()
+    ActionManager.getInstance().definitions.clear()
     ActionManager.getInstance().scheduler = ActionScheduler()
     LeanplumActions.setDismissOnPushOpened(true)
   }
