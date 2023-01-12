@@ -71,11 +71,6 @@ public class RichHtmlController extends BaseController {
   }
 
   @Override
-  boolean hasDismissButton() {
-    return false;
-  }
-
-  @Override
   boolean isFullscreen() {
     return richOptions.isFullScreen();
   }
@@ -332,7 +327,7 @@ public class RichHtmlController extends BaseController {
     if (Build.VERSION.SDK_INT >= 17) {
       webViewSettings.setMediaPlaybackRequiresUserGesture(false);
     }
-    webViewSettings.setAppCacheEnabled(true);
+    webViewSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
     webViewSettings.setAllowFileAccess(true);
     webViewSettings.setJavaScriptEnabled(true);
     webViewSettings.setDomStorageEnabled(true);

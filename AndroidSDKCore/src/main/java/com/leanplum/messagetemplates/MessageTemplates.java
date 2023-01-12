@@ -34,6 +34,8 @@ import com.leanplum.internal.ActionManager;
 import com.leanplum.messagetemplates.actions.AlertMessage;
 import com.leanplum.messagetemplates.actions.CenterPopupMessage;
 import com.leanplum.messagetemplates.actions.InterstitialMessage;
+import com.leanplum.messagetemplates.actions.PushPrePermission;
+import com.leanplum.messagetemplates.actions.RegisterForPush;
 import com.leanplum.messagetemplates.actions.RichHtmlMessage;
 import com.leanplum.messagetemplates.actions.WebInterstitialMessage;
 import com.leanplum.messagetemplates.actions.ConfirmMessage;
@@ -136,5 +138,7 @@ public class MessageTemplates {
     registerTemplate(new InterstitialMessage(), context);
     registerTemplate(new WebInterstitialMessage(), context);
     registerTemplate(new RichHtmlMessage(), context);
+    registerAction(new RegisterForPush(), context);
+    registerTemplate(new PushPrePermission(), context);
   }
 }

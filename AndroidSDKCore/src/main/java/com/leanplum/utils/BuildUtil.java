@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, Leanplum, Inc. All rights reserved.
+ * Copyright 2023, Leanplum, Inc. All rights reserved.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +23,7 @@ package com.leanplum.utils;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Build;
+import androidx.annotation.NonNull;
 
 /**
  * Utilities related to Build Version and target SDK.
@@ -40,6 +41,10 @@ public class BuildUtil {
    */
   public static boolean isNotificationChannelSupported(Context context) {
     return Build.VERSION.SDK_INT >= 26 && getTargetSdkVersion(context) >= 26;
+  }
+
+  public static boolean isPushPermissionSupported(@NonNull Context context) {
+    return Build.VERSION.SDK_INT >= 33 && getTargetSdkVersion(context) >= 33;
   }
 
   /**

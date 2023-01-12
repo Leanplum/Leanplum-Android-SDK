@@ -29,6 +29,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.VisibleForTesting;
@@ -48,13 +49,9 @@ abstract class AbstractPopupController extends BaseController {
   protected AbstractPopupController(Activity activity, BaseMessageOptions options) {
     super(activity);
     this.options = options;
+    this.hasDismissButton = options.hasDismissButton();
 
     init();
-  }
-
-  @Override
-  protected boolean hasDismissButton() {
-    return true;
   }
 
   @VisibleForTesting
@@ -75,14 +72,28 @@ abstract class AbstractPopupController extends BaseController {
     View title = createTitleView(activity);
     parent.addView(title);
 
-    View button = createAcceptButton(activity);
-    parent.addView(button);
+    TextView acceptButton;
+    View buttonContainer = null;
+    if (options.hasCancelButtonNextToAccept()) {
+      acceptButton = createAcceptButton(activity);
+      TextView cancelButton = createCancelButton(activity);
+      buttonContainer = createButtonContainer(activity, cancelButton, acceptButton);
+      parent.addView(buttonContainer);
+    } else {
+      acceptButton = createAcceptButton(activity);
+      parent.addView(acceptButton);
+    }
 
     View message = createMessageView(activity);
     ((RelativeLayout.LayoutParams) message.getLayoutParams())
         .addRule(RelativeLayout.BELOW, title.getId());
-    ((RelativeLayout.LayoutParams) message.getLayoutParams())
-        .addRule(RelativeLayout.ABOVE, button.getId());
+    if (options.hasCancelButtonNextToAccept()) {
+      ((RelativeLayout.LayoutParams) message.getLayoutParams())
+          .addRule(RelativeLayout.ABOVE, buttonContainer.getId());
+    } else {
+      ((RelativeLayout.LayoutParams) message.getLayoutParams())
+          .addRule(RelativeLayout.ABOVE, acceptButton.getId());
+    }
     parent.addView(message);
   }
 
@@ -123,6 +134,31 @@ abstract class AbstractPopupController extends BaseController {
     return view;
   }
 
+  private LinearLayout createButtonContainer(Context context, TextView buttonLeft, TextView buttonRight) {
+    LinearLayout ll = new LinearLayout(context);
+    ll.setId(R.id.button_container);
+    ll.setOrientation(LinearLayout.HORIZONTAL);
+    ll.setWeightSum(1f);
+    RelativeLayout.LayoutParams layoutParams =
+        new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+    ll.setLayoutParams(layoutParams);
+
+    LinearLayout.LayoutParams lpLeft =
+        new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 0.5f);
+    buttonLeft.setLayoutParams(lpLeft);
+    buttonLeft.setGravity(Gravity.CENTER_HORIZONTAL);
+
+    LinearLayout.LayoutParams lpRight =
+        new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 0.5f);
+    buttonRight.setLayoutParams(lpRight);
+    buttonRight.setGravity(Gravity.CENTER_HORIZONTAL);
+
+    ll.addView(buttonLeft);
+    ll.addView(buttonRight);
+    return ll;
+  }
+
   private TextView createAcceptButton(Context context) {
     TextView view = new TextView(context);
     view.setId(R.id.accept_button);
@@ -145,6 +181,28 @@ abstract class AbstractPopupController extends BaseController {
     view.setOnClickListener(clickedView -> {
       if (!isClosing) {
         options.accept();
+        cancel();
+      }
+    });
+    return view;
+  }
+
+  private TextView createCancelButton(Context context) {
+    TextView view = new TextView(context);
+    view.setId(R.id.cancel_button);
+
+    view.setPadding(SizeUtil.dp20, SizeUtil.dp5, SizeUtil.dp20, SizeUtil.dp5);
+    view.setText(options.getCancelButtonText());
+    view.setTextColor(options.getCancelButtonTextColor());
+    view.setTypeface(null, Typeface.BOLD);
+
+    BitmapUtil.stateBackgroundDarkerByPercentage(view,
+        options.getCancelButtonBgColor(), 30);
+
+    view.setTextSize(TypedValue.COMPLEX_UNIT_SP, SizeUtil.textSize0_1);
+    view.setOnClickListener(clickedView -> {
+      if (!isClosing) {
+        options.cancel();
         cancel();
       }
     });
