@@ -3,5 +3,7 @@
     <item name="container_view" type="id"/>
     <item name="close_button" type="id"/>
     <item name="title_view" type="id"/>
+    <item name="button_container" type="id"/>
     <item name="accept_button" type="id"/>
+    <item name="cancel_button" type="id"/>
 </resources>

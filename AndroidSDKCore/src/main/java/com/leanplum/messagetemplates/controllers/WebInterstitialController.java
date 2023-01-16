@@ -47,13 +47,9 @@ public class WebInterstitialController extends BaseController {
   public WebInterstitialController(Activity activity, @NonNull WebInterstitialOptions options) {
     super(activity);
     this.webOptions = options;
+    this.hasDismissButton = webOptions.hasDismissButton();
 
     init();
-  }
-
-  @Override
-  protected boolean hasDismissButton() {
-    return webOptions.hasDismissButton();
   }
 
   @Override

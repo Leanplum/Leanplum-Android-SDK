@@ -15,7 +15,7 @@ public class MessageTemplateConstants {
     public static final String CANCEL_ACTION = "Cancel action";
     public static final String DISMISS_ACTION = "Dismiss action";
 
-    // Center popup/interstitial arguments.
+    // Center popup / interstitial / Push Pre-Permission arguments.
     public static final String TITLE_TEXT = "Title.Text";
     public static final String TITLE_COLOR = "Title.Color";
     public static final String MESSAGE_TEXT = "Message.Text";
@@ -23,6 +23,9 @@ public class MessageTemplateConstants {
     public static final String ACCEPT_BUTTON_TEXT = "Accept button.Text";
     public static final String ACCEPT_BUTTON_BACKGROUND_COLOR = "Accept button.Background color";
     public static final String ACCEPT_BUTTON_TEXT_COLOR = "Accept button.Text color";
+    public static final String CANCEL_BUTTON_TEXT = "Cancel button.Text";
+    public static final String CANCEL_BUTTON_BACKGROUND_COLOR = "Cancel button.Background color";
+    public static final String CANCEL_BUTTON_TEXT_COLOR = "Cancel button.Text color";
     public static final String BACKGROUND_IMAGE = "Background image";
     public static final String BACKGROUND_COLOR = "Background color";
     public static final String LAYOUT_WIDTH = "Layout.Width";
@@ -51,9 +54,11 @@ public class MessageTemplateConstants {
     public static final String CONFIRM_MESSAGE = "Confirmation message goes here.";
     public static final String POPUP_MESSAGE = "Popup message goes here.";
     public static final String INTERSTITIAL_MESSAGE = "Interstitial message goes here.";
+    public static final String PUSH_PRE_PERMISSION_MESSAGE = "Tap OK to receive important notifications from our app.";
     public static final String OK_TEXT = "OK";
     public static final String YES_TEXT = "Yes";
     public static final String NO_TEXT = "No";
+    public static final String MAYBE_LATER = "Maybe Later";
     public static final int CENTER_POPUP_WIDTH = 300;
     public static final int CENTER_POPUP_HEIGHT = 250;
     public static final int DEFAULT_HTML_HEIGHT = 0;

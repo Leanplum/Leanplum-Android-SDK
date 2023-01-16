@@ -52,6 +52,9 @@ public abstract class BaseMessageOptions {
   private String acceptButtonText;
   private int acceptButtonBackgroundColor;
   private int acceptButtonTextColor;
+  private String cancelButtonText;
+  private int cancelButtonBgColor;
+  private int cancelButtonTextColor;
 
   protected BaseMessageOptions(ActionContext context) {
     this.context = context;
@@ -73,6 +76,11 @@ public abstract class BaseMessageOptions {
         Args.ACCEPT_BUTTON_BACKGROUND_COLOR).intValue());
     setAcceptButtonTextColor(context.numberNamed(
         Args.ACCEPT_BUTTON_TEXT_COLOR).intValue());
+
+    // optional, used in Push Pre-Permission
+    cancelButtonText = context.stringNamed(Args.CANCEL_BUTTON_TEXT);
+    cancelButtonBgColor = context.numberNamed(Args.CANCEL_BUTTON_BACKGROUND_COLOR).intValue();
+    cancelButtonTextColor = context.numberNamed(Args.CANCEL_BUTTON_TEXT_COLOR).intValue();
   }
 
   public int getBackgroundColor() {
@@ -151,12 +159,36 @@ public abstract class BaseMessageOptions {
     this.acceptButtonTextColor = color;
   }
 
+  public String getCancelButtonText() {
+    return cancelButtonText;
+  }
+
+  public int getCancelButtonBgColor() {
+    return cancelButtonBgColor;
+  }
+
+  public int getCancelButtonTextColor() {
+    return cancelButtonTextColor;
+  }
+
+  public boolean hasCancelButtonNextToAccept() {
+    return cancelButtonText != null;
+  }
+
+  public void cancel() {
+    context.runTrackedActionNamed(Args.CANCEL_ACTION);
+  }
+
   public void accept() {
     context.runTrackedActionNamed(Args.ACCEPT_ACTION);
   }
 
   public void dismiss() {
     context.runActionNamed(Args.DISMISS_ACTION);
+  }
+
+  public boolean hasDismissButton() {
+    return true;
   }
 
   public static ActionArgs toArgs(Context currentContext) {
@@ -171,5 +203,24 @@ public abstract class BaseMessageOptions {
         .withColor(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, Color.WHITE)
         .withColor(Args.ACCEPT_BUTTON_TEXT_COLOR, Color.argb(255, 0, 122, 255))
         .withAction(Args.ACCEPT_ACTION, null);
+  }
+
+  static ActionArgs createPushPrePermissionArgs(Context context) {
+    return new ActionArgs()
+        .with(Args.TITLE_TEXT, Util.getApplicationName(context))
+        .withColor(Args.TITLE_COLOR, Color.BLACK)
+        .with(Args.MESSAGE_TEXT, Values.PUSH_PRE_PERMISSION_MESSAGE) // replaced Values.POPUP_MESSAGE
+        .withColor(Args.MESSAGE_COLOR, Color.BLACK)
+        .withFile(Args.BACKGROUND_IMAGE, null)
+        .withColor(Args.BACKGROUND_COLOR, Color.WHITE)
+        .with(Args.ACCEPT_BUTTON_TEXT, Values.OK_TEXT)
+        .withColor(Args.ACCEPT_BUTTON_BACKGROUND_COLOR, Color.WHITE)
+        .withColor(Args.ACCEPT_BUTTON_TEXT_COLOR, Color.argb(255, 0, 122, 255))
+        // .withAction(Args.ACCEPT_ACTION, null) - accept action not available, will call native prompt
+        // new arguments
+        .withAction(Args.CANCEL_ACTION, null)
+        .with(Args.CANCEL_BUTTON_TEXT, Values.MAYBE_LATER)
+        .with(Args.CANCEL_BUTTON_BACKGROUND_COLOR, Color.WHITE)
+        .with(Args.CANCEL_BUTTON_TEXT_COLOR, Color.argb(255, 127, 127, 127)); // light grey
   }
 }

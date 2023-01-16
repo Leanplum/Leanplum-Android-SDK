@@ -50,6 +50,8 @@ abstract class BaseController extends Dialog {
 
   protected boolean isClosing = false;
 
+  protected boolean hasDismissButton = false;
+
   protected BaseController(Activity activity) {
     super(activity, ViewUtils.getThemeId(activity));
     this.activity = activity;
@@ -62,7 +64,7 @@ abstract class BaseController extends Dialog {
     RelativeLayout messageView = createMessageView();
     contentView.addView(messageView);
 
-    if (hasDismissButton()) {
+    if (hasDismissButton) {
       CloseButton closeButton = createCloseButton(messageView);
       contentView.addView(closeButton);
     }
@@ -107,8 +109,6 @@ abstract class BaseController extends Dialog {
    * Creates and adds all message specific child views.
    */
   abstract void addMessageChildViews(RelativeLayout parent);
-
-  abstract boolean hasDismissButton();
 
   abstract boolean isFullscreen();
 
