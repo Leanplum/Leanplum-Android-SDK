@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId "com.leanplum.tests"
         targetSdkVersion COMPILE_SDK_VERSION
-        minSdkVersion MIN_SDK_VERSION
+        minSdkVersion 16 // Using 16 instead of MIN_SDK_VERSION because Robolectric fails otherwise. There is a manifest entry overriding libraries' minSDK.
         versionCode 1
         versionName "1.0"
 

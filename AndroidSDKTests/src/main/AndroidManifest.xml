@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.leanplum.tests" xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest package="com.leanplum.tests"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-sdk android:minSdkVersion="16" tools:overrideLibrary="
+    com.leanplum.core,
+    com.leanplum.push,
+    com.leanplum.fcm,
+    com.leanplum.hms,
+    com.leanplum.mipush,
+    com.leanplum.location,
+    com.clevertap.android.sdk" />
 
     <application android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
