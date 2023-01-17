@@ -53,7 +53,7 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("unused")
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
+    sdk = 19,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

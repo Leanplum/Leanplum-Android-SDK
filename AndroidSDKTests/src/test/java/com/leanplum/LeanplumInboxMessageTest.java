@@ -46,7 +46,7 @@ import static org.mockito.Mockito.verify;
  * @author Sayaan Saha
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 16)
+@Config(sdk = 19)
 public class LeanplumInboxMessageTest {
 
   private LeanplumInboxMessage createMessageTestData(

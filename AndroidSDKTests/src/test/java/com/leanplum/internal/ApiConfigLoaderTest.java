@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16
+    sdk = 19
 )
 public class ApiConfigLoaderTest {
   private String appId;

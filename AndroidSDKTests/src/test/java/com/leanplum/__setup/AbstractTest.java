@@ -83,7 +83,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
+    sdk = 19,
     application = LeanplumTestApp.class,
     packageName = "com.leanplum.tests",
     shadows = {
