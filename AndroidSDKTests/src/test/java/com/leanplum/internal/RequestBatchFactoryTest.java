@@ -48,7 +48,7 @@ import org.robolectric.util.ReflectionHelpers;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
+    sdk = 19,
     application = LeanplumTestApp.class,
     shadows = {
         ShadowLooper.class,
@@ -264,11 +264,15 @@ public class RequestBatchFactoryTest {
     LeanplumEventDataManagerTest.setDatabaseToNull();
   }
 
-  // Given a list of 5000 that generate OOM exceptions
+  // Given a list of 10000 that generate OOM exceptions
   // we want to generate the requests to send
   // The list should try and get a smaller fraction of the available requests
   @Test
   public void testJsonEncodeUnsentRequestsWithExceptionLargeNumbers() throws Exception {
+    final int maxRequests = 10000;
+    final int halfMaxRequests = maxRequests / 2;
+    final int quarterMaxRequests = maxRequests / 4;
+
     RequestBatch requestBatch;
     // Prepare testable objects and method.
     RequestSender requestSender = new RequestSender();
@@ -277,35 +281,35 @@ public class RequestBatchFactoryTest {
 
     RequestBatchFactory batchFactory = spy(new RequestBatchFactory());
 
-    for (int i = 0; i < 5000; i++) { // remaining requests to make up 5000
+    for (int i = 0; i < maxRequests; i++) { // remaining requests to make up maxRequests
       Request startRequest =
           new Request("POST", RequestBuilder.ACTION_START, RequestType.DEFAULT, null);
       requestSender.send(startRequest);
     }
 
-    // Expectation: 5000 requests returned.
+    // Expectation: maxRequests returned.
     requestBatch = batchFactory.createNextBatch(1.0);
 
     assertNotNull(requestBatch.requests);
     assertNotNull(requestBatch.requestsToSend);
     assertNotNull(requestBatch.jsonEncoded);
-    assertEquals(5000, requestBatch.requests.size());
+    assertEquals(maxRequests, requestBatch.requests.size());
 
-    // Throw OOM on 5000 requests
-    // Expectation: 2500 requests returned.
+    // Throw OOM on maxRequests
+    // Expectation: halfMaxRequests returned.
     when(batchFactory.getUnsentRequests(1.0)).thenThrow(OutOfMemoryError.class);
     requestBatch = batchFactory.createNextBatch(1.0);
 
     assertNotNull(requestBatch.requests);
     assertNotNull(requestBatch.requestsToSend);
     assertNotNull(requestBatch.jsonEncoded);
-    assertEquals(2500, requestBatch.requests.size());
+    assertEquals(halfMaxRequests, requestBatch.requests.size());
 
-    // Throw OOM on 2500, 5000 requests
-    // Expectation: 1250 requests returned.
+    // Throw OOM on halfMaxRequests, maxRequests
+    // Expectation: quarterMaxRequests returned.
     when(batchFactory.getUnsentRequests(0.5)).thenThrow(OutOfMemoryError.class);
     requestBatch = batchFactory.createNextBatch(1.0);
-    assertEquals(1250, requestBatch.requests.size());
+    assertEquals(quarterMaxRequests, requestBatch.requests.size());
 
     // Throw OOM on serializing any finite number of requests (extreme condition)
     // Expectation: Determine only 0 requests to be sent

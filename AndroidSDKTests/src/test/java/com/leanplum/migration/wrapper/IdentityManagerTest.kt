@@ -12,7 +12,7 @@ import org.robolectric.annotation.Config
 import kotlin.properties.Delegates
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [16])
+@Config(sdk = [19])
 @PrepareForTest(
   Log::class,
 )

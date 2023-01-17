@@ -47,7 +47,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
+    sdk = 19,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

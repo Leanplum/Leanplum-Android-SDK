@@ -50,7 +50,7 @@ import java.util.concurrent.Semaphore;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-        sdk = 16,
+        sdk = 19,
         application = LeanplumTestApp.class,
         shadows = {
                 ShadowLooper.class,

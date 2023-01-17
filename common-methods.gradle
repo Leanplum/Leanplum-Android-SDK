@@ -2,8 +2,8 @@
 ext {
     COMPILE_SDK_VERSION = 33
     APPCOMPAT_LIBRARY_VERSION = '1.2.0'
-    CT_SDK_VERSION = '4.6.6'
-    MIN_SDK_VERSION = 16
+    CT_SDK_VERSION = '4.7.2'
+    MIN_SDK_VERSION = 19 // CT SDK 4.7.2 has minSDK set as 19
     JAVA_VERSION = JavaVersion.VERSION_1_8
 
     LEANPLUM_GROUP_ID = 'com.leanplum'

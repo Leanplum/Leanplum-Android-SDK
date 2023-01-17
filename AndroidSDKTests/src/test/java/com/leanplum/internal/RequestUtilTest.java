@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-        sdk = 16,
+        sdk = 19,
         application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

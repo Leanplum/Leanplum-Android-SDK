@@ -35,7 +35,7 @@ import static org.junit.Assert.assertSame;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16
+    sdk = 19
 )
 public class RequestBuilderTest {
   @Test

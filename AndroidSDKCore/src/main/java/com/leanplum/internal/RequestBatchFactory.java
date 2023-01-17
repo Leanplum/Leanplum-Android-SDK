@@ -21,18 +21,16 @@
 
 package com.leanplum.internal;
 
-import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class RequestBatchFactory {
 
-  static final int MAX_EVENTS_PER_API_CALL = (Build.VERSION.SDK_INT <= 17) ? 5000 : 10000;
+  static final int MAX_EVENTS_PER_API_CALL = 10000;
 
   private final RequestUuidHelper uuidHelper = new RequestUuidHelper();
 

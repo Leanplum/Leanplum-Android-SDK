@@ -91,7 +91,7 @@ import static org.robolectric.Shadows.shadowOf;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
+    sdk = 19,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

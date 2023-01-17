@@ -48,7 +48,7 @@ import static junit.framework.Assert.assertNotNull;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 16,
+    sdk = 19,
     application = LeanplumTestApp.class
 )
 public class LeanplumEventDataManagerTest {
