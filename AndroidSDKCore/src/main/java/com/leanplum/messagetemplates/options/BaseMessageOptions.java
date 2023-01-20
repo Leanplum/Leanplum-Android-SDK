@@ -220,7 +220,7 @@ public abstract class BaseMessageOptions {
         // new arguments
         .withAction(Args.CANCEL_ACTION, null)
         .with(Args.CANCEL_BUTTON_TEXT, Values.MAYBE_LATER)
-        .with(Args.CANCEL_BUTTON_BACKGROUND_COLOR, Color.WHITE)
-        .with(Args.CANCEL_BUTTON_TEXT_COLOR, Color.argb(255, 127, 127, 127)); // light grey
+        .withColor(Args.CANCEL_BUTTON_BACKGROUND_COLOR, Color.WHITE)
+        .withColor(Args.CANCEL_BUTTON_TEXT_COLOR, Color.argb(255, 127, 127, 127)); // light grey
   }
 }
