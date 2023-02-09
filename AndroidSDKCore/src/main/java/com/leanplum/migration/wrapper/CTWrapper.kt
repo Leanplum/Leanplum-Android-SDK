@@ -21,6 +21,7 @@
 
 package com.leanplum.migration.wrapper
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.text.TextUtils
@@ -44,6 +45,7 @@ internal class CTWrapper(
   private val accountId: String,
   private val accountToken: String,
   private val accountRegion: String,
+  private val identityList: List<String>?,
   deviceId: String,
   userId: String?
 ) : IWrapper by StaticMethodsWrapper {
@@ -58,6 +60,7 @@ internal class CTWrapper(
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
   private var firstTimeStart = identityManager.isFirstTimeStart()
 
+  @SuppressLint("WrongConstant")
   override fun launch(context: Context, callbacks: List<CleverTapInstanceCallback>) {
     instanceCallbackList.addAll(callbacks)
 
@@ -72,6 +75,9 @@ internal class CTWrapper(
       enableCustomCleverTapId = true
       debugLevel = ctLevel // set instance log level
       setLogLevel(lpLevel) // set static log level, arg needs to be Leanplum's level
+      identityList?.also { // setting IdentityKeys
+        setIdentityKeys(*it.toTypedArray())
+      }
     }
 
     val cleverTapId = identityManager.cleverTapId()

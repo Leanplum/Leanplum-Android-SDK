@@ -59,7 +59,9 @@ internal object WrapperFactory {
       return StaticMethodsWrapper
     }
 
-    return CTWrapper(account, token, region, deviceId, userId).apply {
+    val identityList = MigrationConfig.identityList
+
+    return CTWrapper(account, token, region, identityList, deviceId, userId).apply {
       val timeToLaunch = measureTimeMillis {
         launch(context, callbacks)
       }

@@ -167,6 +167,7 @@ public class Constants {
     public static final String CT_TOKEN = "token";
     public static final String CT_REGION_CODE = "regionCode";
     public static final String CT_ATTRIBUTE_MAPPINGS = "attributeMappings";
+    public static final String CT_IDENTITY_KEYS = "identityKeys";
     public static final String API_EVENTS_STATE = "events";
   }
 
