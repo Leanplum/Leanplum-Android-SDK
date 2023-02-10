@@ -42,7 +42,11 @@ class ResponseHandler {
    *       "x": "y",
    *       "a": "b"
    *     },
-   *     "token": "..."
+   *     "token": "...",
+   *     "identityKeys": [
+   *       "Identity",
+   *       "Phone"
+   *     ]
    *   },
    *   "sha256": "...",
    *   "success": true,
