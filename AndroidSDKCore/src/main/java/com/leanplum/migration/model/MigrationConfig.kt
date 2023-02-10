@@ -53,6 +53,16 @@ object MigrationConfig {
       return field
     }
 
+  private var identityKeysCsv: String? by StringPreferenceNullable(key = "ct_identity_keys")
+  var identityList: List<String>? = null
+    private set
+    get() {
+      if (field == null) {
+        field = identityKeysCsv?.split(",") ?: listOf("Identity")
+      }
+      return field
+    }
+
   var trackGooglePlayPurchases = true
     private set
 
@@ -67,6 +77,10 @@ object MigrationConfig {
     accountRegion = data.regionCode
     attributeMappings = data.attributeMappings.also {
       attributeMap = null
+    }
+    data.identityKeysCsv?.also { // remove question sign if you want a resettable value from server
+      identityKeysCsv = it
+      identityList = null
     }
   }
 

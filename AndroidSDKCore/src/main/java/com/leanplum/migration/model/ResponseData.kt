@@ -28,4 +28,5 @@ data class ResponseData(
   val token: String? = null,
   val regionCode: String? = null,
   val attributeMappings: String? = null,
+  val identityKeysCsv: String? = null,
 )
