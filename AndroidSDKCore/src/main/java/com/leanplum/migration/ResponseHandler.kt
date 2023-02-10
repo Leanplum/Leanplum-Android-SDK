@@ -82,7 +82,9 @@ class ResponseHandler {
               for (i in 0 until it.length()) {
                 keys += it.optString(i)
               }
-              identityKeysCsv = keys.joinToString(separator = ",")
+              if (keys.isNotEmpty()) {
+                identityKeysCsv = keys.joinToString(separator = ",")
+              }
             }
           }
           ResponseData(state, hash, accountId, token, regionCode, attributeMappings, identityKeysCsv)
