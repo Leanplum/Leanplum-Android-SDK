@@ -183,9 +183,9 @@ public class Parser {
         Log.e("Variable " + variableName + " is an unsupported primitive type.");
       } else if (fieldType.isArray()) {
         Log.e("Variable " + variableName + " should be a List instead of an Array.");
-      } else if (fieldType.isAssignableFrom(List.class)) {
+      } else if (List.class.isAssignableFrom(fieldType)) {
         defineVariable(instance, variableName, field.get(instance), "list", field);
-      } else if (fieldType.isAssignableFrom(Map.class)) {
+      } else if (Map.class.isAssignableFrom(fieldType)) {
         defineVariable(instance, variableName, field.get(instance), "group", field);
       } else {
         Object value = field.get(instance);
