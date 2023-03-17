@@ -58,7 +58,7 @@ public class NetworkOperation extends LeanplumHttpConnection {
       path = attachGetParameters(path, params);
     }
 
-    initConnection(hostName, path, httpMethod, useSSL, timeoutSeconds);
+    initConnection(hostName, path, httpMethod, useSSL, timeoutSeconds, params);
 
     if (RequestBuilder.POST.equals(httpMethod)) {
       attachPostParameters(params);

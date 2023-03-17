@@ -49,7 +49,7 @@ public class UploadOperation extends LeanplumHttpConnection {
       boolean useSSL,
       int timeoutSeconds) throws IOException {
 
-    initConnection(hostName, path, httpMethod, useSSL, timeoutSeconds);
+    initConnection(hostName, path, httpMethod, useSSL, timeoutSeconds, null);
   }
 
   public boolean uploadFiles(

@@ -26,6 +26,7 @@ import androidx.annotation.VisibleForTesting;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.APIConfig;
 import com.leanplum.internal.Constants;
+import com.leanplum.internal.Log;
 import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Util;
 import java.io.BufferedReader;
@@ -35,6 +36,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
@@ -49,13 +51,15 @@ public abstract class LeanplumHttpConnection {
 
   protected HttpURLConnection urlConnection;
 
+  private Map<String, Object> params;
+
   protected void initConnection(
       String hostName,
       String path,
       String httpMethod,
       boolean useSSL,
-      int timeoutSeconds) throws IOException {
-
+      int timeoutSeconds, Map<String, Object> params) throws IOException {
+    this.params = params;
     String fullPath;
     if (path != null && path.startsWith("http")) {
       fullPath = path;
@@ -163,6 +167,8 @@ public abstract class LeanplumHttpConnection {
 
     // If we have a gzipped response, de-compress it first
     if (isGzipCompressed()) {
+      Log.d("Printing gzip in getResponse: ");
+      inputStream = StreamDumpKt.logBytesAndReturnStream(params, inputStream);
       inputStream = new GZIPInputStream(inputStream);
     }
 
@@ -189,11 +195,13 @@ public abstract class LeanplumHttpConnection {
     return false;
   }
 
-  public void saveResponse(OutputStream outputStream) throws IOException {
+  public void saveResponse(OutputStream outputStream) throws IOException { // TODO
     InputStream is = urlConnection.getInputStream();
 
     // If we have a gzipped response, de-compress it first
     if (isGzipCompressed()) {
+      Log.d("Printing gzip in saveResponse: ");
+      is = StreamDumpKt.logBytesAndReturnStream(params, is);
       is = new GZIPInputStream(is);
     }
 
