@@ -117,4 +117,7 @@ object LeanplumActions {
    */
   @JvmStatic
   fun isQueueEnabled() = ActionManager.getInstance().isEnabled
+
+  @JvmStatic
+  var useWorkerThreadForDecisionHandlers = false
 }

@@ -22,7 +22,9 @@
 package com.leanplum.actions.internal
 
 import androidx.annotation.UiThread
+import com.leanplum.ActionContext
 import com.leanplum.Leanplum
+import com.leanplum.actions.LeanplumActions
 import com.leanplum.actions.MessageDisplayChoice
 import com.leanplum.callbacks.VariablesChangedCallback
 import com.leanplum.internal.*
@@ -104,7 +106,9 @@ private fun ActionManager.performActionsImpl() {
 
   // do not continue if we have action running
   if (currentAction != null) {
-    prioritizePushNotificationActions()
+    if (!LeanplumActions.useWorkerThreadForDecisionHandlers) { // disable prioritization with worker thread
+      prioritizePushNotificationActions()
+    }
     return
   }
 
@@ -121,6 +125,15 @@ private fun ActionManager.performActionsImpl() {
     performActions()
     return
   }
+
+  if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+    OperationQueue.sharedInstance().addActionOperation { askUserAndPresentAction(currentContext) }
+  } else {
+    askUserAndPresentAction(currentContext)
+  }
+}
+
+private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext) {
 
   // decide if we are going to display the message
   // by calling delegate and let it decide what we are supposed to do
@@ -162,10 +175,19 @@ private fun ActionManager.performActionsImpl() {
 
   // 3) set dismiss block
   currentContext.setActionDidDismiss {
-    Log.d("[ActionManager]: actionDidDismiss: ${currentContext}.")
-    messageDisplayListener?.onMessageDismissed(currentContext)
-    currentAction = null // stop executing current action
-    performActions()
+    val dismissOperation = {
+      Log.d("[ActionManager]: actionDidDismiss: ${currentContext}.")
+      messageDisplayListener?.onMessageDismissed(currentContext)
+      currentAction = null // stop executing current action
+      performActions()
+    }
+
+    if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+      OperationQueue.sharedInstance().addActionOperation(dismissOperation)
+    } else {
+      dismissOperation.invoke()
+    }
+
   }
 
   // 2) set the action block

@@ -67,7 +67,7 @@ public class ActionManager {
   private final ActionQueue queue = new ActionQueue();
   private final ActionQueue delayedQueue = new ActionQueue();
   private final Definitions definitions = new Definitions();
-  private Action currentAction;
+  private volatile Action currentAction;
   private boolean dismissOnPushOpened = true;
   private boolean continueOnActivityResumed = true;
 
