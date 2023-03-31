@@ -192,8 +192,17 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
 
   // 2) set the action block
   currentContext.setActionDidExecute { actionNamedContext ->
-    Log.d("[ActionManager]: actionDidExecute: ${actionNamedContext}.")
-    messageDisplayListener?.onActionExecuted(actionNamedContext.actionName(), actionNamedContext)
+    val actionExecutedOperation = {
+      Log.d("[ActionManager]: actionDidExecute: ${actionNamedContext}.")
+      messageDisplayListener?.onActionExecuted(actionNamedContext.actionName(), actionNamedContext)
+      Unit
+    }
+
+    if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+      OperationQueue.sharedInstance().addActionOperation(actionExecutedOperation)
+    } else {
+      actionExecutedOperation.invoke()
+    }
   }
 
   // 1) ask to present, return if it's not
