@@ -34,6 +34,7 @@ public class OperationQueue {
     private static OperationQueue instance;
 
     private static final String OPERATION_QUEUE_NAME = "com.leanplum.operation_queue";
+    private static final String ACTION_QUEUE_NAME = "com.leanplum.action_queue";
     private static final int OPERATION_QUEUE_PRIORITY = Process.THREAD_PRIORITY_DEFAULT;
 
     private HandlerThread handlerThread;
@@ -41,6 +42,9 @@ public class OperationQueue {
     private Handler uiHandler = new Handler(Looper.getMainLooper());
 
     private Executor executor = Executors.newCachedThreadPool();
+
+    private Handler actionsHandler;
+    private HandlerThread actionsThread;
 
     public static OperationQueue sharedInstance() {
         if (instance == null) {
@@ -159,6 +163,20 @@ public class OperationQueue {
     public void removeAllOperations() {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    /**
+     * Add operation related to Action Queue. Will execute operations sequentially.
+     */
+    public void addActionOperation(Runnable operation) {
+        if (actionsHandler == null) {
+            actionsThread = new HandlerThread(ACTION_QUEUE_NAME, OPERATION_QUEUE_PRIORITY);
+            actionsThread.start();
+            actionsHandler = new Handler(actionsThread.getLooper());
+        }
+        if (operation != null) {
+            actionsHandler.post(operation);
         }
     }
 }

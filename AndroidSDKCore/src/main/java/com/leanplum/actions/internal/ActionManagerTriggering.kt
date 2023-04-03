@@ -22,17 +22,39 @@
 package com.leanplum.actions.internal
 
 import com.leanplum.ActionContext
+import com.leanplum.actions.LeanplumActions
 import com.leanplum.internal.ActionManager
 import com.leanplum.internal.Log
+import com.leanplum.internal.OperationQueue
 
 fun ActionManager.trigger(
   context: ActionContext,
   priority: Priority = Priority.DEFAULT) {
 
-  trigger(listOf(context), priority)
+  if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+    OperationQueue.sharedInstance().addActionOperation {
+      triggerImpl(listOf(context), priority)
+    }
+  } else {
+    triggerImpl(listOf(context), priority)
+  }
 }
 
 fun ActionManager.trigger(
+  contexts: List<ActionContext>,
+  priority: Priority = Priority.DEFAULT,
+  trigger: ActionsTrigger? = null) {
+
+  if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+    OperationQueue.sharedInstance().addActionOperation {
+      triggerImpl(contexts, priority, trigger)
+    }
+  } else {
+    triggerImpl(contexts, priority, trigger)
+  }
+}
+
+private fun ActionManager.triggerImpl(
   contexts: List<ActionContext>,
   priority: Priority = Priority.DEFAULT,
   trigger: ActionsTrigger? = null) {
