@@ -26,6 +26,7 @@ import com.leanplum.actions.LeanplumActions
 import com.leanplum.internal.ActionManager
 import com.leanplum.internal.Log
 import com.leanplum.internal.OperationQueue
+import com.leanplum.internal.Util
 
 fun ActionManager.trigger(
   context: ActionContext,
@@ -68,7 +69,7 @@ private fun ActionManager.triggerImpl(
 
   val actions: List<Action> = orderedContexts.map { context -> Action.create(context) }
 
-  Log.d("[ActionManager]: triggering with priority: ${priority.name} and actions: $orderedContexts")
+  Log.d("[ActionManager][${Util.getThread()}]: triggering with priority: ${priority.name} and actions: $orderedContexts")
 
   when (priority) {
     Priority.HIGH -> insertActions(actions)

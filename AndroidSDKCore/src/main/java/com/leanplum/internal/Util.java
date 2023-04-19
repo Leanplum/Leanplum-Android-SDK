@@ -697,4 +697,8 @@ public class Util {
   public static boolean isMainThread() {
     return Thread.currentThread() == Looper.getMainLooper().getThread();
   }
+
+  public static String getThread() {
+    return isMainThread() ? "UI" : "BG";
+  }
 }
