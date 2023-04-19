@@ -91,7 +91,7 @@ fun ActionManager.dismissCurrentAction() {
   val definition = definitions.findDefinition(currentContext.actionName())
 
   definition?.dismissHandler?.also {
-    Log.d("[ActionManager]: dismiss requested for: ${currentContext}.")
+    Log.d("[ActionManager][${Util.getThread()}]: dismiss requested for: ${currentContext}.")
     try {
       it.onResponse(currentContext)
     } catch (t: Throwable) {
@@ -106,6 +106,7 @@ private fun ActionManager.performActionsImpl() {
 
   // do not continue if we have action running
   if (currentAction != null) {
+    Log.d("[ActionManager][${Util.getThread()}]: will not pop queue, because an action is already presenting")
     if (!LeanplumActions.useWorkerThreadForDecisionHandlers) { // disable prioritization with worker thread
       prioritizePushNotificationActions()
     }
@@ -116,11 +117,11 @@ private fun ActionManager.performActionsImpl() {
   currentAction = queue.pop() ?: return
 
   val currentContext = currentAction.context
-  Log.d("[ActionManager]: action popped from queue: ${currentContext}.")
+  Log.d("[ActionManager][${Util.getThread()}]: action popped from queue: ${currentContext}.")
 
   if (currentAction.actionType == Action.ActionType.SINGLE
     && LeanplumInternal.shouldSuppressMessage(currentContext)) {
-    Log.i("[ActionManager]: Local IAM caps reached, suppressing $currentContext")
+    Log.i("[ActionManager][${Util.getThread()}]: Local IAM caps reached, suppressing $currentContext")
     currentAction = null
     performActions()
     return
@@ -149,7 +150,7 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
     // if message is delayed, add it to the scheduler to be delayed
     // by the amount of seconds, and exit
     MessageDisplayChoice.Type.DELAY -> {
-      Log.d("[ActionManager]: delaying action: ${currentContext} for ${displayDecision.delaySeconds}s.")
+      Log.d("[ActionManager][${Util.getThread()}]: delaying action: ${currentContext} for ${displayDecision.delaySeconds}s.")
       if (displayDecision.delaySeconds > 0) {
         // Schedule for delayed time
         scheduler.schedule(currentAction, displayDecision.delaySeconds)
@@ -165,6 +166,14 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
     else -> Unit
   }
 
+  if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+    OperationQueue.sharedInstance().addUiOperation { presentAction(currentContext) }
+  } else {
+    presentAction(currentContext)
+  }
+}
+
+private fun ActionManager.presentAction(currentContext: ActionContext) {
   // logic:
   // 1) ask client to show view controller
   // 2) ask and wait for client to execute action
@@ -176,7 +185,7 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
   // 3) set dismiss block
   currentContext.setActionDidDismiss {
     val dismissOperation = {
-      Log.d("[ActionManager]: actionDidDismiss: ${currentContext}.")
+      Log.d("[ActionManager][${Util.getThread()}]: actionDidDismiss: ${currentContext}.")
       messageDisplayListener?.onMessageDismissed(currentContext)
       currentAction = null // stop executing current action
       performActions()
@@ -187,13 +196,12 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
     } else {
       dismissOperation.invoke()
     }
-
   }
 
   // 2) set the action block
   currentContext.setActionDidExecute { actionNamedContext ->
     val actionExecutedOperation = {
-      Log.d("[ActionManager]: actionDidExecute: ${actionNamedContext}.")
+      Log.d("[ActionManager][${Util.getThread()}]: actionDidExecute: ${actionNamedContext}.")
       messageDisplayListener?.onActionExecuted(actionNamedContext.actionName(), actionNamedContext)
       Unit
     }
@@ -208,7 +216,7 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
   // 1) ask to present, return if it's not
   val presented: Boolean = definition?.presentHandler?.onResponse(currentContext) ?: false
   if (!presented) {
-    Log.d("[ActionManager]: action NOT presented: ${currentContext}.")
+    Log.d("[ActionManager][${Util.getThread()}]: action NOT presented: ${currentContext}.")
     currentAction = null
     performActions()
     return
@@ -218,9 +226,15 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
     recordImpression(currentAction)
   }
 
-  Log.i("[ActionManager]: action presented: ${currentContext}.")
+  Log.i("[ActionManager][${Util.getThread()}]: action presented: ${currentContext}.")
   // propagate event that message is displayed
-  messageDisplayListener?.onMessageDisplayed(currentContext)
+  if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+    OperationQueue.sharedInstance().addActionOperation {
+      messageDisplayListener?.onMessageDisplayed(currentContext)
+    }
+  } else {
+    messageDisplayListener?.onMessageDisplayed(currentContext)
+  }
 
   performActions()
 }
