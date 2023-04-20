@@ -24,6 +24,7 @@ package com.leanplum;
 import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.leanplum.actions.LeanplumActions;
 import com.leanplum.actions.internal.ActionDidExecute;
 import com.leanplum.actions.internal.ActionManagerDefinitionKt;
 import com.leanplum.actions.internal.ActionManagerTriggeringKt;
@@ -37,6 +38,7 @@ import com.leanplum.internal.FileManager;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
+import com.leanplum.internal.OperationQueue;
 import com.leanplum.internal.VarCache;
 
 import org.json.JSONException;
@@ -386,7 +388,15 @@ public class ActionContext extends BaseActionContext implements Comparable<Actio
           if (success) {
             executeChainedMessage(chainedMessageId, name);
           }
-          ActionManager.getInstance().setPaused(previousPauseState); // will resume queue
+          if (LeanplumActions.getUseWorkerThreadForDecisionHandlers()) {
+            OperationQueue.sharedInstance().addActionOperation(() -> {
+              OperationQueue.sharedInstance().addUiOperation(() -> {
+                ActionManager.getInstance().setPaused(previousPauseState); // will resume queue
+              });
+            });
+          } else {
+            ActionManager.getInstance().setPaused(previousPauseState); // will resume queue
+          }
         });
       } else {
         executeChainedMessage(chainedMessageId, name);
