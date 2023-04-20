@@ -64,16 +64,23 @@ private fun ActionManager.triggerImpl(
 
   // By default, add only one message to queue if `prioritizeMessages` is not implemented
   // This ensures backwards compatibility
+  Log.d("[ActionManager][${Util.getThread()}]: will call prioritizeMessages if controller is available")
   val orderedContexts =
     messageDisplayController?.prioritizeMessages(contexts, trigger) ?: listOf(contexts.first())
 
   val actions: List<Action> = orderedContexts.map { context -> Action.create(context) }
 
-  Log.d("[ActionManager][${Util.getThread()}]: triggering with priority: ${priority.name} and actions: $orderedContexts")
-
-  when (priority) {
-    Priority.HIGH -> insertActions(actions)
-    Priority.DEFAULT -> appendActions(actions)
+  val triggerOperation = {
+    Log.d("[ActionManager][${Util.getThread()}]: triggering with priority: ${priority.name} and actions: $orderedContexts")
+    when (priority) {
+      Priority.HIGH -> insertActions(actions)
+      Priority.DEFAULT -> appendActions(actions)
+    }
+  }
+  if (LeanplumActions.useWorkerThreadForDecisionHandlers) {
+    OperationQueue.sharedInstance().addUiOperation(triggerOperation) // synchronizing push and pop with UI thread
+  } else {
+    triggerOperation.invoke()
   }
 }
 
