@@ -35,6 +35,10 @@ object LeanplumActions {
    *
    * Default value is true.
    *
+   * If you set [useWorkerThreadForDecisionHandlers] flag as true, calling this method won't have
+   * any effect and opening a chained message from a push notification won't dismiss currently shown
+   * message.
+   *
    * @param flag If true in-app is dismissed, otherwise push action goes into the queue.
    */
   @JvmStatic
@@ -118,6 +122,12 @@ object LeanplumActions {
   @JvmStatic
   fun isQueueEnabled() = ActionManager.getInstance().isEnabled
 
+  /**
+   * Setting this flag as true would have the methods of [MessageDisplayController] and
+   * [MessageDisplayListener] to be invoked in a worker thread. Also the chained message from a push
+   * notification won't have priority over the currently shown message and will go into the queue,
+   * so calling [setDismissOnPushOpened] wouldn't have any effect.
+   */
   @JvmStatic
   var useWorkerThreadForDecisionHandlers = false
 }
