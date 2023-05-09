@@ -100,6 +100,8 @@ internal class CTWrapper(
       Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
     if (firstTimeStart) {
+      // Track App Launched event, because onResume of activity has been executed before first run
+      sendAppLaunchedEvent()
       // Send tokens in same session, because often a restart is needed for CT SDK to get them
       sendPushTokens(context)
     }
@@ -125,6 +127,13 @@ internal class CTWrapper(
 
   override fun removeInstanceCallback(callback: CleverTapInstanceCallback) {
     instanceCallbackList.remove(callback)
+  }
+
+  @SuppressLint("RestrictedApi")
+  private fun sendAppLaunchedEvent() {
+    cleverTapInstance?.coreState?.analyticsManager?.pushAppLaunchedEvent()?.also {
+      Log.d("Wrapper: app launched event sent")
+    }
   }
 
   private fun sendPushTokens(context: Context) {
