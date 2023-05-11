@@ -102,7 +102,7 @@ object MigrationManager {
       callback.invoke(false)
     }
 
-    request.onResponse {
+    request.onResponse { // onResponse is executed in parallel operation
       Log.d("Migration state response: $it")
       val responseData = ResponseHandler().handleMigrateStateContent(it)
       if (responseData != null) {
@@ -111,7 +111,9 @@ object MigrationManager {
         val newState = getState()
         handleStateTransition(oldState, newState)
       }
-      callback.invoke(true)
+      OperationQueue.sharedInstance().addOperation { // use same operation queue as handleStateTransition
+        callback.invoke(true)
+      }
     }
 
     RequestSender.getInstance().send(request)
@@ -133,7 +135,7 @@ object MigrationManager {
 
   private fun handleStateTransition(oldState: MigrationState, newState: MigrationState) {
     if (oldState.useLeanplum() && !newState.useLeanplum()) {
-      OperationQueue.sharedInstance().addOperation {
+      OperationQueue.sharedInstance().addOperation { // fetchState's callback is executed on the same operation queue
         // flush all saved data to LP
         RequestSender.getInstance().sendRequests()
         // delete LP data
@@ -143,7 +145,7 @@ object MigrationManager {
     }
 
     if (!oldState.useCleverTap() && newState.useCleverTap()) {
-      OperationQueue.sharedInstance().addOperation {
+      OperationQueue.sharedInstance().addOperation { // fetchState's callback is executed on the same operation queue
         // flush all saved data to LP, new data will come with the flag ct=true
         RequestSender.getInstance().sendRequests()
         // create wrapper
