@@ -200,6 +200,11 @@ public class LeanplumActivityHelper {
    * Enables lifecycle callbacks for Android devices with Android OS &gt;= 4.0
    */
   public static void enableLifecycleCallbacks(final Application app) {
+    if (registeredCallbacks) {
+      // callback is already registered
+      return;
+    }
+
     Leanplum.setApplicationContext(app.getApplicationContext());
 
     if (BuildUtil.shouldDisableTrampolines(app)) {

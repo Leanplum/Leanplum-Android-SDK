@@ -51,8 +51,14 @@ private fun save(records: Map<String, Long>) {
 }
 
 fun recordOpenAction(occurrenceId: String) {
-    records[occurrenceId] = Clock.getInstance().currentTimeMillis()
-    save(records)
+    synchronized(records) {
+        records[occurrenceId] = Clock.getInstance().currentTimeMillis()
+        save(records)
+    }
 }
 
-fun isOpened(occurrenceId: String) = records.contains(occurrenceId)
+fun isOpened(occurrenceId: String): Boolean {
+    synchronized(records) {
+        return records.contains(occurrenceId)
+    }
+}
