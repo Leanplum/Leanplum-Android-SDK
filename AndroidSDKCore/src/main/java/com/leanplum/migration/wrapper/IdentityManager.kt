@@ -63,6 +63,7 @@ private const val IDENTIFIED = "identified"
 class IdentityManager(
   deviceId: String,
   userId: String,
+  loggedInUserId: String? = null,
   stateDelegate: ReadWriteProperty<Any, String> = StringPreference("ct_login_state", UNDEFINED),
   mergeUserDelegate: ReadWriteProperty<Any, String?> = StringPreferenceNullable("ct_anon_merge_userid"),
 ) {
@@ -75,15 +76,24 @@ class IdentityManager(
   init {
     startState = state
     if (isAnonymous()) {
-      loginAnonymously()
+      if (loggedInUserId != null) {
+        loginWithLoggedInUserId(loggedInUserId)
+      } else {
+        loginAnonymously()
+      }
     } else {
       loginIdentified()
     }
   }
 
-  fun isAnonymous() = identity.isAnonymous()
+  fun isAnonymous() = identity.isAnonymous() && state != IDENTIFIED
 
   fun isFirstTimeStart() = startState == UNDEFINED
+
+  private fun loginWithLoggedInUserId(loggedInUserId: String) {
+    identity.setUserId(loggedInUserId)
+    state = IDENTIFIED
+  }
 
   private fun loginAnonymously() {
     state = ANONYMOUS
@@ -92,8 +102,7 @@ class IdentityManager(
   private fun loginIdentified() {
     if (state == UNDEFINED) {
       state = IDENTIFIED
-    }
-    else if (state == ANONYMOUS) {
+    } else if (state == ANONYMOUS) {
       anonymousMergeUserId = identity.userId()
       Log.d("Wrapper: anonymous data will be merged to $anonymousMergeUserId")
       state = IDENTIFIED
@@ -101,18 +110,20 @@ class IdentityManager(
   }
 
   fun cleverTapId(): String {
-    if (identity.isAnonymous()) {
-      return identity.deviceId()
-    } else if (identity.userId() == anonymousMergeUserId) {
-      return identity.deviceId()
+    return if (identity.userId() != anonymousMergeUserId && (!identity.isAnonymous() || state == IDENTIFIED)) {
+      "${identity.deviceId()}_${identity.userId()}"
     } else {
-      return "${identity.deviceId()}_${identity.userId()}"
+      identity.deviceId()
     }
   }
 
   fun profile() = mapOf(MigrationConstants.IDENTITY to identity.originalUserId())
 
   fun setUserId(userId: String): Boolean {
+    if (userId == identity.originalDeviceId() && state == ANONYMOUS) {
+      return false
+    }
+
     if (!identity.setUserId(userId)) {
       // trying to set same userId
       return false
@@ -123,7 +134,7 @@ class IdentityManager(
       Log.d("Wrapper: anonymous data will be merged to $anonymousMergeUserId")
       state = IDENTIFIED
     }
-    return true;
+    return true
   }
 
   fun isDeviceIdHashed() = identity.originalDeviceId() != identity.deviceId()

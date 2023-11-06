@@ -28,7 +28,9 @@ import com.leanplum.internal.AESCrypt
 import com.leanplum.internal.Constants
 import com.leanplum.internal.LeanplumInternal
 import com.leanplum.internal.Log
+import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.model.MigrationConfig
+import com.leanplum.migration.model.MigrationState
 import com.leanplum.utils.getLeanplumPrefs
 import kotlin.system.measureTimeMillis
 
@@ -61,7 +63,16 @@ internal object WrapperFactory {
 
     val identityList = MigrationConfig.identityList
 
-    return CTWrapper(account, token, region, identityList, deviceId, userId).apply {
+    return CTWrapper(
+      account,
+      token,
+      region,
+      identityList,
+      MigrationManager.getState() != MigrationState.CleverTapOnly,
+      deviceId,
+      userId,
+      MigrationConfig.loggedInUserId
+    ).apply {
       val timeToLaunch = measureTimeMillis {
         launch(context, callbacks)
       }

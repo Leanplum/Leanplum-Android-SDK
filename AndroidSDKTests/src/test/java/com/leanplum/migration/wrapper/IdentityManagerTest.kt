@@ -2,10 +2,9 @@ package com.leanplum.migration.wrapper
 
 import android.util.Log
 import com.leanplum.utils.HashUtil
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.runner.*
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -27,6 +26,8 @@ class IdentityManagerTest {
   // c9430313f85740d3c62dd8bf8c8d275165e96f830e7b1e6ddf3a89ba17ee5cce
   val userId2_hash = "c9430313f8"
 
+  val deviceId_hash = "5e51fbb1d8"
+
   var state: String? = null
   var mergedUserId: String? = null
 
@@ -39,10 +40,15 @@ class IdentityManagerTest {
     mergedUserId = null
   }
 
-  private fun createIdentityManager(deviceId: String, userId: String): IdentityManager {
+  private fun createIdentityManager(
+    deviceId: String,
+    userId: String,
+    loggedInUserId: String? = null
+  ): IdentityManager {
     return IdentityManager(
       deviceId = deviceId,
       userId = userId,
+      loggedInUserId = loggedInUserId,
       stateDelegate = Delegates.observable("undefined") { _, _, new ->
         state = new
       },
@@ -73,6 +79,97 @@ class IdentityManagerTest {
     assertTrue(identityManager.isAnonymous())
     assertEquals("anonymous", state)
     assertEquals(deviceId, identityManager.cleverTapId())
+  }
+
+  @Test
+  fun testAnonymousAndLoggedInUser() {
+    val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId, loggedInUserId = userId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+  }
+
+  @Test
+  fun testUserAndLoggedInUser() {
+    val identityManager = createIdentityManager(userId = userId, deviceId = deviceId, loggedInUserId = userId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+  }
+
+  @Test
+  fun testLoggedInUserLoginBack() {
+    val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId, loggedInUserId = userId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(userId2)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId2_hash)
+
+    identityManager.setUserId(userId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+  }
+
+  @Test
+  fun testLoggedInUserLoginAgainUser() {
+    val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId, loggedInUserId = userId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(userId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(userId2)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId2_hash)
+  }
+
+  @Test
+  fun testLoggedInUserUserIdAlreadySet() {
+    val identityManager = createIdentityManager(userId = userId, deviceId = deviceId, loggedInUserId = userId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(userId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(userId2)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId2_hash)
+
+    identityManager.setUserId(userId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+  }
+
+  @Test
+  fun testLoggedInUserSetDeviceIdAsUserId() {
+    val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId, loggedInUserId = userId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(deviceId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, deviceId_hash)
+
+    identityManager.setUserId(userId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    identityManager.setUserId(userId2)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId2_hash)
+  }
+
+  @Test
+  fun testLoggedInUserDeviceId() {
+    val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId, loggedInUserId = deviceId)
+
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, deviceId_hash)
+
+    // Set again the deviceId as userId
+    identityManager.setUserId(deviceId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, deviceId_hash)
+
+    // Set a new user Id
+    identityManager.setUserId(userId)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId_hash)
+
+    // Set another new user Id
+    identityManager.setUserId(userId2)
+    assertCleverTapIdWithLoggedInUserProvided(identityManager, userId2_hash)
   }
 
   @Test
@@ -108,6 +205,50 @@ class IdentityManagerTest {
     assertEquals(mergedUserId, userId_hash)
     assertEquals(deviceId, identityManager.cleverTapId())
     assertEquals(mapOf("Identity" to userId), identityManager.profile())
+  }
+
+    @Test
+    fun testAnonymousLoginDeviceId() {
+        val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId)
+        // isAnonymous is true since userId=deviceId
+        assertTrue(identityManager.isAnonymous())
+
+        // Since is anonymous and set userId equals deviceId, this should be NOOP
+        identityManager.setUserId(deviceId)
+
+        // isAnonymous is true since userId=deviceId
+        assertTrue(identityManager.isAnonymous())
+        // state is still anonymous
+        assertEquals(state, "anonymous")
+        assertEquals(mergedUserId, null)
+        assertEquals(identityManager.cleverTapId(), deviceId)
+
+        identityManager.setUserId(userId)
+        assertFalse(identityManager.isAnonymous())
+        assertEquals(state, "identified")
+        assertEquals(mergedUserId, userId_hash)
+        assertEquals(identityManager.cleverTapId(), deviceId)
+    }
+
+  @Test
+  fun testIdentifiedLoginDeviceId() {
+    val identityManager = createIdentityManager(userId = deviceId, deviceId = deviceId)
+    // isAnonymous is true since userId=deviceId
+    assertTrue(identityManager.isAnonymous())
+
+    // Login a user
+    identityManager.setUserId(userId)
+    assertFalse(identityManager.isAnonymous())
+    assertEquals(state, "identified")
+    assertEquals(mergedUserId, userId_hash)
+    assertEquals(identityManager.cleverTapId(), deviceId)
+
+    // Login with deviceId. Since is not anonymous, create a new profile
+    identityManager.setUserId(deviceId)
+    assertFalse(identityManager.isAnonymous())
+    assertEquals(state, "identified")
+    assertEquals(mergedUserId, userId_hash)
+    assertEquals(identityManager.cleverTapId(), "${deviceId}_${deviceId_hash}")
   }
 
   @Test
@@ -257,6 +398,17 @@ class IdentityManagerTest {
   fun testFirstStartFlag() {
     val identityManager = createIdentityManager(deviceId, userId)
     assertTrue(identityManager.isFirstTimeStart())
+  }
+
+  private fun assertCleverTapIdWithLoggedInUserProvided(
+    identityManager: IdentityManager,
+    userIdHash: String,
+    deviceId: String = this.deviceId
+  ) {
+    assertFalse(identityManager.isAnonymous())
+    assertEquals(state, "identified")
+    assertEquals(mergedUserId, null)
+    assertEquals(identityManager.cleverTapId(), "${deviceId}_${userIdHash}")
   }
 
 }

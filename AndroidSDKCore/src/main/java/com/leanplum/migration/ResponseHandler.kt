@@ -21,6 +21,7 @@
 
 package com.leanplum.migration
 
+import com.leanplum.Leanplum
 import com.leanplum.internal.Constants.Params
 import com.leanplum.internal.Log
 import com.leanplum.migration.model.MigrationState
@@ -49,6 +50,7 @@ class ResponseHandler {
    *     ]
    *   },
    *   "sha256": "...",
+   *   "loggedInUserId": "...",
    *   "success": true,
    *   "profileUploadStartedTs": "...",
    *   "eventsUploadStartedTs": "...",
@@ -68,6 +70,7 @@ class ResponseHandler {
       if (!json.isNull(Params.SDK)) {
         val state = json.getString(Params.SDK)
         val hash = json.getString(Params.MIGRATE_STATE_HASH)
+        val loggedInUserId = json.getString(Params.LOGGED_IN_USER_ID)
         return if (MigrationState.from(state).useCleverTap()) {
           var accountId: String? = null
           var token: String? = null
@@ -91,9 +94,9 @@ class ResponseHandler {
               }
             }
           }
-          ResponseData(state, hash, accountId, token, regionCode, attributeMappings, identityKeysCsv)
+          ResponseData(state, hash, loggedInUserId, accountId, token, regionCode, attributeMappings, identityKeysCsv)
         } else {
-          ResponseData(state, hash)
+          ResponseData(state, hash, loggedInUserId)
         }
       }
     } catch (e: JSONException) {
