@@ -111,8 +111,10 @@ object MigrationManager {
         if (!responseData.loggedInUserId.isNullOrBlank()) {
           Leanplum.addStartResponseHandler(object : StartCallback() {
             override fun onResponse(success: Boolean) {
-              Log.d("Leanplum.setUserId() with loggedInUserId: ${responseData.loggedInUserId}")
-              Leanplum.setUserId(responseData.loggedInUserId)
+              if (Leanplum.getUserId() == Leanplum.getDeviceId()) {
+                Log.d("Leanplum.setUserId() with loggedInUserId: ${responseData.loggedInUserId}")
+                Leanplum.setUserId(responseData.loggedInUserId)
+              }
             }
           })
         }
