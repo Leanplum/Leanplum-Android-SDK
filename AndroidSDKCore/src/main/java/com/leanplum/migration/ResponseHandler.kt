@@ -70,7 +70,11 @@ class ResponseHandler {
       if (!json.isNull(Params.SDK)) {
         val state = json.getString(Params.SDK)
         val hash = json.getString(Params.MIGRATE_STATE_HASH)
-        val loggedInUserId = json.getString(Params.LOGGED_IN_USER_ID)
+        val loggedInUserId = if (json.has(Params.LOGGED_IN_USER_ID)) {
+          json.getString(Params.LOGGED_IN_USER_ID)
+        } else {
+          null
+        }
         return if (MigrationState.from(state).useCleverTap()) {
           var accountId: String? = null
           var token: String? = null
