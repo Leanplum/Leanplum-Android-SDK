@@ -46,8 +46,10 @@ internal class CTWrapper(
   private val accountToken: String,
   private val accountRegion: String,
   private val identityList: List<String>?,
+  private val useCustomCleverTapId: Boolean,
   deviceId: String,
-  userId: String?
+  userId: String?,
+  loggedInUserId: String?,
 ) : IWrapper by StaticMethodsWrapper {
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
@@ -57,7 +59,7 @@ internal class CTWrapper(
   private var cleverTapInstance: CleverTapAPI? = null
   private var instanceCallbackList: MutableList<CleverTapInstanceCallback> = mutableListOf()
 
-  private var identityManager = IdentityManager(deviceId, userId ?: deviceId)
+  private var identityManager = IdentityManager(deviceId, userId ?: deviceId, loggedInUserId)
   private var firstTimeStart = identityManager.isFirstTimeStart()
 
   @SuppressLint("WrongConstant")
@@ -72,7 +74,7 @@ internal class CTWrapper(
       accountId,
       accountToken,
       accountRegion).apply {
-      enableCustomCleverTapId = true
+      enableCustomCleverTapId = useCustomCleverTapId
       debugLevel = ctLevel // set instance log level
       setLogLevel(lpLevel) // set static log level, arg needs to be Leanplum's level
       identityList?.also { // setting IdentityKeys
@@ -80,11 +82,15 @@ internal class CTWrapper(
       }
     }
 
-    val cleverTapId = identityManager.cleverTapId()
-    val profile = identityManager.profile()
-    Log.d("Wrapper: using CleverTapID=__h$cleverTapId")
-
-    cleverTapInstance = CleverTapAPI.instanceWithConfig(context, config, cleverTapId)?.apply {
+    cleverTapInstance = if (useCustomCleverTapId) {
+      val cleverTapId = identityManager.cleverTapId()
+      Log.d("Wrapper: using CleverTapID=__h$cleverTapId")
+      CleverTapAPI.instanceWithConfig(context, config, cleverTapId)
+    } else {
+      Log.d("Wrapper: without CleverTapID")
+      CleverTapAPI.instanceWithConfig(context, config)
+    }
+    cleverTapInstance?.apply {
       setLibrary("Leanplum")
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
@@ -93,8 +99,7 @@ internal class CTWrapper(
         Log.d("Wrapper: identity not set for anonymous user")
         setAnonymousDeviceProperty()
       } else {
-        Log.d("Wrapper: will call onUserLogin with $profile and __h$cleverTapId")
-        onUserLogin(profile, cleverTapId)
+        onUserLogin()
         setDevicesProperty()
       }
       Log.d("Wrapper: CleverTap instance created by Leanplum")
@@ -172,13 +177,21 @@ internal class CTWrapper(
       // trying to set same userId
       return
     }
+    onUserLogin()
+    cleverTapInstance?.setDevicesProperty()
+  }
 
+  private fun onUserLogin() {
     val cleverTapId = identityManager.cleverTapId()
     val profile = identityManager.profile()
 
-    Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
-    cleverTapInstance?.onUserLogin(profile, cleverTapId)
-    cleverTapInstance?.setDevicesProperty()
+    if (useCustomCleverTapId) {
+      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile and __h$cleverTapId")
+      cleverTapInstance?.onUserLogin(profile, cleverTapId)
+    } else {
+      Log.d("Wrapper: Leanplum.setUserId will call onUserLogin with $profile")
+      cleverTapInstance?.onUserLogin(profile)
+    }
   }
 
   private fun CleverTapAPI.setAnonymousDeviceProperty() {

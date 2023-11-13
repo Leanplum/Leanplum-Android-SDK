@@ -34,6 +34,9 @@ object MigrationConfig {
   var hash: String by StringPreference(key = "ct_config_hash", defaultValue = "defaultHash")
     private set
 
+  var loggedInUserId: String? by StringPreferenceNullable(key = "loggedInUserId")
+    private set
+
   var accountId: String? by StringPreferenceNullable(key = "ct_account_id")
     private set
 
@@ -72,6 +75,7 @@ object MigrationConfig {
   fun update(data: ResponseData) {
     state = data.state
     hash = data.hash
+    loggedInUserId = data.loggedInUserId
     accountId = data.accountId
     accountToken = data.token
     accountRegion = data.regionCode

@@ -21,7 +21,9 @@
 
 package com.leanplum.migration
 
+import com.leanplum.Leanplum
 import com.leanplum.callbacks.CleverTapInstanceCallback
+import com.leanplum.callbacks.StartCallback
 import com.leanplum.core.BuildConfig
 import com.leanplum.internal.*
 import com.leanplum.migration.model.MigrationConfig
@@ -106,6 +108,16 @@ object MigrationManager {
       Log.d("Migration state response: $it")
       val responseData = ResponseHandler().handleMigrateStateContent(it)
       if (responseData != null) {
+        if (!responseData.loggedInUserId.isNullOrBlank()) {
+          Leanplum.addStartResponseHandler(object : StartCallback() {
+            override fun onResponse(success: Boolean) {
+              if (Leanplum.getUserId() == Leanplum.getDeviceId()) {
+                Log.d("Leanplum.setUserId() with loggedInUserId: ${responseData.loggedInUserId}")
+                Leanplum.setUserId(responseData.loggedInUserId)
+              }
+            }
+          })
+        }
         val oldState = getState()
         MigrationConfig.update(responseData)
         val newState = getState()
