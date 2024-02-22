@@ -150,13 +150,14 @@ private fun ActionManager.askUserAndPresentAction(currentContext: ActionContext)
     // if message is delayed, add it to the scheduler to be delayed
     // by the amount of seconds, and exit
     MessageDisplayChoice.Type.DELAY -> {
+      val action = currentAction ?: return
       Log.d("[ActionManager][${Util.getThread()}]: delaying action: ${currentContext} for ${displayDecision.delaySeconds}s.")
       if (displayDecision.delaySeconds > 0) {
         // Schedule for delayed time
-        scheduler.schedule(currentAction, displayDecision.delaySeconds)
+        scheduler.schedule(action, displayDecision.delaySeconds)
       } else {
         // Insert in delayed queue
-        delayedQueue.pushBack(currentAction)
+        delayedQueue.pushBack(action)
       }
       currentAction = null
       performActions()
