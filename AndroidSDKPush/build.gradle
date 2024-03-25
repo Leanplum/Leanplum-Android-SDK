@@ -8,6 +8,8 @@ plugins {
 apply from: "../common-methods.gradle"
 
 android {
+    namespace 'com.leanplum.push'
+
     compileSdkVersion COMPILE_SDK_VERSION
     defaultConfig {
         minSdkVersion MIN_SDK_VERSION

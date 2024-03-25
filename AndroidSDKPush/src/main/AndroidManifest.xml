@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.leanplum.push">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- New permission required by Android 13 to post notifications. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>

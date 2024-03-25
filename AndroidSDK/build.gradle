@@ -20,6 +20,7 @@ dependencies {
 }
 
 android {
+    namespace "com.leanplum"
     compileSdkVersion COMPILE_SDK_VERSION
 
     defaultConfig {

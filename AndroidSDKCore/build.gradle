@@ -8,7 +8,7 @@ plugins {
 apply from: "../common-methods.gradle"
 
 android {
-
+    namespace 'com.leanplum.core'
     compileSdkVersion COMPILE_SDK_VERSION
     useLibrary 'org.apache.http.legacy'
 
