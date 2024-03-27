@@ -8,9 +8,10 @@ plugins {
 apply from: "../common-methods.gradle"
 
 android {
+    namespace 'com.leanplum.hms'
     compileSdkVersion COMPILE_SDK_VERSION
     defaultConfig {
-        minSdkVersion 18 // version 18 is needed by agconnect plugin
+        minSdkVersion MIN_SDK_VERSION
         defaultConfig {
             consumerProguardFiles 'consumer-proguard-rules.pro'
         }
@@ -33,8 +34,8 @@ dependencies {
     api project(':AndroidSDKCore')
     api project(':AndroidSDKPush')
 
-    implementation 'com.huawei.agconnect:agconnect-core:1.7.2.300'
-    implementation 'com.huawei.hms:push:6.7.0.300'
+    implementation 'com.huawei.agconnect:agconnect-core:1.9.1.300'
+    implementation 'com.huawei.hms:push:6.11.0.300'
 }
 
 task generateJavadoc(type: Javadoc) {
