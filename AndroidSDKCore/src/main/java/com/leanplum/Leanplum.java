@@ -900,8 +900,10 @@ public class Leanplum {
           }
         }
 
-        String token = response.optString(Constants.Keys.TOKEN, null);
-        APIConfig.getInstance().setToken(token);
+        String token = response.optString(Constants.Keys.TOKEN);
+        if (!token.isEmpty()) {
+          APIConfig.getInstance().setToken(token);
+        }
 
         applyContentInResponse(response);
 
