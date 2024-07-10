@@ -35,7 +35,6 @@ public class PushTracking {
 
   static final String CHANNEL_FCM = "FCM";
   static final String CHANNEL_FCM_SILENT_TRACK = "FCM_SILENT_TRACK";
-  static final String CHANNEL_MIPUSH = "MIPUSH";
   static final String CHANNEL_HMS = "HMS";
 
   static boolean isFcmSilentPush(@NonNull Bundle message) {
