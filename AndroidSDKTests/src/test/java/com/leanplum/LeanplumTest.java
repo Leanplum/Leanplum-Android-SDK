@@ -1152,27 +1152,6 @@ public class LeanplumTest extends AbstractTest {
   }
 
   /**
-   * Test push notification registration for MiPush.
-   */
-  @Test
-  public void testPushNotificationRegistrationMiPush() {
-    setupSDK(mContext, "/responses/simple_start_response.json");
-    String regId = "regId";
-
-    // Verify request.
-    RequestHelper.addRequestHandler(new RequestHelper.RequestHandler() {
-      @Override
-      public void onRequest(String httpMethod, String apiMethod, Map<String, Object> params) {
-        assertEquals(RequestBuilder.ACTION_SET_DEVICE_ATTRIBUTES, apiMethod);
-        assertNotNull(params);
-        assertEquals(regId, params.get(Params.DEVICE_MIPUSH_TOKEN));
-      }
-    });
-    // Register for push notification.
-    Leanplum.setRegistrationId(PushProviderType.MIPUSH, regId);
-  }
-
-  /**
    * Test location provider
    */
   @Test

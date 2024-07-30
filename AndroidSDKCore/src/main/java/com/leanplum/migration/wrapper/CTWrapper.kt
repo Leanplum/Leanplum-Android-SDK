@@ -38,7 +38,6 @@ import com.leanplum.migration.MigrationConstants
 import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
-import com.leanplum.migration.push.MiPushMigrationHandler
 import com.leanplum.utils.SharedPreferencesUtil
 
 internal class CTWrapper(
@@ -54,7 +53,6 @@ internal class CTWrapper(
 
   override val fcmHandler: FcmMigrationHandler = FcmMigrationHandler()
   override val hmsHandler: HmsMigrationHandler = HmsMigrationHandler()
-  override val miPushHandler: MiPushMigrationHandler = MiPushMigrationHandler()
 
   private var cleverTapInstance: CleverTapAPI? = null
   private var instanceCallbackList: MutableList<CleverTapInstanceCallback> = mutableListOf()
@@ -149,15 +147,6 @@ internal class CTWrapper(
       val type = PushConstants.PushType.FCM.type
       PushNotificationHandler.getPushNotificationHandler().onNewToken(context, fcmToken, type)
       Log.d("Wrapper: fcm token sent")
-    }
-
-    // XPS
-    val miPushToken = SharedPreferencesUtil.getString(context,
-      Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID)
-    if (!TextUtils.isEmpty(miPushToken)) {
-      val type = PushConstants.PushType.XPS.type
-      PushNotificationHandler.getPushNotificationHandler().onNewToken(context, miPushToken, type)
-      Log.d("Wrapper: xps token sent")
     }
 
     // HMS

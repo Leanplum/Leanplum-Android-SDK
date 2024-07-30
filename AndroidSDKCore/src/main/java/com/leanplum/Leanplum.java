@@ -706,8 +706,6 @@ public class Leanplum {
 
     String fcmRegistrationId = SharedPreferencesUtil.getString(context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID);
-    String miPushRegistrationId = SharedPreferencesUtil.getString(context,
-        Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_MIPUSH_TOKEN_ID);
     String hmsRegistrationId = SharedPreferencesUtil.getString(context,
         Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID);
 
@@ -718,9 +716,6 @@ public class Leanplum {
     params.put(Constants.Params.DEVICE_SYSTEM_VERSION, Util.getSystemVersion());
     if (!TextUtils.isEmpty(fcmRegistrationId)) {
       params.put(Constants.Params.DEVICE_FCM_PUSH_TOKEN, fcmRegistrationId);
-    }
-    if (!TextUtils.isEmpty(miPushRegistrationId)) {
-      params.put(Constants.Params.DEVICE_MIPUSH_TOKEN, miPushRegistrationId);
     }
     if (!TextUtils.isEmpty(hmsRegistrationId)) {
       params.put(Constants.Params.DEVICE_HMS_TOKEN, hmsRegistrationId);
@@ -1586,9 +1581,6 @@ public class Leanplum {
     switch (type) {
       case FCM:
         attributeName = Constants.Params.DEVICE_FCM_PUSH_TOKEN;
-        break;
-      case MIPUSH:
-        attributeName = Constants.Params.DEVICE_MIPUSH_TOKEN;
         break;
       case HMS:
         attributeName = Constants.Params.DEVICE_HMS_TOKEN;

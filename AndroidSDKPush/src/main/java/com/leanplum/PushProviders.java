@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 class PushProviders {
   private static String FCM_PROVIDER_CLASS = "com.leanplum.LeanplumFcmProvider";
-  private static String MIPUSH_PROVIDER_CLASS = "com.leanplum.LeanplumMiPushProvider";
   private static String HMS_PROVIDER_CLASS = "com.leanplum.LeanplumHmsProvider";
 
   private final Map<PushProviderType, IPushProvider> providers = new ConcurrentHashMap<>();
@@ -58,11 +57,6 @@ class PushProviders {
     IPushProvider fcm = createFcm();
     if (fcm != null) {
       providers.put(PushProviderType.FCM, fcm);
-    }
-
-    IPushProvider miPush = createMiPush();
-    if (miPush != null) {
-      providers.put(PushProviderType.MIPUSH, miPush);
     }
 
     IPushProvider hms = createHms();
@@ -104,23 +98,6 @@ class PushProviders {
     } catch (Throwable t) {
       Log.i("FCM module not found. "
           + "For Firebase messaging include dependency \"com.leanplum:leanplum-fcm\".");
-      return null;
-    }
-  }
-
-  private static IPushProvider createMiPush() {
-    try {
-      Class<?> clazz = Class.forName(MIPUSH_PROVIDER_CLASS);
-
-      if (!Util.isXiaomiDevice()) {
-        Log.d("Will not initialize MiPush provider for non-Xiaomi device.");
-        return null;
-      }
-
-      return (IPushProvider) clazz.getConstructor().newInstance();
-    } catch (Throwable t) {
-      Log.d("MiPush module not found. "
-          + "For Mi Push messaging include dependency \"com.leanplum:leanplum-mipush\".");
       return null;
     }
   }

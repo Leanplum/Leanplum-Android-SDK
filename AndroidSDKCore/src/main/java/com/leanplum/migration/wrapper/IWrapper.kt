@@ -26,15 +26,12 @@ import android.content.Context
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
-import com.leanplum.migration.push.MiPushMigrationHandler
 
 interface IWrapper {
 
   val fcmHandler: FcmMigrationHandler? get() = null
 
   val hmsHandler: HmsMigrationHandler? get() = null
-
-  val miPushHandler: MiPushMigrationHandler? get() = null
 
   fun launch(context: Context, callbacks: List<CleverTapInstanceCallback>) = Unit
 
