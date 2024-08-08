@@ -32,7 +32,6 @@ import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
 import com.leanplum.internal.VarCache;
 
-import org.apache.maven.artifact.ant.shaded.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.robolectric.RuntimeEnvironment;

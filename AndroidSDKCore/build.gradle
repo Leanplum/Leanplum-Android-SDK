@@ -9,7 +9,7 @@ apply from: "../common-methods.gradle"
 
 android {
     namespace 'com.leanplum.core'
-    compileSdkVersion COMPILE_SDK_VERSION
+    compileSdk COMPILE_SDK_VERSION
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
@@ -35,6 +35,9 @@ android {
     compileOptions {
         sourceCompatibility JAVA_VERSION
         targetCompatibility JAVA_VERSION
+    }
+    kotlinOptions {
+        jvmTarget = JAVA_VERSION
     }
 }
 

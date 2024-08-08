@@ -36,6 +36,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
@@ -56,6 +57,7 @@ import java.util.concurrent.Semaphore;
                 ShadowLooper.class,
         }
 )
+@LooperMode(LooperMode.Mode.LEGACY)
 @PowerMockIgnore({
     "org.mockito.*",
     "org.robolectric.*",
