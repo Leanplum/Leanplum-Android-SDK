@@ -1,6 +1,7 @@
-package com.clevertap.android.sdk
+package com.leanplum.utils
 
 import android.annotation.SuppressLint
+import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.task.CTExecutorFactory
 import com.clevertap.android.sdk.task.Task
 
@@ -8,9 +9,9 @@ object CTUtils {
 
   @SuppressLint("RestrictedApi")
   fun ensureLocalDataStoreValue(key: String, cleverTapApi: CleverTapAPI) {
-    val value = cleverTapApi.coreState.localDataStore.getProfileValueForKey(key)
+    val value = cleverTapApi.coreState.localDataStore.getProfileProperty(key)
     if (value == null) {
-      cleverTapApi.coreState.localDataStore.setProfileField(key, "")
+      cleverTapApi.coreState.localDataStore.updateProfileFields(mapOf(key to ""))
     }
   }
 
@@ -25,5 +26,4 @@ object CTUtils {
         null
       }
   }
-
 }
