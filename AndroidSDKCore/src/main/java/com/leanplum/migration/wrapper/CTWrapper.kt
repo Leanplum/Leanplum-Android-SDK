@@ -26,7 +26,6 @@ import android.app.Application
 import android.content.Context
 import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
-import com.clevertap.android.sdk.CTUtils
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.clevertap.android.sdk.pushnotification.PushConstants
@@ -38,6 +37,7 @@ import com.leanplum.migration.MigrationConstants
 import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
+import com.leanplum.utils.CTUtils
 import com.leanplum.utils.SharedPreferencesUtil
 
 internal class CTWrapper(
