@@ -26,6 +26,7 @@ import com.leanplum._whitebox.utilities.ResponseHelper;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.robolectric.annotation.LooperMode;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.verify;
  *
  * @author Sayaan Saha
  */
+@LooperMode(LooperMode.Mode.LEGACY)
 public class LeanplumInboxMessageWhiteboxTest extends AbstractTest {
   @Before
   public void setUp() {

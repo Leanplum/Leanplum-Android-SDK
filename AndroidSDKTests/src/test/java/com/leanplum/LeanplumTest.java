@@ -29,7 +29,6 @@ import android.location.Location;
 import com.leanplum.__setup.AbstractTest;
 import com.leanplum.__setup.TestClassUtil;
 import com.leanplum._whitebox.utilities.RequestHelper;
-import com.leanplum._whitebox.utilities.RequestHelper.RequestHandler;
 import com.leanplum._whitebox.utilities.ResponseHelper;
 import com.leanplum._whitebox.utilities.VariablesTestClass;
 import com.leanplum.annotations.Parser;
@@ -53,6 +52,7 @@ import com.leanplum.internal.Request;
 import com.leanplum.internal.RequestSender;
 import com.leanplum.internal.VarCache;
 import com.leanplum.models.GeofenceEventType;
+import com.leanplum.tests.BuildConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,6 +61,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.LooperMode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -84,10 +85,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -103,6 +102,7 @@ import java.util.Set;
  *
  * @author Kiril Kafadarov, Aleksandar Gyorev, Ben Marten
  */
+@LooperMode(LooperMode.Mode.LEGACY)
 public class LeanplumTest extends AbstractTest {
   @Test
   public void testStart() {
@@ -534,13 +534,16 @@ public class LeanplumTest extends AbstractTest {
    */
   @Test
   public void testCrashes() throws Exception {
+    if (BuildConfig.DEBUG) {
+      return; // test is not valid for debug config
+    }
     // Setup sdk first.
     setupSDK(mContext, "/responses/start_variables_response.json");
 
     RequestSender.setInstance(new RequestSender()); // override the immediate sender from @before method
 
-    Context currentCotext = Leanplum.getContext();
-    assertNotNull(currentCotext);
+    Context currentContext = Leanplum.getContext();
+    assertNotNull(currentContext);
     LeanplumEventDataManager.sharedInstance();
 
     // Add two events to database.
@@ -554,7 +557,7 @@ public class LeanplumTest extends AbstractTest {
     final double fraction = 1.0;
     // Get a number of events in the database.
     // Expectation: 2 events.
-    List unsentRequests = new RequestBatchFactory().getUnsentRequests(fraction);
+    List<?> unsentRequests = new RequestBatchFactory().getUnsentRequests(fraction);
     assertNotNull(unsentRequests);
     assertEquals(2, unsentRequests.size());
 

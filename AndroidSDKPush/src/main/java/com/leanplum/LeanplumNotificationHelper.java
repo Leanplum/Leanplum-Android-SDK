@@ -36,15 +36,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.text.TextUtils;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import android.text.TextUtils;
-import android.util.TypedValue;
-import android.widget.RemoteViews;
-
 import androidx.core.app.NotificationManagerCompat;
-import com.leanplum.internal.Constants;
+
 import com.leanplum.internal.Constants.Keys;
 import com.leanplum.internal.JsonConverter;
 import com.leanplum.internal.Log;

@@ -21,6 +21,7 @@
 
 package com.leanplum.internal;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -118,6 +119,7 @@ public class LeanplumEventDataManager {
           null, KEY_ROWID + " ASC", "" + count);
       hasDatabaseError = false;
       while (cursor.moveToNext()) {
+        @SuppressLint("Range")
         Map<String, Object> requestArgs = JsonConverter.mapFromJson(new JSONObject(
             cursor.getString(cursor.getColumnIndex(COLUMN_DATA))));
         events.add(requestArgs);

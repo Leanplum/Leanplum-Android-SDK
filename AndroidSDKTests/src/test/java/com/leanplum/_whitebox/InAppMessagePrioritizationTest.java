@@ -32,7 +32,8 @@ import com.leanplum.internal.LeanplumMessageMatchFilter;
 import com.leanplum.internal.VarCache;
 
 import java.util.List;
-import org.apache.maven.artifact.ant.shaded.IOUtil;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -143,7 +144,7 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
     Assert.assertNotNull(RuntimeEnvironment.application); //Getting the application context
     InputStream inputStream = getClass().getResourceAsStream("/test_files/single_message.json");
     Assert.assertNotNull(inputStream);
-    String jsonMessages = IOUtil.toString(inputStream);
+    String jsonMessages = IOUtils.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>();
     expectedMessageIds.add("1");
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
@@ -155,7 +156,7 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
   @Test
   public void testNoPriorities() throws Exception {
     InputStream inputStream = getClass().getResourceAsStream("/test_files/no_priorities.json");
-    String jsonMessages = IOUtil.toString(inputStream);
+    String jsonMessages = IOUtils.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
   }
@@ -168,14 +169,14 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
     // Three messages with priorities of 1, 2, and 3. Only the first one should be triggered.
     InputStream inputStream = getClass()
         .getResourceAsStream("/test_files/different_priorities_1.json");
-    String jsonMessages = IOUtil.toString(inputStream);
+    String jsonMessages = IOUtils.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>();
     expectedMessageIds.add("1");
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
 
     // Three messages with priorities of 10, 1000, and 5. Only the third one should be triggered.
     inputStream = getClass().getResourceAsStream("/test_files/different_priorities_2.json");
-    jsonMessages = IOUtil.toString(inputStream);
+    jsonMessages = IOUtils.toString(inputStream);
     expectedMessageIds = new HashSet<>();
     expectedMessageIds.add("3");
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
@@ -190,14 +191,14 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
     // 2 messages with same priority and same countdown
     // Only 1 should be displayed with highest priority.
     InputStream inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_1.json");
-    String jsonMessages = IOUtil.toString(inputStream);
+    String jsonMessages = IOUtils.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
 
     // Three messages with same priority and same time
     // Only 1 should be trigged.
     inputStream = getClass().getResourceAsStream("/test_files/tied_priorities_2.json");
-    jsonMessages = IOUtil.toString(inputStream);
+    jsonMessages = IOUtils.toString(inputStream);
     expectedMessageIds = new HashSet<>(Arrays.asList("1"));
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);
   }
@@ -210,7 +211,7 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
   public void testDifferentPrioritiesWithMissingValues() throws Exception {
     InputStream inputStream = getClass()
         .getResourceAsStream("/test_files/different_priorities_missing_values.json");
-    String jsonMessages = IOUtil.toString(inputStream);
+    String jsonMessages = IOUtils.toString(inputStream);
     Set<String> expectedMessageIds = new HashSet<>();
     expectedMessageIds.add("1");
     assertExpectedMessagesAreTriggered(jsonMessages, expectedMessageIds);

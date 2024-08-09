@@ -5,8 +5,8 @@ language: android
 env:
   global:
     - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
-    - BUILD_API=31
-    - BUILD_TOOLS=31.0.0
+    - BUILD_API=34
+    - BUILD_TOOLS=34.0.0
     - ABI=x86
     - EMU_API=22
     - EMU_FLAVOR=default
@@ -24,11 +24,6 @@ android:
   components:
     - tools
 
-# Uncomment and remove lines in before_install when issue with JDK is resolved
-# Check thread here: https://travis-ci.community/t/installing-oraclejdk-11-failed/13050/10
-# jdk:
-  # - oraclejdk11
-
 licenses:
   - 'android-sdk-preview-license-.+'
   - 'android-sdk-license-.+'
@@ -37,8 +32,8 @@ licenses:
 before_install:
   - curl -s "https://get.sdkman.io" | bash
   - source "$HOME/.sdkman/bin/sdkman-init.sh"
-  - sdk install java 11.0.12-open
-  - sdk use java 11.0.12-open
+  - sdk install java 17.0.2-open
+  - sdk use java 17.0.2-open
   # Install cmdline-tools (older tools doesn't support Java 11)
   - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
   - mkdir -p ${ANDROID_HOME}/cmdline-tools

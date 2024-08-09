@@ -31,7 +31,11 @@ import com.leanplum.internal.Socket;
 import com.leanplum.internal.VarCache;
 import com.leanplum.tests.BuildConfig;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
+import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 import java.util.Collections;
@@ -46,6 +50,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Kiril Kafadarov, Aleksandar Gyorev, Ben Marten
  */
+@LooperMode(LooperMode.Mode.LEGACY)
 public class LeanplumSyncTest extends AbstractTest {
   /**
    * Tests the functionality of a file variable.
@@ -74,13 +79,13 @@ public class LeanplumSyncTest extends AbstractTest {
         assertNotNull(params);
         assertEquals(file.getAbsolutePath(), varTestFile.value());
 
-        Map<String, Object> fileAttributes = JsonConverter.fromJson(
-            params.get("fileAttributes").toString());
-        assertNotNull(fileAttributes);
+        try {
+          JSONObject fileData = new JSONArray(params.get("data").toString()).getJSONObject(0);
+          assertEquals(4, fileData.getInt("size"));
+        } catch (JSONException e) {
+          throw new RuntimeException(e);
+        }
 
-        @SuppressWarnings("unchecked") Map<String, Map<String, Integer>> fileData =
-            (Map<String, Map<String, Integer>>) fileAttributes.get(file.getAbsolutePath());
-        assertEquals(4, (int) fileData.get("").get("size"));
 
         String varTestFileContents = LeanplumTestHelper.readFile(varTestFile);
 

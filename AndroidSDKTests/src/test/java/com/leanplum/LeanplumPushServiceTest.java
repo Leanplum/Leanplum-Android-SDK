@@ -413,27 +413,6 @@ public class LeanplumPushServiceTest {
     assertFalse(customizeNotificationBuilderCompatCalled);
     assertTrue(customizeNotificationBuilderCalled);
     customizeNotificationBuilderCalled = false;
-
-
-    // Test for Bundle with imageUrl and Api 15.
-    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 15);
-    showNotification.invoke(LeanplumPushService.class, context, bundleWithImage);
-    assertFalse(customizeNotificationBuilderCompatCalled);
-    assertTrue(customizeNotificationBuilderCalled);
-    customizeNotificationBuilderCalled=false;
-    // Sets LeanplumBigPicturePushNotificationCustomizer back to null.
-    customizer.set(LeanplumPushService.class, null);
-    setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 16);
-  }
-
-  private static void setFinalStatic(Field field, Object newValue) throws Exception {
-    field.setAccessible(true);
-
-    Field modifiersField = Field.class.getDeclaredField("modifiers");
-    modifiersField.setAccessible(true);
-    modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-    field.set(null, newValue);
   }
 
   class CustomCustomizer implements LeanplumPushNotificationCustomizer {
