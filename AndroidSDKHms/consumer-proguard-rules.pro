@@ -6,5 +6,6 @@
 -keep class com.leanplum.** { *; }
 -dontwarn com.leanplum.**
 
--keep class com.huawei.updatesdk.**{*;}
--keep class com.huawei.hms.**{*;}
+-keep class com.huawei.**{*;}
+-keep class com.hianalytics.android.**{*;}
+-dontwarn com.huawei.**
