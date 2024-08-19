@@ -205,7 +205,6 @@ internal class CTWrapper(
   override fun track(
     event: String?,
     value: Double,
-    info: String?,
     params: Map<String, Any?>?
   ) {
     if (event == null) return
@@ -218,10 +217,6 @@ internal class CTWrapper(
         ?: mutableMapOf()
 
     properties[MigrationConstants.VALUE_PARAM] = value
-
-    if (info != null) {
-      properties[MigrationConstants.INFO_PARAM] = info
-    }
 
     Log.d("Wrapper: Leanplum.track will call pushEvent with $event and $properties")
     cleverTapInstance?.pushEvent(event, properties)
@@ -288,17 +283,13 @@ internal class CTWrapper(
   /**
    * LP doesn't allow iterables in params.
    */
-  override fun advanceTo(state: String?, info: String?, params: Map<String, Any?>?) {
+  override fun advanceTo(state: String?, params: Map<String, Any?>?) {
     if (state == null) return;
 
     val event = MigrationConstants.STATE_PREFIX + state
     val properties =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
-
-    if (info != null) {
-      properties[MigrationConstants.INFO_PARAM] = info
-    }
 
     Log.d("Wrapper: Leanplum.advance will call pushEvent with $event and $properties")
     cleverTapInstance?.pushEvent(event, properties)
