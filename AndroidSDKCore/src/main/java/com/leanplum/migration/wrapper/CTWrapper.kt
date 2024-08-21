@@ -93,8 +93,10 @@ internal class CTWrapper(
       setLibrary("Leanplum")
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
-
         if (!LeanplumActivityHelper.isActivityPaused() && !CleverTapAPI.isAppForeground()) {
+          // Trigger onActivityResumed because onResume of ActivityLifecycle has already been executed
+          // in this case. This could happen on first start with ct migration. This method will also
+          // trigger App Launched if it was not send already.
           CleverTapAPI.onActivityResumed(LeanplumActivityHelper.getCurrentActivity())
         }
       }
@@ -108,8 +110,6 @@ internal class CTWrapper(
       Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
     if (firstTimeStart) {
-      // Track App Launched event, because onResume of activity has been executed before first run
-      sendAppLaunchedEvent()
       // Send tokens in same session, because often a restart is needed for CT SDK to get them
       sendPushTokens(context)
     }
