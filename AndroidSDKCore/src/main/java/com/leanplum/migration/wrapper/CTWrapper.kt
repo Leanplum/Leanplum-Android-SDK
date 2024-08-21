@@ -30,6 +30,7 @@ import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.clevertap.android.sdk.pushnotification.PushConstants
 import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
+import com.leanplum.LeanplumActivityHelper
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
 import com.leanplum.internal.Log
@@ -92,6 +93,10 @@ internal class CTWrapper(
       setLibrary("Leanplum")
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
+
+        if (!LeanplumActivityHelper.isActivityPaused() && !CleverTapAPI.isAppForeground()) {
+          CleverTapAPI.onActivityResumed(LeanplumActivityHelper.getCurrentActivity())
+        }
       }
       if (identityManager.isAnonymous()) {
         Log.d("Wrapper: identity not set for anonymous user")
