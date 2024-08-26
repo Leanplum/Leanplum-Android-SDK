@@ -44,7 +44,6 @@ interface IWrapper {
   fun track(
     event: String?,
     value: Double,
-    info: String?,
     params: Map<String, Any?>?,
   ) = Unit
 
@@ -65,7 +64,7 @@ interface IWrapper {
     params: Map<String, Any?>?,
   ) = Unit
 
-  fun advanceTo(state: String?, info: String?, params: Map<String, Any?>?) = Unit
+  fun advanceTo(state: String?, params: Map<String, Any?>?) = Unit
 
   fun setUserAttributes(attributes: Map<String, Any?>?) = Unit
 

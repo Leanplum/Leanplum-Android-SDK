@@ -30,6 +30,7 @@ import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
 import com.clevertap.android.sdk.pushnotification.PushConstants
 import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
+import com.leanplum.LeanplumActivityHelper
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
 import com.leanplum.internal.Log
@@ -92,6 +93,12 @@ internal class CTWrapper(
       setLibrary("Leanplum")
       if (!ActivityLifecycleCallback.registered) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
+        if (!LeanplumActivityHelper.isActivityPaused() && !CleverTapAPI.isAppForeground()) {
+          // Trigger onActivityResumed because onResume of ActivityLifecycle has already been executed
+          // in this case. This could happen on first start with ct migration. This method will also
+          // trigger App Launched if it was not send already.
+          CleverTapAPI.onActivityResumed(LeanplumActivityHelper.getCurrentActivity())
+        }
       }
       if (identityManager.isAnonymous()) {
         Log.d("Wrapper: identity not set for anonymous user")
@@ -103,8 +110,6 @@ internal class CTWrapper(
       Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
     if (firstTimeStart) {
-      // Track App Launched event, because onResume of activity has been executed before first run
-      sendAppLaunchedEvent()
       // Send tokens in same session, because often a restart is needed for CT SDK to get them
       sendPushTokens(context)
     }
@@ -205,7 +210,6 @@ internal class CTWrapper(
   override fun track(
     event: String?,
     value: Double,
-    info: String?,
     params: Map<String, Any?>?
   ) {
     if (event == null) return
@@ -218,10 +222,6 @@ internal class CTWrapper(
         ?: mutableMapOf()
 
     properties[MigrationConstants.VALUE_PARAM] = value
-
-    if (info != null) {
-      properties[MigrationConstants.INFO_PARAM] = info
-    }
 
     Log.d("Wrapper: Leanplum.track will call pushEvent with $event and $properties")
     cleverTapInstance?.pushEvent(event, properties)
@@ -288,17 +288,13 @@ internal class CTWrapper(
   /**
    * LP doesn't allow iterables in params.
    */
-  override fun advanceTo(state: String?, info: String?, params: Map<String, Any?>?) {
+  override fun advanceTo(state: String?, params: Map<String, Any?>?) {
     if (state == null) return;
 
     val event = MigrationConstants.STATE_PREFIX + state
     val properties =
       params?.mapValues(::mapNotSupportedValues)?.toMutableMap()
         ?: mutableMapOf()
-
-    if (info != null) {
-      properties[MigrationConstants.INFO_PARAM] = info
-    }
 
     Log.d("Wrapper: Leanplum.advance will call pushEvent with $event and $properties")
     cleverTapInstance?.pushEvent(event, properties)

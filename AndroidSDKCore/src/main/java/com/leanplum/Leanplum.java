@@ -1676,9 +1676,7 @@ public class Leanplum {
    */
   public static void track(final String event, double value, String info,
       Map<String, ?> params) {
-    LeanplumInternal.addStartIssuedHandler(() -> {
-      MigrationManager.getWrapper().track(event, value, info, params);
-    });
+    LeanplumInternal.addStartIssuedHandler(() -> MigrationManager.getWrapper().track(event, value, params));
     LeanplumInternal.track(event, value, info, params, null);
   }
 
@@ -1919,14 +1917,14 @@ public class Leanplum {
       }
 
       if (LeanplumInternal.issuedStart()) {
-        MigrationManager.getWrapper().advanceTo(state, info, params);
+        MigrationManager.getWrapper().advanceTo(state, params);
         advanceToInternal(state, validatedParams, requestParams);
       } else {
         LeanplumInternal.addStartIssuedHandler(new Runnable() {
           @Override
           public void run() {
             try {
-              MigrationManager.getWrapper().advanceTo(state, info, params);
+              MigrationManager.getWrapper().advanceTo(state, params);
               advanceToInternal(state, validatedParams, requestParams);
             } catch (Throwable t) {
               Log.exception(t);
