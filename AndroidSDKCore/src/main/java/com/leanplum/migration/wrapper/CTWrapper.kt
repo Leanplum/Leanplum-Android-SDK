@@ -24,12 +24,9 @@ package com.leanplum.migration.wrapper
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
-import com.clevertap.android.sdk.pushnotification.PushConstants
-import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
 import com.leanplum.LeanplumActivityHelper
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
@@ -39,7 +36,6 @@ import com.leanplum.migration.MigrationManager
 import com.leanplum.migration.push.FcmMigrationHandler
 import com.leanplum.migration.push.HmsMigrationHandler
 import com.leanplum.utils.CTUtils
-import com.leanplum.utils.SharedPreferencesUtil
 
 internal class CTWrapper(
   private val accountId: String,
@@ -59,7 +55,6 @@ internal class CTWrapper(
   private var instanceCallbackList: MutableList<CleverTapInstanceCallback> = mutableListOf()
 
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId, loggedInUserId)
-  private var firstTimeStart = identityManager.isFirstTimeStart()
 
   @SuppressLint("WrongConstant")
   override fun launch(context: Context, callbacks: List<CleverTapInstanceCallback>) {
@@ -109,10 +104,7 @@ internal class CTWrapper(
       }
       Log.d("Wrapper: CleverTap instance created by Leanplum")
     }
-    if (firstTimeStart) {
-      // Send tokens in same session, because often a restart is needed for CT SDK to get them
-      sendPushTokens(context)
-    }
+
     triggerInstanceCallbacks()
   }
 
@@ -135,33 +127,6 @@ internal class CTWrapper(
 
   override fun removeInstanceCallback(callback: CleverTapInstanceCallback) {
     instanceCallbackList.remove(callback)
-  }
-
-  @SuppressLint("RestrictedApi")
-  private fun sendAppLaunchedEvent() {
-    cleverTapInstance?.coreState?.analyticsManager?.pushAppLaunchedEvent()?.also {
-      Log.d("Wrapper: app launched event sent")
-    }
-  }
-
-  private fun sendPushTokens(context: Context) {
-    // FCM
-    val fcmToken = SharedPreferencesUtil.getString(context,
-      Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID)
-    if (!TextUtils.isEmpty(fcmToken)) {
-      val type = PushConstants.PushType.FCM.type
-      PushNotificationHandler.getPushNotificationHandler().onNewToken(context, fcmToken, type)
-      Log.d("Wrapper: fcm token sent")
-    }
-
-    // HMS
-    val hmsToken = SharedPreferencesUtil.getString(context,
-      Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID)
-    if (!TextUtils.isEmpty(hmsToken)) {
-      val type = PushConstants.PushType.HPS.type
-      PushNotificationHandler.getPushNotificationHandler().onNewToken(context, hmsToken, type)
-      Log.d("Wrapper: hms token sent")
-    }
   }
 
   override fun setUserId(userId: String?) {
