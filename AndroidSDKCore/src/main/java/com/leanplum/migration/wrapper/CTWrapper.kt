@@ -108,10 +108,10 @@ internal class CTWrapper(
         setDevicesProperty()
       }
       Log.d("Wrapper: CleverTap instance created by Leanplum")
-    }
-    if (firstTimeStart) {
-      // Send tokens in same session, because often a restart is needed for CT SDK to get them
-      sendPushTokens(context)
+      if (firstTimeStart) {
+        // Send tokens in the first session, because a restart is needed for CT SDK to get them
+        sendPushTokens(context, this)
+      }
     }
     triggerInstanceCallbacks()
   }
@@ -137,20 +137,12 @@ internal class CTWrapper(
     instanceCallbackList.remove(callback)
   }
 
-  @SuppressLint("RestrictedApi")
-  private fun sendAppLaunchedEvent() {
-    cleverTapInstance?.coreState?.analyticsManager?.pushAppLaunchedEvent()?.also {
-      Log.d("Wrapper: app launched event sent")
-    }
-  }
-
-  private fun sendPushTokens(context: Context) {
+  private fun sendPushTokens(context: Context, cleverTap: CleverTapAPI) {
     // FCM
     val fcmToken = SharedPreferencesUtil.getString(context,
       Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_FCM_TOKEN_ID)
     if (!TextUtils.isEmpty(fcmToken)) {
-      val type = PushConstants.PushType.FCM.type
-      PushNotificationHandler.getPushNotificationHandler().onNewToken(context, fcmToken, type)
+      cleverTap.pushFcmRegistrationId(fcmToken, true)
       Log.d("Wrapper: fcm token sent")
     }
 
@@ -158,8 +150,7 @@ internal class CTWrapper(
     val hmsToken = SharedPreferencesUtil.getString(context,
       Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID)
     if (!TextUtils.isEmpty(hmsToken)) {
-      val type = PushConstants.PushType.HPS.type
-      PushNotificationHandler.getPushNotificationHandler().onNewToken(context, hmsToken, type)
+      cleverTap.pushHuaweiRegistrationId(hmsToken, true)
       Log.d("Wrapper: hms token sent")
     }
   }
