@@ -28,8 +28,6 @@ import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
-import com.clevertap.android.sdk.pushnotification.PushConstants
-import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
 import com.leanplum.LeanplumActivityHelper
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
