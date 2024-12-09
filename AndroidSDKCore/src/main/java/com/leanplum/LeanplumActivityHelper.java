@@ -29,17 +29,16 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 
-import com.clevertap.android.sdk.ActivityLifecycleCallback;
 import com.leanplum.actions.internal.ActionManagerExecutionKt;
 import com.leanplum.annotations.Parser;
 import com.leanplum.internal.ActionManager;
 import com.leanplum.internal.Constants;
 import com.leanplum.internal.LeanplumInternal;
 import com.leanplum.internal.Log;
-
 import com.leanplum.internal.OperationQueue;
 import com.leanplum.migration.MigrationManager;
 import com.leanplum.utils.BuildUtil;
+
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -339,14 +338,14 @@ public class LeanplumActivityHelper {
   }
 
   private static void onDestroy(Activity activity) {
-    if (isActivityPaused &&
-        lastForegroundActivity != null &&
-        lastForegroundActivity.equals(activity)) {
-      // prevent activity leak
+    if (activity == lastForegroundActivity) {
+      // lastForegroundActivity is being destroyed, release the reference
       lastForegroundActivity = null;
-      // no activity is presented and last activity is being destroyed
-      // dismiss inapp dialogs to prevent leak
-      ActionManagerExecutionKt.dismissCurrentAction(ActionManager.getInstance());
+      if (isActivityPaused) {
+        // no activity is presented and last activity is being destroyed
+        // dismiss inapp dialogs to prevent leak
+        ActionManagerExecutionKt.dismissCurrentAction(ActionManager.getInstance());
+      }
     }
   }
 
