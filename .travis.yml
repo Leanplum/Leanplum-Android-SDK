@@ -82,5 +82,6 @@ deploy:
   - provider: script
     skip_cleanup: true
     script: ./gradlew artifactoryPublish publishAarPublicationToSonatypeRepository
+    dpl_version: 1.10.16
     on:
       tags: true
