@@ -89,7 +89,7 @@ internal class CTWrapper(
     }
     cleverTapInstance?.apply {
       setLibrary("Leanplum")
-      if (!ActivityLifecycleCallback.registered) {
+      if (!ActivityLifecycleCallback.registered && LeanplumActivityHelper.getCurrentActivity() != null) {
         ActivityLifecycleCallback.register(context.applicationContext as? Application)
         if (!LeanplumActivityHelper.isActivityPaused() && !CleverTapAPI.isAppForeground()) {
           // Trigger onActivityResumed because onResume of ActivityLifecycle has already been executed
