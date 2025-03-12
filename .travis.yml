@@ -7,15 +7,6 @@ jdk: openjdk17
 env:
   global:
     - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
-    - BUILD_API=34
-    - BUILD_TOOLS=34.0.0
-    - ABI=x86
-    - EMU_API=22
-    - EMU_FLAVOR=default
-#    - ANDROID_HOME=/usr/local/android-sdk
-#    - TOOLS=${ANDROID_HOME}/cmdline-tools/latest
-    # PATH order is important, the 'emulator' script exists in more than one place
-#    - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
     # If you want to run snapshot tests change value to 'true'. Build time will be increased by 6 minutes.
     - RUN_SNAPSHOT_TESTS=false
     - ROBOLECTRIC_SDK8_URL=https://repo1.maven.org/maven2/org/robolectric/android-all/8.0.0_r4-robolectric-r1/android-all-8.0.0_r4-robolectric-r1
@@ -30,7 +21,8 @@ android:
     - build-tools-34.0.0
     - android-34
     - extras;android;m2repository
-#    - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then sys-img-x86-android-22; fi;
+   # Uncomment for snapshot tests
+   #- sys-img-x86-android-22
 
   licenses:
   - 'android-sdk-preview-license-.+'
@@ -38,30 +30,13 @@ android:
   - 'google-gdk-license-.+'
 
 before_install:
-#  - curl -s "https://get.sdkman.io" | bash
-#  - source "$HOME/.sdkman/bin/sdkman-init.sh"
-#  - sdk install java 17.0.2-open
-#  - sdk use java 17.0.2-open
-  # Install cmdline-tools (older tools doesn't support Java 11)
-#  - wget -q "https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip" -O android-commandline-tools-linux.zip
-#  - mkdir -p ${ANDROID_HOME}/cmdline-tools
-#  - unzip -q android-commandline-tools-linux.zip -d ${ANDROID_HOME}/cmdline-tools
-#  - mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest
   # Library for image manipulation in snapshot tests
   - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then python -m pip install Tools/Pillow-6.2.2-cp27-cp27mu-manylinux1_x86_64.whl --user; fi;
 
 before_script:
-  # Install Android SDK and run emulator
-#  - echo 'count=0' > /home/travis/.android/repositories.cfg # avoid harmless sdkmanager warning
-#  - echo y | ${TOOLS}/bin/sdkmanager "platform-tools" >/dev/null
-#  - echo y | ${TOOLS}/bin/sdkmanager "tools" >/dev/null
-#  - echo y | ${TOOLS}/bin/sdkmanager "build-tools;$BUILD_TOOLS" >/dev/null
-#  - echo y | ${TOOLS}/bin/sdkmanager "platforms;android-$EMU_API" >/dev/null
-#  - echo y | ${TOOLS}/bin/sdkmanager "platforms;android-$BUILD_API" >/dev/null
-#  - echo y | ${TOOLS}/bin/sdkmanager "extras;android;m2repository" >/dev/null
-#  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo y | ${TOOLS}/bin/sdkmanager "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI"; fi;
-#  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo no | avdmanager create avd --force -n test -k "system-images;android-$EMU_API;$EMU_FLAVOR;$ABI" -c 100M; fi;
-#  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
+  # Run emulator
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then echo no | android create avd --force -n test -t android-22 --abi x86 -c 100M; fi;
+  - if [[ $RUN_SNAPSHOT_TESTS == true ]]; then emulator -verbose -avd test -no-accel -no-snapshot -no-window -no-audio -camera-back none -camera-front none -selinux permissive -qemu -m 2048 & fi;
 
 script:
   # make sure Robolectric dependency is presented
