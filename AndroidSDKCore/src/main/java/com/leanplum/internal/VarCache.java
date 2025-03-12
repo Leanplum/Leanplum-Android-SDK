@@ -458,6 +458,8 @@ public class VarCache {
     editor.putString(Constants.Params.USER_ID, aesContext.encrypt(APIConfig.getInstance().userId()));
 
     if (APIConfig.getInstance().token() == null) {
+      // The token is not used when encrypting and decrypting DEVICE_ID and USER_ID
+      // See WrapperFactory.getDeviceAndUserFromPrefs
       SharedPreferencesUtil.commitChanges(editor);
       return;
     }
