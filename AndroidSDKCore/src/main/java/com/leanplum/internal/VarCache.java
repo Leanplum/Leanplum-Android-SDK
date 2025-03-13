@@ -447,15 +447,22 @@ public class VarCache {
     if (Constants.isNoop()) {
       return;
     }
-    if (APIConfig.getInstance().token() == null) {
-      return;
-    }
+
     Context context = Leanplum.getContext();
     SharedPreferences defaults = context.getSharedPreferences(LEANPLUM, Context.MODE_PRIVATE);
     SharedPreferences.Editor editor = defaults.edit();
 
     // Crypt functions return input text if there was a problem.
     AESCrypt aesContext = new AESCrypt(APIConfig.getInstance().appId(), APIConfig.getInstance().token());
+    editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(APIConfig.getInstance().deviceId()));
+    editor.putString(Constants.Params.USER_ID, aesContext.encrypt(APIConfig.getInstance().userId()));
+
+    if (APIConfig.getInstance().token() == null) {
+      // The token is not used when encrypting and decrypting DEVICE_ID and USER_ID
+      // See WrapperFactory.getDeviceAndUserFromPrefs
+      SharedPreferencesUtil.commitChanges(editor);
+      return;
+    }
 
     String variablesCipher = aesContext.encrypt(JsonConverter.toJson(diffs));
     editor.putString(Constants.Defaults.VARIABLES_KEY, variablesCipher);
@@ -493,8 +500,6 @@ public class VarCache {
     editor.putString(Constants.Defaults.VARIABLES_JSON_KEY, aesContext.encrypt(varsJson));
     editor.putString(Constants.Defaults.VARIABLES_SIGN_KEY, aesContext.encrypt(varsSignature));
 
-    editor.putString(Constants.Params.DEVICE_ID, aesContext.encrypt(APIConfig.getInstance().deviceId()));
-    editor.putString(Constants.Params.USER_ID, aesContext.encrypt(APIConfig.getInstance().userId()));
     editor.putString(Constants.Keys.LOGGING_ENABLED,
         aesContext.encrypt(String.valueOf(Constants.loggingEnabled)));
     SharedPreferencesUtil.commitChanges(editor);

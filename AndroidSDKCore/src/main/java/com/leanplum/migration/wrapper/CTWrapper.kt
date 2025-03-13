@@ -28,6 +28,7 @@ import android.text.TextUtils
 import com.clevertap.android.sdk.ActivityLifecycleCallback
 import com.clevertap.android.sdk.CleverTapAPI
 import com.clevertap.android.sdk.CleverTapInstanceConfig
+import com.clevertap.android.sdk.CoreMetaData
 import com.leanplum.LeanplumActivityHelper
 import com.leanplum.callbacks.CleverTapInstanceCallback
 import com.leanplum.internal.Constants
@@ -59,7 +60,7 @@ internal class CTWrapper(
   private var identityManager = IdentityManager(deviceId, userId ?: deviceId, loggedInUserId)
   private var firstTimeStart = identityManager.isFirstTimeStart()
 
-  @SuppressLint("WrongConstant")
+  @SuppressLint("WrongConstant", "RestrictedApi")
   override fun launch(context: Context, callbacks: List<CleverTapInstanceCallback>) {
     instanceCallbackList.addAll(callbacks)
 
@@ -89,13 +90,22 @@ internal class CTWrapper(
     }
     cleverTapInstance?.apply {
       setLibrary("Leanplum")
-      if (!ActivityLifecycleCallback.registered && LeanplumActivityHelper.getCurrentActivity() != null) {
-        ActivityLifecycleCallback.register(context.applicationContext as? Application)
-        if (!LeanplumActivityHelper.isActivityPaused() && !CleverTapAPI.isAppForeground()) {
-          // Trigger onActivityResumed because onResume of ActivityLifecycle has already been executed
-          // in this case. This could happen on first start with ct migration. This method will also
-          // trigger App Launched if it was not send already.
-          CleverTapAPI.onActivityResumed(LeanplumActivityHelper.getCurrentActivity())
+      if (LeanplumActivityHelper.getCurrentActivity() != null) {
+        if (!ActivityLifecycleCallback.registered) {
+          ActivityLifecycleCallback.register(context.applicationContext as? Application)
+          if (!LeanplumActivityHelper.isActivityPaused() && !CleverTapAPI.isAppForeground()) {
+            // Trigger onActivityResumed because onResume of ActivityLifecycle has already been executed
+            // in this case. This could happen on first start with ct migration. This method will also
+            // trigger App Launched if it was not send already.
+            CleverTapAPI.onActivityResumed(LeanplumActivityHelper.getCurrentActivity(), cleverTapID)
+          }
+        } else if (CoreMetaData.getCurrentActivity() == null && !LeanplumActivityHelper.isActivityPaused()) {
+          // If CT ActivityLifecycleCallback was registered before LP had created the CT instance
+          // CleverTapAPI.onActivityResumed would have not executed its initialization logic
+          // (CleverTapAPI.instances would still have been null). This is checked here by
+          // CoreMetaData.getCurrentActivity() == null.
+          // In this case call onActivityResumed explicitly.
+          CleverTapAPI.onActivityResumed(LeanplumActivityHelper.getCurrentActivity(), cleverTapID)
         }
       }
       if (identityManager.isAnonymous()) {
