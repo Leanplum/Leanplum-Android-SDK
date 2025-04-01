@@ -38,7 +38,7 @@ dependencies {
     api project(':AndroidSDKCore')
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
-    compileOnly('com.google.android.gms:play-services-location:[16.0.0,)') {
+    compileOnly('com.google.android.gms:play-services-location:[21.3.0,)') {
         exclude module: 'support-v4'
     }
 }

@@ -20,6 +20,8 @@
  */
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import com.leanplum.Leanplum;
 import com.leanplum.__setup.LeanplumTestApp;
 
@@ -47,7 +49,7 @@ import static org.powermock.api.mockito.PowerMockito.spy;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

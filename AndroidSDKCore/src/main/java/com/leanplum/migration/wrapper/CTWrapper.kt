@@ -158,7 +158,7 @@ internal class CTWrapper(
     val hmsToken = SharedPreferencesUtil.getString(context,
       Constants.Defaults.LEANPLUM_PUSH, Constants.Defaults.PROPERTY_HMS_TOKEN_ID)
     if (!TextUtils.isEmpty(hmsToken)) {
-      cleverTap.pushHuaweiRegistrationId(hmsToken, true)
+      cleverTap.pushRegistrationToken(hmsToken, HmsMigrationHandler.HPS_PUSH_TYPE, true)
       Log.d("Wrapper: hms token sent")
     }
   }

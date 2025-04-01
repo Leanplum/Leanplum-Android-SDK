@@ -24,10 +24,20 @@ package com.leanplum.migration.push
 import android.content.Context
 import android.os.Bundle
 import com.clevertap.android.sdk.Utils
-import com.clevertap.android.sdk.pushnotification.PushConstants.PushType
 import com.clevertap.android.sdk.pushnotification.PushNotificationHandler
+import com.clevertap.android.sdk.pushnotification.PushType
+
 
 class HmsMigrationHandler internal constructor() {
+
+  companion object {
+    internal val HPS_PUSH_TYPE = PushType(
+      "hps",
+      "hps_token",
+      "com.clevertap.android.hms.HmsPushProvider",
+      "com.huawei.hms.push.HmsMessageService"
+    )
+  }
 
   fun createNotification(context: Context?, messageData: String?): Boolean {
     val messageBundle: Bundle = Utils.stringToBundle(messageData)
@@ -35,7 +45,8 @@ class HmsMigrationHandler internal constructor() {
       PushNotificationHandler.getPushNotificationHandler().onMessageReceived(
         context,
         messageBundle,
-        PushType.HPS.toString())
+        HPS_PUSH_TYPE.type
+      )
     } catch (t: Throwable) {
       t.printStackTrace()
       false
@@ -49,7 +60,7 @@ class HmsMigrationHandler internal constructor() {
       PushNotificationHandler.getPushNotificationHandler().onNewToken(
         context,
         token,
-        PushType.HPS.type
+        HPS_PUSH_TYPE
       )
       isSuccess = true
     } catch (t: Throwable) {
