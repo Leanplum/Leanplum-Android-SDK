@@ -86,7 +86,7 @@ public class LeanplumCloudMessagingProviderTest {
   public void setUp() {
     spy(LeanplumCloudMessagingProvider.class);
 
-    this.context = RuntimeEnvironment.application;
+    this.context = RuntimeEnvironment.getApplication();
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
   }
@@ -101,7 +101,7 @@ public class LeanplumCloudMessagingProviderTest {
   public void testOnRegistrationIdReceived() throws Exception {
     mockStatic(Leanplum.class);
     mockStatic(SharedPreferencesUtil.class);
-    when(Leanplum.class, "getContext").thenReturn(RuntimeEnvironment.application);
+    when(Leanplum.class, "getContext").thenReturn(context);
     String propertyName = "propertyName";
 
     LeanplumCloudMessagingProvider cloudMessagingProvider = new LeanplumCloudMessagingProvider() {

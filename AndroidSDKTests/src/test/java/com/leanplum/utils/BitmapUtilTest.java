@@ -53,7 +53,6 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Tests for {@link BitmapUtil} class.
@@ -87,7 +86,7 @@ public class BitmapUtilTest {
   public void setUp() {
     spy(BitmapUtil.class);
 
-    this.context = RuntimeEnvironment.application;
+    this.context = RuntimeEnvironment.getApplication();
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
   }

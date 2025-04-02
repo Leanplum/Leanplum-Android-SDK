@@ -52,10 +52,7 @@ import org.robolectric.util.ReflectionHelpers;
 @RunWith(RobolectricTestRunner.class)
 @Config(
     sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
-    application = LeanplumTestApp.class,
-    shadows = {
-        ShadowLooper.class,
-    }
+    application = LeanplumTestApp.class
 )
 @LooperMode(LooperMode.Mode.LEGACY)
 @PowerMockIgnore({
@@ -69,7 +66,7 @@ public class RequestBatchFactoryTest {
 
   @Before
   public void setUp() throws Exception {
-    Application context = RuntimeEnvironment.application;
+    Application context = RuntimeEnvironment.getApplication();
     assertNotNull(context);
 
     Leanplum.setApplicationContext(context);

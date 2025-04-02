@@ -62,7 +62,7 @@ public class LeanplumEventDataManagerTest {
    */
   @Before
   public void setUp() throws Exception {
-    this.mContext = RuntimeEnvironment.application;
+    this.mContext = RuntimeEnvironment.getApplication();
     assertNotNull(this.mContext);
     Leanplum.setApplicationContext(this.mContext);
 
