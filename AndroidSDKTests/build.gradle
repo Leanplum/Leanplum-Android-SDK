@@ -72,7 +72,7 @@ dependencies {
     implementation project(':AndroidSDKLocation')
     implementation project(':AndroidSDKFcm')
     implementation "androidx.appcompat:appcompat:${APPCOMPAT_LIBRARY_VERSION}"
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
 
     // Dependencies used for unit tests.
     testImplementation 'junit:junit:4.13'
