@@ -39,7 +39,7 @@ public class RequestUtilTest extends TestCase {
      */
     @Before
     public void setUp() throws Exception {
-        Application context = RuntimeEnvironment.application;
+        Application context = RuntimeEnvironment.getApplication();
         assertNotNull(context);
         Leanplum.setApplicationContext(context);
 

@@ -101,7 +101,7 @@ public class AESCryptTest {
   public void setUp() {
     Provider provider = new org.bouncycastle.jce.provider.BouncyCastleProvider();
     Security.addProvider(provider);
-    preferences = RuntimeEnvironment.application.getSharedPreferences("__leanplum__",
+    preferences = RuntimeEnvironment.getApplication().getSharedPreferences("__leanplum__",
         Context.MODE_PRIVATE);
   }
 

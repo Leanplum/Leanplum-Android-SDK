@@ -26,9 +26,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -60,7 +58,6 @@ import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Queue;
 
@@ -68,20 +65,15 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.robolectric.Shadows.shadowOf;
 
 /**
@@ -125,7 +117,7 @@ public class LeanplumPushServiceTest {
 
     when(Util.hasPlayServices()).thenReturn(true);
 
-    this.context = RuntimeEnvironment.application;
+    this.context = RuntimeEnvironment.getApplication();
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
 
@@ -249,10 +241,10 @@ public class LeanplumPushServiceTest {
     bundle.putString("_lpm", "message_id");
     bundle.putString("title", "title_string");
     bundle.putString(Constants.Keys.PUSH_MESSAGE_TEXT, "message_text");
-    LeanplumPushService.handleNotification(RuntimeEnvironment.application.getApplicationContext(), bundle);
+    LeanplumPushService.handleNotification(context.getApplicationContext(), bundle);
 
     NotificationManager notificationManager = (NotificationManager)
-        RuntimeEnvironment.application.getSystemService(Context.NOTIFICATION_SERVICE);
+        context.getSystemService(Context.NOTIFICATION_SERVICE);
     assertEquals(1, shadowOf(notificationManager).size());
   }
 
