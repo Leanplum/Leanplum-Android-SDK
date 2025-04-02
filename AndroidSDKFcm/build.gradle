@@ -38,7 +38,7 @@ dependencies {
     api project(':AndroidSDKPush')
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
-    compileOnly('com.google.firebase:firebase-messaging:24.0.0')
+    compileOnly('com.google.firebase:firebase-messaging:23.0.8')
     implementation "com.clevertap.android:clevertap-android-sdk:${CT_SDK_VERSION}"
 }
 
