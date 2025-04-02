@@ -2,6 +2,7 @@ package com.leanplum.migration.wrapper
 
 import android.util.Log
 import com.leanplum.utils.HashUtil
+import com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.*
@@ -11,7 +12,7 @@ import org.robolectric.annotation.Config
 import kotlin.properties.Delegates
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [19])
+@Config(sdk = [ROBOLECTRIC_CONFIG_SDK_VERSION])
 @PrepareForTest(
   Log::class,
 )

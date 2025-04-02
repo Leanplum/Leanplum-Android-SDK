@@ -40,6 +40,10 @@ android {
         targetCompatibility JAVA_VERSION
     }
 
+    kotlinOptions {
+        jvmTarget = JAVA_VERSION
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'

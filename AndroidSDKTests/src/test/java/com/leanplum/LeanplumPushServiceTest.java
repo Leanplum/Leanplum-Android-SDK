@@ -20,6 +20,8 @@
  */
 package com.leanplum;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -83,7 +85,7 @@ import static org.robolectric.Shadows.shadowOf;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

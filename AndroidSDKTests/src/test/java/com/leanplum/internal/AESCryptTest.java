@@ -20,6 +20,8 @@
  */
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -53,7 +55,7 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("unused")
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({

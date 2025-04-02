@@ -28,13 +28,17 @@ android {
         sourceCompatibility JAVA_VERSION
         targetCompatibility JAVA_VERSION
     }
+
+    kotlinOptions {
+        jvmTarget = JAVA_VERSION
+    }
 }
 
 dependencies {
     api project(':AndroidSDKCore')
     api project(':AndroidSDKPush')
 
-    implementation 'com.huawei.agconnect:agconnect-core:1.9.1.300'
+    implementation 'com.huawei.agconnect:agconnect-core:1.9.1.301'
     implementation 'com.huawei.hms:push:6.11.0.300'
 }
 

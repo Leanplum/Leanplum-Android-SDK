@@ -18,8 +18,8 @@ android:
     - tools
     - platform-tools
     - tools
-    - build-tools-34.0.0
-    - android-34
+    - build-tools;35.0.0
+    - platforms;android-35
     - extras;android;m2repository
    # Uncomment for snapshot tests
    #- sys-img-x86-android-22

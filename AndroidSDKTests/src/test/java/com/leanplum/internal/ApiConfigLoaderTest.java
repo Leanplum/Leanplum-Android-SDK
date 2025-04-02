@@ -21,6 +21,7 @@
 
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION
 )
 public class ApiConfigLoaderTest {
   private String appId;

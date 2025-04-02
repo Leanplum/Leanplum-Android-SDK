@@ -20,6 +20,8 @@
  */
 package com.leanplum;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.os.Build.VERSION_CODES;
 import com.leanplum.internal.Constants;
 
@@ -46,7 +48,7 @@ import static org.mockito.Mockito.verify;
  * @author Sayaan Saha
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 19)
+@Config(sdk = ROBOLECTRIC_CONFIG_SDK_VERSION)
 public class LeanplumInboxMessageTest {
 
   private LeanplumInboxMessage createMessageTestData(
