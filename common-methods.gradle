@@ -60,7 +60,7 @@ def publishing_task(libraryArtifactId) {
                     artifact androidSourcesJar
 
                     // publish jar
-                    artifact("$buildDir/intermediates/aar_main_jar/release/classes.jar")
+                    artifact("$buildDir/intermediates/aar_main_jar/release/syncReleaseLibJars/classes.jar")
 
                     pom {
                         packaging = 'aar'
@@ -99,6 +99,8 @@ def publishing_task(libraryArtifactId) {
             }
 
         }
+        tasks.generateMetadataFileForAarPublication.dependsOn androidJavadocsJar
+        tasks.generateMetadataFileForAarPublication.dependsOn androidSourcesJar
     }
 
     artifactory {
