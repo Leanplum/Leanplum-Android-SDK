@@ -55,7 +55,7 @@ script:
 
 before_deploy:
   - ./Tools/verifyTag.sh
-  - ./gradlew assembleRelease generatePomFileForAarPublication
+  - ./gradlew assembleRelease generatePomFileForReleasePublication
 
 after_deploy:
   - ./Tools/triggerRondo.sh
@@ -64,7 +64,7 @@ after_deploy:
 deploy:
   - provider: script
     skip_cleanup: true
-    script: ./gradlew artifactoryPublish publishAarPublicationToSonatypeRepository
+    script: ./gradlew artifactoryPublish publishReleasePublicationToSonatypeRepository
     dpl_version: 1.10.16
     on:
       tags: true
