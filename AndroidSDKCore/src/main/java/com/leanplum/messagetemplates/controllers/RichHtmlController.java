@@ -32,6 +32,7 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
@@ -40,7 +41,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
+
 import androidx.annotation.NonNull;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import com.leanplum.ActionContext;
 import com.leanplum.Leanplum;
 import com.leanplum.internal.Log;
@@ -48,10 +54,12 @@ import com.leanplum.messagetemplates.DialogCustomizer;
 import com.leanplum.messagetemplates.MessageTemplates;
 import com.leanplum.messagetemplates.options.RichHtmlOptions;
 import com.leanplum.utils.SizeUtil;
+
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Map;
-import org.json.JSONObject;
 
 /**
  * Registers a Leanplum action that displays a HTML message.
@@ -68,6 +76,22 @@ public class RichHtmlController extends BaseController {
     this.richOptions = richOptions;
 
     init();
+    if (richOptions.isBanner()) {
+      ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, insets) -> {
+        Insets bars = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars()
+                        | WindowInsetsCompat.Type.navigationBars()
+                        | WindowInsetsCompat.Type.displayCutout()
+        );
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+        if (richOptions.isHtmlAlignBottom()) {
+          lp.bottomMargin = bars.bottom;
+        } else {
+          lp.topMargin = bars.top;
+        }
+        return WindowInsetsCompat.CONSUMED;
+      });
+    }
   }
 
   @Override
@@ -96,6 +120,8 @@ public class RichHtmlController extends BaseController {
     }
 
     window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+    window.setStatusBarColor(Color.TRANSPARENT);
 
     if (richOptions.isBannerWithTapOutsideFalse()) {
       // banners need to be positioned at the top manually
