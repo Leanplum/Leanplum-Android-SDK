@@ -64,7 +64,15 @@ after_deploy:
 deploy:
   - provider: script
     skip_cleanup: true
-    script: ./gradlew artifactoryPublish publishReleasePublicationToSonatypeRepository
+    script: ./gradlew artifactoryPublish
     dpl_version: 1.10.16
     on:
       tags: true
+
+  - provider: script
+    skip_cleanup: true
+    script: ./gradlew AndroidSDKCore:publishToMavenCentralPortal AndroidSDKPush:publishToMavenCentralPortal AndroidSDKFcm:publishToMavenCentralPortal AndroidSDKHms:publishToMavenCentralPortal AndroidSDKLocation:publishToMavenCentralPortal
+    dpl_version: 1.10.16
+    on:
+      tags: true
+      condition: $(cat sdk-version.txt) != *"beta"*

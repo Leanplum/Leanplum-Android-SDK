@@ -66,19 +66,6 @@ def publishing_task(libraryArtifactId) {
                     }
                 }
             }
-
-            repositories {
-                maven {
-                    name = "sonatype"
-                    url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-
-                    credentials {
-                        username = System.getenv('SONATYPE_OSSRH_USER')
-                        password = System.getenv('SONATYPE_OSSRH_PASSWORD')
-                    }
-                }
-            }
-
         }
     }
 
@@ -111,5 +98,10 @@ def publishing_task(libraryArtifactId) {
 
         useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications
+    }
+
+    mavenCentral {
+        authToken = System.getenv('SONATYPE_MAVEN_CENTRAL_TOKEN')
+        publishingType = 'USER_MANAGED'
     }
 }
