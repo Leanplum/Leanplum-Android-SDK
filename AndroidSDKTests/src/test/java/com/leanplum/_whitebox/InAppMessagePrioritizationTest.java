@@ -141,7 +141,7 @@ public class InAppMessagePrioritizationTest extends AbstractTest {
    */
   @Test
   public void testSingleMessage() throws Exception {
-    Assert.assertNotNull(RuntimeEnvironment.application); //Getting the application context
+    Assert.assertNotNull(RuntimeEnvironment.getApplication()); //Getting the application context
     InputStream inputStream = getClass().getResourceAsStream("/test_files/single_message.json");
     Assert.assertNotNull(inputStream);
     String jsonMessages = IOUtils.toString(inputStream);

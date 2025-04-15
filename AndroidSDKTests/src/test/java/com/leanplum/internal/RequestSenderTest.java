@@ -20,6 +20,8 @@
  */
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 import android.content.Context;
 
@@ -51,11 +53,8 @@ import java.util.concurrent.Semaphore;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-        sdk = 19,
-        application = LeanplumTestApp.class,
-        shadows = {
-                ShadowLooper.class,
-        }
+        sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
+        application = LeanplumTestApp.class
 )
 @LooperMode(LooperMode.Mode.LEGACY)
 @PowerMockIgnore({
@@ -72,7 +71,7 @@ public class RequestSenderTest extends TestCase {
    */
   @Before
   public void setUp() throws Exception {
-    Application context = RuntimeEnvironment.application;
+    Application context = RuntimeEnvironment.getApplication();
     assertNotNull(context);
 
     Leanplum.setApplicationContext(context);

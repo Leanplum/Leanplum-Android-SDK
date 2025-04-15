@@ -20,6 +20,8 @@
  */
 package com.leanplum.__setup;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -49,7 +51,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -58,7 +59,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
-import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
 import java.io.ByteArrayOutputStream;
@@ -83,12 +83,9 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class,
-    packageName = "com.leanplum.tests",
-    shadows = {
-        ShadowLooper.class,
-    }
+    packageName = "com.leanplum.tests"
 )
 @PowerMockIgnore({
     "org.mockito.*",
@@ -135,7 +132,7 @@ public abstract class AbstractTest {
 
     ReflectionHelpers.setStaticField(LeanplumEventDataManager.class, "instance", null);
     // Get and set application context.
-    mContext = RuntimeEnvironment.application;
+    mContext = RuntimeEnvironment.getApplication();
     Leanplum.setApplicationContext(mContext);
 
     // Display logs in console.

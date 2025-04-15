@@ -171,8 +171,7 @@ public class LeanplumNotificationChannelTests extends AbstractTest {
     assertNotNull(notificationGroups);
 
     assertEquals(2, notificationChannels.size());
-    // Uncomment when robolectric fixes notification group deletion.
-    // assertEquals(2, notificationGroups.size());
+    assertEquals(2, notificationGroups.size());
   }
 
   @Test

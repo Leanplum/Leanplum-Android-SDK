@@ -36,8 +36,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.robolectric.RuntimeEnvironment;
 
-import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +49,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
@@ -185,7 +182,7 @@ public class LeanplumActionContextTest extends AbstractTest {
 
         actionContext.muteFutureMessagesOfSameKind();
 
-        SharedPreferences preferences = RuntimeEnvironment.application.getSharedPreferences(
+        SharedPreferences preferences = RuntimeEnvironment.getApplication().getSharedPreferences(
             Defaults.MESSAGING_PREF_NAME, Context.MODE_PRIVATE);
         boolean muted = preferences.getBoolean(String.format(Constants.Defaults.MESSAGE_MUTED_KEY,
                 "messageId"), false);

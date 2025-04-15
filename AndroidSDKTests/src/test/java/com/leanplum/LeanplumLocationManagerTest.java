@@ -36,7 +36,9 @@ import com.leanplum.internal.RequestBuilder;
 import com.leanplum.internal.Request;
 import com.leanplum.internal.Util;
 import com.leanplum.internal.VarCache;
+import com.leanplum.tests.BuildConfig;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -85,6 +87,10 @@ public class LeanplumLocationManagerTest extends AbstractTest {
 
   @Override
   public void before() throws Exception {
+    // Ignore the tests in release builds. The tests modify the internal state
+    // of google location classes which fails in release builds. The whole implementation and
+    // tests of LocationManagerImplementation should be refactored not to depend on static state
+    Assume.assumeTrue(BuildConfig.DEBUG);
     super.before();
     mLocationManager = Whitebox.invokeMethod(LocationManagerImplementation.class, "instance");
   }

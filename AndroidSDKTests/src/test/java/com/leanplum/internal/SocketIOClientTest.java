@@ -20,6 +20,8 @@
  */
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 import android.content.Context;
 
@@ -57,7 +59,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({
@@ -93,7 +95,7 @@ public class SocketIOClientTest {
    */
   @Test
   public void testUserAgentString() throws Exception {
-    Application context = RuntimeEnvironment.application;
+    Application context = RuntimeEnvironment.getApplication();
     Assert.assertNotNull(context);
     Leanplum.setApplicationContext(context);
 
@@ -134,7 +136,7 @@ public class SocketIOClientTest {
     when(Util.class, "getApplicationName", Matchers.any(Context.class)).thenReturn("app_name");
 
     // Test with a non-null Context.
-    doReturn(RuntimeEnvironment.application).when(Leanplum.class, "getContext");
+    doReturn(RuntimeEnvironment.getApplication()).when(Leanplum.class, "getContext");
     assertEquals("app_name/app_version(app_id; android; 1/s)",
         (String) userAgentStringMethod.invoke(socketIOClient));
 

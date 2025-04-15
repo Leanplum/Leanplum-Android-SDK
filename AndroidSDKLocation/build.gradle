@@ -4,6 +4,7 @@ plugins {
     id 'com.jfrog.artifactory' version '4.25.5'
     id 'maven-publish'
     id 'signing'
+    id 'tech.yanand.maven-central-publish' version '1.3.0'
 }
 apply from: "../common-methods.gradle"
 
@@ -28,13 +29,17 @@ android {
         sourceCompatibility JAVA_VERSION
         targetCompatibility JAVA_VERSION
     }
+
+    kotlinOptions {
+        jvmTarget = JAVA_VERSION
+    }
 }
 
 dependencies {
     api project(':AndroidSDKCore')
 
     // Provided dependencies are optional dependencies and will not show up in pom file.
-    compileOnly('com.google.android.gms:play-services-location:[16.0.0,)') {
+    compileOnly('com.google.android.gms:play-services-location:[21.3.0,)') {
         exclude module: 'support-v4'
     }
 }

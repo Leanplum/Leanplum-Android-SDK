@@ -20,6 +20,8 @@
  */
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 
 import com.leanplum.Leanplum;
@@ -48,7 +50,7 @@ import static junit.framework.Assert.assertNotNull;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 public class LeanplumEventDataManagerTest {
@@ -60,7 +62,7 @@ public class LeanplumEventDataManagerTest {
    */
   @Before
   public void setUp() throws Exception {
-    this.mContext = RuntimeEnvironment.application;
+    this.mContext = RuntimeEnvironment.getApplication();
     assertNotNull(this.mContext);
     Leanplum.setApplicationContext(this.mContext);
 

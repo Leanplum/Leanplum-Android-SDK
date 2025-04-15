@@ -20,6 +20,8 @@
  */
 package com.leanplum;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 
 import com.leanplum.__setup.LeanplumTestApp;
@@ -58,7 +60,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({
@@ -84,7 +86,7 @@ public class LeanplumCloudMessagingProviderTest {
   public void setUp() {
     spy(LeanplumCloudMessagingProvider.class);
 
-    this.context = RuntimeEnvironment.application;
+    this.context = RuntimeEnvironment.getApplication();
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
   }
@@ -99,7 +101,7 @@ public class LeanplumCloudMessagingProviderTest {
   public void testOnRegistrationIdReceived() throws Exception {
     mockStatic(Leanplum.class);
     mockStatic(SharedPreferencesUtil.class);
-    when(Leanplum.class, "getContext").thenReturn(RuntimeEnvironment.application);
+    when(Leanplum.class, "getContext").thenReturn(context);
     String propertyName = "propertyName";
 
     LeanplumCloudMessagingProvider cloudMessagingProvider = new LeanplumCloudMessagingProvider() {

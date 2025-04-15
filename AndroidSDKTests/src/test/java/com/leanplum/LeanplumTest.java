@@ -87,7 +87,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
@@ -845,7 +844,7 @@ public class LeanplumTest extends AbstractTest {
 
   @Test
   public void testAdvance() throws Exception {
-    setupSDK(RuntimeEnvironment.application, "/responses/simple_start_response.json");
+    setupSDK(RuntimeEnvironment.getApplication(), "/responses/simple_start_response.json");
 
     // Setup state values.
     final String stateName = "test_state_name";

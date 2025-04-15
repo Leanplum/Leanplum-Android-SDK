@@ -20,6 +20,8 @@
  */
 package com.leanplum.utils;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -51,7 +53,6 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Tests for {@link BitmapUtil} class.
@@ -60,7 +61,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(
-    sdk = 19,
+    sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
     application = LeanplumTestApp.class
 )
 @PowerMockIgnore({
@@ -85,7 +86,7 @@ public class BitmapUtilTest {
   public void setUp() {
     spy(BitmapUtil.class);
 
-    this.context = RuntimeEnvironment.application;
+    this.context = RuntimeEnvironment.getApplication();
     assertNotNull(this.context);
     Leanplum.setApplicationContext(this.context);
   }

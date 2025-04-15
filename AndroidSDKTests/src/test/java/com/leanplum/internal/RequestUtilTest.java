@@ -1,5 +1,7 @@
 package com.leanplum.internal;
 
+import static com.leanplum.utils.TestConstants.ROBOLECTRIC_CONFIG_SDK_VERSION;
+
 import android.app.Application;
 
 import com.leanplum.Leanplum;
@@ -22,7 +24,7 @@ import java.util.Map;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(
-        sdk = 19,
+        sdk = ROBOLECTRIC_CONFIG_SDK_VERSION,
         application = LeanplumTestApp.class
 )
 @PowerMockIgnore({
@@ -39,7 +41,7 @@ public class RequestUtilTest extends TestCase {
      */
     @Before
     public void setUp() throws Exception {
-        Application context = RuntimeEnvironment.application;
+        Application context = RuntimeEnvironment.getApplication();
         assertNotNull(context);
         Leanplum.setApplicationContext(context);
 

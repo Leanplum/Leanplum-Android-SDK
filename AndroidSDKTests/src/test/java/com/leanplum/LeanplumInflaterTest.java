@@ -40,7 +40,7 @@ public class LeanplumInflaterTest extends AbstractTest {
    */
   @Test
   public void testInflater() {
-    LeanplumInflater inflater = LeanplumInflater.from(RuntimeEnvironment.application.getApplicationContext());
+    LeanplumInflater inflater = LeanplumInflater.from(RuntimeEnvironment.getApplication().getApplicationContext());
     assertNotNull(inflater);
     assertNotNull(inflater.getLeanplumResources());
   }
@@ -50,7 +50,7 @@ public class LeanplumInflaterTest extends AbstractTest {
    */
   @Test
   public void testInflate() {
-    LeanplumInflater inflater = LeanplumInflater.from(RuntimeEnvironment.application.getApplicationContext());
+    LeanplumInflater inflater = LeanplumInflater.from(RuntimeEnvironment.getApplication().getApplicationContext());
     View root = inflater.inflate(R.layout.activity_main);
     assertNotNull(root);
   }
